@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | Giai đoạn 1 — 36 AC (AC-1.1→1.7, AC-2.1→2.11 gồm AC-2.1b, AC-3.1→3.8, AC-4.1→4.9): 31 làm trọn + 5 làm một phần |
-| **Tiến độ** | 0/35 |
+| **Tiến độ** | 7/35 |
 | **Sửa đổi** | 2026-10-26 — sửa theo kết quả `/analyze` |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -17,41 +17,41 @@ Các phase dưới đây là 5 lát cắt dọc ở `plan.md` mục 9, cộng m�
 
 ## Phase 0 — Lát 0: Bộ khung chạy được
 
-- [ ] **T001** — Khởi tạo project Vite + React + TypeScript `strict` + Tailwind + Vitest
+- [x] **T001** — Khởi tạo project Vite + React + TypeScript `strict` + Tailwind + Vitest
   - File: `package.json`, `vite.config.ts`, `tsconfig.json`, `tailwind.config.js`, `postcss.config.js`, `index.html`, `src/main.tsx`, `src/App.tsx`, `src/index.css`
   - Xong khi: `npm run dev` mở ra trang có tiêu đề tiếng Việt; `npm run test` chạy được và báo 0 test; `npx tsc --noEmit` không lỗi. `tsconfig.json` bật `strict` và `noImplicitAny`. Không có thẻ `<link>` nào trỏ ra ngoài máy (hiến pháp P4).
   - Phụ thuộc: —
 
-- [ ] **T002** [P] — Khởi tạo git và commit đầu tiên
+- [x] **T002** [P] — Khởi tạo git và commit đầu tiên
   - File: `.gitignore`
   - Xong khi: `git log --oneline` có đúng 1 commit; `git status` sạch; `node_modules` và `dist` không bị theo dõi.
   - Phụ thuộc: T001
 
-- [ ] **T003** — Khai báo kiểu miền
+- [x] **T003** — Khai báo kiểu miền
   - File: `src/domain/types.ts`
   - Xong khi: `npx tsc --noEmit` sạch; file khai báo `Team`, `Player`, `PositionId`, `AttributeId`, `GkAttributeId`, `Rng`, `PreferredFoot` và không `import` bất cứ thứ gì.
   - Phụ thuộc: T001
 
-- [ ] **T004** — Bảng 12 vị trí
+- [x] **T004** — Bảng 12 vị trí
   - File: `src/domain/positions.ts`, `src/domain/positions.test.ts`
   - Xong khi: test xanh và khẳng định đúng 12 vị trí, mỗi vị trí có tên tiếng Việt, thuộc đúng một tuyến (thủ môn / phòng ngự / tiền vệ / tấn công) và có bên xác định (trái / giữa / phải); **có hàm thuần kiểm tra tổ hợp vị trí hợp lệ**, test khẳng định nó nhận một hay nhiều vị trí sân, nhận Thủ môn đứng một mình, và từ chối mọi tổ hợp có Thủ môn kèm vị trí khác (AC-2.1b).
   - AC: AC-2.1, AC-2.1b
   - Phụ thuộc: T003
 
-- [ ] **T005** — Bảng chỉ số và trọng số theo vị trí
+- [x] **T005** — Bảng chỉ số và trọng số theo vị trí
   - File: `src/domain/attributes.ts`, `src/domain/attributes.test.ts`
   - Xong khi: test xanh và khẳng định đúng 15 chỉ số chung, đúng 3 chỉ số thủ môn, mỗi chỉ số có tên tiếng Việt và thuộc một trong 4 nhóm; mọi vị trí trong `POSITIONS` đều có bộ trọng số (không vị trí nào bị bỏ sót).
   - AC: AC-2.2
   - Phụ thuộc: T004
   - Ghi chú: đây là bảng dùng chung cho cả chỉ số tổng và sinh nhanh chỉ số (quyết định D10 trong plan). Đặt sai bảng này là rủi ro R5.
 
-- [ ] **T006** [P] — Mở IndexedDB với 4 store và khung migration
+- [x] **T006** [P] — Mở IndexedDB với 4 store và khung migration
   - File: `src/storage/db.ts`, `src/storage/migrations.ts`, `src/storage/db.test.ts`
   - Xong khi: test trên `fake-indexeddb` xanh — mở được database `bongda`, có đúng 4 store (`meta`, `teams`, `players`, `images`), có index `byTeam` và `byTeamAndShirt` trên `players`, đọc `meta.schemaVersion` ra `1`; mảng migration rỗng chạy không lỗi; tệp có `schemaVersion` lớn hơn 1 bị từ chối.
   - AC: AC-4.2
   - Phụ thuộc: T003
 
-- [ ] **T007** — Test cấu trúc chặn `domain` phụ thuộc ra ngoài
+- [x] **T007** — Test cấu trúc chặn `domain` phụ thuộc ra ngoài
   - File: `src/domain/boundaries.test.ts`
   - Xong khi: test xanh với code hiện tại, và **fail** khi cố thêm một dòng `import` từ `react`, `react-dom`, `../services` hay `../storage` vào bất kỳ file nào trong `src/domain/` (tự thử một lần rồi hoàn tác để xác nhận test thật sự bắt được). Test cũng chặn `src/services/` import từ `../hooks`, `../store` hay `../ui` — đây là luật thứ hai mà `plan.md` mục 3 phát biểu.
   - Phụ thuộc: T004, T005
