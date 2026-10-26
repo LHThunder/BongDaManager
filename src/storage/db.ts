@@ -100,3 +100,30 @@ export async function docSchemaVersion(): Promise<number | undefined> {
   const row = await db.get('meta', 'schemaVersion')
   return typeof row?.value === 'number' ? row.value : undefined
 }
+
+export type KetQuaLuuTruBen = 'da-ben' | 'bi-tu-choi' | 'khong-ho-tro'
+
+/**
+ * Xin trình duyệt đánh dấu dữ liệu của ứng dụng là lưu trữ bền (AC-4.9).
+ *
+ * Không có đánh dấu này thì trình duyệt được phép xoá IndexedDB khi máy
+ * thiếu chỗ — tức là mất sạch những gì người dùng đã nhập. Đây là rủi ro R2
+ * trong plan, và là lý do chức năng xuất tệp sao lưu là bắt buộc.
+ *
+ * Lời nhắc cho người dùng khi bị từ chối do `hooks/useBackup` hiện (T031).
+ */
+export async function yeuCauLuuTruBen(): Promise<KetQuaLuuTruBen> {
+  const luuTru = globalThis.navigator?.storage
+  if (!luuTru || typeof luuTru.persist !== 'function') {
+    return 'khong-ho-tro'
+  }
+
+  try {
+    if (typeof luuTru.persisted === 'function' && (await luuTru.persisted())) {
+      return 'da-ben'
+    }
+    return (await luuTru.persist()) ? 'da-ben' : 'bi-tu-choi'
+  } catch {
+    return 'khong-ho-tro'
+  }
+}

@@ -1,11 +1,13 @@
 import 'fake-indexeddb/auto'
 import { beforeEach, describe, expect, it } from 'vitest'
+import * as teamRepo from '../services/teamRepo'
 import {
   DB_NAME,
   TEN_CAC_STORE,
   docSchemaVersion,
   dongDb,
   moDb,
+  yeuCauLuuTruBen,
 } from './db'
 import {
   MigrationError,
@@ -68,6 +70,55 @@ describe('mở database', () => {
     const db2 = await moDb()
     const row = await db2.get('meta', 'thu-nghiem')
     expect(row?.value).toBe('con-day')
+  })
+})
+
+describe('ghi xuyên thẳng, không có nút Lưu (AC-4.1, quyết định D4)', () => {
+  it('một hành động rời rạc được ghi xuống ngay trong cùng lượt gọi', async () => {
+    const doi = await teamRepo.create({ name: 'Ghi ngay' })
+
+    // Đóng kết nối rồi mở lại: nếu dữ liệu chỉ nằm trong bộ nhớ thì nó mất.
+    await dongDb()
+    const db = await moDb()
+    expect(await db.get('teams', doi.id)).toMatchObject({ name: 'Ghi ngay' })
+  })
+
+  it('một chuỗi thay đổi liên tiếp không mất bản ghi nào', async () => {
+    const ten = ['Đội 1', 'Đội 2', 'Đội 3', 'Đội 4', 'Đội 5']
+    for (const t of ten) {
+      await teamRepo.create({ name: t })
+    }
+
+    await dongDb()
+    const db = await moDb()
+    const daLuu = (await db.getAll('teams')).map((d) => d.name).sort()
+    expect(daLuu).toEqual([...ten].sort())
+  })
+
+  it('đổi tên rồi đóng mở lại thì tên mới vẫn còn', async () => {
+    const doi = await teamRepo.create({ name: 'Tên cũ' })
+    await teamRepo.rename(doi.id, 'Tên mới')
+
+    await dongDb()
+    const db = await moDb()
+    expect((await db.get('teams', doi.id))?.name).toBe('Tên mới')
+  })
+
+  it('xoá rồi đóng mở lại thì đội không quay lại', async () => {
+    const doi = await teamRepo.create({ name: 'Sắp xoá' })
+    await teamRepo.remove(doi.id)
+
+    await dongDb()
+    const db = await moDb()
+    expect(await db.get('teams', doi.id)).toBeUndefined()
+  })
+})
+
+describe('xin quyền lưu trữ bền (AC-4.9)', () => {
+  it('môi trường không có navigator.storage thì trả khong-ho-tro', async () => {
+    // Trong test chạy trên node không có Storage API — hàm phải trả về gọn
+    // gàng chứ không được ném lỗi làm chết đường nạp dữ liệu.
+    expect(await yeuCauLuuTruBen()).toBe('khong-ho-tro')
   })
 })
 

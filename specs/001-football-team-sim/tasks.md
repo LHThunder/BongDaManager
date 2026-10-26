@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | Giai đoạn 1 — 36 AC (AC-1.1→1.7, AC-2.1→2.11 gồm AC-2.1b, AC-3.1→3.8, AC-4.1→4.9): 31 làm trọn + 5 làm một phần |
-| **Tiến độ** | 7/35 |
+| **Tiến độ** | 15/35 |
 | **Sửa đổi** | 2026-10-26 — sửa theo kết quả `/analyze` |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -62,48 +62,48 @@ Các phase dưới đây là 5 lát cắt dọc ở `plan.md` mục 9, cộng m�
 
 Kết thúc phase: tạo được đội, đổi tên, xoá có xác nhận, cảnh báo trùng tên, đóng mở lại vẫn còn dữ liệu.
 
-- [ ] **T008** [P] — Lớp lỗi có mã
+- [x] **T008** [P] — Lớp lỗi có mã
   - File: `src/services/errors.ts`
   - Xong khi: `npx tsc --noEmit` sạch; có đủ các mã lỗi mà `plan.md` mục 5 liệt kê (`EmptyName`, `NotFound`, `DuplicateShirtNumber`, `InvalidAttributeValue`, `NotAnImage`, `DecodeFailed`, `NotJson`, `SchemaInvalid`, `VersionTooNew`, `QuotaExceeded`, `StorageUnavailable`, `InvalidColor`); không file nào trong `src/services/` chứa chuỗi tiếng Việt hiển thị.
   - Phụ thuộc: T001
 
-- [ ] **T009** — `teamRepo`
+- [x] **T009** — `teamRepo`
   - File: `src/services/teamRepo.ts`, `src/services/teamRepo.test.ts`
   - Xong khi: test trên `fake-indexeddb` xanh cho `list` / `create` / `rename` / `remove` / `get` / `findByName`; `list()` trả kèm số cầu thủ mà không đọc ảnh; `remove()` trả số cầu thủ đã xoá và sau khi xoá thì không còn cầu thủ hay ảnh nào mồ côi thuộc đội đó; tên rỗng bị ném `EmptyName`.
   - AC: AC-1.2, AC-1.3, AC-1.4, AC-1.5, AC-1.6, AC-1.7
   - Phụ thuộc: T006, T008
 
-- [ ] **T010** — Store trạng thái và hook đội
+- [x] **T010** — Store trạng thái và hook đội
   - File: `src/store/appStore.ts`, `src/hooks/useTeams.ts`
   - Xong khi: `npx tsc --noEmit` sạch; **test xanh** cho `appStore` — nạp danh sách đội vào store rồi gọi hành động đổi tên thì giá trị đọc ra từ store là tên mới, và không có bản sao tên đội nào khác trong store để lệch.
   - AC: AC-1.5
   - Phụ thuộc: T009
 
-- [ ] **T011** [P] — Tập trung chuỗi hiển thị tiếng Việt
+- [x] **T011** [P] — Tập trung chuỗi hiển thị tiếng Việt
   - File: `src/ui/strings.ts`
   - Xong khi: file chứa nhãn giao diện và hàm dịch mã lỗi của T008 sang câu tiếng Việt nói rõ cần làm gì; sau phase này `grep` các component không còn chuỗi hiển thị viết trực tiếp (hiến pháp P8).
   - Phụ thuộc: T008
 
-- [ ] **T012** — Trang danh sách đội, trang đội tối thiểu và điều hướng
+- [x] **T012** — Trang danh sách đội, trang đội tối thiểu và điều hướng
   - File: `src/ui/pages/DanhSachDoi.tsx`, `src/ui/pages/TrangDoi.tsx`, `src/App.tsx`
   - Xong khi: mở ứng dụng khi chưa có đội thì thấy trạng thái trống kèm nút tạo đội đầu tiên; khi đã có đội thì thấy danh sách gồm tên, chỗ dành cho logo và số cầu thủ của từng đội; bấm vào một đội thì sang trang đội hiện tên đội và có đường về danh sách.
   - AC: AC-1.1, AC-1.2, AC-1.4
   - Phụ thuộc: T010, T011
   - Ghi chú: trang đội ở task này chỉ là khung tối thiểu, đủ để AC-1.2 ("đưa người dùng vào trang quản lý đội vừa tạo") thoả được ngay trong Phase 1. Danh sách cầu thủ được T023 bổ sung vào chính file này.
 
-- [ ] **T013** — Form tạo và đổi tên đội
+- [x] **T013** — Form tạo và đổi tên đội
   - File: `src/ui/components/FormDoi.tsx`
   - Xong khi: tạo đội với tên hợp lệ thì vào ngay trang đội vừa tạo; để trống tên thì bị chặn và lỗi hiện tại trường tên; tạo trùng tên đội đã có thì hiện cảnh báo nhưng vẫn tạo được nếu xác nhận; đổi tên thì tên mới xuất hiện ở danh sách đội.
   - AC: AC-1.2, AC-1.3, AC-1.5, AC-1.7
   - Phụ thuộc: T012
 
-- [ ] **T014** — Hộp xác nhận và xoá đội
+- [x] **T014** — Hộp xác nhận và xoá đội
   - File: `src/ui/components/HopXacNhan.tsx`, sửa `src/ui/pages/DanhSachDoi.tsx`
   - Xong khi: bấm xoá một đội thì hộp xác nhận hiện đúng tên đội và đúng số cầu thủ sẽ mất; bấm huỷ thì không mất gì; bấm xác nhận thì đội biến khỏi danh sách và không quay lại sau khi tải lại trang.
   - AC: AC-1.6
   - Phụ thuộc: T013
 
-- [ ] **T015** — Tự lưu và xin quyền lưu trữ bền
+- [x] **T015** — Tự lưu và xin quyền lưu trữ bền
   - File: `src/storage/db.ts` (bổ sung), `src/hooks/useTeams.ts` (bổ sung), `src/storage/db.test.ts` (bổ sung)
   - Xong khi: **test xanh trên `fake-indexeddb`** — mỗi hành động rời rạc ghi xuống lưu trữ ngay trong cùng lượt gọi, và chuỗi thay đổi liên tiếp được gom lại rồi vẫn ghi đủ không mất bản ghi nào; **kiểm tay**: không có nút Lưu nào trên giao diện, tạo đội rồi tải lại trang thì đội còn đó, tắt hẳn trình duyệt rồi mở lại thì đội vẫn còn, lần mở đầu tiên có gọi xin quyền lưu trữ bền và khi quyền bị từ chối thì thấy lời nhắc xuất tệp sao lưu.
   - AC: AC-4.1, AC-4.2, AC-4.9
