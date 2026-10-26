@@ -62,6 +62,81 @@ export const XOA_DOI = {
 export const TRANG_DOI = {
   doiNay: 'Đội',
   danhSachCauThu: 'Danh sách cầu thủ',
+  themCauThu: 'Thêm cầu thủ',
+  chuaCoCauThuTieuDe: 'Đội chưa có cầu thủ nào',
+  chuaCoCauThuMoTa:
+    'Thêm cầu thủ đầu tiên: nhập tên, số áo, vị trí sở trường, rồi bấm sinh nhanh chỉ số nếu bạn không muốn điền tay từng ô.',
+  themCauThuDauTien: 'Thêm cầu thủ đầu tiên',
+  sapXepTheo: 'Sắp xếp theo',
+  sapXep: {
+    ten: 'Tên',
+    soAo: 'Số áo',
+    tuoi: 'Tuổi',
+    viTri: 'Vị trí',
+  },
+  cotSoAo: 'Số áo',
+  cotTen: 'Tên',
+  cotTuoi: 'Tuổi',
+  cotViTri: 'Vị trí',
+  cotChanThuan: 'Chân thuận',
+  cotChiSoTong: 'Chỉ số tổng',
+  chuaHoanTat: 'Chưa hoàn tất',
+  chuaHoanTatChiTiet: (n: number) => `Còn thiếu ${n} chỉ số`,
+  chuaTinhDuocChiSoTong: 'Chưa đủ chỉ số để tính',
+  suaCauThu: 'Sửa',
+  xoaCauThu: 'Xoá',
+} as const
+
+export const XOA_CAU_THU = {
+  tieuDe: 'Xoá cầu thủ này?',
+  moTa: (ten: string, soAo: number) =>
+    `Cầu thủ "${ten}" (số ${soAo}) sẽ bị xoá khỏi đội. Không hoàn tác được.`,
+  xacNhan: 'Xoá cầu thủ',
+} as const
+
+export const CHAN_THUAN = {
+  trai: 'Trái',
+  phai: 'Phải',
+  'ca-hai': 'Cả hai',
+} as const
+
+export const BANG_CHI_SO = {
+  tieuDe: 'Chỉ số',
+  khoangHopLe:
+    'Mỗi chỉ số là số nguyên từ 1 đến 20. Ô để trống nghĩa là chưa điền.',
+  loiNgoaiKhoang: (tenChiSoDo: string) =>
+    `${tenChiSoDo} phải là số nguyên từ 1 đến 20. Giá trị vừa nhập đã bị bỏ qua.`,
+  nhomTen: {
+    'ky-thuat': 'Kỹ thuật',
+    'phong-ngu': 'Phòng ngự',
+    'the-chat': 'Thể chất',
+    'tinh-than': 'Tinh thần',
+    'thu-mon': 'Thủ môn',
+  },
+} as const
+
+export const FORM_CAU_THU = {
+  tieuDeThem: 'Thêm cầu thủ',
+  tieuDeSua: 'Sửa hồ sơ cầu thủ',
+  nutThem: 'Thêm cầu thủ',
+  nutLuuSua: 'Cập nhật',
+  nhanTen: 'Tên cầu thủ',
+  gidanhTen: 'Ví dụ: Nguyễn Văn A',
+  nhanSoAo: 'Số áo',
+  nhanTuoi: 'Tuổi',
+  nhanChanThuan: 'Chân thuận',
+  nhanViTri: 'Vị trí sở trường',
+  giaiThichThuMon:
+    'Thủ môn dùng bộ chỉ số riêng nên không kiêm vị trí sân. Bỏ chọn Thủ môn nếu bạn muốn chọn vị trí sân.',
+  giaiThichViTriSan:
+    'Đã chọn vị trí sân nên không chọn thêm Thủ môn được. Bỏ hết vị trí sân nếu bạn muốn cầu thủ này là thủ môn.',
+  canhBaoDoiSangThuMon:
+    'Đổi cầu thủ này thành thủ môn sẽ chuyển sang bộ chỉ số của thủ môn. Những chỉ số không còn dùng tới sẽ không được lưu nữa.',
+  xacNhanDoiSangThuMon: 'Vẫn đổi sang thủ môn',
+  sinhNhanh: 'Sinh nhanh chỉ số',
+  sinhNhanhMoTa: 'Chọn mức để điền sẵn toàn bộ chỉ số, rồi tỉa lại ô nào bạn muốn.',
+  canChonViTriTruoc: 'Hãy chọn vị trí sở trường trước, vì mức sinh phụ thuộc vị trí.',
+  chiSoTongTaiViTri: (tenViTri: string) => `Chỉ số tổng ở vị trí ${tenViTri}`,
 } as const
 
 export const LUU_TRU = {

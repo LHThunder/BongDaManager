@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | Giai đoạn 1 — 36 AC (AC-1.1→1.7, AC-2.1→2.11 gồm AC-2.1b, AC-3.1→3.8, AC-4.1→4.9): 31 làm trọn + 5 làm một phần |
-| **Tiến độ** | 15/35 |
+| **Tiến độ** | 23/35 |
 | **Sửa đổi** | 2026-10-26 — sửa theo kết quả `/analyze` |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -116,50 +116,50 @@ Kết thúc phase: tạo được đội, đổi tên, xoá có xác nhận, c�
 
 Kết thúc phase: nhập được trọn một đội 18 cầu thủ, có sinh nhanh chỉ số, có nhãn chưa hoàn tất, có chỉ số tổng theo vị trí. Đây là lát mang lại giá trị lớn nhất của Giai đoạn 1.
 
-- [ ] **T016** [P] — Danh sách chỉ số bắt buộc và kiểm tra hồ sơ hoàn tất
+- [x] **T016** [P] — Danh sách chỉ số bắt buộc và kiểm tra hồ sơ hoàn tất
   - File: `src/domain/completeness.ts`, `src/domain/completeness.test.ts`
   - Xong khi: test xanh — cầu thủ sân cần đúng 15 chỉ số; thủ môn cần đúng 8 chỉ số chung đã nêu trong AC-2.3 cộng 3 chỉ số riêng; **tổ hợp "thủ môn kiêm vị trí sân" bị hàm kiểm tra tổ hợp vị trí từ chối ngay, nên không tồn tại trường hợp thứ ba** (AC-2.1b); chỉ số có giá trị thấp không bị coi là thiếu; trả về đúng danh sách chỉ số còn thiếu.
   - AC: AC-2.1b, AC-2.3, AC-2.10
   - Phụ thuộc: T004, T005
 
-- [ ] **T017** [P] — Chỉ số tổng theo vị trí
+- [x] **T017** [P] — Chỉ số tổng theo vị trí
   - File: `src/domain/rating.ts`, `src/domain/rating.test.ts`
   - Xong khi: test xanh — cùng một cầu thủ tính ở hai vị trí khác nhau cho ra hai con số khác nhau; một trung vệ chỉ số cao không bị chấm cao khi tính ở vị trí tiền đạo; hồ sơ còn thiếu chỉ số thì hàm nêu rõ chưa tính được chứ không trả số sai.
   - AC: AC-2.11
   - Phụ thuộc: T005
 
-- [ ] **T018** — Sinh nhanh chỉ số theo mức và vị trí
+- [x] **T018** — Sinh nhanh chỉ số theo mức và vị trí
   - File: `src/domain/generator.ts`, `src/domain/generator.test.ts`
   - Xong khi: test xanh — với cùng một nguồn ngẫu nhiên giả thì hai lần gọi cho ra kết quả giống hệt (hiến pháp P1); hàm không chứa `Math.random`; chỉ số quan trọng của vị trí cao hơn rõ rệt chỉ số không liên quan; 4 mức Ngôi sao / Khá / Trung bình / Yếu xếp theo đúng thứ tự khi so chỉ số tổng; mọi giá trị nằm trong 1–20.
   - AC: AC-2.9
   - Phụ thuộc: T005, T017
 
-- [ ] **T019** — `playerRepo`
+- [x] **T019** — `playerRepo`
   - File: `src/services/playerRepo.ts`, `src/services/playerRepo.test.ts`
   - Xong khi: test trên `fake-indexeddb` xanh — `listByTeam` / `save` / `remove`; lưu cầu thủ có số áo đã dùng trong cùng đội thì ném `DuplicateShirtNumber`; cùng số áo ở hai đội khác nhau thì được phép; chỉ số ngoài 1–20 hoặc không phải số thì ném `InvalidAttributeValue`; chỉ số để trống thì vẫn lưu được; **lưu cầu thủ có tổ hợp vị trí không hợp lệ (thủ môn kiêm vị trí sân) thì bị từ chối** dù giao diện đã chặn trước — dữ liệu không bao giờ lưu được tổ hợp sai (AC-2.1b).
   - AC: AC-2.1b, AC-2.4, AC-2.5, AC-2.10
   - Phụ thuộc: T006, T008
 
-- [ ] **T020** — Hook cầu thủ
+- [x] **T020** — Hook cầu thủ
   - File: `src/hooks/usePlayers.ts`, sửa `src/store/appStore.ts`
   - Xong khi: `npx tsc --noEmit` sạch; sửa hoặc xoá một cầu thủ thì danh sách cầu thủ của đội cập nhật ngay mà không cần tải lại trang.
   - AC: AC-2.7
   - Phụ thuộc: T019, T010
 
-- [ ] **T021** — Bảng nhập chỉ số
+- [x] **T021** — Bảng nhập chỉ số
   - File: `src/ui/components/BangChiSo.tsx`
   - Xong khi: bảng dựng đúng theo danh sách chỉ số mà `requiredAttributes` trả về — cầu thủ thường thấy 15 ô chia 4 nhóm, cầu thủ thủ môn thấy 8 ô chung cộng 3 ô riêng và **không** thấy các chỉ số chung còn lại; nhập 0, 21 hay chữ thì giá trị bị bỏ và ô giữ lại giá trị hợp lệ cũ; đi hết bảng được bằng Tab mà không cần chuột.
   - AC: AC-2.2, AC-2.3, AC-2.4
   - Phụ thuộc: T016, T011
 
-- [ ] **T022** — Form hồ sơ cầu thủ
+- [x] **T022** — Form hồ sơ cầu thủ
   - File: `src/ui/components/FormCauThu.tsx`
   - Xong khi: nhập được tên, số áo, tuổi, chân thuận và chọn được nhiều vị trí sở trường trong 12 vị trí; **chọn Thủ môn thì mọi vị trí sân bị vô hiệu hoá và ngược lại, kèm câu giải thích ngắn tại chỗ**; đổi một cầu thủ sân đã nhập chỉ số sang thủ môn thì có hộp xác nhận nêu rõ bộ chỉ số sẽ đổi; trùng số áo trong đội thì bị chặn kèm thông báo; bấm sinh nhanh chỉ số và chọn một trong 4 mức thì bảng chỉ số được điền sẵn và vẫn sửa được từng ô; hồ sơ thiếu chỉ số thì hiện nhãn "chưa hoàn tất" kèm số chỉ số còn thiếu nhưng vẫn lưu được; hiện chỉ số tổng theo vị trí đang chọn và con số đó đổi khi chọn vị trí khác.
   - AC: AC-2.1, AC-2.1b, AC-2.5, AC-2.6, AC-2.9, AC-2.10, AC-2.11
   - Phụ thuộc: T020, T021, T017, T018
   - Ghi chú: nếu bước này cho thấy việc nhập 18 cầu thủ quá mệt (rủi ro R3), dừng lại báo người dùng trước khi đi sang Phase 3.
 
-- [ ] **T023** — Bổ sung danh sách cầu thủ vào trang đội
+- [x] **T023** — Bổ sung danh sách cầu thủ vào trang đội
   - File: sửa `src/ui/pages/TrangDoi.tsx` (đã có khung từ T012)
   - Xong khi: thấy danh sách cầu thủ của đội; sắp xếp được theo tên, số áo, tuổi và vị trí; xoá một cầu thủ thì cầu thủ đó biến khỏi danh sách ngay và không quay lại sau khi tải lại trang; hồ sơ chưa hoàn tất được đánh dấu nhìn thấy được trong danh sách.
   - AC: AC-2.7, AC-2.8

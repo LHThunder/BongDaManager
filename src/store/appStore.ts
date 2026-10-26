@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import type { Player } from '../domain/types'
 import type { LoiUngDung } from '../services/errors'
 import type { TeamSummary } from '../services/teamRepo'
 
@@ -18,11 +19,20 @@ function theoTen(a: TeamSummary, b: TeamSummary): number {
   return a.name.localeCompare(b.name, 'vi')
 }
 
+function theoSoAo(a: Player, b: Player): number {
+  return a.shirtNumber - b.shirtNumber
+}
+
 export interface AppState {
   readonly teams: readonly TeamSummary[]
   readonly dangTaiDanhSachDoi: boolean
   /** Lỗi lưu trữ cần báo cho người dùng ở một chỗ duy nhất (AC-4.7). */
   readonly loiLuuTru: LoiUngDung | null
+
+  /** Cầu thủ của đội đang mở; rỗng khi không mở đội nào. */
+  readonly cauThu: readonly Player[]
+  readonly doiDangMo: string | null
+  readonly dangTaiCauThu: boolean
 
   datDanhSachDoi(teams: readonly TeamSummary[]): void
   datDangTai(dangTai: boolean): void
@@ -31,6 +41,11 @@ export interface AppState {
   boDoi(id: string): void
   datSoCauThu(id: string, soCauThu: number): void
   datLoiLuuTru(loi: LoiUngDung | null): void
+
+  datCauThu(teamId: string, cauThu: readonly Player[]): void
+  datDangTaiCauThu(dangTai: boolean): void
+  luuCauThu(cauThu: Player): void
+  boCauThu(id: string): void
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -60,6 +75,26 @@ export const useAppStore = create<AppState>((set) => ({
     })),
 
   datLoiLuuTru: (loi) => set({ loiLuuTru: loi }),
+
+  cauThu: [],
+  doiDangMo: null,
+  dangTaiCauThu: false,
+
+  datCauThu: (teamId, cauThu) =>
+    set({ doiDangMo: teamId, cauThu: [...cauThu].sort(theoSoAo) }),
+
+  datDangTaiCauThu: (dangTai) => set({ dangTaiCauThu: dangTai }),
+
+  luuCauThu: (cauThu) =>
+    set((s) => {
+      const daCo = s.cauThu.some((p) => p.id === cauThu.id)
+      const moi = daCo
+        ? s.cauThu.map((p) => (p.id === cauThu.id ? cauThu : p))
+        : [...s.cauThu, cauThu]
+      return { cauThu: moi.sort(theoSoAo) }
+    }),
+
+  boCauThu: (id) => set((s) => ({ cauThu: s.cauThu.filter((p) => p.id !== id) })),
 }))
 
 /** Trạng thái ban đầu, dùng để test dọn store giữa các lần chạy. */
@@ -68,5 +103,8 @@ export function datLaiStore(): void {
     teams: [],
     dangTaiDanhSachDoi: false,
     loiLuuTru: null,
+    cauThu: [],
+    doiDangMo: null,
+    dangTaiCauThu: false,
   })
 }
