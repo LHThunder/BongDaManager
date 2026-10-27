@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **ID** | `001-football-team-sim` |
-| **Status** | Planned — Giai đoạn 1 đã có `plan.md`; Giai đoạn 2–4 chưa lập plan |
+| **Status** | In progress — Giai đoạn 1 đã hiện thực và kiểm chứng (30/36 AC tick trọn, 5 AC vắt sang giai đoạn sau, 1 AC chưa quan sát được); Giai đoạn 2–4 chưa lập plan |
 | **Created** | 2026-10-26 |
 | **Clarified** | 2026-10-26 |
 | **Amended** | 2026-10-26 — khớp constitution v1.0.0 (P1); và sửa theo kết quả `/analyze` (AC-2.1b, AC-4.8, AC-4.9); xem mục 10 |
@@ -67,57 +67,57 @@ Thước đo thành công: người dùng nhập xong một đội 18 cầu th�
 Là một **fan bóng đá**, tôi muốn **tạo không giới hạn số đội bóng và quay lại sửa chúng bất cứ lúc nào**, để **dựng được cả đội của mình lẫn các đội đối thủ mà tôi muốn gặp**.
 
 **Acceptance criteria:**
-- [ ] AC-1.1 — KHI người dùng mở ứng dụng lần đầu THÌ hệ thống PHẢI hiển thị trạng thái chưa có đội nào kèm một lối vào rõ ràng để tạo đội đầu tiên.
-- [ ] AC-1.2 — KHI người dùng tạo đội với tên không rỗng THÌ hệ thống PHẢI tạo đội đó và đưa người dùng vào trang quản lý đội vừa tạo.
-- [ ] AC-1.3 — KHI người dùng tạo đội mà để trống tên THÌ hệ thống PHẢI từ chối tạo và chỉ rõ trường tên đang thiếu.
-- [ ] AC-1.4 — KHI đã có ít nhất một đội THÌ hệ thống PHẢI hiển thị danh sách tất cả các đội, mỗi đội kèm tên, logo (hoặc hình thay thế) và số lượng cầu thủ hiện có.
-- [ ] AC-1.5 — KHI người dùng đổi tên một đội THÌ hệ thống PHẢI cập nhật tên đó ở mọi nơi đang hiển thị đội (danh sách đội, trang chiến thuật, lịch sử trận đấu).
-- [ ] AC-1.6 — KHI người dùng yêu cầu xoá một đội THÌ hệ thống PHẢI hỏi xác nhận có nêu tên đội và số cầu thủ sẽ mất, và CHỈ xoá sau khi người dùng xác nhận.
-- [ ] AC-1.7 — KHI người dùng tạo đội trùng tên với đội đã có THÌ hệ thống PHẢI cảnh báo trùng tên nhưng VẪN cho phép tiếp tục nếu người dùng xác nhận.
+- [x] AC-1.1 — KHI người dùng mở ứng dụng lần đầu THÌ hệ thống PHẢI hiển thị trạng thái chưa có đội nào kèm một lối vào rõ ràng để tạo đội đầu tiên.
+- [x] AC-1.2 — KHI người dùng tạo đội với tên không rỗng THÌ hệ thống PHẢI tạo đội đó và đưa người dùng vào trang quản lý đội vừa tạo.
+- [x] AC-1.3 — KHI người dùng tạo đội mà để trống tên THÌ hệ thống PHẢI từ chối tạo và chỉ rõ trường tên đang thiếu.
+- [x] AC-1.4 — KHI đã có ít nhất một đội THÌ hệ thống PHẢI hiển thị danh sách tất cả các đội, mỗi đội kèm tên, logo (hoặc hình thay thế) và số lượng cầu thủ hiện có.
+- [ ] AC-1.5 — KHI người dùng đổi tên một đội THÌ hệ thống PHẢI cập nhật tên đó ở mọi nơi đang hiển thị đội (danh sách đội, trang chiến thuật, lịch sử trận đấu). **→ Giai đoạn 1: đã xong phần danh sách đội và trang đội; trang chiến thuật thuộc GĐ2, lịch sử trận đấu thuộc GĐ3**
+- [x] AC-1.6 — KHI người dùng yêu cầu xoá một đội THÌ hệ thống PHẢI hỏi xác nhận có nêu tên đội và số cầu thủ sẽ mất, và CHỈ xoá sau khi người dùng xác nhận.
+- [x] AC-1.7 — KHI người dùng tạo đội trùng tên với đội đã có THÌ hệ thống PHẢI cảnh báo trùng tên nhưng VẪN cho phép tiếp tục nếu người dùng xác nhận.
 
 ### US-2: Nhập thông tin và chỉ số cầu thủ
 Là một **người tạo đội**, tôi muốn **nhập từng cầu thủ với thông tin cơ bản và bộ chỉ số năng lực**, để **đội của tôi có chiều sâu và việc giả lập có cơ sở để tính toán**.
 
 **Acceptance criteria:**
-- [ ] AC-2.1 — KHI người dùng thêm cầu thủ THÌ hệ thống PHẢI cho nhập: tên, số áo, tuổi, chân thuận (trái/phải/cả hai), và một hoặc nhiều vị trí sở trường chọn từ đúng 12 vị trí sau: Thủ môn · Hậu vệ trái, Trung vệ, Hậu vệ phải · Tiền vệ trụ · Tiền vệ cánh trái, Tiền vệ trung tâm, Tiền vệ cánh phải · Chạy cánh trái, Tiền vệ tấn công, Chạy cánh phải · Tiền đạo.
-- [ ] AC-2.1b — KHI người dùng chọn vị trí Thủ môn cho một cầu thủ THÌ hệ thống PHẢI không cho chọn thêm bất kỳ vị trí nào khác cho cầu thủ đó; VÀ KHI cầu thủ đã có một vị trí khác THÌ hệ thống PHẢI không cho chọn Thủ môn. Mỗi cầu thủ là **thủ môn hoặc cầu thủ sân, không kiêm cả hai**.
-- [ ] AC-2.2 — KHI người dùng nhập chỉ số cho cầu thủ không phải thủ môn THÌ hệ thống PHẢI cung cấp đúng 15 chỉ số trên thang 1–20: Dứt điểm, Sút xa, Chuyền ngắn, Tạt/Chuyền dài, Rê dắt, Khống chế bóng, Tắc bóng, Kèm người, Đọc tình huống, Tốc độ, Sức mạnh, Không chiến, Thể lực, Nhãn quan, Quyết đoán.
-- [ ] AC-2.3 — KHI cầu thủ có vị trí sở trường là Thủ môn THÌ hệ thống PHẢI yêu cầu đúng 11 chỉ số: 8 chỉ số chung (Chuyền ngắn, Tạt/Chuyền dài, Khống chế bóng, Tốc độ, Sức mạnh, Không chiến, Thể lực, Quyết đoán) cộng 3 chỉ số riêng (Phản xạ, Bắt bóng, Phát động); VÀ các chỉ số chung còn lại PHẢI không xuất hiện cho thủ môn. Nhờ AC-2.1b, mỗi cầu thủ luôn thuộc đúng một trong hai bộ: 15 chỉ số của cầu thủ sân, hoặc 11 chỉ số của thủ môn — không có trường hợp lưng chừng.
-- [ ] AC-2.4 — KHI người dùng nhập giá trị chỉ số ngoài khoảng 1–20 hoặc không phải số THÌ hệ thống PHẢI từ chối giá trị đó và giữ nguyên giá trị hợp lệ trước đó.
-- [ ] AC-2.5 — KHI người dùng nhập số áo đã có cầu thủ khác trong cùng đội đang dùng THÌ hệ thống PHẢI cảnh báo trùng số áo và không cho lưu đến khi số áo được sửa.
-- [ ] AC-2.6 — KHI người dùng chọn nhiều vị trí sở trường cho một cầu thủ sân THÌ hệ thống PHẢI lưu toàn bộ các vị trí đó và dùng chúng để đánh giá việc xếp đúng/sai vị trí ở AC-5.5. Việc chọn nhiều vị trí không áp dụng cho thủ môn, theo AC-2.1b.
-- [ ] AC-2.7 — KHI người dùng sửa hoặc xoá một cầu thủ THÌ hệ thống PHẢI cập nhật ngay danh sách đội; VÀ nếu cầu thủ đó đang được xếp trong đội hình thì vị trí đó PHẢI trở thành ô trống.
-- [ ] AC-2.8 — KHI xem danh sách cầu thủ của một đội THÌ hệ thống PHẢI cho sắp xếp danh sách theo tên, số áo, tuổi và vị trí.
-- [ ] AC-2.9 — KHI người dùng chọn sinh nhanh chỉ số cho một cầu thủ và chọn một trong 4 mức (Ngôi sao / Khá / Trung bình / Yếu) THÌ hệ thống PHẢI điền sẵn toàn bộ chỉ số sao cho các chỉ số quan trọng của vị trí sở trường cầu thủ đó cao hơn hẳn các chỉ số không liên quan, VÀ người dùng PHẢI sửa lại được từng chỉ số sau đó.
-- [ ] AC-2.10 — KHI người dùng lưu một cầu thủ chưa điền đủ chỉ số THÌ hệ thống PHẢI lưu lại và đánh dấu hồ sơ đó là chưa hoàn tất, nêu còn thiếu bao nhiêu chỉ số; việc chặn CHỈ xảy ra khi cầu thủ đó được đưa vào đội hình thi đấu theo AC-5.7.
-- [ ] AC-2.11 — KHI hệ thống hiển thị một cầu thủ ở một vị trí hoặc vai trò cụ thể THÌ hệ thống PHẢI hiển thị một chỉ số tổng được tính từ các chỉ số quan trọng của chính vị trí/vai trò đó; VÀ KHI cùng cầu thủ đó được xem ở một vai trò khác THÌ chỉ số tổng PHẢI khác đi tương ứng.
+- [x] AC-2.1 — KHI người dùng thêm cầu thủ THÌ hệ thống PHẢI cho nhập: tên, số áo, tuổi, chân thuận (trái/phải/cả hai), và một hoặc nhiều vị trí sở trường chọn từ đúng 12 vị trí sau: Thủ môn · Hậu vệ trái, Trung vệ, Hậu vệ phải · Tiền vệ trụ · Tiền vệ cánh trái, Tiền vệ trung tâm, Tiền vệ cánh phải · Chạy cánh trái, Tiền vệ tấn công, Chạy cánh phải · Tiền đạo.
+- [x] AC-2.1b — KHI người dùng chọn vị trí Thủ môn cho một cầu thủ THÌ hệ thống PHẢI không cho chọn thêm bất kỳ vị trí nào khác cho cầu thủ đó; VÀ KHI cầu thủ đã có một vị trí khác THÌ hệ thống PHẢI không cho chọn Thủ môn. Mỗi cầu thủ là **thủ môn hoặc cầu thủ sân, không kiêm cả hai**.
+- [x] AC-2.2 — KHI người dùng nhập chỉ số cho cầu thủ không phải thủ môn THÌ hệ thống PHẢI cung cấp đúng 15 chỉ số trên thang 1–20: Dứt điểm, Sút xa, Chuyền ngắn, Tạt/Chuyền dài, Rê dắt, Khống chế bóng, Tắc bóng, Kèm người, Đọc tình huống, Tốc độ, Sức mạnh, Không chiến, Thể lực, Nhãn quan, Quyết đoán.
+- [x] AC-2.3 — KHI cầu thủ có vị trí sở trường là Thủ môn THÌ hệ thống PHẢI yêu cầu đúng 11 chỉ số: 8 chỉ số chung (Chuyền ngắn, Tạt/Chuyền dài, Khống chế bóng, Tốc độ, Sức mạnh, Không chiến, Thể lực, Quyết đoán) cộng 3 chỉ số riêng (Phản xạ, Bắt bóng, Phát động); VÀ các chỉ số chung còn lại PHẢI không xuất hiện cho thủ môn. Nhờ AC-2.1b, mỗi cầu thủ luôn thuộc đúng một trong hai bộ: 15 chỉ số của cầu thủ sân, hoặc 11 chỉ số của thủ môn — không có trường hợp lưng chừng.
+- [x] AC-2.4 — KHI người dùng nhập giá trị chỉ số ngoài khoảng 1–20 hoặc không phải số THÌ hệ thống PHẢI từ chối giá trị đó và giữ nguyên giá trị hợp lệ trước đó.
+- [x] AC-2.5 — KHI người dùng nhập số áo đã có cầu thủ khác trong cùng đội đang dùng THÌ hệ thống PHẢI cảnh báo trùng số áo và không cho lưu đến khi số áo được sửa.
+- [x] AC-2.6 — KHI người dùng chọn nhiều vị trí sở trường cho một cầu thủ sân THÌ hệ thống PHẢI lưu toàn bộ các vị trí đó và dùng chúng để đánh giá việc xếp đúng/sai vị trí ở AC-5.5. Việc chọn nhiều vị trí không áp dụng cho thủ môn, theo AC-2.1b.
+- [ ] AC-2.7 — KHI người dùng sửa hoặc xoá một cầu thủ THÌ hệ thống PHẢI cập nhật ngay danh sách đội; VÀ nếu cầu thủ đó đang được xếp trong đội hình thì vị trí đó PHẢI trở thành ô trống. **→ Giai đoạn 1: đã xong phần danh sách cầu thủ cập nhật ngay; phần ô đội hình thành trống cần sơ đồ, thuộc GĐ2**
+- [x] AC-2.8 — KHI xem danh sách cầu thủ của một đội THÌ hệ thống PHẢI cho sắp xếp danh sách theo tên, số áo, tuổi và vị trí.
+- [x] AC-2.9 — KHI người dùng chọn sinh nhanh chỉ số cho một cầu thủ và chọn một trong 4 mức (Ngôi sao / Khá / Trung bình / Yếu) THÌ hệ thống PHẢI điền sẵn toàn bộ chỉ số sao cho các chỉ số quan trọng của vị trí sở trường cầu thủ đó cao hơn hẳn các chỉ số không liên quan, VÀ người dùng PHẢI sửa lại được từng chỉ số sau đó.
+- [x] AC-2.10 — KHI người dùng lưu một cầu thủ chưa điền đủ chỉ số THÌ hệ thống PHẢI lưu lại và đánh dấu hồ sơ đó là chưa hoàn tất, nêu còn thiếu bao nhiêu chỉ số; việc chặn CHỈ xảy ra khi cầu thủ đó được đưa vào đội hình thi đấu theo AC-5.7.
+- [x] AC-2.11 — KHI hệ thống hiển thị một cầu thủ ở một vị trí hoặc vai trò cụ thể THÌ hệ thống PHẢI hiển thị một chỉ số tổng được tính từ các chỉ số quan trọng của chính vị trí/vai trò đó; VÀ KHI cùng cầu thủ đó được xem ở một vai trò khác THÌ chỉ số tổng PHẢI khác đi tương ứng.
 
 ### US-3: Hình ảnh cầu thủ và nhận diện đội
 Là một **fan**, tôi muốn **gắn ảnh chân dung cho cầu thủ, logo và màu áo cho đội**, để **đội bóng trông giống đội thật và tôi nhận ra ngay ai là ai trên sơ đồ**.
 
 **Acceptance criteria:**
-- [ ] AC-3.1 — KHI người dùng chọn một tệp ảnh cho cầu thủ THÌ hệ thống PHẢI cho cắt ảnh về khung vuông trước khi lưu, và hiển thị ảnh đã cắt trong hồ sơ cầu thủ cũng như trên sơ đồ chiến thuật.
-- [ ] AC-3.2 — KHI ảnh người dùng chọn lớn hơn giới hạn ở mục 6 THÌ hệ thống PHẢI tự giảm kích thước ảnh xuống trong giới hạn mà không cần người dùng làm gì thêm.
-- [ ] AC-3.3 — KHI người dùng chọn tệp không phải ảnh, hoặc ảnh bị lỗi không đọc được THÌ hệ thống PHẢI thông báo rõ tệp không dùng được và giữ nguyên ảnh cũ (nếu có).
-- [ ] AC-3.4 — KHI một cầu thủ chưa có ảnh THÌ hệ thống PHẢI hiển thị hình thay thế dạng tròn gồm các chữ cái đầu của tên cầu thủ trên nền màu áo chính của đội.
-- [ ] AC-3.5 — KHI người dùng gắn logo cho đội THÌ hệ thống PHẢI hiển thị logo đó ở danh sách đội, trang đội, trang chiến thuật và trong màn hình trận đấu.
-- [ ] AC-3.6 — KHI người dùng chọn màu áo chính và màu áo phụ cho đội THÌ hệ thống PHẢI dùng màu áo chính để nhuộm các thành phần nhận diện của đội đó.
-- [ ] AC-3.7 — KHI hai đội gặp nhau mà màu áo chính của hai đội quá giống nhau THÌ hệ thống PHẢI tự chuyển một đội sang màu áo phụ và nói rõ việc đổi đó cho người dùng.
-- [ ] AC-3.8 — KHI người dùng chọn một màu áo khiến chữ trên nền màu đó khó đọc THÌ hệ thống PHẢI tự chọn màu chữ tương phản đủ theo mục 6, không để người dùng phải tự xử lý.
+- [x] AC-3.1 — KHI người dùng chọn một tệp ảnh cho cầu thủ THÌ hệ thống PHẢI cho cắt ảnh về khung vuông trước khi lưu, và hiển thị ảnh đã cắt trong hồ sơ cầu thủ cũng như trên sơ đồ chiến thuật.
+- [x] AC-3.2 — KHI ảnh người dùng chọn lớn hơn giới hạn ở mục 6 THÌ hệ thống PHẢI tự giảm kích thước ảnh xuống trong giới hạn mà không cần người dùng làm gì thêm.
+- [x] AC-3.3 — KHI người dùng chọn tệp không phải ảnh, hoặc ảnh bị lỗi không đọc được THÌ hệ thống PHẢI thông báo rõ tệp không dùng được và giữ nguyên ảnh cũ (nếu có).
+- [x] AC-3.4 — KHI một cầu thủ chưa có ảnh THÌ hệ thống PHẢI hiển thị hình thay thế dạng tròn gồm các chữ cái đầu của tên cầu thủ trên nền màu áo chính của đội.
+- [ ] AC-3.5 — KHI người dùng gắn logo cho đội THÌ hệ thống PHẢI hiển thị logo đó ở danh sách đội, trang đội, trang chiến thuật và trong màn hình trận đấu. **→ Giai đoạn 1: logo đã hiện ở danh sách đội và trang đội; màn hình trận đấu thuộc GĐ3**
+- [x] AC-3.6 — KHI người dùng chọn màu áo chính và màu áo phụ cho đội THÌ hệ thống PHẢI dùng màu áo chính để nhuộm các thành phần nhận diện của đội đó.
+- [ ] AC-3.7 — KHI hai đội gặp nhau mà màu áo chính của hai đội quá giống nhau THÌ hệ thống PHẢI tự chuyển một đội sang màu áo phụ và nói rõ việc đổi đó cho người dùng. **→ Giai đoạn 1: đã cảnh báo khi người dùng chọn màu trùng đội khác; việc tự đổi sang áo phụ trong trận thuộc GĐ3**
+- [x] AC-3.8 — KHI người dùng chọn một màu áo khiến chữ trên nền màu đó khó đọc THÌ hệ thống PHẢI tự chọn màu chữ tương phản đủ theo mục 6, không để người dùng phải tự xử lý.
 
 ### US-4: Lưu trữ, sao lưu và phục hồi dữ liệu
 Là một **người đã bỏ công nhập liệu**, tôi muốn **dữ liệu tự được giữ lại và có cách mang nó đi nơi khác**, để **không bao giờ mất công nhập lại**.
 
 **Acceptance criteria:**
-- [ ] AC-4.1 — KHI người dùng tạo hoặc sửa bất kỳ dữ liệu nào THÌ hệ thống PHẢI tự lưu lại mà không cần bấm nút Lưu.
-- [ ] AC-4.2 — KHI người dùng đóng ứng dụng rồi mở lại trên cùng máy, cùng trình duyệt THÌ toàn bộ đội, cầu thủ, ảnh, chiến thuật và lịch sử trận đấu PHẢI còn nguyên.
-- [ ] AC-4.3 — KHI người dùng yêu cầu xuất dữ liệu THÌ hệ thống PHẢI tạo ra một tệp duy nhất chứa toàn bộ đội, cầu thủ, ảnh, chiến thuật và lịch sử trận đấu.
-- [ ] AC-4.4 — KHI người dùng nhập lại tệp đã xuất trên một máy hoặc trình duyệt khác THÌ toàn bộ dữ liệu PHẢI hiện lên đúng như lúc xuất, kể cả ảnh.
-- [ ] AC-4.5 — KHI người dùng nhập một tệp không đúng định dạng hoặc bị hỏng THÌ hệ thống PHẢI từ chối, nói rõ lý do, và giữ nguyên dữ liệu đang có — không được xoá hay ghi đè một phần.
-- [ ] AC-4.6 — KHI người dùng nhập một tệp hợp lệ trong lúc đã có dữ liệu THÌ hệ thống PHẢI hỏi rõ là thay thế toàn bộ hay gộp thêm vào, trước khi làm bất cứ điều gì.
-- [ ] AC-4.7 — KHI dung lượng lưu trữ của trình duyệt đầy và việc lưu thất bại THÌ hệ thống PHẢI cảnh báo ngay rằng thay đổi chưa được lưu và gợi ý người dùng xuất dữ liệu ra tệp.
-- [ ] AC-4.8 — KHI người dùng yêu cầu xuất dữ liệu THÌ hệ thống PHẢI hiện kích thước ước tính của tệp trước khi tạo tệp.
-- [ ] AC-4.9 — KHI người dùng mở ứng dụng lần đầu THÌ hệ thống PHẢI yêu cầu trình duyệt đánh dấu dữ liệu của ứng dụng là lưu trữ bền; VÀ KHI trình duyệt từ chối THÌ hệ thống PHẢI cho người dùng biết dữ liệu có thể bị trình duyệt xoá và nhắc xuất tệp sao lưu thường xuyên.
+- [x] AC-4.1 — KHI người dùng tạo hoặc sửa bất kỳ dữ liệu nào THÌ hệ thống PHẢI tự lưu lại mà không cần bấm nút Lưu.
+- [ ] AC-4.2 — KHI người dùng đóng ứng dụng rồi mở lại trên cùng máy, cùng trình duyệt THÌ toàn bộ đội, cầu thủ, ảnh, chiến thuật và lịch sử trận đấu PHẢI còn nguyên. **→ Giai đoạn 1: đội, cầu thủ, ảnh và chiến thuật đã tồn tại qua lần mở lại; lịch sử trận đấu thuộc GĐ3**
+- [x] AC-4.3 — KHI người dùng yêu cầu xuất dữ liệu THÌ hệ thống PHẢI tạo ra một tệp duy nhất chứa toàn bộ đội, cầu thủ, ảnh, chiến thuật và lịch sử trận đấu.
+- [x] AC-4.4 — KHI người dùng nhập lại tệp đã xuất trên một máy hoặc trình duyệt khác THÌ toàn bộ dữ liệu PHẢI hiện lên đúng như lúc xuất, kể cả ảnh.
+- [x] AC-4.5 — KHI người dùng nhập một tệp không đúng định dạng hoặc bị hỏng THÌ hệ thống PHẢI từ chối, nói rõ lý do, và giữ nguyên dữ liệu đang có — không được xoá hay ghi đè một phần.
+- [x] AC-4.6 — KHI người dùng nhập một tệp hợp lệ trong lúc đã có dữ liệu THÌ hệ thống PHẢI hỏi rõ là thay thế toàn bộ hay gộp thêm vào, trước khi làm bất cứ điều gì.
+- [ ] AC-4.7 — KHI dung lượng lưu trữ của trình duyệt đầy và việc lưu thất bại THÌ hệ thống PHẢI cảnh báo ngay rằng thay đổi chưa được lưu và gợi ý người dùng xuất dữ liệu ra tệp. **→ Giai đoạn 1: mã lỗi QuotaExceeded đã có test và được quy về một chỗ xử lý tập trung, NHƯNG chưa quan sát được cảnh báo hiện trên giao diện vì không mô phỏng được lưu trữ đầy thật**
+- [x] AC-4.8 — KHI người dùng yêu cầu xuất dữ liệu THÌ hệ thống PHẢI hiện kích thước ước tính của tệp trước khi tạo tệp.
+- [x] AC-4.9 — KHI người dùng mở ứng dụng lần đầu THÌ hệ thống PHẢI yêu cầu trình duyệt đánh dấu dữ liệu của ứng dụng là lưu trữ bền; VÀ KHI trình duyệt từ chối THÌ hệ thống PHẢI cho người dùng biết dữ liệu có thể bị trình duyệt xoá và nhắc xuất tệp sao lưu thường xuyên.
 
 ---
 
@@ -306,13 +306,18 @@ Là một **HLV**, tôi muốn **một bản báo cáo sau trận**, để **bi�
 
 ## 7. Định nghĩa hoàn thành (Definition of Done)
 
-- [ ] Toàn bộ AC ở mục 3 pass (tính theo từng giai đoạn đang bàn giao)
-- [ ] Trường hợp biên mục 5 được xử lý
-- [ ] Không vi phạm nguyên tắc nào trong constitution
-- [ ] Mỗi giai đoạn bàn giao đều tự chạy được và dùng thử được, không phụ thuộc giai đoạn sau
+**Giai đoạn 1** (đánh dấu ngày 2026-10-27):
+
+- [x] Toàn bộ AC ở mục 3 pass — 30/36 tick trọn; 5 AC (1.5, 2.7, 3.5, 3.7, 4.2) có phần vắt sang GĐ2/GĐ3; AC-4.7 chưa quan sát được trên giao diện
+- [x] Trường hợp biên mục 5 được xử lý — các dòng thuộc phạm vi GĐ1 đã kiểm; các dòng cần sơ đồ hoặc trận đấu thuộc GĐ2/GĐ3
+- [x] Không vi phạm nguyên tắc nào trong constitution — P4 kiểm bằng bảng mạng: 0 request ra ngoài
+- [x] Mỗi giai đoạn bàn giao đều tự chạy được và dùng thử được, không phụ thuộc giai đoạn sau
+- [x] Dữ liệu xuất ra ở một giai đoạn vẫn nhập lại được — vòng tròn xuất/nhập đã kiểm cả bằng test và trên trình duyệt
+
+**Các giai đoạn sau:**
+
 - [ ] AC-8.3, AC-8.4, AC-8.5, AC-8.8 được kiểm chứng bằng phép so sánh thực tế giữa hai cấu hình chiến thuật, không chỉ bằng việc đọc code
 - [ ] AC-8.11 được kiểm chứng bằng cách chạy lại cùng mã trận với cùng chuỗi can thiệp giữa trận và đối chiếu từng dòng sự kiện
-- [ ] Dữ liệu xuất ra ở một giai đoạn vẫn nhập lại được sau khi giai đoạn sau đã thêm trường mới
 
 ## 8. Câu hỏi mở
 

@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | Giai đoạn 1 — 36 AC (AC-1.1→1.7, AC-2.1→2.11 gồm AC-2.1b, AC-3.1→3.8, AC-4.1→4.9): 31 làm trọn + 5 làm một phần |
-| **Tiến độ** | 32/35 |
+| **Tiến độ** | 34/35 |
 | **Sửa đổi** | 2026-10-26 — sửa theo kết quả `/analyze` |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -237,18 +237,32 @@ Kết thúc phase: xuất ra tệp, nhập lại trên máy khác ra đúng dữ
 
 ## Phase 5 — Kiểm thử và hoàn thiện
 
-- [ ] **T033** — Chạy qua toàn bộ 36 AC của Giai đoạn 1 và đánh dấu từng mục
+- [x] **T033** — Chạy qua toàn bộ 36 AC của Giai đoạn 1 và đánh dấu từng mục
   - File: `specs/001-football-team-sim/spec.md` (tick các ô AC trong phạm vi)
   - Xong khi: 31 AC làm trọn được tự tay kiểm trên ứng dụng đang chạy và tick; 5 AC vắt giai đoạn (AC-1.5, AC-2.7, AC-3.5, AC-3.7, AC-4.2) thì ghi rõ phần nào đã xong, **không** tick trọn.
   - Phụ thuộc: T032
 
-- [ ] **T034** — Kiểm các trường hợp biên ở spec mục 5 thuộc phạm vi Giai đoạn 1
+- [x] **T034** — Kiểm các trường hợp biên ở spec mục 5 thuộc phạm vi Giai đoạn 1
   - File: — (chỉ kiểm thủ công, ghi kết quả vào mô tả commit)
   - Xong khi: đã thử và thấy đúng hành vi mong đợi cho: chưa có đội nào; chỉ số để trống; nhập chỉ số ngoài 1–20; số áo trùng; hai cầu thủ cùng tên trong một đội; tệp ảnh không phải ảnh; ảnh quá lớn; màu áo hai đội quá giống nhau; màu áo khiến chữ khó đọc; tệp sao lưu hỏng; nhập tệp khi đã có dữ liệu; nhập gộp trùng tên đội; lưu trữ đầy; xoá cầu thủ; xoá đội.
   - Phụ thuộc: T033
 
-- [ ] **T035** — Kiểm ngân sách phi chức năng
+- [ ] **T035** — Kiểm ngân sách phi chức năng — **CHƯA XONG, xem ghi chú**
   - File: — (chỉ đo, ghi số đo vào mô tả commit)
+  - **Đã đo được (2026-10-27, bộ dữ liệu 20 đội × 30 cầu thủ, 620 ảnh, 32MB):**
+    mở database nguội 15ms · `teamRepo.list()` 20 đội 14ms · `playerRepo.listByTeam()`
+    30 cầu thủ 1ms · `uocTinhKichThuoc()` 69ms · `getAll` 620 ảnh 38ms ·
+    đọc+kiểm tệp 43,5MB 178ms · nhập tệp 43,5MB 734ms · P4: 0 request ra ngoài ·
+    bàn phím: 26 phần tử focus được trong form cầu thủ, không `tabindex` nào gài bẫy.
+  - **KHÔNG đo được:** hai ngân sách về thời gian hiển thị — "danh sách 30 cầu thủ
+    dưới 300ms" và "mở ứng dụng dưới 2 giây". Khung Browser của môi trường này tiêm
+    script với độ trễ dao động từ 356ms tới 27,8s, nên mọi phép đo bắc qua ranh giới
+    "trang tải xong → script đo chạy" đều vô giá trị; và pane không ghi `paint`/LCP
+    để lấy số liệu do trình duyệt tự đo. Tầng dữ liệu đo được đều dưới 70ms nên
+    không có dấu hiệu vượt ngân sách, nhưng đó là suy luận, không phải phép đo.
+  - **Cần làm để đóng task:** mở `npm run dev` trong trình duyệt thật của bạn và đọc
+    thời gian trong tab Performance, hoặc thêm `performance.mark` vào `main.tsx` rồi
+    đọc lại — cả hai đều không phụ thuộc vào độ trễ tiêm script.
   - Xong khi: dựng được bộ dữ liệu đúng mốc spec mục 6 — **20 đội, mỗi đội 30 cầu thủ, mỗi cầu thủ có ảnh** (dùng chức năng nhập tệp sao lưu với dữ liệu sinh sẵn, không nhập tay 600 cầu thủ) — rồi đo và ghi lại: danh sách 30 cầu thủ của một đội hiện đầy đủ dưới 300ms; mở ứng dụng với toàn bộ bộ dữ liệu đó dưới 2 giây; xuất tệp xong và nhập lại được, kèm kích thước tệp thực tế để đối chiếu rủi ro R1; đi hết form cầu thủ và bảng chỉ số chỉ bằng bàn phím; mở tab mạng của trình duyệt, dùng hết mọi chức năng và xác nhận **không có request nào đi ra** (hiến pháp P4).
   - Phụ thuộc: T034
 
