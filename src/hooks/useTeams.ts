@@ -52,28 +52,36 @@ export function useTeams() {
     [],
   )
 
-  const taoDoi = useCallback(async (ten: string): Promise<Team> => {
-    try {
-      const doi = await teamRepo.create({ name: ten })
-      useAppStore.getState().themDoi({
-        id: doi.id,
-        name: doi.name,
-        logoImageId: doi.logoImageId,
-        primaryColor: doi.primaryColor,
-        secondaryColor: doi.secondaryColor,
-        soCauThu: 0,
-      })
-      return doi
-    } catch (loi) {
-      ghiNhanLoiLuuTru(loi)
-    }
-  }, [])
-
-  const doiTenDoi = useCallback(
-    async (id: string, ten: string): Promise<Team> => {
+  const taoDoi = useCallback(
+    async (input: teamRepo.TaoDoiInput): Promise<Team> => {
       try {
-        const doi = await teamRepo.rename(id, ten)
-        useAppStore.getState().capNhatTenDoi(id, doi.name)
+        const doi = await teamRepo.create(input)
+        useAppStore.getState().themDoi({
+          id: doi.id,
+          name: doi.name,
+          logoImageId: doi.logoImageId,
+          primaryColor: doi.primaryColor,
+          secondaryColor: doi.secondaryColor,
+          soCauThu: 0,
+        })
+        return doi
+      } catch (loi) {
+        ghiNhanLoiLuuTru(loi)
+      }
+    },
+    [],
+  )
+
+  const capNhatDoi = useCallback(
+    async (id: string, thayDoi: teamRepo.ThayDoiDoi): Promise<Team> => {
+      try {
+        const doi = await teamRepo.capNhat(id, thayDoi)
+        useAppStore.getState().capNhatDoiTrongStore(id, {
+          name: doi.name,
+          logoImageId: doi.logoImageId,
+          primaryColor: doi.primaryColor,
+          secondaryColor: doi.secondaryColor,
+        })
         return doi
       } catch (loi) {
         ghiNhanLoiLuuTru(loi)
@@ -101,7 +109,7 @@ export function useTeams() {
     napDanhSachDoi,
     kiemTraTrungTen,
     taoDoi,
-    doiTenDoi,
+    capNhatDoi,
     xoaDoi,
   }
 }

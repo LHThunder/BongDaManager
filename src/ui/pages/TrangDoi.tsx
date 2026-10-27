@@ -6,6 +6,7 @@ import type { Player, Team } from '../../domain/types'
 import { usePlayers } from '../../hooks/usePlayers'
 import * as teamRepo from '../../services/teamRepo'
 import { CHAN_THUAN, CHUNG, TRANG_DOI, XOA_CAU_THU } from '../strings'
+import { AnhThayThe } from '../components/AnhThayThe'
 import { FormCauThu } from '../components/FormCauThu'
 import { HopXacNhan } from '../components/HopXacNhan'
 
@@ -85,13 +86,12 @@ export function TrangDoi({ teamId, onQuayLai }: Props) {
       </button>
 
       <div className="mt-4 flex items-center gap-4">
-        <div
-          aria-hidden="true"
-          className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-xl font-semibold text-white"
-          style={{ backgroundColor: doi.primaryColor }}
-        >
-          {doi.name.slice(0, 1).toUpperCase()}
-        </div>
+        <AnhThayThe
+          anhId={doi.logoImageId}
+          ten={doi.name}
+          mauNen={doi.primaryColor}
+          kichThuoc="lon"
+        />
         <div>
           <p className="text-sm uppercase tracking-wide text-slate-500">
             {TRANG_DOI.doiNay}
@@ -178,7 +178,17 @@ export function TrangDoi({ teamId, onQuayLai }: Props) {
                       {p.shirtNumber}
                     </td>
                     <td className="px-3 py-2">
-                      <span className="font-medium text-slate-900">{p.name}</span>
+                      <span className="inline-flex items-center gap-2">
+                        <AnhThayThe
+                          anhId={p.portraitImageId}
+                          ten={p.name}
+                          mauNen={doi.primaryColor}
+                          kichThuoc="nho"
+                        />
+                        <span className="font-medium text-slate-900">
+                          {p.name}
+                        </span>
+                      </span>
                       {!tinhTrang.hoanTat && (
                         <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-900">
                           {TRANG_DOI.chuaHoanTat}
@@ -237,6 +247,7 @@ export function TrangDoi({ teamId, onQuayLai }: Props) {
       {hop.loai === 'them' && (
         <FormCauThu
           teamId={teamId}
+          mauDoi={doi.primaryColor}
           onXong={() => datHop({ loai: 'khong' })}
           onHuy={() => datHop({ loai: 'khong' })}
         />
@@ -245,6 +256,7 @@ export function TrangDoi({ teamId, onQuayLai }: Props) {
       {hop.loai === 'sua' && (
         <FormCauThu
           teamId={teamId}
+          mauDoi={doi.primaryColor}
           cauThuDangSua={hop.cauThu}
           onXong={() => datHop({ loai: 'khong' })}
           onHuy={() => datHop({ loai: 'khong' })}

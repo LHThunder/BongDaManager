@@ -38,6 +38,7 @@ export interface AppState {
   datDangTai(dangTai: boolean): void
   themDoi(doi: TeamSummary): void
   capNhatTenDoi(id: string, ten: string): void
+  capNhatDoiTrongStore(id: string, phan: Partial<TeamSummary>): void
   boDoi(id: string): void
   datSoCauThu(id: string, soCauThu: number): void
   datLoiLuuTru(loi: LoiUngDung | null): void
@@ -64,6 +65,13 @@ export const useAppStore = create<AppState>((set) => ({
     set((s) => ({
       teams: s.teams
         .map((d) => (d.id === id ? { ...d, name: ten } : d))
+        .sort(theoTen),
+    })),
+
+  capNhatDoiTrongStore: (id, phan) =>
+    set((s) => ({
+      teams: s.teams
+        .map((d) => (d.id === id ? { ...d, ...phan } : d))
         .sort(theoTen),
     })),
 

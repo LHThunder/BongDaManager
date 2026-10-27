@@ -26,6 +26,15 @@ export interface TaoDoiInput {
   readonly name: string
   readonly primaryColor?: string
   readonly secondaryColor?: string
+  readonly logoImageId?: string | null
+}
+
+/** Những trường của đội mà người dùng sửa được (AC-1.5, AC-3.5, AC-3.6). */
+export interface ThayDoiDoi {
+  readonly name?: string
+  readonly logoImageId?: string | null
+  readonly primaryColor?: string
+  readonly secondaryColor?: string
 }
 
 function chuanHoaTen(name: string): string {
@@ -93,7 +102,7 @@ export async function create(input: TaoDoiInput): Promise<Team> {
   const team: Team = {
     id: crypto.randomUUID(),
     name: ten,
-    logoImageId: null,
+    logoImageId: input.logoImageId ?? null,
     primaryColor: input.primaryColor ?? MAU_AO_MAC_DINH.chinh,
     secondaryColor: input.secondaryColor ?? MAU_AO_MAC_DINH.phu,
     createdAt: bayGio,
@@ -109,25 +118,54 @@ export async function create(input: TaoDoiInput): Promise<Team> {
   }
 }
 
-export async function rename(id: string, name: string): Promise<Team> {
-  const ten = chuanHoaTen(name)
+/**
+ * Cập nhật tên, logo và màu áo của đội. Ảnh logo cũ bị thay thì được xoá luôn
+ * trong cùng transaction, để store `images` không tích ảnh mồ côi (P3).
+ */
+export async function capNhat(id: string, thayDoi: ThayDoiDoi): Promise<Team> {
+  const ten = thayDoi.name !== undefined ? chuanHoaTen(thayDoi.name) : undefined
 
   try {
     const db = await moDb()
-    const tx = db.transaction('teams', 'readwrite')
-    const hienTai = await tx.store.get(id)
+    const tx = db.transaction(['teams', 'images'], 'readwrite')
+    const khoDoi = tx.objectStore('teams')
+    const hienTai = await khoDoi.get(id)
     if (!hienTai) {
       await tx.done
       throw new LoiUngDung('NotFound', { truong: 'teamId', giaTri: id })
     }
 
-    const moi: Team = { ...hienTai, name: ten, updatedAt: Date.now() }
-    await tx.store.put(moi)
+    const logoMoi =
+      thayDoi.logoImageId !== undefined
+        ? thayDoi.logoImageId
+        : hienTai.logoImageId
+
+    if (
+      hienTai.logoImageId !== null &&
+      logoMoi !== hienTai.logoImageId
+    ) {
+      await tx.objectStore('images').delete(hienTai.logoImageId)
+    }
+
+    const moi: Team = {
+      ...hienTai,
+      name: ten ?? hienTai.name,
+      logoImageId: logoMoi,
+      primaryColor: thayDoi.primaryColor ?? hienTai.primaryColor,
+      secondaryColor: thayDoi.secondaryColor ?? hienTai.secondaryColor,
+      updatedAt: Date.now(),
+    }
+    await khoDoi.put(moi)
     await tx.done
     return moi
   } catch (loi) {
     throw chuanHoaLoiLuuTru(loi)
   }
+}
+
+/** Đổi tên đội. Giữ lại vì nhiều chỗ chỉ cần đúng việc này (AC-1.5). */
+export function rename(id: string, name: string): Promise<Team> {
+  return capNhat(id, { name })
 }
 
 export interface KetQuaXoaDoi {

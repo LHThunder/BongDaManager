@@ -22,9 +22,12 @@ import { usePlayers } from '../../hooks/usePlayers'
 import { laLoiUngDung } from '../../services/errors'
 import { CHAN_THUAN, CHUNG, FORM_CAU_THU, TRANG_DOI, cauLoi } from '../strings'
 import { BangChiSo } from './BangChiSo'
+import { ChonAnh } from './ChonAnh'
 
 interface Props {
   readonly teamId: string
+  /** Màu áo chính của đội, dùng làm nền cho hình thay thế khi chưa có ảnh. */
+  readonly mauDoi: string
   /** Có giá trị khi sửa hồ sơ một cầu thủ đã có. */
   readonly cauThuDangSua?: Player
   readonly onXong: () => void
@@ -36,7 +39,13 @@ const RNG_THAT: Rng = { next: () => Math.random() }
 
 const CAC_CHAN_THUAN: readonly PreferredFoot[] = ['phai', 'trai', 'ca-hai']
 
-export function FormCauThu({ teamId, cauThuDangSua, onXong, onHuy }: Props) {
+export function FormCauThu({
+  teamId,
+  mauDoi,
+  cauThuDangSua,
+  onXong,
+  onHuy,
+}: Props) {
   const { luuCauThu } = usePlayers(teamId)
   const dangSua = cauThuDangSua !== undefined
 
@@ -54,6 +63,9 @@ export function FormCauThu({ teamId, cauThuDangSua, onXong, onHuy }: Props) {
   )
   const [chiSoThuMon, datChiSoThuMon] = useState<GkAttributeValues | null>(
     cauThuDangSua?.gkAttributes ?? null,
+  )
+  const [anhId, datAnhId] = useState<string | null>(
+    cauThuDangSua?.portraitImageId ?? null,
   )
 
   const [loi, datLoi] = useState<string | null>(null)
@@ -163,6 +175,7 @@ export function FormCauThu({ teamId, cauThuDangSua, onXong, onHuy }: Props) {
         positions: viTri,
         attributes: chiSo,
         gkAttributes: chiSoThuMon,
+        portraitImageId: anhId,
       })
       onXong()
     } catch (e) {
@@ -224,6 +237,16 @@ export function FormCauThu({ teamId, cauThuDangSua, onXong, onHuy }: Props) {
               className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-slate-900 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300"
             />
           </label>
+        </div>
+
+        <div className="mt-4">
+          <ChonAnh
+            loai="chan-dung"
+            anhId={anhId}
+            ten={ten || '?'}
+            mauNen={mauDoi}
+            onDaChon={datAnhId}
+          />
         </div>
 
         <fieldset className="mt-4">

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useTeams } from '../../hooks/useTeams'
 import type { TeamSummary } from '../../services/teamRepo'
 import { CHUNG, DANH_SACH_DOI, XOA_DOI } from '../strings'
+import { AnhThayThe } from '../components/AnhThayThe'
 import { FormDoi } from '../components/FormDoi'
 import { HopXacNhan } from '../components/HopXacNhan'
 
@@ -71,18 +72,12 @@ export function DanhSachDoi({ onMoDoi }: Props) {
               key={doi.id}
               className="flex items-center gap-4 rounded-lg border border-slate-200 bg-white p-4"
             >
-              {/*
-                Chỗ dành cho logo đội. Giai đoạn 3 (T027/T028) thay bằng
-                component hình thay thế dùng chữ cái đầu và màu áo, có tính
-                tương phản đúng chuẩn.
-              */}
-              <div
-                aria-hidden="true"
-                className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-lg font-semibold text-white"
-                style={{ backgroundColor: doi.primaryColor }}
-              >
-                {doi.name.slice(0, 1).toUpperCase()}
-              </div>
+              <AnhThayThe
+                anhId={doi.logoImageId}
+                ten={doi.name}
+                mauNen={doi.primaryColor}
+                kichThuoc="vua"
+              />
 
               <div className="min-w-0 flex-1">
                 <p className="truncate font-medium text-slate-900">{doi.name}</p>
@@ -133,7 +128,7 @@ export function DanhSachDoi({ onMoDoi }: Props) {
 
       {hop.loai === 'sua' && (
         <FormDoi
-          doiDangSua={{ id: hop.doi.id, name: hop.doi.name }}
+          doiDangSua={hop.doi}
           onXong={() => datHop({ loai: 'khong' })}
           onHuy={() => datHop({ loai: 'khong' })}
         />

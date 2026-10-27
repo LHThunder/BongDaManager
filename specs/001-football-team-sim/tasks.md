@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | Giai đoạn 1 — 36 AC (AC-1.1→1.7, AC-2.1→2.11 gồm AC-2.1b, AC-3.1→3.8, AC-4.1→4.9): 31 làm trọn + 5 làm một phần |
-| **Tiến độ** | 23/35 |
+| **Tiến độ** | 28/35 |
 | **Sửa đổi** | 2026-10-26 — sửa theo kết quả `/analyze` |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -172,31 +172,31 @@ Kết thúc phase: nhập được trọn một đội 18 cầu thủ, có sinh 
 
 Kết thúc phase: đội có logo và màu áo, cầu thủ có ảnh chân dung đã cắt, chưa có ảnh thì hiện hình chữ cái đầu, chữ luôn đọc được trên mọi màu áo.
 
-- [ ] **T024** [P] — Luật màu: tương phản và trùng màu áo
+- [x] **T024** [P] — Luật màu: tương phản và trùng màu áo
   - File: `src/domain/colors.ts`, `src/domain/colors.test.ts`
   - Xong khi: test xanh — `contrastingTextColor` trả màu chữ đạt tối thiểu 4.5:1 theo công thức WCAG, kiểm bằng các mốc màu cụ thể gồm vàng nhạt và xám trung tính; màu không hợp lệ thì ném `InvalidColor`; `kitsClash` phân biệt đúng ba trường hợp hai màu giống hệt, hai màu gần nhau và hai màu xa nhau.
   - AC: AC-3.7, AC-3.8
   - Phụ thuộc: T003
 
-- [ ] **T025** — Xử lý ảnh: cắt, thu nhỏ và nén
+- [x] **T025** — Xử lý ảnh: cắt, thu nhỏ và nén
   - File: `src/services/imageService.ts`, `src/services/imageService.test.ts`
   - Xong khi: test xanh — `preparePortrait` trả về `Blob` vuông không quá 100KB, `prepareLogo` không quá 50KB, kể cả với ảnh đầu vào rất lớn; tệp không phải ảnh thì ném `NotAnImage`; ảnh hỏng không giải mã được thì ném `DecodeFailed`; không dùng thư viện nén nào ngoài `canvas` của trình duyệt.
   - AC: AC-3.2, AC-3.3
   - Phụ thuộc: T008
 
-- [ ] **T026** — Khung chọn vùng cắt ảnh chân dung
+- [x] **T026** — Khung chọn vùng cắt ảnh chân dung
   - File: `src/ui/components/ChonAnh.tsx`
   - Xong khi: chọn một tệp ảnh thì hiện khung cắt vuông kéo và zoom được; xác nhận thì ảnh đã cắt hiện trong hồ sơ cầu thủ và còn đó sau khi tải lại trang; chọn tệp không phải ảnh thì hiện thông báo tiếng Việt rõ ràng và ảnh cũ giữ nguyên; thử với ảnh dọc, ảnh ngang và ảnh vuông.
   - AC: AC-3.1, AC-3.3
   - Phụ thuộc: T025, T022
 
-- [ ] **T027** [P] — Hình thay thế khi chưa có ảnh
+- [x] **T027** [P] — Hình thay thế khi chưa có ảnh
   - File: `src/ui/components/AnhThayThe.tsx`
   - Xong khi: cầu thủ chưa có ảnh thì hiện hình tròn gồm chữ cái đầu của tên trên nền màu áo chính của đội, màu chữ lấy từ `contrastingTextColor`; đội chưa có logo cũng dùng cùng cơ chế này ở danh sách đội.
   - AC: AC-3.4
   - Phụ thuộc: T024
   
-- [ ] **T028** — Logo đội và màu áo
+- [x] **T028** — Logo đội và màu áo
   - File: `src/ui/components/ChonMauAo.tsx`, sửa `src/ui/components/FormDoi.tsx`, sửa `src/ui/pages/DanhSachDoi.tsx`
   - Xong khi: gắn được logo cho đội và logo hiện ở danh sách đội lẫn trang đội; chọn được màu áo chính và màu áo phụ, màu chính được dùng nhuộm các thành phần nhận diện của đội; chọn màu trùng với đội đã có thì hiện cảnh báo trùng màu áo; mọi chữ trên nền màu áo vẫn đọc được với các màu khó ở T024.
   - AC: AC-3.5, AC-3.6, AC-3.7, AC-3.8

@@ -40,7 +40,7 @@ export const FORM_DOI = {
   tieuDeTao: 'Tạo đội mới',
   tieuDeSua: 'Sửa thông tin đội',
   nutTao: 'Tạo đội',
-  nutDoiTen: 'Đổi tên',
+  nutDoiTen: 'Cập nhật đội',
   nhanTen: 'Tên đội',
   gidanhTen: 'Ví dụ: Đội của tôi',
   nhanMauChinh: 'Màu áo chính',
@@ -98,6 +98,32 @@ export const CHAN_THUAN = {
   trai: 'Trái',
   phai: 'Phải',
   'ca-hai': 'Cả hai',
+} as const
+
+export const CHON_ANH = {
+  nhanAnhCauThu: 'Ảnh chân dung',
+  nhanLogoDoi: 'Logo đội',
+  chonAnh: 'Chọn ảnh',
+  doiAnh: 'Đổi ảnh',
+  xoaAnh: 'Bỏ ảnh',
+  tieuDeCat: 'Cắt ảnh về khung vuông',
+  huongDanCat:
+    'Kéo để chọn phần muốn giữ, dùng thanh trượt để phóng to hoặc thu nhỏ.',
+  phongTo: 'Phóng to',
+  xacNhanCat: 'Dùng ảnh này',
+  dangXuLy: 'Đang xử lý ảnh…',
+} as const
+
+export const CHON_MAU_AO = {
+  nhanMauChinh: 'Màu áo chính',
+  nhanMauPhu: 'Màu áo phụ',
+  xemTruoc: 'Xem trước',
+  canhBaoTrungMauDoiKhac: (tenDoi: string) =>
+    `Màu áo chính này quá giống đội "${tenDoi}". Khi hai đội gặp nhau sẽ khó phân biệt.`,
+  canhBaoChinhVaPhuGiongNhau:
+    'Màu áo chính và màu áo phụ quá giống nhau, nên áo phụ sẽ không giúp phân biệt được gì.',
+  canhBaoNenDaDieuChinh:
+    'Màu này không đủ tương phản với cả chữ trắng lẫn chữ đen, nên nền hiển thị được làm đậm/nhạt đi một chút để chữ còn đọc được.',
 } as const
 
 export const BANG_CHI_SO = {
