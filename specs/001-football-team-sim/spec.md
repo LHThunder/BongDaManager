@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **ID** | `001-football-team-sim` |
-| **Status** | In progress — Giai đoạn 1 đã hiện thực và kiểm chứng (30/36 AC tick trọn, 5 AC vắt sang giai đoạn sau, 1 AC chưa quan sát được); Giai đoạn 2–4 chưa lập plan |
+| **Status** | In progress — Giai đoạn 1 đã hiện thực và kiểm chứng (30/36 AC tick trọn, 5 AC vắt sang giai đoạn sau, 1 AC chưa quan sát được); Giai đoạn 2 đã có plan (`plan.md` Phần II); Giai đoạn 3–4 chưa lập plan |
 | **Created** | 2026-10-26 |
 | **Clarified** | 2026-10-26 |
 | **Amended** | 2026-10-26 — khớp constitution v1.0.0 (P1); và sửa theo kết quả `/analyze` (AC-2.1b, AC-4.8, AC-4.9); xem mục 10 |

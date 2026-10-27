@@ -1,4 +1,15 @@
-# Plan: Giai đoạn 1 — Tạo đội, cầu thủ, ảnh và lưu trữ
+# Plan: specs/001-football-team-sim
+
+| Phần | Phạm vi | Trạng thái |
+|---|---|---|
+| **Phần I** | Giai đoạn 1 — tạo đội, cầu thủ, ảnh, sao lưu | Đã hiện thực xong (38/39 task) |
+| **Phần II** | Giai đoạn 2 — sơ đồ chiến thuật | Mới lập, ngày 2026-10-27 |
+
+Giai đoạn 3 và 4 sẽ được thêm thành Phần III và IV khi tới lượt.
+
+---
+
+# PHẦN I — Giai đoạn 1: Tạo đội, cầu thủ, ảnh và lưu trữ
 
 | | |
 |---|---|
@@ -322,3 +333,239 @@ Chia theo lát cắt dọc. Mỗi lát xong là ứng dụng chạy được và
 5. **Lát 4 — Sao lưu và phục hồi.** AC-4.3 → AC-4.7. Kết thúc: xuất ra tệp, nhập lại trên máy khác ra đúng dữ liệu kể cả ảnh, tệp hỏng bị từ chối mà không làm mất gì, lưu trữ đầy thì được cảnh báo. Giai đoạn 1 hoàn tất.
 
 Thứ tự này đặt phần nhập liệu trước phần ảnh có lý do: nếu lát 2 cho thấy việc nhập 18 cầu thủ quá mệt (R3), ta còn kịp sửa cách nhập trước khi xây thêm thứ gì lên trên nó.
+
+---
+---
+
+# PHẦN II — Giai đoạn 2: Sơ đồ chiến thuật
+
+| | |
+|---|---|
+| **Spec** | `./spec.md` |
+| **Phạm vi** | US-5 → US-7 — **22 AC** (AC-5.1→5.10, AC-6.1→6.6, AC-7.1→7.6) |
+| **Mức hoàn thành dự kiến** | 21 AC làm trọn + **1 AC làm một phần**: AC-5.7 — phần tính và hiện tình trạng đội hình làm ở GĐ2, phần "chặn việc bắt đầu giả lập" cần lối vào trận đấu nên thuộc GĐ3 |
+| **Status** | Draft |
+| **Updated** | 2026-10-27 |
+
+> Phần này mô tả **HOW**. Không thêm yêu cầu mới — nếu cần thì quay lại sửa `spec.md`.
+
+## II.1. Kiểm tra hiến pháp
+
+| Nguyên tắc | Tuân thủ? | Ghi chú |
+|---|---|---|
+| P1 Giả lập phải tái lập được | ✅ | GĐ2 chưa có engine. Nhưng việc tự xếp lại người khi đổi sơ đồ (AC-5.8) PHẢI tất định: cùng đội hình cũ + cùng sơ đồ mới luôn ra cùng kết quả, không dùng nguồn ngẫu nhiên nào. Có test cho điều đó. |
+| P2 Luật bóng đá tách khỏi giao diện | ✅ | Toàn bộ dữ liệu sơ đồ, bảng vai trò, luật mức sai vị trí, luật xung đột chỉ thị và thuật toán xếp lại người nằm trong `domain/`. Component chỉ vẽ và gọi. Test biên giới hiện có (T007) tự động canh. |
+| P3 Dữ liệu người dùng là bất khả xâm phạm | ✅ | Đổi sơ đồ KHÔNG được làm mất cầu thủ: AC-5.8 nói giữ lại người, ai không xếp được thì ra danh sách ngoài sân. Thêm store `tactics` và bump `DB_VERSION`; nâng cấp database là thao tác ghi nên đi qua `upgrade` của IndexedDB trong một transaction duy nhất. |
+| P4 Chạy offline | ✅ | Hình sân vẽ bằng CSS và SVG nội tuyến, không ảnh tải về. Thư viện kéo-thả đi qua npm và được đóng gói. |
+| P5 Mỗi AC dạng so sánh phải có test | ✅ (chưa áp dụng) | Các AC dạng so sánh thuộc GĐ3. Nhưng GĐ2 sinh ra **đầu vào** cho chúng: mức trừ hiệu suất theo ba mức sai vị trí (AC-5.5) là con số mà AC-8.5 sẽ kiểm. Định nghĩa chúng trong `domain` ngay từ GĐ2 để GĐ3 chỉ việc dùng. |
+| P6 Mỗi giai đoạn bàn giao phải tự chạy được | ✅ | Bốn lát cắt dọc ở mục II.9, mỗi lát kết thúc là một trang chiến thuật dùng thử được. |
+| P7 Tệp sao lưu cũ phải mở lại được | ⚠️ | Tệp sao lưu phải chứa thêm chiến thuật, nên `SCHEMA_VERSION` lên **3**. Tệp **v1** (JSON base64) và **v2** (ZIP) đã phát hành vẫn phải nhập được: thêm bước migration v2→v3 gán chiến thuật mặc định cho mọi đội trong tệp cũ. Đây là chỗ dễ làm hỏng nhất của giai đoạn này nên được đánh ⚠️ và có test riêng cho cả ba phiên bản. |
+| P8 Giao diện và thuật ngữ tiếng Việt | ✅ | Tên 8 sơ đồ, 23 vai trò, 6 chỉ thị và mọi câu giải thích đều bằng tiếng Việt. Tên vai trò và tên chỉ thị là **thuật ngữ miền** nên nằm trong `domain` cùng chỗ với `POSITIONS`, theo đúng tiền lệ đã có. |
+| P9 Không bắt buộc dùng chuột, chữ phải đọc được | ✅ | Đây là giai đoạn mà phần bàn phím của P9 bắt đầu có nghĩa thật: AC-5.9 đòi xếp và đổi chỗ cầu thủ chỉ bằng bàn phím. Xem quyết định D11 — đó là lý do chính của việc chọn thư viện kéo-thả. Mức sai vị trí hiện bằng **nhãn chữ** chứ không chỉ bằng màu viền ô. |
+
+**Ngoại lệ xin miễn trừ:** Không.
+
+## II.2. Bối cảnh kỹ thuật
+
+- **Tái sử dụng từ Giai đoạn 1** (không viết lại): `POSITIONS` / `laViTriThuMon` / `kiemTraToHopViTri` (`domain/positions.ts`), `POSITION_WEIGHTS` / `chiSoQuanTrong` (`domain/attributes.ts`), `chiSoTongTheoViTri` (`domain/rating.ts`), `hoSoHoanTat` (`domain/completeness.ts`, cho AC-5.7), `AnhThayThe` (ảnh cầu thủ trên ô), `HopXacNhan`, `ui/strings.ts`, mẫu `appStore` + hook, `moDb` + chuỗi migration, `LoiUngDung` + mã lỗi.
+- **Vùng code bị chạm:** thêm `domain/formations.ts`, `domain/misplacement.ts`, `domain/roles.ts`, `domain/instructions.ts`, `domain/lineup.ts`; thêm `services/tacticRepo.ts`; thêm `hooks/useTactic.ts`; thêm `ui/pages/TrangChienThuat.tsx` và các component sân/ô/vai trò/chỉ thị; sửa `storage/db.ts` (store mới, `DB_VERSION` 2), `storage/migrations.ts` (`SCHEMA_VERSION` 3), `services/backupSchema.ts` + `backupService.ts` (tệp v3), `services/teamRepo.ts` (trường `activeTacticId`), `store/appStore.ts`, `ui/strings.ts`, `ui/pages/TrangDoi.tsx` (lối vào trang chiến thuật).
+
+**Phụ thuộc mới.**
+
+| Thư viện | Dùng để làm gì | Vì sao không tự viết |
+|---|---|---|
+| `@dnd-kit/core` | Kéo-thả cầu thủ vào ô, và **điều khiển bằng bàn phím** cho cùng một thao tác | Xem quyết định D11. Tự viết phần bàn phím cho kéo-thả nghĩa là tự làm focus, thông báo cho trình đọc màn hình, và trạng thái "đang nhấc" — đúng những thứ P9 quan tâm. **Chưa đo được giá bundle; phải đo và ghi lại khi làm, không trích con số từ trí nhớ** (bài học từ việc tôi ghi sai "fflate 8KB" ở Phần I). |
+
+## II.3. Kiến trúc
+
+Không có tầng mới. Phần thêm vào nằm đúng các tầng đã có:
+
+```
+domain/            formations.ts    8 sơ đồ, mỗi sơ đồ 11 ô kèm toạ độ trên sân
+  (thuần)          misplacement.ts  ba mức sai vị trí + mức trừ hiệu suất
+                   roles.ts         23 vai trò, chỉ số quan trọng, câu giải thích
+                   instructions.ts  6 chỉ thị, đánh đổi từng mức, luật xung đột
+                   lineup.ts        xếp lại người khi đổi sơ đồ, tình trạng đội hình
+services/          tacticRepo.ts    đọc/ghi chiến thuật, lưu bộ có tên
+storage/           db.ts            + store `tactics`, DB_VERSION 2
+hooks/             useTactic.ts     điều phối
+ui/pages/          TrangChienThuat.tsx
+ui/components/     SanBong.tsx  OViTri.tsx  DanhSachNgoaiSan.tsx
+                   ChonSoDo.tsx  ChonVaiTro.tsx  ChiThiDoi.tsx
+```
+
+**Quyết định thiết kế:**
+
+| # | Quyết định | Phương án đã chọn | Phương án loại bỏ | Lý do |
+|---|---|---|---|---|
+| D11 | Cách xếp cầu thủ vào ô | `@dnd-kit/core` với cả `PointerSensor` và `KeyboardSensor` | Kéo-thả HTML5 gốc (`draggable`) | HTML5 DnD **không có đường bàn phím nào cả**, mà AC-5.9 và P9 đòi làm được mọi việc bằng bàn phím. Sẽ phải viết một cơ chế thứ hai song song chỉ cho bàn phím, tức là hai đường code cho một thao tác — hai đường sẽ lệch nhau |
+| D11b | | | `react-dnd` | Cũng không có sensor bàn phím sẵn; phần accessibility phải tự làm |
+| D11c | | | Tự viết bằng `pointerdown`/`pointermove` | Phần chuột thì làm được, nhưng phần bàn phím đòi quản lý focus, vùng thả đang nhắm tới, và thông báo cho trình đọc màn hình. Đó là việc đã có thư viện làm đúng |
+| D12 | Chỗ lưu chiến thuật | Store `tactics` riêng, `teams.activeTacticId` trỏ tới bộ đang dùng | Nhúng chiến thuật vào trong bản ghi đội | AC-7.5 đòi lưu **nhiều** bộ có tên cho cùng một đội. Nhúng vào đội thì chỉ chứa được một bộ, và mỗi lần đổi một ô lại phải ghi lại cả bản ghi đội kèm logo |
+| D13 | Vai trò gắn vào đâu | Gắn vào **ô** của sơ đồ (`oVien[].roleId`), không gắn vào cầu thủ | Gắn vai trò vào cầu thủ | AC-6.6 nói rõ: đổi cầu thủ ở ô thì vai trò giữ nguyên. Vai trò là mệnh lệnh của HLV cho một vị trí, không phải thuộc tính của người |
+| D14 | Thuật toán xếp lại người khi đổi sơ đồ (AC-5.8) | Tham lam theo mức sai vị trí, rồi **một lượt cải thiện bằng cách thử đổi chỗ từng cặp** cho tới khi không cải thiện được nữa | Chỉ tham lam một lượt | Tham lam thuần có thể để lại những cặp mà đổi chỗ cho nhau thì cả hai đều khớp hơn. Lượt đổi cặp sửa được đúng loại sai đó với khoảng 30 dòng code |
+| D14b | | | Thuật toán Hungarian (ghép tối ưu toàn cục) | Khoảng 80 dòng code dày đặc chỉ số mảng cho một bài toán 11×11. Phương án đã chọn đạt **tối ưu cục bộ theo phép đổi cặp**, và test sẽ kiểm trên các tình huống cụ thể. Nếu test tìm ra trường hợp mà nó trượt rõ rệt thì mới đổi sang Hungarian — ghi lại ở đây để lần sau không phải bàn lại |
+| D15 | Toạ độ ô trên sân | Phần trăm `x`,`y` trong 0..100, lưu trong `formations.ts`; `y=0` là khung thành đội mình | Toạ độ theo điểm ảnh | Phần trăm thì sân co giãn theo khung mà không phải tính lại; và GĐ4 vẽ sân 2D dùng lại đúng hệ toạ độ này |
+| D16 | Mức sai vị trí tính thế nào | Từ `tuyen` và `ben` đã có trong `POSITIONS`: lệch 0 tuyến + khác bên = **nhẹ**, lệch 1 tuyến = **vừa**, lệch ≥2 tuyến hoặc dính khung thành = **nặng**; cầu thủ nhiều vị trí thì lấy mức **nhẹ nhất** trong các vị trí của họ | Một bảng tra tay 12×12 | Bảng tay là 144 ô phải tự nhất quán, và mỗi lần thêm vị trí lại phải sửa cả bảng. Tính từ tuyến và bên thì luật chỉ có một chỗ |
+| D17 | Chỉ thị lưu ở đâu trong tệp sao lưu | Thêm vào tệp v3, cùng chỗ với chiến thuật | Để chỉ thị ngoài tệp sao lưu | AC-5.10 và AC-7.6 nói chiến thuật phải còn nguyên; nếu không nằm trong tệp sao lưu thì mang sang máy khác là mất, mà AC-4.4 nói nhập lại phải ra đúng dữ liệu |
+
+## II.4. Mô hình dữ liệu
+
+**IndexedDB — `DB_VERSION` lên 2.** Thêm một store, thêm một trường vào `teams`:
+
+```
+tactics        (keyPath: 'id')                             ← store MỚI
+  id              string
+  teamId          string        -> teams.id
+  ten             string | null  // null = bộ đang dùng, chưa đặt tên
+  formationId     FormationId
+  oVien           { slotId: string
+                    playerId: string | null
+                    roleId: RoleId }[]      // đúng 11 phần tử
+  chiThi          Record<InstructionId, string>   // 6 khoá
+  createdAt       number
+  updatedAt       number
+  index: byTeam (teamId)
+
+teams                                                       ← SỬA
+  + activeTacticId  string | null
+```
+
+Nâng cấp từ `DB_VERSION` 1 lên 2 chạy trong `upgrade` của IndexedDB: tạo store
+`tactics`, rồi với mỗi đội đã có, dựng một chiến thuật mặc định (sơ đồ 4-4-2,
+11 ô trống, vai trò mặc định, chỉ thị cân bằng) và gán `activeTacticId`. Toàn bộ
+việc đó nằm trong một transaction của bước nâng cấp — hỏng thì không có gì đổi (P3).
+
+**Tệp sao lưu — `SCHEMA_VERSION` lên 3.** Manifest thêm một mảng:
+
+```
+manifest.json
+  schemaVersion: 3
+  teams:    [ … + activeTacticId … ]
+  players:  [ … không đổi … ]
+  images:   [ … không đổi … ]
+  tactics:  [ … như store tactics … ]        ← MỚI
+```
+
+**Chuỗi migration (P7).** `MIGRATIONS` có hai bước sau giai đoạn này:
+
+| Bước | Việc |
+|---|---|
+| v1 → v2 | (đã có) ảnh ra khỏi JSON: bỏ `data`, thêm `duongDan` |
+| v2 → v3 | thêm `tactics: []`, và với mỗi đội thêm `activeTacticId: null` |
+
+Tệp v1 và v2 đi qua đủ chuỗi nên vẫn nhập được. Đội không có chiến thuật trong
+tệp thì khi nhập được gán chiến thuật mặc định, giống như đội tạo mới (AC-7.4).
+
+## II.5. Contracts
+
+**domain/** — hàm thuần, không I/O, không ngẫu nhiên.
+
+| Tên | Input | Output |
+|---|---|---|
+| `FORMATIONS` | — | `Formation[]` — đúng 8 sơ đồ, mỗi sơ đồ `{ id, ten, oVien: { slotId, viTri, x, y }[] }` với 11 ô |
+| `mucSaiViTri(viTriO, viTriSoTruong)` | `PositionId`, `PositionId[]` | `'dung' \| 'nhe' \| 'vua' \| 'nang'` |
+| `MUC_TRU_HIEU_SUAT` | — | `Record<MucSai, number>` — phần trừ cho GĐ3 dùng (AC-5.5, AC-8.5) |
+| `ROLES` | — | `Role[]` — 23 vai trò, mỗi vai trò `{ id, ten, viTriApDung: PositionId[], moTa, chiSoQuanTrong }` |
+| `vaiTroChoViTri(viTri)` | `PositionId` | `Role[]` — 2..3 vai trò (AC-6.1) |
+| `vaiTroMacDinh(viTri)` | `PositionId` | `RoleId` (AC-6.5) |
+| `chiSoChuaDat(cauThu, roleId)` | `Player`, `RoleId` | `{ id, ten, giaTri }[]` — chỉ số quan trọng dưới 10 (AC-6.4) |
+| `CAC_CHI_THI` | — | `Instruction[]` — 6 chỉ thị, mỗi mức kèm câu đánh đổi (AC-7.1, AC-7.2) |
+| `CHI_THI_MAC_DINH` | — | bộ cân bằng (AC-7.4) |
+| `cacXungDot(chiThi)` | bộ chỉ thị | `XungDot[]` — mô tả từng xung đột (AC-7.3) |
+| `xepLaiKhiDoiSoDo(oVienCu, soDoMoi, cauThu)` | | `{ oVienMoi, bayRaNgoai: playerId[], xepSaiViTri: { playerId, muc }[] }` (AC-5.8) |
+| `tinhTrangDoiHinh(oVien, cauThu)` | | `{ sanSang: boolean, thieu: LyDoThieu[] }` (AC-5.7) |
+
+**services/tacticRepo.ts**
+
+| Tên | Input | Output | Lỗi |
+|---|---|---|---|
+| `layChienThuatDangDung(teamId)` | | `Tactic` — tự tạo bộ mặc định nếu đội chưa có | `NotFound`, `QuotaExceeded` |
+| `luu(tactic)` | | `Tactic` | `InvalidTactic`, `QuotaExceeded` |
+| `luuThanhBo(teamId, ten)` | | `Tactic` — nhân bản bộ đang dùng thành bộ có tên (AC-7.5) | `EmptyName`, `QuotaExceeded` |
+| `danhSachBo(teamId)` | | `Tactic[]` — các bộ có tên | |
+| `apDungBo(teamId, tacticId)` | | `Tactic` | `NotFound` |
+
+Thêm một mã lỗi `InvalidTactic` vào `services/errors.ts` cho trường hợp bộ
+chiến thuật không đúng hình dạng (không đủ 11 ô, ô trỏ tới cầu thủ của đội khác,
+vai trò không áp dụng được cho vị trí của ô).
+
+## II.6. Ánh xạ AC → thiết kế
+
+| AC | Được đáp ứng bởi |
+|---|---|
+| AC-5.1 | `TrangChienThuat` + `SanBong` (sân vẽ bằng CSS/SVG) + `ChonSoDo` |
+| AC-5.2 | `FORMATIONS` — test khẳng định đúng 8 sơ đồ và mỗi sơ đồ đúng 11 ô; `ChonSoDo` dựng danh sách từ đó |
+| AC-5.3 | `@dnd-kit` draggable trên `DanhSachNgoaiSan`, droppable trên `OViTri`; `OViTri` hiện `AnhThayThe` + tên + số áo |
+| AC-5.4 | `useTactic.datCauThuVaoO` — ô đích đã có người thì đổi chỗ hai bên, không ô nào bị bỏ trống ngoài ý muốn |
+| AC-5.5 | `mucSaiViTri` + `MUC_TRU_HIEU_SUAT`; `OViTri` hiện nhãn chữ của mức và phần trừ |
+| AC-5.6 | `DanhSachNgoaiSan` cũng là vùng thả; thả ra ngoài thì `playerId` của ô thành `null` |
+| AC-5.7 | `tinhTrangDoiHinh` (dùng lại `hoSoHoanTat` của GĐ1) + dải thông báo trên `TrangChienThuat`. **Một phần:** việc chặn bắt đầu giả lập cần lối vào trận đấu, thuộc GĐ3 |
+| AC-5.8 | `xepLaiKhiDoiSoDo` (D14) + thông báo nêu ai bị đẩy ra ngoài, ai bị xếp sai |
+| AC-5.9 | `KeyboardSensor` của `@dnd-kit`; mỗi ô và mỗi cầu thủ ngoài sân là một đích focus |
+| AC-5.10 | `tacticRepo` ghi xuyên thẳng như GĐ1; `TrangChienThuat` nạp lại từ `layChienThuatDangDung` |
+| AC-6.1 | `vaiTroChoViTri` + `ChonVaiTro`; test khẳng định mỗi vị trí trong 12 vị trí trả 2..3 vai trò và tổng là 23 |
+| AC-6.2 | `OViTri` hiện tên vai trò ngay tại ô |
+| AC-6.3 | `Role.moTa` + `Role.chiSoQuanTrong` hiện trong `ChonVaiTro` |
+| AC-6.4 | `chiSoChuaDat` — ngưỡng 10 lấy từ AC-6.4, nêu tên từng chỉ số và giá trị hiện tại |
+| AC-6.5 | `vaiTroMacDinh` gọi khi chọn sơ đồ mới |
+| AC-6.6 | `oVien[].roleId` gắn với ô (D13); `datCauThuVaoO` không chạm `roleId` |
+| AC-7.1 | `CAC_CHI_THI` (6 chỉ thị) + `ChiThiDoi` |
+| AC-7.2 | Câu đánh đổi nằm trong từng mức của `CAC_CHI_THI`, hiện ngay khi đổi mức |
+| AC-7.3 | `cacXungDot` + cảnh báo không chặn trong `ChiThiDoi` |
+| AC-7.4 | `CHI_THI_MAC_DINH`, dùng cả khi tạo đội mới và khi nâng cấp database/nhập tệp cũ |
+| AC-7.5 | `tacticRepo.luuThanhBo` + `danhSachBo` + `apDungBo` |
+| AC-7.6 | `teams.activeTacticId` — GĐ3 đọc đúng bộ này khi vào trận, không hỏi lại người dùng |
+
+22/22 AC có chỗ được hiện thực. AC-5.7 được ghi chú rõ phần vắt sang GĐ3.
+
+## II.7. Chiến lược kiểm thử
+
+**Bắt buộc có test — `domain/`:**
+- `FORMATIONS`: đúng 8 sơ đồ; mỗi sơ đồ đúng 11 ô; mỗi sơ đồ có đúng một ô thủ môn; mọi `viTri` của ô đều thuộc 12 vị trí; `slotId` không trùng trong một sơ đồ; toạ độ nằm trong 0..100; tên tổ hợp số của sơ đồ khớp số ô theo tuyến (4-4-2 phải có 4 phòng ngự, 4 tiền vệ, 2 tấn công).
+- `mucSaiViTri`: hậu vệ phải đá hậu vệ trái = nhẹ; tiền vệ trụ đá trung vệ = vừa; tiền đạo đá trung vệ = nặng; người không phải thủ môn đứng khung = nặng; thủ môn đá vị trí sân = nặng; cầu thủ hai vị trí lấy mức nhẹ nhất; đúng vị trí = `'dung'`. `MUC_TRU_HIEU_SUAT` phải tăng dần theo mức (chuẩn bị cho AC-8.5).
+- `ROLES`: tổng 23; mỗi vị trí trong 12 vị trí có 2..3 vai trò; mọi `chiSoQuanTrong` là chỉ số hợp lệ; vai trò của thủ môn chỉ dùng chỉ số mà thủ môn có (bất biến giống test đã có cho `POSITION_WEIGHTS`); mỗi vai trò có `moTa` không rỗng.
+- `chiSoChuaDat`: trả đúng chỉ số dưới 10 kèm giá trị; hồ sơ đủ và cao thì trả rỗng.
+- `CAC_CHI_THI`: đúng 6 chỉ thị; mỗi mức có câu đánh đổi không rỗng; `CHI_THI_MAC_DINH` có đủ 6 khoá và **không sinh xung đột nào**.
+- `cacXungDot`: bẫy việt vị bật + đội hình thấp → có xung đột; pressing cao + đội hình thấp → có; tấn công biên + đội hình hẹp → có; bộ cân bằng → rỗng.
+- `xepLaiKhiDoiSoDo`: **không mất cầu thủ nào** (tổng người trên sân + người bị đẩy ra = tổng người ban đầu); đổi 4-4-2 sang 4-3-3 thì trung vệ vẫn ở trung vệ; sơ đồ mới ít ô ở một tuyến thì người thừa bị đẩy ra ngoài và được nêu tên; tất định — gọi hai lần ra cùng kết quả (P1); lượt đổi cặp thật sự cải thiện được một tình huống cụ thể mà tham lam thuần làm sai.
+- `tinhTrangDoiHinh`: thiếu người, thiếu thủ môn, có cầu thủ hồ sơ chưa hoàn tất — mỗi trường hợp nêu đúng lý do.
+
+**Bắt buộc có test — lớp dữ liệu:**
+- Nâng `DB_VERSION` 1 → 2 trên database đã có đội: store `tactics` được tạo, mỗi đội có một chiến thuật mặc định, không đội nào mất dữ liệu.
+- `tacticRepo`: lưu rồi đọc lại ra đúng; đội chưa có chiến thuật thì tự tạo bộ mặc định; lưu bộ có tên không làm đổi bộ đang dùng; áp dụng bộ có tên thì `activeTacticId` đổi; bộ chiến thuật sai hình dạng bị từ chối.
+- Xoá đội thì chiến thuật của đội đó cũng bị xoá, không để lại bản ghi mồ côi (giống cách GĐ1 dọn cầu thủ và ảnh).
+- **Tệp sao lưu ba phiên bản:** xuất v3 rồi nhập lại ra đúng chiến thuật; nhập tệp **v2** (chưa có chiến thuật) thì mọi đội được gán bộ mặc định; nhập tệp **v1** cũng vậy; tính tất-cả-hoặc-không-gì vẫn giữ.
+
+**Thủ công:**
+- Kéo bằng chuột: vào ô trống, vào ô đã có người (đổi chỗ), ra ngoài sân.
+- **Chỉ bằng bàn phím:** xếp trọn một đội hình 11 người, không chạm chuột (AC-5.9).
+- Đổi sơ đồ khi đã xếp đủ 11 người và đọc thông báo xem ai bị đẩy ra.
+- Chọn một tổ hợp chỉ thị xung đột và xác nhận là cảnh báo chứ không chặn.
+- Rời trang rồi quay lại, kiểm sơ đồ/vai trò/chỉ thị còn nguyên.
+
+## II.8. Rủi ro & phương án lùi
+
+| # | Rủi ro | Khả năng | Ảnh hưởng | Giảm thiểu |
+|---|---|---|---|---|
+| R6 | Nâng `DB_VERSION` làm hỏng dữ liệu đang có của người dùng | Thấp | **Cao** | Bước nâng cấp chỉ THÊM store và THÊM trường, không sửa và không xoá gì. Có test nâng cấp chạy trên một database đã có đội, cầu thủ và ảnh. **Không** thêm lời nhắc nào vào giao diện: một dải cảnh báo "hãy sao lưu trước khi cập nhật" là yêu cầu mới không có AC, và đó đúng là kiểu scope creep mà `/analyze` đã bắt ở Phần I (mục #7 của lần soát đó). Việc nhắc người dùng sao lưu trước khi cập nhật là chuyện nói với họ khi bàn giao, không phải chức năng của app |
+| R7 | `@dnd-kit` làm bundle phình, hoặc phần bàn phím không đạt như quảng cáo | Trung bình | Trung bình | Đo bundle **trước và sau** khi thêm, ghi số thật vào plan. Nếu phần bàn phím không dùng được thì đường lùi là bổ sung cơ chế chọn-rồi-đặt bằng Enter cho riêng bàn phím, giữ kéo-thả cho chuột — chấp nhận hai đường code, vì AC-5.9 không thương lượng được |
+| R8 | Thuật toán xếp lại người (D14) cho kết quả mà người dùng thấy vô lý | Trung bình | Trung bình | Test trên các tình huống đổi sơ đồ thực tế. Thông báo luôn nêu rõ ai bị đẩy ra và ai bị xếp sai, nên người dùng sửa lại được bằng tay thay vì phải đoán |
+| R9 | Sơ đồ 11 ô với toạ độ phần trăm trông lệch trên màn hình hẹp | Trung bình | Thấp | Sân giữ tỉ lệ cố định; dưới một bề rộng nhất định thì danh sách ngoài sân xuống dưới sân thay vì nằm cạnh |
+
+**Rollback:** mỗi lát cắt là một commit chạy được. Riêng việc nâng `DB_VERSION`
+**không lùi được bằng `git revert`** — bản cũ sẽ không mở nổi database phiên bản
+2, vì IndexedDB từ chối mở một database có phiên bản cao hơn phiên bản code yêu
+cầu. Đường lùi duy nhất trong trường hợp đó là xoá database rồi nhập lại từ tệp
+sao lưu. Đây là việc cần nói với người dùng trước khi bàn giao lát 5, chứ không
+phải thứ app tự xử lý.
+
+## II.9. Thứ tự triển khai
+
+1. **Lát 5 — Dữ liệu và luật, chưa có giao diện.** `formations.ts`, `misplacement.ts`, `roles.ts`, `instructions.ts`, `lineup.ts` cùng toàn bộ test; nâng `DB_VERSION` lên 2 và `tacticRepo`. Kết thúc: test xanh, ứng dụng vẫn chạy y như Giai đoạn 1, dữ liệu cũ còn nguyên. Lát này không cho người dùng thêm gì — giữ nó nhỏ, nhưng nó phải đi trước vì mọi thứ sau đều dựa vào nó.
+2. **Lát 6 — Sân và xếp người.** AC-5.1 → AC-5.6, AC-5.9, AC-5.10. Kết thúc: mở trang chiến thuật, chọn sơ đồ, kéo người vào ô bằng chuột **và** bằng bàn phím, thấy mức sai vị trí, rời trang rồi quay lại vẫn còn.
+3. **Lát 7 — Vai trò và tình trạng đội hình.** AC-6.1 → AC-6.6, AC-5.7, AC-5.8. Kết thúc: mỗi ô có vai trò đổi được, có cảnh báo cầu thủ chưa đáp ứng vai trò, đổi sơ đồ thì người được xếp lại và biết ai bị đẩy ra.
+4. **Lát 8 — Chỉ thị đội và bộ chiến thuật có tên.** AC-7.1 → AC-7.6, và tệp sao lưu v3. Kết thúc: đặt được 6 chỉ thị với câu đánh đổi và cảnh báo xung đột, lưu và chọn lại bộ chiến thuật có tên, xuất/nhập tệp giữ đủ chiến thuật, tệp v1 và v2 cũ vẫn nhập được. Giai đoạn 2 hoàn tất.
+
+Lát 5 đi trước vì nếu `mucSaiViTri` hay `xepLaiKhiDoiSoDo` sai thì mọi thứ vẽ
+trên sân đều sai theo, và sai ở tầng luật thì nhìn vào giao diện không thấy được.
