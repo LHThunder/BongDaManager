@@ -5,6 +5,7 @@ import { CHUNG, DANH_SACH_DOI, XOA_DOI } from '../strings'
 import { AnhThayThe } from '../components/AnhThayThe'
 import { FormDoi } from '../components/FormDoi'
 import { HopXacNhan } from '../components/HopXacNhan'
+import { SaoLuu } from '../components/SaoLuu'
 
 interface Props {
   readonly onMoDoi: (teamId: string) => void
@@ -115,6 +116,8 @@ export function DanhSachDoi({ onMoDoi }: Props) {
           ))}
         </ul>
       )}
+
+      <SaoLuu onDaNhap={() => void napDanhSachDoi()} />
 
       {hop.loai === 'tao' && (
         <FormDoi

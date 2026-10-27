@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | Giai đoạn 1 — 36 AC (AC-1.1→1.7, AC-2.1→2.11 gồm AC-2.1b, AC-3.1→3.8, AC-4.1→4.9): 31 làm trọn + 5 làm một phần |
-| **Tiến độ** | 28/35 |
+| **Tiến độ** | 32/35 |
 | **Sửa đổi** | 2026-10-26 — sửa theo kết quả `/analyze` |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -209,25 +209,25 @@ Kết thúc phase: đội có logo và màu áo, cầu thủ có ảnh chân dun
 
 Kết thúc phase: xuất ra tệp, nhập lại trên máy khác ra đúng dữ liệu kể cả ảnh, tệp hỏng bị từ chối mà không làm mất gì, lưu trữ đầy thì được cảnh báo. Giai đoạn 1 hoàn tất.
 
-- [ ] **T029** — Xuất toàn bộ dữ liệu thành một tệp
+- [x] **T029** — Xuất toàn bộ dữ liệu thành một tệp
   - File: `src/services/backupService.ts`, `src/services/backupService.test.ts`
   - Xong khi: test xanh — `exportAll` trả một `Blob` JSON chứa `schemaVersion`, toàn bộ đội, cầu thủ và ảnh dạng base64, kèm kích thước ước tính; hàm đọc trực tiếp từ lưu trữ, không đi qua store giao diện (hiến pháp P3).
   - AC: AC-4.3, AC-4.8
   - Phụ thuộc: T019, T009
 
-- [ ] **T030** — Kiểm tra và nhập tệp theo nguyên tắc tất-cả-hoặc-không-gì
+- [x] **T030** — Kiểm tra và nhập tệp theo nguyên tắc tất-cả-hoặc-không-gì
   - File: `src/services/backupSchema.ts`, `src/services/backupService.ts` (bổ sung), `src/services/backupService.test.ts` (bổ sung)
   - Xong khi: test xanh — xuất rồi nhập lại cho ra dữ liệu bằng chính nó kể cả ảnh; `inspect` trả số đội, số cầu thủ, số ảnh và `schemaVersion` của tệp; **tệp có lỗi ở bản ghi cuối thì dữ liệu cũ còn nguyên vẹn 100% và không có đội nào của tệp mới lọt vào**; tệp không phải JSON ném `NotJson`; sai schema ném `SchemaInvalid` kèm đường dẫn tới trường sai; `schemaVersion` lớn hơn bản ứng dụng ném `VersionTooNew`; chế độ gộp mà trùng tên đội thì giữ cả hai; dữ liệu phiên bản cũ giả lập chạy qua chuỗi migration ra đúng hình dạng hiện tại.
   - AC: AC-4.4, AC-4.5, AC-4.6
   - Phụ thuộc: T029
 
-- [ ] **T031** — Xử lý lưu trữ đầy ở một chỗ duy nhất
+- [x] **T031** — Xử lý lưu trữ đầy ở một chỗ duy nhất
   - File: `src/hooks/useBackup.ts`, sửa `src/store/appStore.ts`
   - Xong khi: test xanh với lưu trữ giả lập đã đầy — `QuotaExceeded` được ném ra chứ không bị âm thầm bỏ qua; trên giao diện, khi gặp lỗi này thì hiện cảnh báo rằng thay đổi chưa được lưu kèm gợi ý xuất dữ liệu ra tệp, và cảnh báo đó đến từ một chỗ xử lý tập trung chứ không rải ở từng form.
   - AC: AC-4.7
   - Phụ thuộc: T030
   
-- [ ] **T032** — Giao diện sao lưu và phục hồi
+- [x] **T032** — Giao diện sao lưu và phục hồi
   - File: `src/ui/components/SaoLuu.tsx`, sửa `src/ui/pages/DanhSachDoi.tsx`
   - Xong khi: bấm xuất thì tải về một tệp và kích thước ước tính được hiện trước khi xuất; bấm nhập và chọn tệp thì thấy số đội, số cầu thủ trong tệp rồi mới được hỏi thay thế toàn bộ hay gộp thêm, chưa chọn thì chưa có gì thay đổi; nhập một tệp đã sửa cho hỏng thì bị từ chối kèm lý do và dữ liệu đang có không đổi.
   - AC: AC-4.3, AC-4.5, AC-4.6, AC-4.8

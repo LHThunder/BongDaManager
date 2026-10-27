@@ -100,6 +100,35 @@ export const CHAN_THUAN = {
   'ca-hai': 'Cả hai',
 } as const
 
+export const SAO_LUU = {
+  tieuDe: 'Sao lưu dữ liệu',
+  moTa: 'Dữ liệu nằm trong trình duyệt nên sẽ mất nếu bạn xoá dữ liệu trình duyệt. Hãy xuất ra tệp để giữ lại, hoặc để mang sang máy khác.',
+  nutXuat: 'Xuất ra tệp',
+  dangDungTep: 'Đang dựng tệp…',
+  kichThuocUocTinh: (co: string) => `Tệp sẽ khoảng ${co}`,
+  nutNhap: 'Nhập từ tệp',
+  dangDocTep: 'Đang đọc tệp…',
+  tomTatTep: (soDoi: number, soCauThu: number, soAnh: number) =>
+    `Tệp này có ${soDoi} đội, ${soCauThu} cầu thủ và ${soAnh} ảnh.`,
+  hoiCheDo: 'Bạn muốn làm gì với dữ liệu đang có trên máy?',
+  nutThayThe: 'Thay thế toàn bộ',
+  moTaThayThe: 'Xoá hết dữ liệu đang có rồi dùng dữ liệu trong tệp.',
+  nutGop: 'Gộp thêm vào',
+  moTaGop: 'Giữ nguyên dữ liệu đang có và thêm dữ liệu trong tệp vào cạnh.',
+  daNhapThayThe: (soDoi: number, soCauThu: number) =>
+    `Đã thay thế toàn bộ dữ liệu: ${soDoi} đội, ${soCauThu} cầu thủ.`,
+  daNhapGop: (soDoi: number, soCauThu: number) =>
+    `Đã gộp thêm ${soDoi} đội và ${soCauThu} cầu thủ vào dữ liệu đang có.`,
+  canhBaoKhongBen:
+    'Trình duyệt không đánh dấu dữ liệu của ứng dụng là lưu trữ bền, nên dữ liệu có thể bị xoá khi máy thiếu chỗ. Hãy xuất tệp sao lưu thường xuyên.',
+} as const
+
+export function coTep(byte: number): string {
+  if (byte < 1024) return `${byte} B`
+  if (byte < 1024 * 1024) return `${Math.round(byte / 1024)} KB`
+  return `${(byte / (1024 * 1024)).toFixed(1)} MB`
+}
+
 export const CHON_ANH = {
   nhanAnhCauThu: 'Ảnh chân dung',
   nhanLogoDoi: 'Logo đội',

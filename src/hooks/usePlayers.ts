@@ -1,8 +1,8 @@
 import { useCallback } from 'react'
 import type { Player } from '../domain/types'
-import { laLoi, type LoiUngDung } from '../services/errors'
 import * as playerRepo from '../services/playerRepo'
 import { useAppStore } from '../store/appStore'
+import { ghiNhanLoiLuuTru } from './useBackup'
 
 /*
   Hook cầu thủ: gọi `services`, rồi cập nhật `store`.
@@ -11,13 +11,6 @@ import { useAppStore } from '../store/appStore'
   nhật ngay — nó đọc từ cùng một store nên không có hai nguồn sự thật
   (AC-1.4, AC-2.7).
 */
-
-function ghiNhanLoiLuuTru(loi: unknown): never {
-  if (laLoi(loi, 'QuotaExceeded') || laLoi(loi, 'StorageUnavailable')) {
-    useAppStore.getState().datLoiLuuTru(loi as LoiUngDung)
-  }
-  throw loi
-}
 
 /*
   Mảng rỗng CỐ ĐỊNH, không tạo mới mỗi lần gọi selector.

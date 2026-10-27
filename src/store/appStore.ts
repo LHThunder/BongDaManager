@@ -28,6 +28,8 @@ export interface AppState {
   readonly dangTaiDanhSachDoi: boolean
   /** Lỗi lưu trữ cần báo cho người dùng ở một chỗ duy nhất (AC-4.7). */
   readonly loiLuuTru: LoiUngDung | null
+  /** true khi trình duyệt từ chối đánh dấu dữ liệu là lưu trữ bền (AC-4.9). */
+  readonly luuTruKhongBen: boolean
 
   /** Cầu thủ của đội đang mở; rỗng khi không mở đội nào. */
   readonly cauThu: readonly Player[]
@@ -42,6 +44,7 @@ export interface AppState {
   boDoi(id: string): void
   datSoCauThu(id: string, soCauThu: number): void
   datLoiLuuTru(loi: LoiUngDung | null): void
+  datLuuTruKhongBen(khongBen: boolean): void
 
   datCauThu(teamId: string, cauThu: readonly Player[]): void
   datDangTaiCauThu(dangTai: boolean): void
@@ -84,6 +87,9 @@ export const useAppStore = create<AppState>((set) => ({
 
   datLoiLuuTru: (loi) => set({ loiLuuTru: loi }),
 
+  luuTruKhongBen: false,
+  datLuuTruKhongBen: (khongBen) => set({ luuTruKhongBen: khongBen }),
+
   cauThu: [],
   doiDangMo: null,
   dangTaiCauThu: false,
@@ -111,6 +117,7 @@ export function datLaiStore(): void {
     teams: [],
     dangTaiDanhSachDoi: false,
     loiLuuTru: null,
+    luuTruKhongBen: false,
     cauThu: [],
     doiDangMo: null,
     dangTaiCauThu: false,

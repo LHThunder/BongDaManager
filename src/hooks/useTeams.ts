@@ -1,9 +1,8 @@
 import { useCallback } from 'react'
 import type { Team } from '../domain/types'
-import { laLoi, type LoiUngDung } from '../services/errors'
 import * as teamRepo from '../services/teamRepo'
-import { yeuCauLuuTruBen } from '../storage/db'
 import { useAppStore } from '../store/appStore'
+import { ghiNhanLoiLuuTru } from './useBackup'
 
 /*
   Hook điều phối: gọi `services`, rồi cập nhật `store`.
@@ -11,16 +10,10 @@ import { useAppStore } from '../store/appStore'
   Không có nút Lưu nào ở đây — mọi hành động rời rạc ghi xuống lưu trữ ngay
   trong cùng lượt gọi (AC-4.1, quyết định D4 của plan).
 
-  Lỗi hết dung lượng được đẩy vào store để hiện ở MỘT chỗ duy nhất (AC-4.7),
-  đồng thời vẫn ném tiếp để form đang mở biết là việc vừa rồi đã thất bại.
+  Lỗi hết dung lượng được đẩy vào store để hiện ở MỘT chỗ duy nhất (AC-4.7)
+  qua `ghiNhanLoiLuuTru` của `useBackup`, đồng thời vẫn ném tiếp để form đang
+  mở biết là việc vừa rồi đã thất bại.
 */
-
-function ghiNhanLoiLuuTru(loi: unknown): never {
-  if (laLoi(loi, 'QuotaExceeded') || laLoi(loi, 'StorageUnavailable')) {
-    useAppStore.getState().datLoiLuuTru(loi as LoiUngDung)
-  }
-  throw loi
-}
 
 export function useTeams() {
   const teams = useAppStore((s) => s.teams)
@@ -30,9 +23,6 @@ export function useTeams() {
     const { datDangTai, datDanhSachDoi } = useAppStore.getState()
     datDangTai(true)
     try {
-      // Xin quyền lưu trữ bền ngay lần nạp đầu (AC-4.9, giảm thiểu rủi ro R2).
-      // Không chặn việc nạp dữ liệu nếu trình duyệt từ chối.
-      void yeuCauLuuTruBen()
       datDanhSachDoi(await teamRepo.list())
     } catch (loi) {
       ghiNhanLoiLuuTru(loi)
