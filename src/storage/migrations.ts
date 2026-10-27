@@ -13,7 +13,7 @@
 */
 
 /** Phiên bản hình dạng dữ liệu mà bản ứng dụng này phát hành. */
-export const SCHEMA_VERSION = 1
+export const SCHEMA_VERSION = 2
 
 /**
  * Một bước nâng phiên bản. `MIGRATIONS[i]` nâng dữ liệu từ phiên bản `i + 1`
@@ -21,7 +21,52 @@ export const SCHEMA_VERSION = 1
  */
 export type Migration = (data: unknown) => unknown
 
-export const MIGRATIONS: readonly Migration[] = []
+/**
+ * v1 -> v2: ảnh ra khỏi JSON.
+ *
+ * Trong v1, mỗi ảnh mang luôn byte của nó dưới dạng base64 ở trường `data`.
+ * Trong v2, manifest chỉ giữ metadata và `duongDan` tới mục trong tệp ZIP.
+ *
+ * Bước này CHỈ đổi hình dạng manifest. Byte ảnh không đi qua đây: mỗi định
+ * dạng tệp tự biết cách lấy byte của mình (v1 giải mã base64, v2 đọc mục
+ * trong ZIP), nên chuỗi migration không phải bê hàng chục MB qua từng bước.
+ */
+function nangV1LenV2(data: unknown): unknown {
+  const tep = data as {
+    images?: { id: string; mime: string; data?: string }[]
+  }
+
+  return {
+    ...(data as object),
+    schemaVersion: 2,
+    images: (tep.images ?? []).map((a) => ({
+      id: a.id,
+      mime: a.mime,
+      duongDan: duongDanAnh(a.id, a.mime),
+    })),
+  }
+}
+
+/** Phần mở rộng theo kiểu ảnh, để tệp ZIP mở ra xem được bằng mắt. */
+export function duoiAnh(mime: string): string {
+  switch (mime) {
+    case 'image/png':
+      return 'png'
+    case 'image/webp':
+      return 'webp'
+    case 'image/jpeg':
+      return 'jpg'
+    default:
+      return 'bin'
+  }
+}
+
+export function duongDanAnh(id: string, mime: string): string {
+  return `images/${id}.${duoiAnh(mime)}`
+}
+
+/** `MIGRATIONS[i]` nâng dữ liệu từ phiên bản `i + 1` lên `i + 2`. */
+export const MIGRATIONS: readonly Migration[] = [nangV1LenV2]
 
 export type LoiMigration =
   /** Số phiên bản không phải số nguyên dương. */

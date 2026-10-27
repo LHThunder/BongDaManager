@@ -50,10 +50,10 @@ describe('mở database', () => {
     expect(indexes).toContain('byTeamAndShirt')
   })
 
-  it('ghi sẵn schemaVersion = 1 vào meta', async () => {
+  it('ghi sẵn schemaVersion hiện tại vào meta', async () => {
     await moDb()
-    expect(await docSchemaVersion()).toBe(1)
-    expect(SCHEMA_VERSION).toBe(1)
+    expect(await docSchemaVersion()).toBe(SCHEMA_VERSION)
+    expect(SCHEMA_VERSION).toBe(2)
   })
 
   it('mở lại nhiều lần thì dùng chung một kết nối', async () => {
@@ -123,7 +123,7 @@ describe('xin quyền lưu trữ bền (AC-4.9)', () => {
 })
 
 describe('khung migration (P7)', () => {
-  it('Giai đoạn 1 chưa có bước migration nào', () => {
+  it('có đúng một bước migration cho mỗi lần tăng phiên bản', () => {
     expect(MIGRATIONS).toHaveLength(SCHEMA_VERSION - 1)
   })
 

@@ -123,7 +123,8 @@ export function SaoLuu({ onDaNhap }: Props) {
         <input
           ref={oTep}
           type="file"
-          accept="application/json,.json"
+          // Nhận cả tệp v2 (.zip) và tệp v1 đã phát hành (.json) — P7.
+          accept="application/zip,.zip,application/json,.json"
           className="hidden"
           onChange={(e) => {
             void chonTep(e.target.files?.[0])

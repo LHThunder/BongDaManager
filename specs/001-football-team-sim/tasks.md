@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | Giai đoạn 1 — 36 AC (AC-1.1→1.7, AC-2.1→2.11 gồm AC-2.1b, AC-3.1→3.8, AC-4.1→4.9): 31 làm trọn + 5 làm một phần |
-| **Tiến độ** | 34/35 |
+| **Tiến độ** | 38/39 |
 | **Sửa đổi** | 2026-10-26 — sửa theo kết quả `/analyze` |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -265,6 +265,44 @@ Kết thúc phase: xuất ra tệp, nhập lại trên máy khác ra đúng dữ
     đọc lại — cả hai đều không phụ thuộc vào độ trễ tiêm script.
   - Xong khi: dựng được bộ dữ liệu đúng mốc spec mục 6 — **20 đội, mỗi đội 30 cầu thủ, mỗi cầu thủ có ảnh** (dùng chức năng nhập tệp sao lưu với dữ liệu sinh sẵn, không nhập tay 600 cầu thủ) — rồi đo và ghi lại: danh sách 30 cầu thủ của một đội hiện đầy đủ dưới 300ms; mở ứng dụng với toàn bộ bộ dữ liệu đó dưới 2 giây; xuất tệp xong và nhập lại được, kèm kích thước tệp thực tế để đối chiếu rủi ro R1; đi hết form cầu thủ và bảng chỉ số chỉ bằng bàn phím; mở tab mạng của trình duyệt, dùng hết mọi chức năng và xác nhận **không có request nào đi ra** (hiến pháp P4).
   - Phụ thuộc: T034
+
+---
+
+---
+
+## Phase 6 — Đổi định dạng tệp sao lưu sang ZIP
+
+Thêm ngày 2026-10-27 sau khi T035 đo được tệp sao lưu là **43,7 MB** ở đúng mốc
+dữ liệu mà spec mục 6 cam kết. Đây là rủi ro R1 của plan hiện ra, và đường lùi
+đã nêu sẵn trong plan: đổi sang tệp ZIP có thư mục ảnh riêng.
+
+Không thêm AC mới — AC-4.3 vẫn là "một tệp duy nhất", AC-4.4 vẫn là "nhập lại
+ra đúng dữ liệu". Phần việc thật sự là giữ cho tệp v1 đã phát hành vẫn nhập
+được (hiến pháp P7).
+
+- [x] **T036** — Nâng `SCHEMA_VERSION` lên 2 và định nghĩa hình dạng v2
+  - File: `src/storage/migrations.ts`, `src/services/backupSchema.ts`, `src/storage/db.test.ts`
+  - Xong khi: test xanh — `SCHEMA_VERSION` là 2; có schema cho cả v1 và v2 cạnh nhau, schema v1 KHÔNG bị sửa; `MIGRATIONS` có đúng một bước nâng v1 lên v2 (bỏ trường `data` base64, thêm `duongDan`); tệp khai `schemaVersion: 3` vẫn bị từ chối bằng `VersionTooNew`.
+  - AC: AC-4.4, AC-4.5
+  - Phụ thuộc: —
+
+- [x] **T037** — Xuất tệp ZIP
+  - File: `src/services/backupService.ts`, `src/services/backupService.test.ts`
+  - Xong khi: test xanh — `exportAll` trả một tệp ZIP chứa `manifest.json` và một mục `images/<id>.<ext>` cho mỗi ảnh; manifest KHÔNG còn trường `data`; byte ảnh trong ZIP khớp từng byte với blob trong database; với bộ dữ liệu có ảnh, tệp ZIP **nhỏ hơn** tệp JSON base64 của cùng dữ liệu.
+  - AC: AC-4.3
+  - Phụ thuộc: T036
+
+- [x] **T038** — Nhập được cả v1 và v2, nhận dạng bằng chữ ký nội dung
+  - File: `src/services/backupService.ts`, `src/services/backupService.test.ts`
+  - Xong khi: test xanh — nhập tệp v2 ra đúng dữ liệu kể cả ảnh; **nhập tệp v1 (JSON base64) vẫn ra đúng dữ liệu** (P7); tệp v1 bị đặt tên `.zip` vẫn nhập được và ngược lại, vì nhận dạng dựa vào chữ ký `PK\x03\x04` chứ không dựa vào tên; ZIP thiếu `manifest.json` thì ném `SchemaInvalid`; ZIP mà manifest trỏ tới ảnh không có trong archive thì ném `SchemaInvalid`; tính tất-cả-hoặc-không-gì vẫn giữ cho cả hai định dạng.
+  - AC: AC-4.4, AC-4.5, AC-4.6
+  - Phụ thuộc: T037
+
+- [x] **T039** — Cập nhật ước tính kích thước và kiểm tay
+  - File: `src/services/backupService.ts`, `src/services/backupService.test.ts`
+  - Xong khi: `uocTinhKichThuoc` bỏ hệ số 4/3 của base64; test xanh khẳng định ước tính cho bộ có ảnh nhỏ hơn ước tính theo công thức cũ; kiểm tay trên trình duyệt: xuất bộ 20 đội × 30 cầu thủ và ghi lại kích thước thật để đối chiếu với 43,7 MB của v1.
+  - AC: AC-4.8
+  - Phụ thuộc: T038
 
 ---
 

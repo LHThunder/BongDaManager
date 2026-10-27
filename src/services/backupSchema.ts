@@ -57,21 +57,42 @@ const CauThu = z.object({
   updatedAt: z.number().int().nonnegative(),
 })
 
-const Anh = z.object({
+/** v1: ảnh nhúng base64 ngay trong JSON. */
+const AnhV1 = z.object({
   id: z.string().min(1),
   mime: z.string().startsWith('image/'),
   data: z.string().min(1),
 })
 
-const ThanTepV1 = z.object({
-  schemaVersion: z.literal(1),
+/** v2: ảnh nằm ngoài JSON, manifest chỉ trỏ tới mục trong tệp ZIP. */
+const AnhV2 = z.object({
+  id: z.string().min(1),
+  mime: z.string().startsWith('image/'),
+  duongDan: z.string().min(1),
+})
+
+const PHAN_CHUNG = {
   exportedAt: z.string().min(1),
   teams: z.array(Doi),
   players: z.array(CauThu),
-  images: z.array(Anh),
+}
+
+const ThanTepV1 = z.object({
+  schemaVersion: z.literal(1),
+  ...PHAN_CHUNG,
+  images: z.array(AnhV1),
+})
+
+const ThanTepV2 = z.object({
+  schemaVersion: z.literal(2),
+  ...PHAN_CHUNG,
+  images: z.array(AnhV2),
 })
 
 export type TepSaoLuuV1 = z.infer<typeof ThanTepV1>
+export type TepSaoLuuV2 = z.infer<typeof ThanTepV2>
+/** Hình dạng hiện tại mà phần còn lại của ứng dụng làm việc với. */
+export type ManifestHienTai = TepSaoLuuV2
 
 function idTrungLap(cacId: readonly string[]): string | null {
   const daThay = new Set<string>()
@@ -82,7 +103,18 @@ function idTrungLap(cacId: readonly string[]): string | null {
   return null
 }
 
-export const SchemaSaoLuuV1 = ThanTepV1.superRefine((tep, ctx) => {
+/**
+ * Phần kiểm toàn vẹn tham chiếu, dùng chung cho mọi phiên bản: chỉ cần ảnh có
+ * `id` là kiểm được, không phụ thuộc việc byte ảnh nằm ở đâu.
+ */
+function kiemToanVen(
+  tep: {
+    teams: TepSaoLuuV1['teams']
+    players: TepSaoLuuV1['players']
+    images: { id: string }[]
+  },
+  ctx: z.RefinementCtx,
+): void {
   const idDoi = new Set(tep.teams.map((d) => d.id))
   const idAnh = new Set(tep.images.map((a) => a.id))
 
@@ -193,12 +225,21 @@ export const SchemaSaoLuuV1 = ThanTepV1.superRefine((tep, ctx) => {
     }
     soAoDaDung.add(khoaSoAo)
   })
-})
+}
 
-/** Schema theo từng phiên bản; `/plan` P7 nói thêm bản mới cạnh bản cũ. */
+export const SchemaSaoLuuV1 = ThanTepV1.superRefine(kiemToanVen)
+export const SchemaSaoLuuV2 = ThanTepV2.superRefine(kiemToanVen)
+
+/**
+ * Schema theo từng phiên bản. P7: thêm bản mới CẠNH bản cũ, không sửa bản cũ —
+ * schema v1 phải giữ nguyên để tệp đã phát hành còn nhập được.
+ */
 export const SCHEMA_THEO_PHIEN_BAN = {
   1: SchemaSaoLuuV1,
+  2: SchemaSaoLuuV2,
 } as const
+
+export type PhienBanTep = keyof typeof SCHEMA_THEO_PHIEN_BAN
 
 /** Đường dẫn tới trường sai, dạng người đọc được, cho thông báo ở AC-4.5. */
 export function duongDanLoi(loi: z.ZodError): string {

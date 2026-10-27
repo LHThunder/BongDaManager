@@ -44,6 +44,7 @@ Giai đoạn 2–4 (sơ đồ chiến thuật, engine giả lập, sân 2D và b
 | `zod` | Kiểm tra tệp sao lưu người dùng nhập vào | Cho thông báo lỗi chi tiết theo từng trường, phục vụ AC-4.5 "nói rõ lý do". Tự viết thì vừa dài vừa cho lỗi kém hơn |
 | `idb` | Bọc IndexedDB thành promise | IndexedDB nguyên bản dùng callback sự kiện, rất dễ viết sai chỗ transaction — mà transaction chính là thứ P3 dựa vào |
 | `react-easy-crop` | Khung chọn vùng cắt ảnh chân dung (AC-3.1) | Kéo + zoom + xử lý nhiều tỉ lệ ảnh là nhiều việc tỉ mỉ, không phải phần đáng tự viết |
+| `fflate` | Đọc và ghi tệp ZIP cho định dạng sao lưu v2 | Trình duyệt có `CompressionStream` cho deflate nhưng không có phần vỏ ZIP; tự viết vỏ ZIP là khoảng 150 dòng code dễ sai ở chỗ offset và CRC. Giá phải trả: bundle tăng từ 223KB lên 307KB (gzip 70KB → 94KB) khi thêm cả Phase 4 và `fflate` cùng lúc — tôi chưa tách riêng phần của `fflate`, nên đừng trích con số này như là của nó |
 | `vitest` | Chạy test | Cùng hệ với Vite, không cần cấu hình riêng |
 | `fake-indexeddb` | Giả IndexedDB khi test lớp dữ liệu | Để test được tính atomic của nhập tệp mà không cần mở trình duyệt |
 
@@ -95,7 +96,9 @@ Hai bổ sung so với bản vẽ trên, thêm sau khi soát chéo `/analyze`:
 |---|---|---|---|---|
 | D1 | Chỗ lưu dữ liệu | IndexedDB | `localStorage` | `localStorage` giới hạn khoảng 5MB và chỉ lưu chuỗi. Riêng ảnh ở mức dữ liệu spec cam kết (20 đội × 30 cầu thủ, ảnh ≤100KB) đã có thể lên hàng chục MB — `localStorage` không đủ chỗ, và lưu ảnh dạng chuỗi sẽ làm chậm mọi lần đọc danh sách |
 | D1b | | | OPFS (Origin Private File System) | Mạnh hơn mức cần cho bài toán này, và cần nhiều code hơn để làm được đúng việc mà IndexedDB đã làm sẵn |
-| D2 | Cách lưu ảnh | `Blob` trong một store `images` riêng, bảng đội/cầu thủ chỉ giữ id ảnh | Nhúng base64 ngay trong bản ghi cầu thủ | base64 phình thêm khoảng 33%, và khiến mỗi lần đọc danh sách 30 cầu thủ phải tải kèm toàn bộ ảnh dù danh sách chỉ cần hiện ảnh nhỏ. Tách store cho phép đọc thông tin cầu thủ mà không chạm vào ảnh, giữ được ngân sách 300ms của AC danh sách |
+| D2 | Cách lưu ảnh trong database | `Blob` trong một store `images` riêng, bảng đội/cầu thủ chỉ giữ id ảnh | Nhúng base64 ngay trong bản ghi cầu thủ | base64 phình thêm khoảng 33%, và khiến mỗi lần đọc danh sách 30 cầu thủ phải tải kèm toàn bộ ảnh dù danh sách chỉ cần hiện ảnh nhỏ. Tách store cho phép đọc thông tin cầu thủ mà không chạm vào ảnh, giữ được ngân sách 300ms của AC danh sách |
+| D2b | Cách lưu ảnh trong **tệp sao lưu** (sửa 2026-10-27) | Tệp ZIP: `manifest.json` + `images/<id>.jpg` byte thô | Giữ JSON thuần với ảnh base64 (định dạng v1) | Đo thực tế cho thấy base64 đưa tệp lên 43,7 MB ở mốc dữ liệu spec cam kết, trong đó riêng phần phình 4/3 là ~11 MB. ZIP bỏ được phần phình đó mà vẫn là một tệp duy nhất |
+| D2c | | Nhận dạng phiên bản bằng **chữ ký nội dung** (`PK\x03\x04`) | Nhận dạng bằng phần mở rộng tệp (`.json` vs `.zip`) | Người dùng đổi tên tệp là chuyện thường; dựa vào tên tệp thì một tệp v1 bị đặt tên `.zip` sẽ bị từ chối oan, mà P3 nói việc nhập không được làm người dùng mất đường về dữ liệu của họ |
 | D3 | Giữ trạng thái giao diện | `zustand` | `Context` + `useReducer` | Một Context cho cả cây sẽ khiến việc sửa một ô chỉ số làm render lại toàn bộ bảng 30 cầu thủ. Việc đó còn chịu được ở Giai đoạn 1, nhưng Giai đoạn 2 có ngân sách phản hồi kéo-thả dưới 100ms nên chọn sẵn thứ không phải làm lại |
 | D3b | | | Redux Toolkit | Nhiều khuôn mẫu cho một ứng dụng một người dùng, không có state từ máy chủ nên không cần phần lớn những gì nó giải quyết |
 | D4 | Thời điểm ghi xuống lưu trữ | Ghi xuyên thẳng; hành động rời rạc (tạo/đổi tên/xoá đội, lưu cầu thủ) ghi ngay, các ô nhập liên tục (chỉ số) gom lại 300ms rồi ghi | Chỉ ghi khi người dùng đóng trang | Sự kiện trước khi đóng trang không được bảo đảm chạy; đóng bằng cách tắt máy hay trình duyệt bị kill là mất sạch. Vi phạm trực tiếp P3 |
@@ -152,17 +155,33 @@ images         (keyPath: 'id')
 
 `attributes` để dạng thiếu-thì-không-có-khoá thay vì mặc định 0 — đây là cách AC-2.10 phân biệt "chưa điền" với "điền số thấp". Hệ quả: `domain/completeness.ts` so danh sách khoá cần có (15 chỉ số, hoặc 8+3 nếu là thủ môn theo AC-2.3) với danh sách khoá đang có.
 
-**Định dạng tệp sao lưu** (một tệp JSON duy nhất, xem D2 và rủi ro R1):
+**Định dạng tệp sao lưu phiên bản 2** — một tệp ZIP duy nhất:
+
+```
+bongda-YYYYMMDD-HHMM.zip
+├── manifest.json        schemaVersion 2, exportedAt, teams, players,
+│                        và images chỉ gồm metadata: { id, mime, duongDan }
+└── images/<id>.jpg      byte thô của từng ảnh, KHÔNG base64
+```
+
+Vẫn là "một tệp duy nhất" như AC-4.3 đòi, và người dùng mở được bằng trình
+quản lý tệp thông thường để xem ảnh bên trong.
+
+**Phiên bản 1 (đã phát hành, vẫn phải nhập được — P7)** là một tệp JSON thuần
+với ảnh nhúng base64:
 
 ```
 {
   "schemaVersion": 1,
-  "exportedAt": "2026-10-26T…",
-  "teams":   [ … như store teams … ],
-  "players": [ … như store players … ],
-  "images":  [ { "id": "…", "mime": "image/jpeg", "data": "<base64>" } ]
+  "exportedAt": "…",
+  "teams": [ … ], "players": [ … ],
+  "images": [ { "id": "…", "mime": "image/jpeg", "data": "<base64>" } ]
 }
 ```
+
+Việc nhận dạng không dựa vào phần mở rộng tệp mà dựa vào nội dung: tệp bắt
+đầu bằng chữ ký ZIP (`PK\x03\x04`) thì đọc theo v2, còn lại thì thử đọc JSON
+theo v1. Người dùng đổi tên tệp cũng không làm sai.
 
 **Migration:** `storage/migrations.ts` giữ một mảng hàm, mỗi hàm nâng dữ liệu từ phiên bản n lên n+1. Khi nhập tệp có `schemaVersion` nhỏ hơn hiện tại, chạy lần lượt các hàm còn thiếu rồi mới validate theo schema hiện tại. Tệp có `schemaVersion` **lớn hơn** phiên bản ứng dụng thì bị từ chối kèm thông báo rõ (tệp từ bản mới hơn). Giai đoạn 1 chỉ có phiên bản 1 nên mảng rỗng, nhưng đường đi và test cho nó được làm ngay — P7.
 
@@ -284,7 +303,7 @@ Theo hiến pháp mục 4: `domain` và lớp dữ liệu **bắt buộc** có u
 
 | # | Rủi ro | Khả năng | Ảnh hưởng | Giảm thiểu |
 |---|---|---|---|---|
-| R1 | Tệp sao lưu phình to: ở mức dữ liệu spec cam kết (20 đội × 30 cầu thủ), ảnh base64 có thể đưa tệp lên hàng chục MB, làm việc xuất/nhập chậm và nặng bộ nhớ | Trung bình | Trung bình | Nén đúng ngưỡng 100KB/50KB ngay khi nhập ảnh; hiện kích thước ước tính trước khi xuất. Nếu thực tế không chịu được, đường lùi là đổi sang tệp nén có thư mục ảnh riêng — việc này chỉ chạm `backupService` và cần bump `schemaVersion`, không lan ra chỗ khác |
+| R1 | Tệp sao lưu phình to: ở mức dữ liệu spec cam kết (20 đội × 30 cầu thủ), ảnh base64 có thể đưa tệp lên hàng chục MB | **ĐÃ XẢY RA** | Trung bình | **Đo ngày 2026-10-27 ở đúng mốc spec: tệp 43,7 MB**, trong đó ảnh chiếm 98%. Đường lùi đã nêu trong plan được thực hiện: đổi sang tệp ZIP có thư mục ảnh riêng, bump `schemaVersion` lên 2, giữ đường nhập cho tệp v1. Dự kiến còn ~32,5 MB — bỏ được phần base64 phình 4/3, phần còn lại là dữ liệu ảnh thật nên ZIP không cắt thêm được vì JPEG đã nén |
 | R2 | Trình duyệt tự xoá IndexedDB khi máy thiếu chỗ, hoặc người dùng xoá dữ liệu trình duyệt — mất toàn bộ dữ liệu đã nhập | Trung bình | **Cao** | Xin quyền lưu trữ bền khi mở ứng dụng lần đầu; nhắc xuất tệp sao lưu sau mỗi phiên nhập liệu dài. Đây là lý do AC-4.3 là bắt buộc chứ không phải tiện ích |
 | R3 | Nhập liệu quá mệt: 15 ô chỉ số × 25 cầu thủ, người dùng bỏ giữa đường và không bao giờ có đội thứ hai để đấu | Trung bình | **Cao** | AC-2.9 (sinh nhanh có cân theo vị trí) là biện pháp chính; cộng với AC-2.10 cho lưu dở để làm nhiều lần, và điều hướng bàn phím liền mạch giữa các ô chỉ số |
 | R4 | Ảnh rất lớn làm treo giao diện lúc nén | Thấp | Thấp | Nén trong luồng nền, giữ giao diện phản hồi; có trạng thái đang xử lý |
