@@ -4,8 +4,8 @@
 |---|---|
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
-| **Phạm vi** | Giai đoạn 1 — 36 AC (AC-1.1→1.7, AC-2.1→2.11 gồm AC-2.1b, AC-3.1→3.8, AC-4.1→4.9): 31 làm trọn + 5 làm một phần |
-| **Tiến độ** | 38/39 |
+| **Phạm vi** | Giai đoạn 1 (36 AC) và Giai đoạn 2 (22 AC) |
+| **Tiến độ** | 38/65 — Giai đoạn 1 xong (38/39, còn T035); Giai đoạn 2 chưa bắt đầu (T040–T065) |
 | **Sửa đổi** | 2026-10-26 — sửa theo kết quả `/analyze` |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -305,6 +305,185 @@ ra đúng dữ liệu". Phần việc thật sự là giữ cho tệp v1 đã ph
   - Phụ thuộc: T038
 
 ---
+---
+
+# GIAI ĐOẠN 2 — Sơ đồ chiến thuật
+
+Theo `plan.md` **Phần II**. 22 AC (AC-5.1→5.10, AC-6.1→6.6, AC-7.1→7.6), trong
+đó AC-5.7 làm một phần — phần chặn bắt đầu giả lập thuộc GĐ3.
+
+> **Trước khi làm lát 5:** nói với người dùng xuất một tệp sao lưu. Nâng
+> `DB_VERSION` không lùi được bằng `git revert` (plan Phần II, mục Rollback).
+
+## Phase 7 — Lát 5: Dữ liệu và luật, chưa có giao diện
+
+Lát này không cho người dùng thêm gì, nhưng phải đi trước: sai ở tầng luật thì
+nhìn vào giao diện không thấy được.
+
+- [ ] **T040** [P] — 8 sơ đồ với toạ độ ô
+  - File: `src/domain/formations.ts`, `src/domain/formations.test.ts`
+  - Xong khi: test xanh — đúng 8 sơ đồ (4-4-2, 4-4-1-1, 4-3-3, 4-2-3-1, 4-1-4-1, 3-5-2, 3-4-3, 5-3-2); mỗi sơ đồ đúng 11 ô, đúng một ô thủ môn, `slotId` không trùng, toạ độ `x`/`y` trong 0..100; **tên tổ hợp số khớp số ô theo tuyến** (4-4-2 phải có 4 ô phòng ngự, 4 tiền vệ, 2 tấn công); mọi `viTri` của ô thuộc 12 vị trí của `POSITIONS`.
+  - AC: AC-5.2
+  - Phụ thuộc: —
+
+- [ ] **T041** [P] — Ba mức sai vị trí và mức trừ hiệu suất
+  - File: `src/domain/misplacement.ts`, `src/domain/misplacement.test.ts`
+  - Xong khi: test xanh — hậu vệ phải đá hậu vệ trái = `nhe`; tiền vệ trụ đá trung vệ = `vua`; tiền đạo đá trung vệ = `nang`; người không phải thủ môn đứng khung = `nang`; thủ môn đá vị trí sân = `nang`; đúng vị trí = `dung`; cầu thủ nhiều vị trí lấy mức **nhẹ nhất**; `MUC_TRU_HIEU_SUAT` tăng dần theo mức (đây là con số mà AC-8.5 của GĐ3 sẽ kiểm).
+  - AC: AC-5.5
+  - Phụ thuộc: —
+
+- [ ] **T042** [P] — 23 vai trò và cảnh báo chỉ số chưa đạt
+  - File: `src/domain/roles.ts`, `src/domain/roles.test.ts`
+  - Xong khi: test xanh — tổng đúng 23 vai trò; **mỗi vị trí trong 12 vị trí trả về 2 hoặc 3 vai trò**; mỗi vai trò có `moTa` không rỗng và `chiSoQuanTrong` đều là chỉ số hợp lệ; **vai trò của thủ môn chỉ dùng chỉ số mà thủ môn có** (bất biến giống test đã có cho `POSITION_WEIGHTS`); `vaiTroMacDinh` trả một vai trò áp dụng được cho vị trí đó; `chiSoChuaDat` trả đúng các chỉ số dưới 10 kèm giá trị, và trả rỗng khi hồ sơ đủ cao.
+  - AC: AC-6.1, AC-6.4, AC-6.5
+  - Phụ thuộc: —
+
+- [ ] **T043** [P] — 6 chỉ thị đội, bộ mặc định và luật xung đột
+  - File: `src/domain/instructions.ts`, `src/domain/instructions.test.ts`
+  - Xong khi: test xanh — đúng 6 chỉ thị (độ cao đội hình, độ rộng, tốc độ chuyển bóng, cường độ pressing, hướng tấn công, bẫy việt vị); mỗi mức của mỗi chỉ thị có câu đánh đổi không rỗng; `CHI_THI_MAC_DINH` có đủ 6 khoá và **không sinh xung đột nào**; `cacXungDot` phát hiện được: bẫy việt vị bật + đội hình thấp, pressing cao + đội hình thấp, tấn công biên + đội hình hẹp.
+  - AC: AC-7.1, AC-7.2, AC-7.3, AC-7.4
+  - Phụ thuộc: —
+
+- [ ] **T044** — Xếp lại người khi đổi sơ đồ, và tình trạng đội hình
+  - File: `src/domain/lineup.ts`, `src/domain/lineup.test.ts`
+  - Xong khi: test xanh — **không mất cầu thủ nào** (người trên sân + người bị đẩy ra = người ban đầu); đổi 4-4-2 sang 4-3-3 thì trung vệ vẫn ở trung vệ; sơ đồ mới ít ô ở một tuyến thì người thừa ra ngoài và được nêu tên; **tất định** — gọi hai lần ra cùng kết quả, không dùng nguồn ngẫu nhiên nào (P1); có một tình huống cụ thể mà lượt đổi cặp cải thiện được so với tham lam thuần (quyết định D14); `tinhTrangDoiHinh` nêu đúng lý do cho ba trường hợp: thiếu người, thiếu thủ môn, có cầu thủ hồ sơ chưa hoàn tất.
+  - AC: AC-5.7, AC-5.8
+  - Phụ thuộc: T040, T041
+
+- [ ] **T045** — Nâng `DB_VERSION` lên 2, thêm store `tactics`
+  - File: `src/storage/db.ts`, `src/domain/types.ts`, `src/storage/db.test.ts`
+  - Xong khi: test xanh trên `fake-indexeddb` — mở database mới có 5 store, `tactics` có index `byTeam`; **nâng cấp từ phiên bản 1 trên database ĐÃ CÓ đội, cầu thủ và ảnh thì không mất bản ghi nào**, mỗi đội có đúng một chiến thuật mặc định (4-4-2, 11 ô trống, vai trò mặc định, chỉ thị cân bằng) và `activeTacticId` trỏ tới nó; bước nâng cấp chỉ THÊM, không sửa không xoá (rủi ro R6).
+  - AC: AC-5.10, AC-7.4
+  - Phụ thuộc: T040, T042, T043
+
+- [ ] **T046** — `tacticRepo`
+  - File: `src/services/tacticRepo.ts`, `src/services/errors.ts` (thêm mã `InvalidTactic`), `src/services/tacticRepo.test.ts`
+  - Xong khi: test xanh — `layChienThuatDangDung` tự tạo bộ mặc định cho đội chưa có; `luu` rồi đọc lại ra đúng; `luuThanhBo` nhân bản bộ đang dùng thành bộ có tên mà **không làm đổi bộ đang dùng**; `danhSachBo` chỉ trả các bộ có tên; `apDungBo` đổi `activeTacticId`; bộ sai hình dạng bị từ chối bằng `InvalidTactic` — không đủ 11 ô, ô trỏ tới cầu thủ của đội khác, vai trò không áp dụng được cho vị trí của ô.
+  - AC: AC-5.10, AC-7.5, AC-7.6
+  - Phụ thuộc: T045
+
+- [ ] **T047** — Xoá đội thì dọn cả chiến thuật
+  - File: `src/services/teamRepo.ts`, `src/services/teamRepo.test.ts`
+  - Xong khi: test xanh — xoá một đội thì mọi chiến thuật của đội đó (cả bộ đang dùng và các bộ có tên) bị xoá trong **cùng transaction** với cầu thủ và ảnh; không chạm chiến thuật của đội khác.
+  - AC: AC-1.6
+  - Phụ thuộc: T046
+
+## Phase 8 — Lát 6: Sân và xếp người
+
+Kết thúc phase: mở trang chiến thuật, chọn sơ đồ, kéo người vào ô bằng chuột
+**và** bằng bàn phím, thấy mức sai vị trí, rời trang rồi quay lại vẫn còn.
+
+- [ ] **T048** [P] — Chuỗi hiển thị cho Giai đoạn 2
+  - File: `src/ui/strings.ts`
+  - Xong khi: có nhãn cho trang chiến thuật, tên 8 sơ đồ, nhãn ba mức sai vị trí, nhãn 6 chỉ thị và các mức, câu cho tình trạng đội hình; `grep` byte non-ASCII xác nhận không component nào viết chuỗi hiển thị trực tiếp (P8), như cách đã kiểm ở Giai đoạn 1.
+  - Phụ thuộc: —
+
+- [ ] **T049** — Sân bóng và 11 ô vị trí
+  - File: `src/ui/components/SanBong.tsx`, `src/ui/components/OViTri.tsx`
+  - Xong khi: sân vẽ bằng CSS và SVG nội tuyến, **không tài nguyên nào tải từ ngoài** (P4); chọn một sơ đồ thì hiện đúng 11 ô ở đúng toạ độ phần trăm; ô trống hiện tên vị trí; sân giữ tỉ lệ khi khung co giãn.
+  - AC: AC-5.1, AC-5.2
+  - Phụ thuộc: T040, T048
+
+- [ ] **T050** — Hook chiến thuật và phần store
+  - File: `src/hooks/useTactic.ts`, `src/store/appStore.ts`
+  - Xong khi: `npx tsc --noEmit` sạch; đổi một ô thì ghi xuống lưu trữ ngay, không có nút Lưu (AC-4.1 vẫn áp dụng); selector trả **tham chiếu ổn định** khi không có chiến thuật, không tạo object mới mỗi lần gọi (lỗi vòng lặp render ở T020 đã dạy bài này).
+  - AC: AC-5.10
+  - Phụ thuộc: T046
+  
+- [ ] **T051** — Trang chiến thuật và lối vào từ trang đội
+  - File: `src/ui/pages/TrangChienThuat.tsx`, sửa `src/ui/pages/TrangDoi.tsx`, sửa `src/App.tsx`
+  - Xong khi: từ trang đội bấm được sang trang chiến thuật của đúng đội đó và quay lại được; trang hiện sân, danh sách cầu thủ ngoài sân, và bộ chọn sơ đồ; chọn sơ đồ khác thì 11 ô đổi theo.
+  - AC: AC-5.1
+  - Phụ thuộc: T049, T050
+
+- [ ] **T052** — Kéo-thả bằng chuột: đặt, đổi chỗ, bỏ ra ngoài
+  - File: `src/ui/components/DanhSachNgoaiSan.tsx`, sửa `src/ui/components/OViTri.tsx`, sửa `src/ui/pages/TrangChienThuat.tsx`
+  - Xong khi: kéo một cầu thủ từ danh sách vào ô trống thì ô hiện ảnh (hoặc hình thay thế), tên và số áo; kéo vào ô **đã có người** thì hai cầu thủ đổi chỗ và không ai bị mất; kéo một cầu thủ ra khỏi sân thì ô thành trống và người đó về danh sách ngoài sân; **ghi lại kích thước bundle trước và sau khi thêm `@dnd-kit`** vào mô tả commit (rủi ro R7 — không trích con số từ trí nhớ).
+  - AC: AC-5.3, AC-5.4, AC-5.6
+  - Phụ thuộc: T051
+
+- [ ] **T053** — Xếp người chỉ bằng bàn phím
+  - File: sửa `src/ui/components/DanhSachNgoaiSan.tsx`, sửa `src/ui/components/OViTri.tsx`
+  - Xong khi: **tự tay xếp trọn một đội hình 11 người mà không chạm chuột**, dùng Tab để đi và bàn phím để nhấc/đặt/đổi chỗ; mỗi ô và mỗi cầu thủ ngoài sân là một đích focus thấy rõ; nếu phần bàn phím của `@dnd-kit` không dùng được thì **dừng và báo người dùng** trước khi tự viết cơ chế thứ hai (đường lùi của R7).
+  - AC: AC-5.9
+  - Phụ thuộc: T052
+
+- [ ] **T054** [P] — Nhãn mức sai vị trí trên ô
+  - File: sửa `src/ui/components/OViTri.tsx`
+  - Xong khi: cầu thủ xếp sai vị trí thì ô hiện **nhãn chữ** của mức (nhẹ / vừa / nặng) kèm mức trừ hiệu suất, không chỉ đổi màu viền (P9); xếp đúng vị trí thì không có nhãn nào.
+  - AC: AC-5.5
+  - Phụ thuộc: T052, T041
+
+## Phase 9 — Lát 7: Vai trò và tình trạng đội hình
+
+- [ ] **T055** — Chọn vai trò cho ô
+  - File: `src/ui/components/ChonVaiTro.tsx`, sửa `src/ui/components/OViTri.tsx`
+  - Xong khi: chọn một ô thì hiện 2..3 vai trò dành cho vị trí của ô đó; chọn một vai trò thì tên vai trò hiện ngay tại ô trên sơ đồ; mỗi vai trò kèm câu giải thích ngắn và danh sách chỉ số quan trọng của nó.
+  - AC: AC-6.1, AC-6.2, AC-6.3
+  - Phụ thuộc: T042, T051
+
+- [ ] **T056** — Cảnh báo cầu thủ chưa đáp ứng vai trò
+  - File: sửa `src/ui/components/ChonVaiTro.tsx`, sửa `src/ui/components/OViTri.tsx`
+  - Xong khi: cầu thủ ở ô có chỉ số quan trọng của vai trò dưới 10 thì hiện cảnh báo **nêu tên từng chỉ số và giá trị hiện tại**; cầu thủ đạt hết thì không có cảnh báo; hồ sơ chưa đủ chỉ số thì nói rõ là chưa đánh giá được thay vì báo không đạt.
+  - AC: AC-6.4
+  - Phụ thuộc: T055
+
+- [ ] **T057** [P] — Vai trò mặc định và vai trò gắn với ô
+  - File: sửa `src/hooks/useTactic.ts`
+  - Xong khi: chọn một sơ đồ mới thì **mọi ô đã có vai trò mặc định** mà người dùng không phải làm gì; đổi cầu thủ ở một ô thì `roleId` của ô **không đổi** (AC-6.6) — kiểm bằng cách đổi người ở ô đã gán vai trò riêng rồi xác nhận vai trò còn nguyên.
+  - AC: AC-6.5, AC-6.6
+  - Phụ thuộc: T055
+
+- [ ] **T058** — Đổi sơ đồ: xếp lại người và nói rõ ai bị ảnh hưởng
+  - File: sửa `src/ui/pages/TrangChienThuat.tsx`
+  - Xong khi: đổi sơ đồ khi đã xếp đủ 11 người thì người được giữ lại và tự xếp vào sơ đồ mới; thông báo nêu rõ **ai bị đẩy ra ngoài** và **ai bị xếp sai vị trí kèm mức**; không cầu thủ nào biến mất.
+  - AC: AC-5.8
+  - Phụ thuộc: T044, T052
+
+- [ ] **T059** — Dải tình trạng đội hình
+  - File: sửa `src/ui/pages/TrangChienThuat.tsx`
+  - Xong khi: đội hình chưa đủ 11 người, hoặc chưa có thủ môn, hoặc có cầu thủ hồ sơ chưa hoàn tất thì dải thông báo nêu **đúng từng lý do**; đủ điều kiện thì dải chuyển sang trạng thái sẵn sàng. Ghi rõ trong mô tả commit là phần "chặn bắt đầu giả lập" của AC-5.7 thuộc GĐ3.
+  - AC: AC-5.7 *(một phần — phần chặn giả lập: GĐ3)*
+  - Phụ thuộc: T044, T051
+
+## Phase 10 — Lát 8: Chỉ thị đội và tệp sao lưu v3
+
+- [ ] **T060** — Đặt 6 chỉ thị đội kèm câu đánh đổi
+  - File: `src/ui/components/ChiThiDoi.tsx`, sửa `src/ui/pages/TrangChienThuat.tsx`
+  - Xong khi: đặt được cả 6 chỉ thị; đổi một mức thì **câu đánh đổi của đúng mức đó** hiện ra ngay; thay đổi được ghi xuống lưu trữ ngay và còn sau khi tải lại trang.
+  - AC: AC-7.1, AC-7.2
+  - Phụ thuộc: T043, T051
+
+- [ ] **T061** — Cảnh báo tổ hợp chỉ thị xung đột
+  - File: sửa `src/ui/components/ChiThiDoi.tsx`
+  - Xong khi: chọn bẫy việt vị bật cùng đội hình thấp thì hiện cảnh báo nêu rõ xung đột, **nhưng vẫn giữ được lựa chọn** nếu người dùng muốn (AC-7.3 nói cảnh báo, không chặn); bộ cân bằng mặc định không hiện cảnh báo nào.
+  - AC: AC-7.3
+  - Phụ thuộc: T060
+
+- [ ] **T062** [P] — Đội mới có sẵn bộ chỉ thị cân bằng
+  - File: sửa `src/services/teamRepo.ts`, sửa `src/services/teamRepo.test.ts`
+  - Xong khi: test xanh — tạo đội mới thì đội có ngay một chiến thuật dùng được với chỉ thị cân bằng và vai trò mặc định, không cần người dùng chỉnh gì; `cacXungDot` trên bộ đó trả rỗng.
+  - AC: AC-7.4
+  - Phụ thuộc: T043, T045
+
+- [ ] **T063** — Lưu bộ chiến thuật có tên và chọn lại
+  - File: `src/ui/components/BoChienThuat.tsx`, sửa `src/ui/pages/TrangChienThuat.tsx`
+  - Xong khi: lưu bộ đang dùng dưới một tên thì tên đó xuất hiện trong danh sách bộ của đội; chọn lại một bộ thì sơ đồ, vai trò và chỉ thị trở về đúng bộ đó; tên rỗng bị chặn; bộ đang dùng sau khi chọn lại là bộ vừa áp dụng (AC-7.6).
+  - AC: AC-7.5, AC-7.6
+  - Phụ thuộc: T046, T060
+
+- [ ] **T064** [P] — Tệp sao lưu v3 chứa chiến thuật, vẫn đọc được v1 và v2
+  - File: `src/storage/migrations.ts`, `src/services/backupSchema.ts`, `src/services/backupService.ts`, `src/services/backupService.test.ts`
+  - Xong khi: test xanh — `SCHEMA_VERSION` là 3; schema v3 thêm cạnh v1 và v2, **không sửa hai schema cũ** (P7); bước migration v2→v3 thêm `tactics: []` và `activeTacticId: null`; xuất v3 rồi nhập lại ra đúng chiến thuật; **nhập tệp v2 (ZIP, chưa có chiến thuật) thì mọi đội được gán bộ mặc định**; **nhập tệp v1 (JSON base64) cũng vậy**; tệp khai `schemaVersion: 4` bị từ chối; tính tất-cả-hoặc-không-gì vẫn giữ cho cả ba phiên bản.
+  - AC: AC-4.4, AC-4.5, AC-5.10
+  - Phụ thuộc: T046
+
+- [ ] **T065** — Kiểm tay 22 AC của Giai đoạn 2
+  - File: `specs/001-football-team-sim/spec.md` (tick các ô AC trong phạm vi)
+  - Xong khi: 21 AC làm trọn được tự tay kiểm trên ứng dụng đang chạy và tick; AC-5.7 ghi rõ phần nào đã xong, **không** tick trọn; kiểm luôn hai việc mà chỉ kiểm tay mới thấy: xếp trọn đội hình **chỉ bằng bàn phím**, và đổi sơ đồ khi đã xếp đủ người rồi đọc thông báo; ghi số đo bundle trước/sau `@dnd-kit` vào mô tả commit.
+  - Phụ thuộc: T053, T054, T056, T057, T058, T059, T061, T062, T063, T064
+
+---
 
 ## Bảng phủ AC
 
@@ -348,6 +527,42 @@ ra đúng dữ liệu". Phần việc thật sự là giữ cho tệp v1 đã ph
 | AC-4.9 | T015 |
 
 36/36 AC trong phạm vi đều có task. **Năm** AC được ghi chú rõ phần vắt sang giai đoạn sau để T033 không tick trọn: AC-1.5, AC-2.7, AC-3.5, AC-3.7, AC-4.2. Mức hoàn thành chính thức của Giai đoạn 1 là **31 trọn + 5 một phần**.
+
+Giai đoạn 2 chạm lại ba AC của Giai đoạn 1, vì chiến thuật trở thành dữ liệu
+phải được dọn và phải đi vào tệp sao lưu: **AC-1.6** (T047 — xoá đội dọn cả
+chiến thuật), **AC-4.4** và **AC-4.5** (T064 — tệp v3). Hai AC sau đã tick ở
+Giai đoạn 1 và phải **tick lại** sau T064, vì phạm vi của chúng rộng ra.
+
+### Bảng phủ AC — Giai đoạn 2
+
+| AC | Task |
+|---|---|
+| AC-5.1 | T049, T051 |
+| AC-5.2 | T040, T049 |
+| AC-5.3 | T052 |
+| AC-5.4 | T052 |
+| AC-5.5 | T041, T054 |
+| AC-5.6 | T052 |
+| AC-5.7 | T044, T059 *(phần chặn bắt đầu giả lập: Giai đoạn 3)* |
+| AC-5.8 | T044, T058 |
+| AC-5.9 | T053 |
+| AC-5.10 | T045, T046, T050, T064 |
+| AC-6.1 | T042, T055 |
+| AC-6.2 | T055 |
+| AC-6.3 | T055 |
+| AC-6.4 | T042, T056 |
+| AC-6.5 | T042, T057 |
+| AC-6.6 | T057 |
+| AC-7.1 | T043, T060 |
+| AC-7.2 | T043, T060 |
+| AC-7.3 | T043, T061 |
+| AC-7.4 | T043, T045, T062 |
+| AC-7.5 | T046, T063 |
+| AC-7.6 | T046, T063 |
+
+22/22 AC của Giai đoạn 2 đều có task. Một AC được ghi chú phần vắt sang giai
+đoạn sau để T065 không tick trọn: **AC-5.7**. Mức hoàn thành dự kiến của Giai
+đoạn 2 là **21 trọn + 1 một phần**.
 
 ## Ghi chú thực thi
 
