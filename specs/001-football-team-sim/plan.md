@@ -589,7 +589,7 @@ trên sân đều sai theo, và sai ở tầng luật thì nhìn vào giao diệ
 |---|---|
 | **Phạm vi** | US-8 (giả lập một trận) và US-9 (theo dõi trận và can thiệp giữa trận) |
 | **AC trong phạm vi** | AC-8.1 → AC-8.16, AC-9.1 → AC-9.10 — 26 AC |
-| **Status** | Draft — đã sửa 5 phát hiện của `/analyze` ngày 2026-10-28 |
+| **Status** | Draft — đã sửa cả 10 phát hiện của `/analyze` ngày 2026-10-28 (3 CRITICAL, 2 HIGH, 5 MEDIUM/LOW) |
 | **Updated** | 2026-10-28 |
 
 Giai đoạn 1 và 2 đã hiện thực và kiểm chứng xong. US-10 (sân 2D) và US-11
