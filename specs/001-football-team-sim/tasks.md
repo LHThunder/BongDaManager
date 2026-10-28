@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | Giai đoạn 1 (36 AC), Giai đoạn 2 (22 AC) và Giai đoạn 3 (26 AC) |
-| **Tiến độ** | 65/99 — Giai đoạn 1 xong (38/39, còn T035); Giai đoạn 2 xong trọn (T040–T065); Giai đoạn 3 chưa bắt đầu (T066–T098) |
+| **Tiến độ** | 72/99 — Giai đoạn 1 xong (38/39, còn T035); Giai đoạn 2 xong trọn; Giai đoạn 3 đang làm (Phase 11 xong: T066–T072) |
 | **Sửa đổi** | 2026-10-28 — thêm Giai đoạn 3 (Phase 11–14), rồi sửa theo kết quả `/analyze` |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -506,43 +506,43 @@ cùng mã trận hai lần ra kết quả giống từng dòng. Chưa có giao d
 phase duy nhất của Giai đoạn 3 không bàn giao được cho người dùng, và nó đi
 trước vì engine sai thì mọi thứ vẽ lên màn hình đều vô nghĩa.
 
-- [ ] **T066** [P] — Nguồn ngẫu nhiên tất định sinh từ mã trận
+- [x] **T066** [P] — Nguồn ngẫu nhiên tất định sinh từ mã trận
   - File: `src/engine/rng.ts`, `src/engine/rng.test.ts`
   - Xong khi: test xanh — `taoRng('ABC')` gọi 1000 lần ra **đúng dãy ghi cứng trong test** (vector cố định, để sau này đổi code mà lỡ đổi dãy là đỏ ngay); hai mã khác nhau ra hai dãy khác nhau; mọi giá trị nằm trong `[0, 1)`; `taoMaTran` trả đúng 10 ký tự và **không chứa I, L, O, U** (quyết định D20); kiểm trên source đã bỏ comment rằng file không chứa `Math.random`, `Date.now`, `crypto.getRandomValues` — dùng lại đúng cách kiểm đã có ở `generator.test.ts`.
   - AC: AC-8.11
   - Phụ thuộc: —
 
-- [ ] **T067** [P] — Lưới vùng sân
+- [x] **T067** [P] — Lưới vùng sân
   - File: `src/engine/vung.ts`, `src/engine/vung.test.ts`
   - Xong khi: test xanh — đúng 12 vùng (3 cột × 4 dải, quyết định D23); mỗi vùng biết cột (trái/giữa/phải) và dải (0 là sân nhà, 3 là vòng cấm đối phương); hàm lật vùng theo hướng tấn công trả về vùng đối xứng và lật hai lần ra lại chính nó; không id nào trùng.
   - AC: AC-8.3, AC-8.4 *(phần nền — hai AC này chỉ đo được khi có cột biên)*
   - Phụ thuộc: —
 
-- [ ] **T068** — Kiểu sự kiện và bước chọn mật độ
+- [x] **T068** — Kiểu sự kiện và bước chọn mật độ
   - File: `src/engine/suKien.ts`, `src/engine/suKien.test.ts`
   - Xong khi: test xanh — sự kiện **bắt buộc** (bàn thắng, thẻ, thay người, mốc hết hiệp) luôn được giữ dù điểm đáng kể thấp; từ 300 ứng viên, bước chọn trả về **không quá 100**; chạy hai lần trên cùng đầu vào ra cùng danh sách (tất định); khi chỉ có 40 ứng viên thì trả hết 40 và **không bịa thêm** — sàn 60 là việc của engine phải sinh đủ tình huống, không phải việc của bước chọn, và T070 mới là chỗ kiểm sàn đó.
   - AC: AC-8.15
   - Phụ thuộc: T066
 
-- [ ] **T069** — Một chuỗi kiểm soát bóng
+- [x] **T069** — Một chuỗi kiểm soát bóng
   - File: `src/engine/chuoiBong.ts`, `src/engine/chuoiBong.test.ts`
   - Xong khi: test xanh — mỗi chuỗi kết thúc ở đúng một kết cục trong tập đóng {dứt điểm, mất bóng, phạm lỗi, bóng ra ngoài}; có chặn số bước nên không chạy vô hạn; cùng `Rng` và cùng đầu vào ra cùng kết cục; bóng chỉ dịch sang **vùng kề**, không nhảy cóc qua sân.
   - AC: AC-8.2
   - Phụ thuộc: T066, T067
 
-- [ ] **T070** — Máy trạng thái trận
+- [x] **T070** — Máy trạng thái trận
   - File: `src/engine/tran.ts`, `src/engine/tran.test.ts`
   - Xong khi: test xanh — `taoTran` ra phút 0 với bù giờ mỗi hiệp trong 1..5 **chốt ngay lúc tạo**; `buocTiep` tiến đúng một phút; `chayHetTran` dừng sau 90 phút cộng bù giờ; trận hoà **kết thúc là hoà**, không có hiệp phụ; mọi sự kiện phát ra đều mang playerId của người **đang trên sân tại phút đó**; và dòng sự kiện của một trận thật nằm trong **dải 60..100 trên ít nhất 20 mã trận khác nhau**. Và **`buocTiep` là hàm thuần**: gọi hai lần trên **cùng một** trạng thái ra hai kết quả giống hệt — hạt giống nằm trong `TrangThaiTran` (ghi chú (1) của plan III.4), không phải trong một closure bên ngoài.
   - AC: AC-8.1, AC-8.2, AC-8.15
   - Phụ thuộc: T068, T069
 
-- [ ] **T071** — Chạy lại cùng mã trận ra kết quả giống từng dòng
+- [x] **T071** — Chạy lại cùng mã trận ra kết quả giống từng dòng
   - File: `src/engine/taiLap.test.ts`
   - Xong khi: test xanh — với 10 mã trận cố định, `chayHetTran` chạy hai lần cho **cùng tỉ số và cùng mảng sự kiện, so bằng `toEqual` trên cả mảng** chứ không chỉ so độ dài; đổi một ký tự trong mã trận thì chuỗi sự kiện khác đi (nếu không khác thì mã trận đang bị bỏ qua ở đâu đó).
   - AC: AC-8.11
   - Phụ thuộc: T070
 
-- [ ] **T072** — Canh biên giới tầng `engine/`
+- [x] **T072** — Canh biên giới tầng `engine/`
   - File: `src/engine/boundaries.test.ts` *(file riêng của tầng engine — một tầng không đi tuần tầng khác; `src/engine/__fixtures__/` được bỏ qua vì chỉ dựng object thuần cho test)*
   - Xong khi: test xanh — không file nào trong `src/engine/` import `react`, `ui`, `hooks`, `services` hay `storage`; không file nào chứa `Math.random`, `Date.now`, `crypto.getRandomValues` sau khi bỏ comment (P1); test tự khẳng định đọc được **ít nhất 5 file** trong `engine/`, để một glob hỏng không làm test xanh một cách vô nghĩa — đúng lỗi mà bản đầu của `boundaries.test.ts` đã phòng.
   - AC: — *(hiến pháp P1, P2)*
