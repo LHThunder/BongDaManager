@@ -580,3 +580,287 @@ phải thứ app tự xử lý.
 
 Lát 5 đi trước vì nếu `mucSaiViTri` hay `xepLaiKhiDoiSoDo` sai thì mọi thứ vẽ
 trên sân đều sai theo, và sai ở tầng luật thì nhìn vào giao diện không thấy được.
+
+---
+
+# PHẦN III — Giai đoạn 3: Engine giả lập và tường thuật
+
+| | |
+|---|---|
+| **Phạm vi** | US-8 (giả lập một trận) và US-9 (theo dõi trận và can thiệp giữa trận) |
+| **AC trong phạm vi** | AC-8.1 → AC-8.16, AC-9.1 → AC-9.10 — 26 AC |
+| **Status** | Draft |
+| **Updated** | 2026-10-28 |
+
+Giai đoạn 1 và 2 đã hiện thực và kiểm chứng xong. US-10 (sân 2D) và US-11
+(báo cáo sau trận, lịch sử 20 trận) thuộc **Giai đoạn 4**, có plan riêng —
+phần này không chạm tới chúng.
+
+## III.0. Những AC đang chờ giai đoạn này
+
+Giai đoạn 1 và 2 để lại năm AC chỉ đóng được khi có trận đấu. Bảng này được
+viết **trước khi thiết kế**, vì một ghi chú "hoãn sang giai đoạn sau" chỉ có
+giá trị nếu giai đoạn sau thật sự mở nó ra đọc.
+
+| AC | Phần còn thiếu | Giai đoạn 3 đóng được? |
+|---|---|---|
+| AC-3.5 | Logo đội hiện trong **màn hình trận đấu** | ✅ Có — màn hình trận ra đời ở lát 11 |
+| AC-3.7 | Hai đội trùng màu áo thì **tự đổi một đội sang áo phụ trong trận** | ✅ Có — dùng `trungMauAo` đã có sẵn trong `domain/colors.ts`, áp ở màn hình chọn cặp đấu |
+| AC-5.7 | Phần **chặn bắt đầu giả lập** | ✅ Có — chính là AC-8.9, dùng lại `tinhTrangDoiHinh` đã có |
+| AC-4.2 | "lịch sử trận đấu còn nguyên sau khi mở lại" | ❌ **Không** — lịch sử là AC-11.7, thuộc US-11 = Giai đoạn 4 |
+| AC-1.5 | "đổi tên đội thì **lịch sử trận đấu** đổi theo" | ❌ **Không** — cùng lý do |
+
+**Cần người dùng biết:** chú thích trong `spec.md` ghi phần lịch sử của AC-4.2
+và AC-1.5 là "thuộc GĐ3", nhưng lịch sử trận đấu được định nghĩa ở AC-11.7
+trong US-11, mà spec xếp US-11 vào **Giai đoạn 4**. Hai AC đó vì vậy **không**
+đóng được ở giai đoạn này. Plan không tự sửa `spec.md`; đây là chỗ cần sửa chú
+thích khi lập plan Giai đoạn 4.
+
+## III.1. Kiểm tra hiến pháp
+
+| Nguyên tắc | Tuân thủ? | Ghi chú |
+|---|---|---|
+| P1 Giả lập phải tái lập được | ✅ | Đây là giai đoạn P1 được viết ra để bảo vệ. Toàn bộ ngẫu nhiên đến từ **một** `Rng` sinh từ mã trận, tiêu thụ theo thứ tự cố định. Engine không gọi `Math.random`, `Date.now`, `crypto`. Đồng hồ nằm ở giao diện, không nằm trong engine (D21). Can thiệp giữa trận được ghi thành danh sách kèm phút và phát lại y nguyên (D30). Có test diff từng dòng sự kiện giữa hai lần chạy |
+| P2 Luật bóng đá tách khỏi giao diện | ✅ | Tầng `engine/` mới, là lớp trong cùng, không import `ui`, `hooks`, `services`, `storage`. Câu tường thuật **không** nằm trong engine: engine phát ra sự kiện có cấu trúc kèm chỉ số mẫu câu, giao diện mới dựng thành câu (D22). `boundaries.test.ts` được mở rộng để canh tầng mới |
+| P3 Dữ liệu người dùng là bất khả xâm phạm | ✅ | Giai đoạn này **không ghi gì xuống IndexedDB**: trận đang chạy sống trong bộ nhớ, đóng app là mất (AC-9.10 nói đúng như vậy). Không có migration, `DB_VERSION` giữ 2, `SCHEMA_VERSION` giữ 3 |
+| P4 Chạy offline | ✅ | Không thêm phụ thuộc nào, không gọi mạng. Nguồn ngẫu nhiên tự viết khoảng 20 dòng (D19) |
+| P5 Mỗi AC dạng so sánh phải có test | ⚠️ | Giai đoạn này có **bốn** AC dạng so sánh — AC-8.3, AC-8.4, AC-8.5, AC-8.8 — và là loại khó nhất từ trước tới giờ: phải chạy engine nhiều lần rồi so trung bình. Mục III.7 dành riêng cho chúng, và `spec.md` mục 7 đã ghi sẵn hai dòng Definition of Done cho đúng việc này. Đánh ⚠️ vì đây là rủi ro R14, không phải vì định bỏ qua |
+| P6 Mỗi giai đoạn bàn giao tự chạy được | ✅ | Kết thúc giai đoạn: chọn hai đội, đăng ký 11+7, xem trận chạy theo phút, can thiệp, đọc dòng sự kiện đầy đủ. Không cần Giai đoạn 4 để dùng được |
+| P7 Tệp sao lưu mở lại được | ✅ | Không đổi định dạng tệp. Tệp v3 xuất ở Giai đoạn 2 vẫn là tệp v3 |
+| P8 Giao diện tiếng Việt | ✅ | Toàn bộ câu tường thuật, nhãn, thông báo nằm ở `ui/tuongThuat.ts` và `ui/strings.ts`. Rút kinh nghiệm Giai đoạn 2: phần trình đọc màn hình cũng là giao diện — dòng tường thuật chạy trong vùng `aria-live` tiếng Việt |
+| P9 Bàn phím và chữ đọc được | ✅ | Tạm dừng / tiếp tục / đổi tốc độ / thay người đều là nút bấm thường, đi được bằng Tab. Tình trạng **kiệt sức có nhãn chữ**, không chỉ đổi màu — spec mục 6 nói thẳng điều này |
+
+**Ngoại lệ xin miễn trừ:** Không.
+
+## III.2. Bối cảnh kỹ thuật
+
+- **Ngôn ngữ/runtime:** như cũ — React 18 + TypeScript strict + Vite, Tailwind.
+- **Phụ thuộc mới:** **Không.** Nguồn ngẫu nhiên tất định tự viết (xem D19).
+- **Vùng code bị chạm:**
+  - `src/engine/` — **tầng mới**, toàn bộ luật trận đấu.
+  - `src/domain/` — chỉ **đọc lại**, không sửa: `attributes`, `roles`,
+    `instructions`, `misplacement`, `lineup`, `colors`, `formations`.
+  - `src/hooks/useMatch.ts` — điều phối đồng hồ, tốc độ, tạm dừng.
+  - `src/store/appStore.ts` — thêm lát trạng thái trận đang chạy.
+  - `src/ui/pages/` — `ChonCapDau.tsx`, `TrangTran.tsx`.
+  - `src/ui/components/` — `DangKyDoiHinh.tsx`, `DongTuongThuat.tsx`,
+    `BangDieuKhienTran.tsx`, `ThayNguoi.tsx`.
+  - `src/ui/tuongThuat.ts` — mẫu câu tường thuật.
+  - `src/domain/boundaries.test.ts` — thêm luật canh cho `engine/`.
+
+## III.3. Kiến trúc
+
+Tầng mới `engine/` là lớp trong cùng, ngang hàng `domain/` và được phép đọc
+`domain/` (luật bóng đá dùng chung), nhưng không ai dưới nó.
+
+```
+engine/            rng.ts          mã trận -> Rng tất định; không có nguồn ngẫu nhiên toàn cục
+  (thuần, trong    vung.ts         lưới vùng sân 3 cột x 4 dải, luật dịch chuyển bóng
+   cùng nhất)      sucManh.ts      sức mạnh cầu thủ trong một tình huống
+                   theLuc.ts       tiêu hao thể lực theo phút
+                   the.ts          xác suất thẻ vàng/đỏ
+                   chuoiBong.ts    một chuỗi kiểm soát bóng -> kết cục
+                   suKien.ts       kiểu sự kiện + chọn mật độ 60..100 dòng
+                   tran.ts         máy trạng thái: taoTran / buocTiep / apDungCanThiep
+                   batDau.ts       điều kiện bắt đầu trận (AC-8.9, AC-8.10, AC-9.9)
+hooks/             useMatch.ts     đồng hồ, tốc độ, tạm dừng, chạy hết
+store/             appStore.ts     + lát `tran` (chỉ trong bộ nhớ)
+ui/pages/          ChonCapDau.tsx  TrangTran.tsx
+ui/components/     DangKyDoiHinh.tsx  DongTuongThuat.tsx
+                   BangDieuKhienTran.tsx  ThayNguoi.tsx
+ui/                tuongThuat.ts   mẫu câu tiếng Việt cho từng loại sự kiện
+```
+
+**Quyết định thiết kế:**
+
+| # | Quyết định | Phương án đã chọn | Phương án loại bỏ | Lý do |
+|---|---|---|---|---|
+| D18 | Engine nằm ở đâu | Thư mục `engine/` **mới**, ngang hàng `domain/`, được đọc `domain/` | Nhét vào `domain/` cho gọn | Hiến pháp mục 3 gọi tên `engine` là một lớp riêng, và `domain/` hiện là nơi chứa **dữ liệu luật tĩnh** (12 vị trí, 23 vai trò, 8 sơ đồ). Engine là **máy chạy**, có trạng thái theo thời gian. Trộn hai thứ thì `boundaries.test.ts` không còn phân biệt được "dữ liệu luật" với "máy giả lập", và `domain/` sẽ phình theo mỗi luật trận đấu mới |
+| D19 | Nguồn ngẫu nhiên tất định | Tự viết `xmur3` (băm chuỗi mã trận thành hạt giống) + `mulberry32` (PRNG 32-bit), tổng khoảng 20 dòng, trả về đúng interface `Rng` đã có | Thư viện `seedrandom` | Hiến pháp cho thêm thư viện thoải mái, nhưng ở đây thư viện **không rẻ hơn**: 20 dòng tự viết, test được bằng vector cố định, và tránh được rủi ro một bản cập nhật thư viện đổi dãy số — mà đổi dãy số nghĩa là **mọi mã trận người dùng đã lưu đều phát lại sai** |
+| D19b | | | `crypto.getRandomValues` | P1 cấm thẳng trong engine, và nó không nhận hạt giống nên không phát lại được |
+| D20 | Hình dạng mã trận | 10 ký tự Crockford base32 (bỏ I, L, O, U để không nhầm khi đọc), ví dụ `K7M2R9XQ4B` | UUID v4 | 36 ký tự, người dùng không đọc hay gõ lại nổi. Mã trận là thứ người dùng chia sẻ và gõ lại để đấu lại đúng trận đó — nó phải ngắn và không có ký tự dễ nhầm |
+| D21 | Ai giữ đồng hồ | **Giao diện** giữ đồng hồ; engine là bộ bước thuần: `buocTiep(trangThai)` trả trạng thái mới cho một phút | Engine tự chạy `setInterval` bên trong | P1 cấm nguồn thời gian trong engine. Quan trọng hơn: tách đồng hồ ra thì tạm dừng (AC-9.2), đổi tốc độ (AC-9.3) và chạy hết ngay (AC-9.4) đều **không đụng gì tới engine** — chỉ là gọi `buocTiep` nhanh hay chậm. Một thiết kế, ba AC |
+| D22 | Câu tường thuật sinh ở đâu | Engine phát **sự kiện có cấu trúc** `{phut, loai, cacCauThu, vung, mauCau}`; `ui/tuongThuat.ts` dựng thành câu | Engine trả thẳng câu tiếng Việt | P2: câu chữ là giao diện. Nhưng lý do nặng hơn là P1 — AC-8.11 đòi **từng dòng sự kiện** giống hệt khi phát lại. Nếu giao diện tự chọn mẫu câu lúc hiển thị thì hai lần xem cùng một trận có thể ra chữ khác nhau. Cho nên engine chọn **chỉ số mẫu câu** bằng chính `Rng` của trận và ghi vào sự kiện; giao diện chỉ tra bảng |
+| D23 | Mô hình sân | Lưới **3 cột x 4 dải** = 12 vùng; cột là trái/giữa/phải, dải đi từ sân nhà tới vòng cấm đối phương | Mô hình toạ độ liên tục x,y | Liên tục thì phải mô phỏng vị trí từng người theo thời gian — bài toán lớn hơn nhiều và không AC nào đòi. 12 vùng là đủ để "tấn công biên" và "pressing cao" thành con số đo được (AC-8.3, AC-8.4) |
+| D23b | | | Một dãy 5 vùng theo chiều dọc, không có cột | Bỏ cột thì **không đo được** AC-8.3: "tấn công biên tạo nhiều quả tạt hơn trung lộ" cần phân biệt được bóng đang ở biên hay ở giữa |
+| D24 | Chỉ thị tác động thế nào | Mỗi chỉ thị là **hệ số nhân** lên xác suất của vài loại hành động trong chuỗi bóng, khai thành một bảng duy nhất | Mỗi chỉ thị viết một nhánh `if` trong chuỗi bóng | Bảng thì đọc được cả 6 chỉ thị cùng lúc và chỉnh cân bằng không phải sửa logic. Nhánh `if` rải rác thì sau 6 chỉ thị nhân 3 mức là 18 nhánh chồng nhau, không ai dò nổi |
+| D25 | Sức mạnh cầu thủ trong một tình huống | `sucManh = nền(chỉ số quan trọng của **vai trò**) x (1 − trừ sai vị trí) x hệ số thể lực x hệ số sân nhà` | Dùng thẳng `chiSoTongTheoViTri` đã có | `chiSoTongTheoViTri` cân theo **vị trí**, còn AC-6.x nói vai trò mới là thứ HLV đặt cho ô. Hai tiền đạo cùng vị trí nhưng một người là "Tiền đạo mục tiêu" (không chiến, sức mạnh) và một người là "Tiền đạo cắt mặt" (dứt điểm, tốc độ) phải khác nhau trong trận, nếu không thì cả US-6 là vô nghĩa. Vẫn **dùng lại** `ROLES[].chiSoQuanTrong` và `MUC_TRU_HIEU_SUAT` đã có, không khai bảng mới |
+| D26 | Thể lực | Mỗi cầu thủ có thanh 100, giảm mỗi phút theo `the-luc` của cầu thủ và mức pressing của đội; dưới ngưỡng thì nhân hệ số phạt và phát sự kiện "kiệt sức" | Không mô phỏng thể lực, chỉ giảm hiệu suất theo phút | AC-8.6 đòi tốc độ giảm **phụ thuộc chỉ số Thể lực và cường độ pressing** — một hàm theo phút thuần tuý không thoả được |
+| D27 | Giữ mật độ 60–100 dòng (AC-8.15) | Engine chấm mỗi tình huống một **điểm đáng kể**; bước chọn cuối giữ lại toàn bộ bàn thắng/thẻ/thay người/mốc hiệp, rồi lấy thêm theo điểm cho tới khi đạt dải 60–100 | Cứ phát mọi tình huống ra hết | Một trận có hàng trăm chuỗi bóng. Phát hết thì người dùng phải lội qua 400 dòng để tìm bàn thắng, và AC-8.15 nói thẳng "chỉ ghi những tình huống có ý nghĩa" |
+| D27b | | | Phát ngẫu nhiên đủ 60–100 dòng | Số lượng thì đúng nhưng nội dung thành ra vô nghĩa — mất chính thứ AC-8.15 muốn |
+| D28 | Thẻ và đá thiếu người | Thẻ sinh trong chuỗi bóng khi có lỗi; xác suất cao hơn khi `quyet-doan` thấp và khi đội pressing cao. Thẻ đỏ thì bỏ hẳn một ô khỏi đội hình tới hết trận | Thẻ chỉ là sự kiện trang trí, không ảnh hưởng thế trận | AC-8.13 nói rõ đội đó **phải đá thiếu người** và không được thay bù. Thẻ trang trí thì người dùng không có lý do gì để quan tâm tới `quyet-doan` hay mức pressing |
+| D29 | Lợi thế sân nhà | Một hệ số nhân nhỏ duy nhất lên sức mạnh đội chủ nhà, tắt hoàn toàn khi chọn sân trung lập | Cộng thêm vào từng loại hành động | Một hệ số thì tắt được dứt khoát, và test "sân trung lập thì hai đội đối xứng" kiểm được bằng cách đổi chỗ hai đội rồi so kết quả |
+| D30 | Can thiệp giữa trận và phát lại | Mỗi can thiệp được ghi `{phut, loai, chiTiet}` vào danh sách của trận; phát lại là chạy lại từ đầu với cùng mã trận rồi **áp lại đúng danh sách đó đúng phút** | Lưu ảnh chụp trạng thái tại mỗi phút rồi tua lại | Ảnh chụp trạng thái 90 phút x 22 cầu thủ là nhiều dữ liệu, và vẫn không phát lại được trận nếu người dùng đổi chiến thuật (AC-8.12). Chạy lại từ hạt giống thì cả hai AC cùng được phục vụ |
+| D31 | So sánh kết quả cùng mã trận (AC-8.12) | Giữ kết quả lần chạy trước **trong phiên làm việc**, so với lần mới | Lưu xuống IndexedDB ngay ở giai đoạn này | Lưu trận là AC-11.7, thuộc Giai đoạn 4. Làm trước ở đây là lấn phạm vi, và sẽ phải dựng store `matches` hai lần vì Giai đoạn 4 mới biết báo cáo sau trận cần lưu những gì. **Giả định được ghi nhận:** AC-8.12 không nói kết quả cũ phải sống qua lần đóng app; Giai đoạn 4 sẽ làm nó bền |
+| D32 | Trận đang chạy sống ở đâu | Trong `appStore` (bộ nhớ), không ghi xuống IndexedDB | Ghi từng phút xuống IndexedDB cho an toàn | AC-9.10 nói đóng app giữa trận thì **trận bị huỷ** — đó là hành vi spec yêu cầu, không phải thiếu sót. Ghi từng phút còn làm hỏng ngân sách dưới 3 giây của chế độ chạy hết |
+
+## III.4. Mô hình dữ liệu
+
+**Không đổi gì dưới đĩa.** `DB_VERSION` giữ **2**, `SCHEMA_VERSION` giữ **3**,
+không thêm store, không có migration, định dạng tệp sao lưu không đổi.
+
+Trạng thái trận chỉ tồn tại trong bộ nhớ:
+
+```
+TrangThaiTran
+  maTran          string            10 ký tự base32
+  phut            number            1..90 + bù giờ
+  hiep            1 | 2
+  buGio           { hiep1: number, hiep2: number }   mỗi hiệp 1..5, chốt lúc tạo trận
+  tiSo            { nha: number, khach: number }
+  ben             { nha: BenTran, khach: BenTran }
+  cacSuKien       SuKien[]          dòng sự kiện đã phát
+  canThiep        CanThiep[]        nhật ký can thiệp, để phát lại (P1)
+  ketThuc         boolean
+
+BenTran
+  teamId          string
+  chienThuat      Tactic            bộ xuất phát, và bản hiện tại sau can thiệp
+  trenSan         string[]          11 playerId
+  duBi            string[]          7 playerId
+  theLuc          Record<playerId, number>    0..100
+  the             Record<playerId, 'vang' | 'vang-vang' | 'do'>
+  soLanThay       number            tối đa 5
+  mauAoDangDung   'chinh' | 'phu'   AC-3.7
+
+SuKien
+  phut            number
+  buGio           boolean
+  loai            'ban-thang' | 'co-hoi' | 'cuu-thua' | 'tat-canh' | 'mat-bong-cao'
+                  | 'the-vang' | 'the-do' | 'thay-nguoi' | 'kiet-suc' | 'het-hiep' | ...
+  doi             'nha' | 'khach'
+  cacCauThu       string[]          người liên quan, theo thứ tự vai trò trong tình huống
+  vung            VungSan
+  mauCau          number            chỉ số mẫu câu, engine chọn bằng Rng của trận (D22)
+  tiSoSauDo       { nha: number, khach: number }
+
+CanThiep
+  phut            number
+  doi             'nha' | 'khach'   chỉ cho phép đội của người dùng (AC-9.8)
+  loai            'thay-nguoi' | 'doi-chi-thi' | 'doi-vai-tro'
+  chiTiet         ...
+```
+
+## III.5. Contracts
+
+| Tên | Input | Output | Lỗi có thể xảy ra |
+|---|---|---|---|
+| `taoRng` | `maTran: string` | `Rng` | — (mọi chuỗi đều băm được) |
+| `taoMaTran` | `rng: Rng` | `string` 10 ký tự | — (nguồn ngẫu nhiên thật do **giao diện** tạo, như `FormCauThu` đã làm ở GĐ1) |
+| `kiemTraBatDauDuoc` | `{ doiNha, doiKhach, dangKyNha, dangKyKhach }` | `{ batDauDuoc: true }` hoặc `{ batDauDuoc: false, cacLyDo }` | — (trả lý do, không ném) |
+| `taoTran` | `CauHinhTran` | `TrangThaiTran` ở phút 0 | `InvalidMatchSetup` nếu cấu hình không qua `kiemTraBatDauDuoc` |
+| `buocTiep` | `TrangThaiTran` | `TrangThaiTran` mới, tiến đúng **một phút** | — (trận đã kết thúc thì trả nguyên trạng) |
+| `chayHetTran` | `TrangThaiTran` | `TrangThaiTran` đã kết thúc | — |
+| `apDungCanThiep` | `TrangThaiTran`, `CanThiep` | `{ thanhCong: true, trangThai }` hoặc `{ thanhCong: false, lyDo }` | `het-luot-thay`, `khong-phai-doi-cua-ban`, `cau-thu-khong-trong-danh-sach`, `da-nhan-the-do` |
+| `dungCauTuongThuat` *(ui)* | `SuKien`, bảng tên cầu thủ | `string` tiếng Việt | — |
+
+`FORMATIONS`, `ROLES`, `CHI_THI`, `MUC_TRU_HIEU_SUAT`, `mucSaiViTri`,
+`tinhTrangDoiHinh`, `trungMauAo` **dùng lại nguyên** từ `domain/`, không khai lại.
+
+## III.6. Ánh xạ AC → thiết kế
+
+| AC | Được đáp ứng bởi |
+|---|---|
+| AC-8.1 | `tran.ts` — hai hiệp 45 phút, bù giờ 1–5 phút mỗi hiệp chốt lúc `taoTran` bằng `Rng`; hoà là kết cục hợp lệ |
+| AC-8.2 | `SuKien.cacCauThu` — mọi sự kiện đều mang playerId của người đang trên sân tại phút đó |
+| AC-8.3 | Bảng hệ số D24: `huong-tan-cong` nhân xác suất chuỗi bóng đi vào cột biên và xác suất hành động `tat-canh`. **Có test so sánh 10 lần chạy** |
+| AC-8.4 | `cuong-do-pressing` nhân **hai** thứ ngược chiều nhau: xác suất cướp bóng ở dải cao, và xác suất đối thủ thoát xuống sau lưng. **Có test so sánh** |
+| AC-8.5 | `sucManh.ts` nhân `(1 − MUC_TRU_HIEU_SUAT[mức sai])` — dùng lại đúng bảng của AC-5.5. **Có test ba mức giảm dần** |
+| AC-8.6 | `theLuc.ts` — giảm theo phút, tốc độ phụ thuộc `the-luc` và mức pressing |
+| AC-8.7 | Ngưỡng kiệt sức dẫn tới hệ số phạt trong `sucManh.ts`, cộng sự kiện `kiet-suc` hiện **nhãn chữ** ở giao diện (P9) |
+| AC-8.8 | Toàn bộ engine. **Có test**: đội A hơn 5 điểm mọi chỉ số thắng ít nhất 7 trong 10 trận |
+| AC-8.9 | `batDau.ts` gọi `tinhTrangDoiHinh` của `domain/lineup.ts` cho cả hai đội — **đóng nốt AC-5.7** |
+| AC-8.10 | `batDau.ts` — cùng một `teamId` cho hai phía thì không bắt đầu được |
+| AC-8.11 | `taoRng(maTran)` cộng thứ tự tiêu thụ cố định cộng `canThiep[]` phát lại. **Có test diff từng dòng sự kiện** |
+| AC-8.12 | `TrangTran` giữ kết quả lần trước của cùng mã trận trong phiên và hiện bảng so sánh (D31) |
+| AC-8.13 | `the.ts` — xác suất theo `quyet-doan` và mức pressing; thẻ đỏ bỏ ô khỏi đội hình, chặn thay bù |
+| AC-8.14 | `sucManh.ts` hệ số sân nhà, tắt hoàn toàn khi chọn sân trung lập (D29) |
+| AC-8.15 | `suKien.ts` bước chọn mật độ (D27). **Có test dải 60..100 trên nhiều hạt giống** |
+| AC-8.16 | `SuKien.mauCau` cộng nhiều mẫu câu mỗi loại trong `ui/tuongThuat.ts`. **Có test**: 5 trận liên tiếp không lặp nguyên câu cho cùng loại |
+| AC-9.1 | `TrangTran` và `DongTuongThuat` — tỉ số và phút luôn nhìn thấy, dòng chạy dần |
+| AC-9.2 | `useMatch` dừng gọi `buocTiep`; trạng thái đứng nguyên vì engine không có đồng hồ (D21) |
+| AC-9.3 | `useMatch` — 3 mức: thường 200ms mỗi phút, nhanh, rất nhanh |
+| AC-9.4 | `chayHetTran` rồi hiện trọn dòng sự kiện |
+| AC-9.5 | `apDungCanThiep` loại `thay-nguoi`, ghi sự kiện tại phút đó, các phút sau tính theo người mới |
+| AC-9.6 | `BenTran.soLanThay` — lần thứ 6 bị từ chối kèm lý do `het-luot-thay` |
+| AC-9.7 | Can thiệp chỉ đổi trạng thái **từ phút hiện tại trở đi**; các phút đã qua nằm trong `cacSuKien` và không bao giờ bị tính lại |
+| AC-9.8 | `apDungCanThiep` từ chối can thiệp vào đội không phải của người dùng |
+| AC-9.9 | `DangKyDoiHinh` — đúng 11 chính và đúng 7 dự bị; người ngoài 18 không dùng được trong trận |
+| AC-9.10 | `TrangTran` gắn `beforeunload` khi trận đang chạy; rời đi thì trận mất (D32) |
+| AC-3.5 *(đóng nốt)* | Logo hai đội hiện ở `ChonCapDau` và đầu `TrangTran` |
+| AC-3.7 *(đóng nốt)* | `ChonCapDau` gọi `trungMauAo`; trùng thì đội khách chuyển `mauAoDangDung: 'phu'` và nói rõ cho người dùng |
+| AC-5.7 *(đóng nốt)* | AC-8.9 ở trên |
+
+## III.7. Chiến lược kiểm thử
+
+**Unit (bắt buộc — hiến pháp mục 4: engine là lớp bắt buộc có test):**
+- `rng.ts`: cùng mã trận ra cùng dãy số; hai mã khác nhau ra dãy khác; dãy
+  cố định theo vector ghi trong test, để sau này đổi code mà lỡ đổi dãy là đỏ.
+- `vung.ts`, `sucManh.ts`, `theLuc.ts`, `the.ts`: từng hàm một.
+- `tran.ts`: 90 phút cộng bù giờ; hoà kết thúc hoà; thẻ đỏ làm đội còn 10 người.
+- Bất biến: `boundaries.test.ts` mở rộng — `engine/` không import `ui`,
+  `hooks`, `services`, `storage`; và **không chứa** `Math.random`, `Date.now`,
+  `crypto.getRandomValues` (dùng lại đúng cách kiểm đã có ở `generator.test.ts`).
+
+**Bốn AC dạng so sánh (P5) — mỗi cái một test riêng:**
+
+| AC | Phép so sánh | Cách làm cho khỏi bấp bênh |
+|---|---|---|
+| AC-8.3 | Số quả tạt: tấn công biên so với trung lộ, **nhiều hơn ít nhất 50%** | Cùng 10 mã trận cố định cho cả hai cấu hình, so trung bình. Cùng đội, cùng đối thủ, chỉ đổi một chỉ thị |
+| AC-8.4 | Pressing cao so với thấp: cướp bóng ở dải cao **tăng**, đồng thời đối thủ thoát xuống **cũng tăng** | Như trên. Phải kiểm **cả hai chiều**, vì chỉ kiểm một chiều thì một engine chỉnh ẩu vẫn qua |
+| AC-8.5 | Đóng góp của một cầu thủ: đúng vị trí > sai nhẹ > sai vừa > sai nặng | Cùng mã trận, chỉ đổi ô của đúng một cầu thủ. Bốn lần chạy, so bốn con số |
+| AC-8.8 | Đội mạnh hơn 5 điểm mọi chỉ số thắng **ít nhất 7 trong 10** | 10 mã trận cố định, bộ chỉ thị cân bằng cả hai bên, không ai xếp sai vị trí |
+
+Những test này **chạy engine thật nhiều lần**, nên phải nhanh: ngân sách
+dưới 3 giây một trận là cho chế độ chạy hết trên máy người dùng, còn trong test
+thì một trận phải tính bằng mili-giây. Nếu không đạt, đó là tín hiệu engine làm
+quá nhiều việc mỗi phút.
+
+**Thủ công (những thứ chỉ kiểm tay mới thấy):**
+- Xem trọn một trận ở tốc độ thường, tạm dừng giữa chừng, đổi tốc độ, chạy hết.
+- Thay người ở phút 60, xác nhận các phút sau có tên người mới.
+- Đổi chỉ thị giữa trận rồi đối chiếu: các dòng đã qua không đổi một chữ.
+- Chạy lại cùng mã trận với cùng chuỗi can thiệp rồi **diff từng dòng** — đây là
+  một trong hai dòng Definition of Done mà `spec.md` mục 7 đã ghi sẵn.
+- Hai đội trùng màu áo thì một đội tự đổi sang áo phụ và nói rõ (AC-3.7).
+- Thử đóng tab giữa trận để thấy cảnh báo (AC-9.10).
+
+## III.8. Rủi ro & phương án lùi
+
+| # | Rủi ro | Khả năng | Ảnh hưởng | Giảm thiểu |
+|---|---|---|---|---|
+| R10 | Engine cân bằng sai: AC-8.8 không đạt 7/10, hoặc tỉ số phi lý kiểu 10-9 mỗi trận | **Cao** | Cao | Bốn test so sánh ở III.7 được viết **ngay ở lát 10**, không để cuối giai đoạn. Cân bằng nằm trong một bảng hệ số (D24), chỉnh số không phải chỉnh logic |
+| R11 | Mật độ 60–100 dòng không ổn định giữa các trận | Trung bình | Trung bình | Bước chọn mật độ (D27) là van chặn cứng; test chạy nhiều hạt giống và khẳng định dải |
+| R12 | Chạy hết trận vượt ngân sách 3 giây | Trung bình | Trung bình | Engine là hàm thuần trên mảng số, không tạo chuỗi và không dựng câu chữ (D22 giúp chính chỗ này). Đo bằng `performance.now` quanh `chayHetTran`, ghi số thật vào mô tả commit |
+| R13 | Tất định bị phá ngầm: duyệt `Map`/`Set`, `Object.keys` theo thứ tự chèn, hay số thực khác nhau giữa máy | Trung bình | **Cao** | Mọi vòng lặp ảnh hưởng tới `Rng` đi trên **mảng có thứ tự khai báo**. Test diff hai lần chạy bắt được phần lớn; phần còn lại là kỷ luật khi review |
+| R14 | Bốn test so sánh bấp bênh — xanh đỏ thất thường theo hạt giống | **Cao** | Trung bình | Dùng **bộ mã trận cố định** ghi thẳng trong test, không sinh ngẫu nhiên lúc chạy. Nếu một test vẫn bấp bênh thì đó là engine chưa đủ phân biệt, không phải test xấu — ghi lại chứ không nới ngưỡng cho xanh |
+| R15 | Giao diện trận đấu dính vào engine, sau này Giai đoạn 4 thêm sân 2D phải sửa cả hai | Trung bình | Trung bình | `TrangTran` chỉ đọc `cacSuKien` và `tiSo`. Sân 2D của Giai đoạn 4 cũng sẽ chỉ đọc đúng hai thứ đó cộng `vung` của sự kiện — đã có sẵn trong `SuKien` từ giai đoạn này |
+
+**Rollback:** giai đoạn này **không đụng dữ liệu dưới đĩa** — không migration,
+không đổi định dạng tệp. Gỡ bỏ bằng `git revert` là sạch, khác hẳn Giai đoạn 2
+(nâng `DB_VERSION` không lùi được). Đây là lý do nên làm xong Giai đoạn 3 rồi
+mới tính chuyện lưu lịch sử trận ở Giai đoạn 4.
+
+## III.9. Thứ tự triển khai
+
+1. **Lát 9 — Engine nền và tính tái lập.** `rng.ts`, `vung.ts`, `chuoiBong.ts`,
+   `tran.ts`, `suKien.ts`. Kết thúc: chạy được trọn một trận trong test, ra tỉ
+   số và dòng sự kiện; cùng mã trận hai lần ra kết quả giống từng dòng. Chưa
+   có giao diện. AC-8.1, AC-8.2, AC-8.11, AC-8.15.
+2. **Lát 10 — Chiến thuật tác động vào trận.** `sucManh.ts`, `theLuc.ts`,
+   `the.ts`, bảng hệ số chỉ thị. Kết thúc: **bốn test so sánh của P5 đều xanh**.
+   AC-8.3 đến AC-8.8, AC-8.13, AC-8.14.
+3. **Lát 11 — Màn hình trận.** `ChonCapDau`, `DangKyDoiHinh`, `TrangTran`,
+   `DongTuongThuat`, `BangDieuKhienTran`, `ui/tuongThuat.ts`. Kết thúc: người
+   dùng chọn được cặp đấu, đăng ký 11+7, xem trận chạy, tạm dừng, đổi tốc độ,
+   chạy hết. AC-9.1 đến AC-9.4, AC-9.9, AC-9.10, AC-8.9, AC-8.10, AC-8.16, và
+   đóng nốt AC-3.5, AC-3.7, AC-5.7.
+4. **Lát 12 — Can thiệp giữa trận.** `ThayNguoi`, `apDungCanThiep`, bảng so
+   sánh cùng mã trận. Kết thúc: thay người, đổi chỉ thị và vai trò giữa trận;
+   phát lại đúng trận đó kèm chuỗi can thiệp; so được hai kết quả cùng mã trận.
+   AC-9.5 đến AC-9.8, AC-8.12. Giai đoạn 3 hoàn tất.
+
+Lát 9 và lát 10 đi trước toàn bộ giao diện vì lý do đã đúng ở Giai đoạn 2 và
+còn đúng hơn ở đây: nếu engine sai cân bằng thì màn hình trận đẹp tới đâu cũng
+chỉ là hiển thị một trận bóng vô lý, và nhìn vào giao diện **không thấy được**
+sai ở đâu — chỉ bốn test so sánh mới chỉ ra.
