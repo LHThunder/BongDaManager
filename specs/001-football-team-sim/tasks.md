@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | Giai đoạn 1 (36 AC), Giai đoạn 2 (22 AC) và Giai đoạn 3 (26 AC) |
-| **Tiến độ** | 83/99 — Giai đoạn 1 xong (38/39, còn T035); Giai đoạn 2 xong trọn; Giai đoạn 3 đang làm (Phase 11 và 12 xong: T066–T083) |
+| **Tiến độ** | 90/99 — Giai đoạn 1 xong (38/39, còn T035); Giai đoạn 2 xong trọn; Giai đoạn 3 đang làm (Phase 11, 12, 13 xong: T066–T090) |
 | **Sửa đổi** | 2026-10-28 — thêm Giai đoạn 3 (Phase 11–14), rồi sửa theo kết quả `/analyze` |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -630,43 +630,43 @@ Kết thúc phase: chọn cặp đấu, đăng ký 11+7, xem trận chạy theo 
 đổi tốc độ, chạy hết trận và đọc trọn dòng sự kiện. Đây là phase đầu tiên của
 Giai đoạn 3 bàn giao được cho người dùng (P6).
 
-- [ ] **T084** [P] — Chuỗi hiển thị cho Giai đoạn 3
+- [x] **T084** [P] — Chuỗi hiển thị cho Giai đoạn 3
   - File: `src/ui/strings.ts`
   - Xong khi: có nhãn cho màn chọn cặp đấu, đăng ký đội hình, điều khiển trận (tạm dừng / tiếp tục / 3 mức tốc độ / chạy hết), từng lý do không bắt đầu được, nhãn **kiệt sức** và nhãn thẻ; `grep` byte non-ASCII xác nhận không component nào viết chuỗi hiển thị trực tiếp (P8), như đã kiểm ở Giai đoạn 1 và 2.
   - Phụ thuộc: —
 
-- [ ] **T085** — Mẫu câu tường thuật
+- [x] **T085** — Mẫu câu tường thuật
   - File: `src/ui/tuongThuat.ts`, `src/ui/tuongThuat.test.ts`
   - Xong khi: test xanh — mỗi loại sự kiện có **ít nhất 4 mẫu câu**; `dungCauTuongThuat` chèn đúng tên cầu thủ vào câu; và qua 5 trận liên tiếp, mỗi loại sự kiện xuất hiện từ 5 lần trở lên phải dùng **ít nhất 4 mẫu câu khác nhau**.
   - Ghi chú: AC-8.16 viết "không lặp lại nguyên một câu". Đọc theo nghĩa đen thì không thoả được — bộ mẫu câu nào cũng hữu hạn, mà 5 trận có thể có 20 bàn thắng. Điều AC thật sự cấm là **dùng một câu cố định cho một loại tình huống**, nên phép kiểm đếm số mẫu câu khác nhau được dùng. Ghi lại ở đây để `/analyze` và người đọc sau biết đây là chỗ đã cân nhắc, không phải chỗ làm ẩu.
   - AC: AC-8.16
   - Phụ thuộc: T070, T084
 
-- [ ] **T086** — Điều kiện bắt đầu trận
+- [x] **T086** — Điều kiện bắt đầu trận
   - File: `src/engine/batDau.ts`, `src/engine/batDau.test.ts`
   - Xong khi: test xanh — hai phía cùng một `teamId` thì không bắt đầu được (AC-8.10); chưa đủ 11 chính hoặc chưa **đúng** 7 dự bị thì không bắt đầu được, nêu rõ đội nào thiếu gì (AC-9.9); đội thiếu thủ môn, chưa đủ người, hoặc có cầu thủ hồ sơ chưa hoàn tất thì không bắt đầu được — **dùng lại `tinhTrangDoiHinh` của `domain/lineup.ts`**, không viết luật thứ hai; mọi lý do trả về cùng lúc, không dừng ở lý do đầu.
   - AC: AC-8.9, AC-8.10, AC-9.9, AC-5.7 *(đóng nốt phần chặn giả lập)*
   - Phụ thuộc: T070
 
-- [ ] **T087** — Lát trạng thái trận trong store và hook đồng hồ
+- [x] **T087** — Lát trạng thái trận trong store và hook đồng hồ
   - File: `src/store/appStore.ts`, `src/hooks/useMatch.ts`
   - Xong khi: `npx tsc --noEmit` sạch; selector trả **tham chiếu ổn định** khi chưa có trận (bài học từ T020 và T050); hook có 3 mức tốc độ với mức thường là 200ms mỗi phút trận, có tạm dừng/tiếp tục và chạy hết; và **không có `setInterval` hay `setTimeout` nào trong `src/engine/`** — đồng hồ thuộc giao diện (D21).
   - AC: AC-9.2, AC-9.3
   - Phụ thuộc: T070
 
-- [ ] **T088** — Màn chọn cặp đấu và đăng ký đội hình
+- [x] **T088** — Màn chọn cặp đấu và đăng ký đội hình
   - File: `src/ui/pages/ChonCapDau.tsx`, `src/ui/components/DangKyDoiHinh.tsx`, sửa `src/App.tsx`
   - Xong khi: chọn được hai đội khác nhau và chỉ định chủ nhà hoặc **sân trung lập**; đăng ký đúng 11 chính và đúng 7 dự bị cho mỗi đội; đội chưa đủ điều kiện thì nút bắt đầu bị chặn kèm **từng lý do một**; logo hai đội hiện ở màn này (đóng nốt AC-3.5); hai đội trùng màu áo thì một đội **tự chuyển sang áo phụ và nói rõ việc đổi** (đóng nốt AC-3.7); mã trận hiện ra trước khi bấm bắt đầu. Chỉ có đúng một đội trong hệ thống thì màn này **nêu rõ cần ít nhất 2 đội** và mời tạo đội đối thủ (spec mục 5).
   - AC: AC-8.9, AC-8.10, AC-8.14, AC-9.9, AC-3.5, AC-3.7
   - Phụ thuộc: T086, T084
 
-- [ ] **T089** — Trang trận đấu: dòng tường thuật và điều khiển
+- [x] **T089** — Trang trận đấu: dòng tường thuật và điều khiển
   - File: `src/ui/pages/TrangTran.tsx`, `src/ui/components/DongTuongThuat.tsx`, `src/ui/components/BangDieuKhienTran.tsx`
   - Xong khi: trận chạy theo phút với **tỉ số và phút luôn nhìn thấy**; tạm dừng dừng đúng phút hiện tại và tiếp tục từ đúng chỗ đó; đổi tốc độ áp dụng ngay; chạy hết trận nhảy tới kết thúc và **giữ nguyên toàn bộ dòng sự kiện để xem lại**; dòng tường thuật nằm trong vùng `aria-live` tiếng Việt; logo hai đội hiện ở đầu trang.
   - AC: AC-9.1, AC-9.2, AC-9.3, AC-9.4, AC-3.5
   - Phụ thuộc: T087, T088, T085
 
-- [ ] **T090** — Cảnh báo khi rời trang giữa trận
+- [x] **T090** — Cảnh báo khi rời trang giữa trận
   - File: sửa `src/ui/pages/TrangTran.tsx`
   - Xong khi: trận đang chạy mà đóng tab hoặc tải lại thì trình duyệt hỏi xác nhận; trận **đã kết thúc thì không hỏi nữa**; rời đi thật thì trận không còn, đúng như spec mô tả — không ghi gì xuống IndexedDB (D32). Trang trận **không có lối rời đi nào khác** ngoài cảnh báo này, nên dòng "xoá đội khi đang có trận dở" ở spec mục 5 không xảy ra được — ghi ra đây để không ai phải đoán.
   - AC: AC-9.10

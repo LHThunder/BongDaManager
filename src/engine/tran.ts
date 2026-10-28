@@ -1,4 +1,5 @@
 import { laySoDo } from '../domain/formations'
+import { kiemTraBatDauDuoc, LoiCauHinhTran } from './batDau'
 import type { RoleId } from '../domain/roles'
 import type { PositionId, Tactic } from '../domain/types'
 import { heSoCuaBo, type HeSoChiThi } from './chiThi'
@@ -179,9 +180,18 @@ function buGioNgauNhien(rng: RngCoTrangThai): number {
 }
 
 export function taoTran(cauHinh: CauHinhTran): TrangThaiTran {
+  const kiemTra = kiemTraBatDauDuoc(cauHinh)
+  if (!kiemTra.batDauDuoc) {
+    throw new LoiCauHinhTran(kiemTra.cacLyDo)
+  }
+
   const rng = taoRngTuHatGiong(hatGiongTuMaTran(cauHinh.maTran))
   const hiep1 = buGioNgauNhien(rng)
   const hiep2 = buGioNgauNhien(rng)
+
+  // Rút mẫu câu TRƯỚC khi cất hạt giống: hạt giống phải phản ánh mọi lần đã
+  // rút, nếu không thì phút đầu tiên sẽ rút lại đúng con số vừa dùng.
+  const mauCauKhaiCuoc = Math.floor(rng.next() * 1000)
 
   const tt: TrangThaiTran = {
     maTran: cauHinh.maTran,
@@ -199,7 +209,9 @@ export function taoTran(cauHinh: CauHinhTran): TrangThaiTran {
 
   return {
     ...tt,
-    ungVien: [taoUngVien(tt, 0, 'bat-dau', 'nha', [], null, 0, 100)],
+    ungVien: [
+      taoUngVien(tt, 0, 'bat-dau', 'nha', [], null, mauCauKhaiCuoc, 100),
+    ],
   }
 }
 
@@ -576,6 +588,13 @@ export function buocTiep(tt: TrangThaiTran): TrangThaiTran {
     else benKhach = capNhat
   }
 
+  // Rút mẫu câu cho các mốc TRƯỚC khi cất hạt giống, cùng lý do như ở
+  // `taoTran`: hạt giống phải phản ánh mọi lần đã rút.
+  const ketThuc = phut >= tong
+  const laMocHetHiep = phut === tongPhutHiep1(tt)
+  const mauCauHetHiep = laMocHetHiep ? Math.floor(rng.next() * 1000) : 0
+  const mauCauKetThuc = ketThuc ? Math.floor(rng.next() * 1000) : 0
+
   const sauTt: TrangThaiTran = {
     ...tt,
     hatGiong: rng.hatGiong(),
@@ -583,15 +602,19 @@ export function buocTiep(tt: TrangThaiTran): TrangThaiTran {
     tiSo,
     ben: { nha: benNha, khach: benKhach },
     ungVien: [...tt.ungVien, ...gomUngVienCuaPhut(ungVienMoi)],
-    ketThuc: phut >= tong,
+    ketThuc,
   }
 
   const mocHiep: UngVienSuKien[] = []
-  if (phut === tongPhutHiep1(tt)) {
-    mocHiep.push(taoUngVien(sauTt, phut, 'het-hiep', 'nha', [], null, 0, 100))
+  if (laMocHetHiep) {
+    mocHiep.push(
+      taoUngVien(sauTt, phut, 'het-hiep', 'nha', [], null, mauCauHetHiep, 100),
+    )
   }
-  if (sauTt.ketThuc) {
-    mocHiep.push(taoUngVien(sauTt, phut, 'ket-thuc', 'nha', [], null, 0, 100))
+  if (ketThuc) {
+    mocHiep.push(
+      taoUngVien(sauTt, phut, 'ket-thuc', 'nha', [], null, mauCauKetThuc, 100),
+    )
   }
 
   return mocHiep.length === 0

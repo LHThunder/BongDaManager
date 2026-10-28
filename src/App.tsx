@@ -1,14 +1,18 @@
 import { useCallback, useState } from 'react'
 import { useAppStore } from './store/appStore'
-import { CHUNG, cauLoi } from './ui/strings'
+import { CHON_CAP_DAU, CHUNG, cauLoi } from './ui/strings'
+import { ChonCapDau } from './ui/pages/ChonCapDau'
 import { DanhSachDoi } from './ui/pages/DanhSachDoi'
 import { TrangChienThuat } from './ui/pages/TrangChienThuat'
 import { TrangDoi } from './ui/pages/TrangDoi'
+import { TrangTran } from './ui/pages/TrangTran'
 
 type Khung =
   | { readonly loai: 'danh-sach-doi' }
   | { readonly loai: 'trang-doi'; readonly teamId: string }
   | { readonly loai: 'trang-chien-thuat'; readonly teamId: string }
+  | { readonly loai: 'chon-cap-dau' }
+  | { readonly loai: 'tran-dau' }
 
 export default function App() {
   const [khung, datKhung] = useState<Khung>({ loai: 'danh-sach-doi' })
@@ -25,6 +29,14 @@ export default function App() {
 
   const moChienThuat = useCallback((teamId: string) => {
     datKhung({ loai: 'trang-chien-thuat', teamId })
+  }, [])
+
+  const moChonCapDau = useCallback(() => {
+    datKhung({ loai: 'chon-cap-dau' })
+  }, [])
+
+  const moTranDau = useCallback(() => {
+    datKhung({ loai: 'tran-dau' })
   }, [])
 
   return (
@@ -57,7 +69,26 @@ export default function App() {
       )}
 
       <main className="mx-auto max-w-5xl px-4 py-8">
-        {khung.loai === 'danh-sach-doi' && <DanhSachDoi onMoDoi={moDoi} />}
+        {khung.loai === 'danh-sach-doi' && (
+          <>
+            <div className="mb-4 flex justify-end">
+              <button
+                type="button"
+                onClick={moChonCapDau}
+                className="rounded-md bg-emerald-700 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+              >
+                {CHON_CAP_DAU.tieuDe}
+              </button>
+            </div>
+            <DanhSachDoi onMoDoi={moDoi} />
+          </>
+        )}
+
+        {khung.loai === 'chon-cap-dau' && (
+          <ChonCapDau onQuayLai={veDanhSach} onDaBatDau={moTranDau} />
+        )}
+
+        {khung.loai === 'tran-dau' && <TrangTran onRoiTran={veDanhSach} />}
 
         {khung.loai === 'trang-doi' && (
           <TrangDoi

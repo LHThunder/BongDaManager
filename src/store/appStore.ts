@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import type { TrangThaiTran } from '../engine/tran'
 import type { Player, Tactic } from '../domain/types'
 import type { LoiUngDung } from '../services/errors'
 import type { TeamSummary } from '../services/teamRepo'
@@ -56,6 +57,19 @@ export interface AppState {
   boCauThu(id: string): void
 
   datChienThuat(teamId: string, chienThuat: Tactic | null): void
+
+  /** Trận đang chạy; chỉ sống trong bộ nhớ (quyết định D32). */
+  readonly tran: TrangThaiTran | null
+  datTran(tran: TrangThaiTran | null): void
+
+  /*
+    Đồng hồ trận nằm ở store chứ không ở state của hook: `useMatch` được gọi
+    từ HAI trang khác nhau — màn chọn cặp đấu bật trận rồi chuyển trang, trang
+    trận mới là nơi chạy nó. Để trong hook thì mỗi trang có một cờ riêng và
+    trận đứng im ở phút 0.
+  */
+  readonly tranDangChay: boolean
+  datTranDangChay(dangChay: boolean): void
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -121,6 +135,12 @@ export const useAppStore = create<AppState>((set) => ({
 
   datChienThuat: (teamId, chienThuat) =>
     set({ doiCuaChienThuat: teamId, chienThuat }),
+
+  tran: null,
+  datTran: (tran) => set({ tran }),
+
+  tranDangChay: false,
+  datTranDangChay: (tranDangChay) => set({ tranDangChay }),
 }))
 
 /** Trạng thái ban đầu, dùng để test dọn store giữa các lần chạy. */
@@ -135,5 +155,7 @@ export function datLaiStore(): void {
     dangTaiCauThu: false,
     chienThuat: null,
     doiCuaChienThuat: null,
+    tran: null,
+    tranDangChay: false,
   })
 }

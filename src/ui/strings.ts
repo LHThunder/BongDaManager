@@ -386,3 +386,73 @@ const LY_DO_CHIEN_THUAT_SAI: Readonly<Record<string, string>> = {
   'bo-cua-doi-khac': ' vì bộ này thuộc đội khác',
   ten: ' khi chưa đặt tên cho bộ',
 }
+
+// ---------------------------------------------------------------------------
+// Giai đoạn 3 — trận đấu
+// ---------------------------------------------------------------------------
+
+export const CHON_CAP_DAU = {
+  tieuDe: 'Bắt đầu một trận',
+  nhanDoiNha: 'Đội chủ nhà',
+  nhanDoiKhach: 'Đội khách',
+  chonDoi: '— Chọn đội —',
+  sanTrungLap: 'Đá trên sân trung lập',
+  moTaSanTrungLap:
+    'Tắt hoàn toàn lợi thế sân nhà, để so hai chiến thuật cho công bằng.',
+  nhanMaTran: 'Mã trận',
+  moTaMaTran:
+    'Giữ lại mã này thì sau đấu lại được đúng trận đó, kể cả khi bạn đổi chiến thuật.',
+  maTranMoi: 'Sinh mã mới',
+  batDau: 'Bắt đầu trận',
+  tieuDeChuaBatDauDuoc: 'Chưa bắt đầu được',
+  canHaiDoi: 'Cần ít nhất 2 đội mới đấu được. Hãy tạo thêm một đội đối thủ.',
+  doiTrungMauAo: (tenDoi: string) =>
+    `Hai đội trùng màu áo, nên ${tenDoi} sẽ ra sân với áo phụ.`,
+} as const
+
+export const DANG_KY_DOI_HINH = {
+  tieuDe: 'Đăng ký đội hình',
+  moTa: 'Chọn đúng 11 cầu thủ chính và đúng 7 cầu thủ dự bị.',
+  nhanChinh: 'Đội hình chính',
+  nhanDuBi: 'Dự bị',
+  nhanNgoai: 'Không đăng ký',
+  demChinh: (co: number, can: number) => `${co}/${can} chính`,
+  demDuBi: (co: number, can: number) => `${co}/${can} dự bị`,
+  dungTheoChienThuat: 'Lấy theo chiến thuật đã lưu',
+} as const
+
+export const LY_DO_KHONG_BAT_DAU = {
+  cungMotDoi: 'Hai bên đang là cùng một đội. Hãy chọn hai đội khác nhau.',
+  chuaDuChinh: (tenDoi: string, co: number, can: number) =>
+    `${tenDoi} mới có ${co} trong ${can} cầu thủ chính.`,
+  chuaDungDuBi: (tenDoi: string, co: number, can: number) =>
+    `${tenDoi} đang đăng ký ${co} dự bị, cần đúng ${can}.`,
+  thieuThuMon: (tenDoi: string) => `${tenDoi} chưa có thủ môn trong khung.`,
+  hoSoChuaHoanTat: (tenDoi: string, ten: readonly string[]) =>
+    `${tenDoi} còn cầu thủ thiếu chỉ số: ${ten.join(', ')}.`,
+  khongDuNguoi: (tenDoi: string, co: number) =>
+    `${tenDoi} mới có ${co} cầu thủ trong đội, chưa đủ 18 người để đăng ký.`,
+} as const
+
+export const TRAN_DAU = {
+  tieuDe: 'Trận đấu',
+  phut: (p: number, buGio: boolean) => (buGio ? `${p}'+` : `${p}'`),
+  tamDung: 'Tạm dừng',
+  tiepTuc: 'Tiếp tục',
+  chayHet: 'Chạy hết trận',
+  nhanTocDo: 'Tốc độ',
+  tocDo: {
+    thuong: 'Thường',
+    nhanh: 'Nhanh',
+    ratNhanh: 'Rất nhanh',
+  },
+  tieuDeDienBien: 'Diễn biến',
+  chuaBatDau: 'Trận chưa bắt đầu.',
+  daKetThuc: 'Trận đã kết thúc.',
+  canhBaoRoiTrang:
+    'Trận đang diễn ra sẽ bị huỷ nếu bạn rời trang. Mã trận vẫn cho phép đấu lại đúng trận này về sau.',
+  nhanKietSuc: 'Kiệt sức',
+  nhanTheVang: 'Thẻ vàng',
+  nhanTheDo: 'Thẻ đỏ',
+  quayLai: 'Rời trận',
+} as const
