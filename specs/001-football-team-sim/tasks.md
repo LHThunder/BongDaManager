@@ -1,17 +1,17 @@
-# Tasks: Giai đoạn 1 — Tạo đội, cầu thủ, ảnh và lưu trữ
+# Tasks: Bóng đá Manager — Giai đoạn 1, 2 và 3
 
 | | |
 |---|---|
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
-| **Phạm vi** | Giai đoạn 1 (36 AC) và Giai đoạn 2 (22 AC) |
-| **Tiến độ** | 65/66 — Giai đoạn 1 xong (38/39, còn T035); Giai đoạn 2 xong trọn (T040–T065) |
-| **Sửa đổi** | 2026-10-26 — sửa theo kết quả `/analyze` |
+| **Phạm vi** | Giai đoạn 1 (36 AC), Giai đoạn 2 (22 AC) và Giai đoạn 3 (26 AC) |
+| **Tiến độ** | 65/99 — Giai đoạn 1 xong (38/39, còn T035); Giai đoạn 2 xong trọn (T040–T065); Giai đoạn 3 chưa bắt đầu (T066–T098) |
+| **Sửa đổi** | 2026-10-28 — thêm Giai đoạn 3 (Phase 11–14) |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
 > Mỗi task phải: chạm file cụ thể + có cách kiểm chứng + đủ nhỏ để làm trong một lần.
 
-Các phase dưới đây là 5 lát cắt dọc ở `plan.md` mục 9, cộng một phase kiểm thử cuối. Mỗi phase từ Phase 1 trở đi kết thúc là một ứng dụng chạy được và dùng thử được (hiến pháp P6), và là một commit.
+Các phase dưới đây là các lát cắt dọc ở `plan.md` — mục 9 cho Giai đoạn 1, mục II.9 cho Giai đoạn 2, mục III.9 cho Giai đoạn 3. Mỗi phase từ Phase 1 trở đi kết thúc là một ứng dụng chạy được và dùng thử được (hiến pháp P6), và là một commit.
 
 ---
 
@@ -499,6 +499,237 @@ Kết thúc phase: mở trang chiến thuật, chọn sơ đồ, kéo người v
 
 ---
 
+## Phase 11 — Lát 9: Engine nền và tính tái lập
+
+Kết thúc phase: chạy trọn một trận **trong test** ra tỉ số và dòng sự kiện;
+cùng mã trận hai lần ra kết quả giống từng dòng. Chưa có giao diện — đây là
+phase duy nhất của Giai đoạn 3 không bàn giao được cho người dùng, và nó đi
+trước vì engine sai thì mọi thứ vẽ lên màn hình đều vô nghĩa.
+
+- [ ] **T066** [P] — Nguồn ngẫu nhiên tất định sinh từ mã trận
+  - File: `src/engine/rng.ts`, `src/engine/rng.test.ts`
+  - Xong khi: test xanh — `taoRng('ABC')` gọi 1000 lần ra **đúng dãy ghi cứng trong test** (vector cố định, để sau này đổi code mà lỡ đổi dãy là đỏ ngay); hai mã khác nhau ra hai dãy khác nhau; mọi giá trị nằm trong `[0, 1)`; `taoMaTran` trả đúng 10 ký tự và **không chứa I, L, O, U** (quyết định D20); kiểm trên source đã bỏ comment rằng file không chứa `Math.random`, `Date.now`, `crypto.getRandomValues` — dùng lại đúng cách kiểm đã có ở `generator.test.ts`.
+  - AC: AC-8.11
+  - Phụ thuộc: —
+
+- [ ] **T067** [P] — Lưới vùng sân
+  - File: `src/engine/vung.ts`, `src/engine/vung.test.ts`
+  - Xong khi: test xanh — đúng 12 vùng (3 cột × 4 dải, quyết định D23); mỗi vùng biết cột (trái/giữa/phải) và dải (0 là sân nhà, 3 là vòng cấm đối phương); hàm lật vùng theo hướng tấn công trả về vùng đối xứng và lật hai lần ra lại chính nó; không id nào trùng.
+  - AC: AC-8.3, AC-8.4 *(phần nền — hai AC này chỉ đo được khi có cột biên)*
+  - Phụ thuộc: —
+
+- [ ] **T068** — Kiểu sự kiện và bước chọn mật độ
+  - File: `src/engine/suKien.ts`, `src/engine/suKien.test.ts`
+  - Xong khi: test xanh — sự kiện **bắt buộc** (bàn thắng, thẻ, thay người, mốc hết hiệp) luôn được giữ dù điểm đáng kể thấp; từ 300 ứng viên, bước chọn trả về **không quá 100**; chạy hai lần trên cùng đầu vào ra cùng danh sách (tất định); khi chỉ có 40 ứng viên thì trả hết 40 và **không bịa thêm** — sàn 60 là việc của engine phải sinh đủ tình huống, không phải việc của bước chọn, và T070 mới là chỗ kiểm sàn đó.
+  - AC: AC-8.15
+  - Phụ thuộc: T066
+
+- [ ] **T069** — Một chuỗi kiểm soát bóng
+  - File: `src/engine/chuoiBong.ts`, `src/engine/chuoiBong.test.ts`
+  - Xong khi: test xanh — mỗi chuỗi kết thúc ở đúng một kết cục trong tập đóng {dứt điểm, mất bóng, phạm lỗi, bóng ra ngoài}; có chặn số bước nên không chạy vô hạn; cùng `Rng` và cùng đầu vào ra cùng kết cục; bóng chỉ dịch sang **vùng kề**, không nhảy cóc qua sân.
+  - AC: AC-8.2
+  - Phụ thuộc: T066, T067
+
+- [ ] **T070** — Máy trạng thái trận
+  - File: `src/engine/tran.ts`, `src/engine/tran.test.ts`
+  - Xong khi: test xanh — `taoTran` ra phút 0 với bù giờ mỗi hiệp trong 1..5 **chốt ngay lúc tạo**; `buocTiep` tiến đúng một phút; `chayHetTran` dừng sau 90 phút cộng bù giờ; trận hoà **kết thúc là hoà**, không có hiệp phụ; mọi sự kiện phát ra đều mang playerId của người **đang trên sân tại phút đó**; và dòng sự kiện của một trận thật nằm trong **dải 60..100 trên ít nhất 20 mã trận khác nhau**.
+  - AC: AC-8.1, AC-8.2, AC-8.15
+  - Phụ thuộc: T068, T069
+
+- [ ] **T071** — Chạy lại cùng mã trận ra kết quả giống từng dòng
+  - File: `src/engine/taiLap.test.ts`
+  - Xong khi: test xanh — với 10 mã trận cố định, `chayHetTran` chạy hai lần cho **cùng tỉ số và cùng mảng sự kiện, so bằng `toEqual` trên cả mảng** chứ không chỉ so độ dài; đổi một ký tự trong mã trận thì chuỗi sự kiện khác đi (nếu không khác thì mã trận đang bị bỏ qua ở đâu đó).
+  - AC: AC-8.11
+  - Phụ thuộc: T070
+
+- [ ] **T072** — Canh biên giới tầng `engine/`
+  - File: `src/domain/boundaries.test.ts`
+  - Xong khi: test xanh — không file nào trong `src/engine/` import `react`, `ui`, `hooks`, `services` hay `storage`; không file nào chứa `Math.random`, `Date.now`, `crypto.getRandomValues` sau khi bỏ comment (P1); test tự khẳng định đọc được **ít nhất 5 file** trong `engine/`, để một glob hỏng không làm test xanh một cách vô nghĩa — đúng lỗi mà bản đầu của `boundaries.test.ts` đã phòng.
+  - AC: — *(hiến pháp P1, P2)*
+  - Phụ thuộc: T070
+
+---
+
+## Phase 12 — Lát 10: Chiến thuật tác động vào trận
+
+Kết thúc phase: **bốn test so sánh của P5 đều xanh**. Đây là phase quyết định
+engine có đáng tin hay không; nếu nó đỏ thì làm giao diện chỉ là trang trí cho
+một trận bóng vô lý.
+
+- [ ] **T073** [P] — Sức mạnh cầu thủ trong một tình huống
+  - File: `src/engine/sucManh.ts`, `src/engine/sucManh.test.ts`
+  - Xong khi: test xanh — nền tính từ `chiSoQuanTrong` của **vai trò** nên cùng một cầu thủ ở hai vai trò khác nhau ra hai số khác nhau (nếu bằng nhau thì cả US-6 là vô nghĩa); nhân `(1 − MUC_TRU_HIEU_SUAT[mức])` nên bốn mức sai vị trí cho bốn số **giảm dần nghiêm ngặt**; thể lực thấp làm giảm; hệ số sân nhà chỉ áp cho đội chủ nhà và **bằng đúng 1 khi sân trung lập**.
+  - AC: AC-8.5, AC-8.14
+  - Phụ thuộc: T070
+- [ ] **T074** [P] — Thể lực
+  - File: `src/engine/theLuc.ts`, `src/engine/theLuc.test.ts`
+  - Xong khi: test xanh — thể lực giảm đơn điệu theo phút; cầu thủ `the-luc` cao giảm **chậm hơn** cầu thủ `the-luc` thấp ở cùng mức pressing; cùng một cầu thủ thì pressing cao giảm **nhanh hơn** pressing thấp (AC-8.6 đòi cả hai yếu tố, không phải một); không bao giờ xuống dưới 0.
+  - AC: AC-8.6
+  - Phụ thuộc: T070
+
+- [ ] **T075** [P] — Thẻ vàng, thẻ đỏ và đá thiếu người
+  - File: `src/engine/the.ts`, `src/engine/the.test.ts`
+  - Xong khi: test xanh — xác suất ăn thẻ **cao hơn** khi `quyet-doan` thấp (so hai hồ sơ chỉ khác chỉ số đó) và **cao hơn** khi đội pressing cao; thẻ vàng thứ hai thành thẻ đỏ; cầu thủ nhận thẻ đỏ bị gỡ khỏi `trenSan`, không quay lại được, và đội đó đá thiếu người tới hết trận.
+  - AC: AC-8.13
+  - Phụ thuộc: T070
+
+- [ ] **T076** [P] — Bảng hệ số chỉ thị
+  - File: `src/engine/chiThi.ts`, `src/engine/chiThi.test.ts`
+  - Ghi chú: đây là "một bảng duy nhất" của quyết định D24. `plan.md` III.3 không liệt kê tên file này; nó được tách riêng vì D24 nói rõ không được rải thành nhánh `if` trong chuỗi bóng.
+  - Xong khi: test xanh — mỗi mức của cả 6 chỉ thị đều có một bộ hệ số; `CHI_THI_MAC_DINH` cho hệ số **trung tính (bằng 1)** ở mọi hướng, nên đội mặc định không bị thiên lệch; không hệ số nào bằng 0 hay âm — một chỉ thị được làm một hành động **hiếm đi**, không được **cấm hẳn**.
+  - AC: AC-8.3, AC-8.4
+  - Phụ thuộc: T070
+
+- [ ] **T077** — Nối sức mạnh, thể lực, thẻ và chỉ thị vào chuỗi bóng
+  - File: `src/engine/chuoiBong.ts`, `src/engine/tran.ts`
+  - Xong khi: `npx tsc --noEmit` sạch; toàn bộ test cũ vẫn xanh; một trận chạy xong có cả bàn thắng và thẻ trên vài mã trận; và **test tái lập T071 vẫn xanh sau khi nối** — đây là lúc dễ phá tính tất định nhất, vì mỗi nguồn ngẫu nhiên mới gắn vào đều có thể làm lệch thứ tự tiêu thụ `Rng`.
+  - AC: AC-8.5, AC-8.6, AC-8.13, AC-8.14
+  - Phụ thuộc: T073, T074, T075, T076
+
+- [ ] **T078** — Kiệt sức: phạt hiệu suất và báo cho người dùng
+  - File: `src/engine/sucManh.ts`, `src/engine/suKien.ts`, `src/engine/kietSuc.test.ts`
+  - Xong khi: test xanh — dưới ngưỡng kiệt sức thì sức mạnh bị nhân hệ số phạt; **đúng một** sự kiện `kiet-suc` được phát cho mỗi cầu thủ mỗi trận, không phát lại mỗi phút (nếu không thì một mình nó ăn hết dải 60..100 dòng của AC-8.15).
+  - AC: AC-8.7
+  - Phụ thuộc: T077
+
+- [ ] **T079** — Bộ dựng đội mẫu cho test so sánh, và test AC-8.3
+  - File: `src/engine/__fixtures__/doiMau.ts`, `src/engine/sosanh.tanCongBien.test.ts`
+  - Xong khi: test xanh — dựng được hai đội 18 người với chỉ số đặt theo ý muốn; chạy **10 mã trận cố định** với `huong-tan-cong: 'bien'` cho số quả tạt trung bình **nhiều hơn ít nhất 50%** so với `'trung-lo'`, cùng đội, cùng đối thủ, chỉ đổi đúng một chỉ thị. Test in ra hai con số trung bình, để lần sau chỉnh cân bằng còn biết đang đứng ở đâu.
+  - AC: AC-8.3
+  - Phụ thuộc: T077
+
+- [ ] **T080** [P] — Test so sánh AC-8.4: pressing cao
+  - File: `src/engine/sosanh.pressing.test.ts`
+  - Xong khi: test xanh — pressing cao so với pressing thấp trên cùng 10 mã trận: số lần cướp bóng ở dải cao **tăng**, VÀ số tình huống đối thủ thoát xuống sau hàng phòng ngự **cũng tăng**. Phải khẳng định **cả hai chiều trong cùng một test** — chỉ kiểm chiều có lợi thì một engine chỉnh ẩu vẫn qua, mà AC-8.4 nói rõ là đánh đổi.
+  - AC: AC-8.4
+  - Phụ thuộc: T079
+
+- [ ] **T081** [P] — Test so sánh AC-8.5: xếp sai vị trí
+  - File: `src/engine/sosanh.saiViTri.test.ts`
+  - Xong khi: test xanh — cùng một mã trận, chỉ đổi ô của **đúng một cầu thủ** qua bốn trạng thái (đúng / nhẹ / vừa / nặng), mọi thứ khác giữ nguyên, cho bốn con số đóng góp **giảm dần nghiêm ngặt**.
+  - AC: AC-8.5
+  - Phụ thuộc: T079
+
+- [ ] **T082** [P] — Test so sánh AC-8.8: đội mạnh hơn phải thắng
+  - File: `src/engine/sosanh.doiManhHon.test.ts`
+  - Xong khi: test xanh — đội A hơn đội B 5 điểm ở **mọi** chỉ số, hai bên cùng chỉ thị cân bằng mặc định và không ai xếp sai vị trí: qua 10 mã trận cố định, A thắng **ít nhất 7**. Test in ra số thắng/hoà/thua.
+  - AC: AC-8.8
+  - Phụ thuộc: T079
+
+- [ ] **T083** [P] — Test AC-8.14: lợi thế sân nhà và sân trung lập
+  - File: `src/engine/sosanh.sanNha.test.ts`
+  - Xong khi: test xanh — cùng hai đội, qua 10 mã trận cố định, đội được chỉ định chủ nhà có kết quả trung bình tốt hơn; và khi bật **sân trung lập** rồi đổi chỗ hai đội cho nhau thì kết quả **đối xứng** — đây là phép kiểm chứng minh lợi thế đã tắt hẳn chứ không chỉ nhỏ đi.
+  - AC: AC-8.14
+  - Phụ thuộc: T079
+
+---
+
+## Phase 13 — Lát 11: Màn hình trận
+
+Kết thúc phase: chọn cặp đấu, đăng ký 11+7, xem trận chạy theo phút, tạm dừng,
+đổi tốc độ, chạy hết trận và đọc trọn dòng sự kiện. Đây là phase đầu tiên của
+Giai đoạn 3 bàn giao được cho người dùng (P6).
+
+- [ ] **T084** [P] — Chuỗi hiển thị cho Giai đoạn 3
+  - File: `src/ui/strings.ts`
+  - Xong khi: có nhãn cho màn chọn cặp đấu, đăng ký đội hình, điều khiển trận (tạm dừng / tiếp tục / 3 mức tốc độ / chạy hết), từng lý do không bắt đầu được, nhãn **kiệt sức** và nhãn thẻ; `grep` byte non-ASCII xác nhận không component nào viết chuỗi hiển thị trực tiếp (P8), như đã kiểm ở Giai đoạn 1 và 2.
+  - Phụ thuộc: —
+
+- [ ] **T085** — Mẫu câu tường thuật
+  - File: `src/ui/tuongThuat.ts`, `src/ui/tuongThuat.test.ts`
+  - Xong khi: test xanh — mỗi loại sự kiện có **ít nhất 4 mẫu câu**; `dungCauTuongThuat` chèn đúng tên cầu thủ vào câu; và qua 5 trận liên tiếp, mỗi loại sự kiện xuất hiện từ 5 lần trở lên phải dùng **ít nhất 4 mẫu câu khác nhau**.
+  - Ghi chú: AC-8.16 viết "không lặp lại nguyên một câu". Đọc theo nghĩa đen thì không thoả được — bộ mẫu câu nào cũng hữu hạn, mà 5 trận có thể có 20 bàn thắng. Điều AC thật sự cấm là **dùng một câu cố định cho một loại tình huống**, nên phép kiểm đếm số mẫu câu khác nhau được dùng. Ghi lại ở đây để `/analyze` và người đọc sau biết đây là chỗ đã cân nhắc, không phải chỗ làm ẩu.
+  - AC: AC-8.16
+  - Phụ thuộc: T070, T084
+
+- [ ] **T086** — Điều kiện bắt đầu trận
+  - File: `src/engine/batDau.ts`, `src/engine/batDau.test.ts`
+  - Xong khi: test xanh — hai phía cùng một `teamId` thì không bắt đầu được (AC-8.10); chưa đủ 11 chính hoặc chưa **đúng** 7 dự bị thì không bắt đầu được, nêu rõ đội nào thiếu gì (AC-9.9); đội thiếu thủ môn, chưa đủ người, hoặc có cầu thủ hồ sơ chưa hoàn tất thì không bắt đầu được — **dùng lại `tinhTrangDoiHinh` của `domain/lineup.ts`**, không viết luật thứ hai; mọi lý do trả về cùng lúc, không dừng ở lý do đầu.
+  - AC: AC-8.9, AC-8.10, AC-9.9, AC-5.7 *(đóng nốt phần chặn giả lập)*
+  - Phụ thuộc: T070
+
+- [ ] **T087** — Lát trạng thái trận trong store và hook đồng hồ
+  - File: `src/store/appStore.ts`, `src/hooks/useMatch.ts`
+  - Xong khi: `npx tsc --noEmit` sạch; selector trả **tham chiếu ổn định** khi chưa có trận (bài học từ T020 và T050); hook có 3 mức tốc độ với mức thường là 200ms mỗi phút trận, có tạm dừng/tiếp tục và chạy hết; và **không có `setInterval` hay `setTimeout` nào trong `src/engine/`** — đồng hồ thuộc giao diện (D21).
+  - AC: AC-9.2, AC-9.3
+  - Phụ thuộc: T070
+
+- [ ] **T088** — Màn chọn cặp đấu và đăng ký đội hình
+  - File: `src/ui/pages/ChonCapDau.tsx`, `src/ui/components/DangKyDoiHinh.tsx`, sửa `src/App.tsx`
+  - Xong khi: chọn được hai đội khác nhau và chỉ định chủ nhà hoặc **sân trung lập**; đăng ký đúng 11 chính và đúng 7 dự bị cho mỗi đội; đội chưa đủ điều kiện thì nút bắt đầu bị chặn kèm **từng lý do một**; logo hai đội hiện ở màn này (đóng nốt AC-3.5); hai đội trùng màu áo thì một đội **tự chuyển sang áo phụ và nói rõ việc đổi** (đóng nốt AC-3.7); mã trận hiện ra trước khi bấm bắt đầu.
+  - AC: AC-8.9, AC-8.10, AC-8.14, AC-9.9, AC-3.5, AC-3.7
+  - Phụ thuộc: T086, T084
+
+- [ ] **T089** — Trang trận đấu: dòng tường thuật và điều khiển
+  - File: `src/ui/pages/TrangTran.tsx`, `src/ui/components/DongTuongThuat.tsx`, `src/ui/components/BangDieuKhienTran.tsx`
+  - Xong khi: trận chạy theo phút với **tỉ số và phút luôn nhìn thấy**; tạm dừng dừng đúng phút hiện tại và tiếp tục từ đúng chỗ đó; đổi tốc độ áp dụng ngay; chạy hết trận nhảy tới kết thúc và **giữ nguyên toàn bộ dòng sự kiện để xem lại**; dòng tường thuật nằm trong vùng `aria-live` tiếng Việt; logo hai đội hiện ở đầu trang.
+  - AC: AC-9.1, AC-9.2, AC-9.3, AC-9.4, AC-3.5
+  - Phụ thuộc: T087, T088, T085
+
+- [ ] **T090** — Cảnh báo khi rời trang giữa trận
+  - File: sửa `src/ui/pages/TrangTran.tsx`
+  - Xong khi: trận đang chạy mà đóng tab hoặc tải lại thì trình duyệt hỏi xác nhận; trận **đã kết thúc thì không hỏi nữa**; rời đi thật thì trận không còn, đúng như spec mô tả — không ghi gì xuống IndexedDB (D32).
+  - AC: AC-9.10
+  - Phụ thuộc: T089
+
+---
+
+## Phase 14 — Lát 12: Can thiệp giữa trận
+
+Kết thúc phase: thay người, đổi chỉ thị và vai trò giữa trận; phát lại đúng
+trận đó kèm chuỗi can thiệp; so được hai kết quả cùng mã trận. Giai đoạn 3
+hoàn tất.
+
+- [ ] **T091** — Áp can thiệp giữa trận trong engine
+  - File: `src/engine/tran.ts`, `src/engine/canThiep.test.ts`
+  - Xong khi: test xanh — thay người đổi `trenSan` và `duBi`, ghi sự kiện tại **đúng phút**, các phút sau tính theo người mới; lần thay thứ 6 bị từ chối với lý do `het-luot-thay`; can thiệp vào đội không phải của người dùng bị từ chối; không thay được cầu thủ đã nhận thẻ đỏ, cũng không đưa vào được người ngoài danh sách 18; đổi chỉ thị hoặc vai trò chỉ ảnh hưởng **từ phút hiện tại trở đi** và **các sự kiện đã phát không đổi một dòng**.
+  - AC: AC-9.5, AC-9.6, AC-9.7, AC-9.8
+  - Phụ thuộc: T077
+
+- [ ] **T092** — Phát lại trận có can thiệp
+  - File: `src/engine/taiLap.test.ts` *(thêm vào file T071 đã tạo)*
+  - Xong khi: test xanh — chạy một trận có **ít nhất 3 can thiệp ở ba phút khác nhau** (một thay người, một đổi chỉ thị, một đổi vai trò), ghi lại `canThiep[]`, rồi chạy lại từ đầu với cùng mã trận và áp lại đúng danh sách đó: **tỉ số và từng dòng sự kiện giống hệt**. Đây đúng là dòng Definition of Done thứ hai mà `spec.md` mục 7 đã ghi sẵn từ Giai đoạn 1.
+  - AC: AC-8.11
+  - Phụ thuộc: T071, T091
+
+- [ ] **T093** — Giao diện thay người
+  - File: `src/ui/components/ThayNguoi.tsx`, sửa `src/ui/pages/TrangTran.tsx`
+  - Xong khi: tạm dừng rồi thay được một cầu thủ trên sân bằng một người trong 7 dự bị; dòng sự kiện có dòng thay người tại đúng phút đó; hết 5 lượt thì nút bị chặn kèm câu nói rõ **đã hết lượt**; chỉ thao tác được với đội của người dùng.
+  - AC: AC-9.5, AC-9.6, AC-9.8
+  - Phụ thuộc: T091, T089
+
+- [ ] **T094** — Đổi chỉ thị và vai trò giữa trận
+  - File: sửa `src/ui/pages/TrangTran.tsx`
+  - Xong khi: đang tạm dừng, đổi một chỉ thị của đội mình rồi tiếp tục, và các phút sau diễn ra theo cấu hình mới; **các dòng đã qua không đổi một chữ**; đội còn lại không đổi được gì.
+  - AC: AC-9.7, AC-9.8
+  - Phụ thuộc: T093
+
+- [ ] **T095** — So sánh hai lần chạy cùng mã trận
+  - File: sửa `src/ui/pages/TrangTran.tsx`
+  - Xong khi: chạy lại cùng một mã trận sau khi đã đổi chiến thuật thì hiện bảng so hai kết quả của **cùng mã trận đó** (tỉ số, số cú sút, số cơ hội rõ ràng); ghi rõ trong mô tả commit rằng kết quả cũ chỉ giữ **trong phiên làm việc**, đóng app là mất — quyết định D31, phần bền thuộc Giai đoạn 4.
+  - AC: AC-8.12
+  - Phụ thuộc: T094
+
+- [ ] **T096** — Trường hợp biên: thủ môn nhận thẻ đỏ
+  - File: sửa `src/engine/tran.ts`, sửa `src/ui/pages/TrangTran.tsx`
+  - Xong khi: thủ môn nhận thẻ đỏ thì người dùng phải chọn một cầu thủ trên sân vào bắt gôn; người đó bị tính **mức sai nặng**; nếu còn lượt thay thì đưa được thủ môn dự bị vào thay một cầu thủ khác.
+  - Ghi chú: dòng này nằm ở `spec.md` mục 5 (trường hợp biên), không phải một AC riêng — nhưng Definition of Done của spec đòi các trường hợp biên mục 5 được xử lý.
+  - Phụ thuộc: T093
+
+- [ ] **T097** — Đo ngân sách chạy hết trận
+  - File: `src/engine/hieuNang.test.ts`
+  - Xong khi: đo `chayHetTran` trên 20 mã trận bằng `performance.now`, ghi **số thật** (trung bình và lớn nhất) vào mô tả commit; test khẳng định mỗi trận **dưới 200ms trong môi trường test**. Ngưỡng này nghiêm hơn ngân sách 3 giây của spec rất nhiều, vì 3 giây là cho máy người dùng kèm cả giao diện và sân 2D của Giai đoạn 4 — cảnh báo sớm thì mới còn chỗ xoay (rủi ro R12).
+  - Phụ thuộc: T091
+
+- [ ] **T098** — Kiểm tay 26 AC của Giai đoạn 3
+  - File: `specs/001-football-team-sim/spec.md` (tick các ô AC trong phạm vi)
+  - Xong khi: 26 AC của US-8 và US-9 được tự tay kiểm trên ứng dụng đang chạy và tick; **tick lại AC-5.7 thành trọn** (phần chặn giả lập đã xong ở T086), tick **AC-3.5** và **AC-3.7** thành trọn; kiểm tay bốn việc chỉ kiểm tay mới thấy — xem trọn một trận rồi tạm dừng / đổi tốc độ / chạy hết; thay người phút 60 rồi thấy tên người mới ở các phút sau; đổi chỉ thị giữa trận rồi đối chiếu các dòng đã qua không đổi; hai đội trùng màu áo thì tự đổi áo phụ. Ghi số đo hiệu năng của T097 vào mô tả commit.
+  - **Hai AC vẫn KHÔNG tick được, và đó là đúng:** AC-4.2 và AC-1.5 còn phần lịch sử trận đấu, mà lịch sử là AC-11.7 thuộc Giai đoạn 4. `spec.md` đang ghi nhầm hai phần đó là "thuộc GĐ3" — xem `plan.md` mục III.0.
+  - AC: toàn bộ AC-8.x và AC-9.x, cộng AC-3.5, AC-3.7, AC-5.7
+  - Phụ thuộc: T072, T078, T080, T081, T082, T083, T090, T092, T095, T096, T097
+
+---
+
 ## Bảng phủ AC
 
 | AC | Task |
@@ -572,6 +803,62 @@ xem hai bảng ở cuối phần "Bảng phủ AC — Giai đoạn 2" thay vì l
 | AC-7.4 | T043, T045, T062 |
 | AC-7.5 | T046, T063 |
 | AC-7.6 | T046, T063 |
+| AC-8.1 | T070 |
+| AC-8.2 | T069, T070 |
+| AC-8.3 | T067, T076, **T079** |
+| AC-8.4 | T067, T076, **T080** |
+| AC-8.5 | T073, T077, **T081** |
+| AC-8.6 | T074, T077 |
+| AC-8.7 | T078 |
+| AC-8.8 | **T082** |
+| AC-8.9 | T086, T088 |
+| AC-8.10 | T086, T088 |
+| AC-8.11 | T066, **T071**, **T092** |
+| AC-8.12 | T095 |
+| AC-8.13 | T075, T077 |
+| AC-8.14 | T073, T083, T088 |
+| AC-8.15 | T068, T070 |
+| AC-8.16 | T085 |
+| AC-9.1 | T089 |
+| AC-9.2 | T087, T089 |
+| AC-9.3 | T087, T089 |
+| AC-9.4 | T087, T089 |
+| AC-9.5 | T091, T093 |
+| AC-9.6 | T091, T093 |
+| AC-9.7 | T091, T094 |
+| AC-9.8 | T091, T093, T094 |
+| AC-9.9 | T086, T088 |
+| AC-9.10 | T090 |
+
+26/26 AC của Giai đoạn 3 đều có task. Bốn AC in đậm ở cột task là bốn AC dạng
+so sánh của P5 — mỗi cái có **một test riêng** chứ không gộp chung, để khi một
+cái đỏ thì biết ngay engine lệch ở đâu.
+
+
+**13 AC chưa có task, và đó là đúng:** AC-10.1 → AC-10.6 (sân 2D) và AC-11.1 →
+AC-11.7 (báo cáo sau trận, lịch sử 20 trận) thuộc **Giai đoạn 4**, chưa lập
+plan. Chúng sẽ có task khi `plan.md` có PHẦN IV.
+
+### Phần vắt từ Giai đoạn 1 mà Giai đoạn 3 đóng nốt
+
+| AC | Phần còn nợ | Task |
+|---|---|---|
+| AC-3.5 | Logo đội hiện trong màn hình trận đấu | **T088**, T089 |
+| AC-3.7 | Hai đội trùng màu áo thì tự đổi một đội sang áo phụ trong trận | **T088** |
+| AC-5.7 | Phần chặn bắt đầu giả lập | **T086** |
+
+### Phần vắt vẫn còn nợ sau Giai đoạn 3
+
+| AC | Phần còn nợ | Thuộc giai đoạn |
+|---|---|---|
+| AC-4.2 | Lịch sử trận đấu còn nguyên sau khi mở lại | **Giai đoạn 4** (AC-11.7) |
+| AC-1.5 | Đổi tên đội thì lịch sử trận đấu đổi theo | **Giai đoạn 4** (AC-11.7) |
+
+`spec.md` đang chú thích hai phần này là "thuộc GĐ3". Đó là chú thích sai:
+lịch sử trận đấu được định nghĩa ở AC-11.7 trong US-11, mà spec xếp US-11 vào
+Giai đoạn 4. T098 **không** tick hai AC đó, và plan Giai đoạn 4 là chỗ sửa lại
+chú thích.
+
 
 22/22 AC của Giai đoạn 2 đều có task. Một AC được ghi chú phần vắt sang giai
 đoạn sau để T065 không tick trọn: **AC-5.7**. Mức hoàn thành dự kiến của Giai
