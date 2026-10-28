@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | Giai đoạn 1 (36 AC) và Giai đoạn 2 (22 AC) |
-| **Tiến độ** | 38/66 — Giai đoạn 1 xong (38/39, còn T035); Giai đoạn 2 chưa bắt đầu (T040–T065 + T047b) |
+| **Tiến độ** | 43/66 — Giai đoạn 1 xong (38/39, còn T035); Giai đoạn 2 đang làm Phase 7 (T040–T044 xong) |
 | **Sửa đổi** | 2026-10-26 — sửa theo kết quả `/analyze` |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -320,34 +320,35 @@ Theo `plan.md` **Phần II**. 22 AC (AC-5.1→5.10, AC-6.1→6.6, AC-7.1→7.6),
 Lát này không cho người dùng thêm gì, nhưng phải đi trước: sai ở tầng luật thì
 nhìn vào giao diện không thấy được.
 
-- [ ] **T040** [P] — 8 sơ đồ với toạ độ ô
+- [x] **T040** [P] — 8 sơ đồ với toạ độ ô
   - File: `src/domain/formations.ts`, `src/domain/formations.test.ts`
   - Xong khi: test xanh — đúng 8 sơ đồ (4-4-2, 4-4-1-1, 4-3-3, 4-2-3-1, 4-1-4-1, 3-5-2, 3-4-3, 5-3-2); mỗi sơ đồ đúng 11 ô, đúng một ô thủ môn, `slotId` không trùng, toạ độ `x`/`y` trong 0..100; mọi `viTri` của ô thuộc 12 vị trí của `POSITIONS`; **`cacDai` khớp các số trong tên sơ đồ** (4-2-3-1 → `[4,2,3,1]`), tổng `cacDai` bằng 10, và **số ô của mỗi dải đúng bằng số tương ứng trong `cacDai`** — ô thủ môn có `dai: 0` và không thuộc dải nào.
   - Ghi chú: điều kiện này ban đầu viết là "tên khớp số ô theo **tuyến**", và `/analyze` bắt được là **không thể thoả**: `POSITIONS` chỉ có 3 tuyến ngoài sân, trong khi 4-4-1-1, 4-2-3-1 và 4-1-4-1 có 4 dải trong tên (với 4-2-3-1 thì dải "3" và dải "1" đều thuộc tuyến tấn công). Khai `dai` thành dữ liệu của từng ô thì phép kiểm thoả được cho cả 8 sơ đồ và vẫn bắt được lỗi gõ sai bảng toạ độ — xem quyết định D15b của plan.
   - AC: AC-5.2
   - Phụ thuộc: —
 
-- [ ] **T041** [P] — Ba mức sai vị trí và mức trừ hiệu suất
+- [x] **T041** [P] — Ba mức sai vị trí và mức trừ hiệu suất
   - File: `src/domain/misplacement.ts`, `src/domain/misplacement.test.ts`
   - Xong khi: test xanh — hậu vệ phải đá hậu vệ trái = `nhe`; tiền vệ trụ đá trung vệ = `vua`; tiền đạo đá trung vệ = `nang`; người không phải thủ môn đứng khung = `nang`; thủ môn đá vị trí sân = `nang`; đúng vị trí = `dung`; cầu thủ nhiều vị trí lấy mức **nhẹ nhất**; `MUC_TRU_HIEU_SUAT` tăng dần theo mức (đây là con số mà AC-8.5 của GĐ3 sẽ kiểm).
   - AC: AC-5.5
   - Phụ thuộc: —
 
-- [ ] **T042** [P] — 23 vai trò và cảnh báo chỉ số chưa đạt
+- [x] **T042** [P] — 23 vai trò và cảnh báo chỉ số chưa đạt
   - File: `src/domain/roles.ts`, `src/domain/roles.test.ts`
   - Xong khi: test xanh — tổng số vai trò nằm trong khoảng 20..26 (AC-6.1 nói "khoảng 22"; dự kiến hiện thực 23 — **không ghim đúng một con số**, để sau này thêm một vai trò hợp lý không làm test đỏ vô cớ); **mỗi vị trí trong 12 vị trí trả về 2 hoặc 3 vai trò** — đây mới là điều AC-6.1 thật sự đòi; mỗi vai trò có `moTa` không rỗng và `chiSoQuanTrong` đều là chỉ số hợp lệ; **vai trò của thủ môn chỉ dùng chỉ số mà thủ môn có** (bất biến giống test đã có cho `POSITION_WEIGHTS`); `vaiTroMacDinh` trả một vai trò áp dụng được cho vị trí đó; `chiSoChuaDat` trả đúng các chỉ số dưới 10 kèm giá trị, và trả rỗng khi hồ sơ đủ cao.
   - AC: AC-6.1, AC-6.4, AC-6.5
   - Phụ thuộc: —
 
-- [ ] **T043** [P] — 6 chỉ thị đội, bộ mặc định và luật xung đột
+- [x] **T043** [P] — 6 chỉ thị đội, bộ mặc định và luật xung đột
   - File: `src/domain/instructions.ts`, `src/domain/instructions.test.ts`
   - Xong khi: test xanh — đúng 6 chỉ thị (độ cao đội hình, độ rộng, tốc độ chuyển bóng, cường độ pressing, hướng tấn công, bẫy việt vị); mỗi mức của mỗi chỉ thị có câu đánh đổi không rỗng; `CHI_THI_MAC_DINH` có đủ 6 khoá và **không sinh xung đột nào**; `cacXungDot` phát hiện được: bẫy việt vị bật + đội hình thấp, pressing cao + đội hình thấp, tấn công biên + đội hình hẹp.
   - AC: AC-7.1, AC-7.2, AC-7.3, AC-7.4
   - Phụ thuộc: —
 
-- [ ] **T044** — Xếp lại người khi đổi sơ đồ, và tình trạng đội hình
+- [x] **T044** — Xếp lại người khi đổi sơ đồ, và tình trạng đội hình
   - File: `src/domain/lineup.ts`, `src/domain/lineup.test.ts`
   - Xong khi: test xanh — **không mất cầu thủ nào** (người trên sân + người bị đẩy ra = người ban đầu); đổi 4-4-2 sang 4-3-3 thì trung vệ vẫn ở trung vệ; sơ đồ mới ít ô ở một tuyến thì người thừa ra ngoài và được nêu tên; **tất định** — gọi hai lần ra cùng kết quả, không dùng nguồn ngẫu nhiên nào (P1); có một tình huống cụ thể mà lượt đổi cặp cải thiện được so với tham lam thuần (quyết định D14); `tinhTrangDoiHinh` nêu đúng lý do cho ba trường hợp: thiếu người, thiếu thủ môn, có cầu thủ hồ sơ chưa hoàn tất.
+  - **Sửa điều kiện khi hiện thực:** điều kiện trên viết "sơ đồ mới ít ô ở một tuyến thì người thừa ra ngoài", và điều đó **không xảy ra được**. Hai sơ đồ nào cũng có đúng 11 ô, và mức sai `vua` (lệch một tuyến) vẫn xếp được — nên khi một tuyến hụt ô thì người thừa chuyển sang tuyến bên cạnh và bị tính là **xếp sai vị trí**, chứ không bị đẩy ra. AC-5.8 nói "những ai bị đẩy ra ngoài **hoặc** bị xếp sai vị trí", nên cả hai đều là hành vi đúng của AC. Bị đẩy ra chỉ xảy ra khi mọi ô còn lại đều là mức `nang` — đúng một trường hợp thật: đội hình có **hai thủ môn** (người dùng tự xếp một thủ môn ra ô sân), sang sơ đồ mới chỉ còn một ô khung thành. Test kiểm đúng trường hợp đó, và kiểm thêm rằng tuyến hụt ô thì sinh ra `nguoiXepSai` chứ không phải `nguoiBiDayRa`.
   - AC: AC-5.7, AC-5.8
   - Phụ thuộc: T040, T041
 
