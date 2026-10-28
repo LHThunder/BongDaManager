@@ -589,7 +589,7 @@ trên sân đều sai theo, và sai ở tầng luật thì nhìn vào giao diệ
 |---|---|
 | **Phạm vi** | US-8 (giả lập một trận) và US-9 (theo dõi trận và can thiệp giữa trận) |
 | **AC trong phạm vi** | AC-8.1 → AC-8.16, AC-9.1 → AC-9.10 — 26 AC |
-| **Status** | Draft |
+| **Status** | Draft — đã sửa 5 phát hiện của `/analyze` ngày 2026-10-28 |
 | **Updated** | 2026-10-28 |
 
 Giai đoạn 1 và 2 đã hiện thực và kiểm chứng xong. US-10 (sân 2D) và US-11
@@ -691,6 +691,7 @@ ui/                tuongThuat.ts   mẫu câu tiếng Việt cho từng loại s
 | D28 | Thẻ và đá thiếu người | Thẻ sinh trong chuỗi bóng khi có lỗi; xác suất cao hơn khi `quyet-doan` thấp và khi đội pressing cao. Thẻ đỏ thì bỏ hẳn một ô khỏi đội hình tới hết trận | Thẻ chỉ là sự kiện trang trí, không ảnh hưởng thế trận | AC-8.13 nói rõ đội đó **phải đá thiếu người** và không được thay bù. Thẻ trang trí thì người dùng không có lý do gì để quan tâm tới `quyet-doan` hay mức pressing |
 | D29 | Lợi thế sân nhà | Một hệ số nhân nhỏ duy nhất lên sức mạnh đội chủ nhà, tắt hoàn toàn khi chọn sân trung lập | Cộng thêm vào từng loại hành động | Một hệ số thì tắt được dứt khoát, và test "sân trung lập thì hai đội đối xứng" kiểm được bằng cách đổi chỗ hai đội rồi so kết quả |
 | D30 | Can thiệp giữa trận và phát lại | Mỗi can thiệp được ghi `{phut, loai, chiTiet}` vào danh sách của trận; phát lại là chạy lại từ đầu với cùng mã trận rồi **áp lại đúng danh sách đó đúng phút** | Lưu ảnh chụp trạng thái tại mỗi phút rồi tua lại | Ảnh chụp trạng thái 90 phút x 22 cầu thủ là nhiều dữ liệu, và vẫn không phát lại được trận nếu người dùng đổi chiến thuật (AC-8.12). Chạy lại từ hạt giống thì cả hai AC cùng được phục vụ |
+| D30b | **Can thiệp có hiệu lực từ lúc nào** (chốt sau `/analyze`) | Can thiệp được **xếp vào hàng đợi** `canThiepChoAp`, và `buocTiep` áp hết hàng đợi **ở đầu phút kế tiếp, trước khi mô phỏng phút đó**. Lúc chạy trực tiếp và lúc phát lại đi qua **cùng một đường** | Áp tức thì ngay khi người dùng bấm | Lúc chạy trực tiếp người dùng bấm ở giữa phút X, còn lúc phát lại danh sách được áp "tại phút X" — nếu hai thời điểm đó không trùng tuyệt đối thì thứ tự tiêu thụ `Rng` lệch và dòng sự kiện khác đi. Đó là lỗi bập bõm, khó lần nhất trong cả giai đoạn, nên phải chốt bằng thiết kế chứ không bằng cẩn thận |
 | D31 | So sánh kết quả cùng mã trận (AC-8.12) | Giữ kết quả lần chạy trước **trong phiên làm việc**, so với lần mới | Lưu xuống IndexedDB ngay ở giai đoạn này | Lưu trận là AC-11.7, thuộc Giai đoạn 4. Làm trước ở đây là lấn phạm vi, và sẽ phải dựng store `matches` hai lần vì Giai đoạn 4 mới biết báo cáo sau trận cần lưu những gì. **Giả định được ghi nhận:** AC-8.12 không nói kết quả cũ phải sống qua lần đóng app; Giai đoạn 4 sẽ làm nó bền |
 | D32 | Trận đang chạy sống ở đâu | Trong `appStore` (bộ nhớ), không ghi xuống IndexedDB | Ghi từng phút xuống IndexedDB cho an toàn | AC-9.10 nói đóng app giữa trận thì **trận bị huỷ** — đó là hành vi spec yêu cầu, không phải thiếu sót. Ghi từng phút còn làm hỏng ngân sách dưới 3 giây của chế độ chạy hết |
 
@@ -704,6 +705,7 @@ Trạng thái trận chỉ tồn tại trong bộ nhớ:
 ```
 TrangThaiTran
   maTran          string            10 ký tự base32
+  hatGiong        number            trạng thái 32-bit của Rng — XEM GHI CHÚ (1) DƯỚI ĐÂY
   phut            number            1..90 + bù giờ
   hiep            1 | 2
   buGio           { hiep1: number, hiep2: number }   mỗi hiệp 1..5, chốt lúc tạo trận
@@ -711,23 +713,38 @@ TrangThaiTran
   ben             { nha: BenTran, khach: BenTran }
   cacSuKien       SuKien[]          dòng sự kiện đã phát
   canThiep        CanThiep[]        nhật ký can thiệp, để phát lại (P1)
+  canThiepChoAp   CanThiep[]        hàng đợi, áp vào đầu phút kế tiếp — xem D30
   ketThuc         boolean
 
 BenTran
-  teamId          string
-  chienThuat      Tactic            bộ xuất phát, và bản hiện tại sau can thiệp
-  trenSan         string[]          11 playerId
-  duBi            string[]          7 playerId
-  theLuc          Record<playerId, number>    0..100
-  the             Record<playerId, 'vang' | 'vang-vang' | 'do'>
-  soLanThay       number            tối đa 5
-  mauAoDangDung   'chinh' | 'phu'   AC-3.7
+  teamId              string
+  chienThuatXuatPhat  Tactic        BẤT BIẾN — xem ghi chú (2)
+  chienThuatHienTai   Tactic        đổi theo can thiệp giữa trận
+  trenSan             string[]      11 playerId lúc bắt đầu, giảm dần khi có thẻ đỏ
+  duBi                string[]      7 playerId
+  theLuc              Record<playerId, number>    0..100
+  the                 Record<playerId, 'vang' | 'vang-vang' | 'do'>
+  soLanThay           number        tối đa 5
+  mauAoDangDung       'chinh' | 'phu'   AC-3.7
+  thongKe             ThongKeBen    bộ đếm thô — xem ghi chú (3)
+
+ThongKeBen
+  cuSut               number
+  sutTrungDich        number
+  tatCanh             number        AC-8.3 đếm cái này
+  coHoiRoRang         number
+  cuopBongDaiCao      number        AC-8.4, chiều thứ nhất
+  biThoatXuong        number        AC-8.4, chiều thứ hai
+  theVang             number
+  theDo               number
+  dongGopTheoCauThu   Record<playerId, number>   AC-8.5 đọc cái này
 
 SuKien
   phut            number
   buGio           boolean
-  loai            'ban-thang' | 'co-hoi' | 'cuu-thua' | 'tat-canh' | 'mat-bong-cao'
-                  | 'the-vang' | 'the-do' | 'thay-nguoi' | 'kiet-suc' | 'het-hiep' | ...
+  loai            'ban-thang' | 'co-hoi' | 'cuu-thua' | 'tat-canh' | 'cuop-bong-cao'
+                  | 'thoat-xuong' | 'the-vang' | 'the-do' | 'thay-nguoi'
+                  | 'kiet-suc' | 'het-hiep' | ...
   doi             'nha' | 'khach'
   cacCauThu       string[]          người liên quan, theo thứ tự vai trò trong tình huống
   vung            VungSan
@@ -741,6 +758,33 @@ CanThiep
   chiTiet         ...
 ```
 
+**(1) Vì sao hạt giống nằm TRONG trạng thái.** `Rng` là đối tượng có trạng
+thái thay đổi. Nếu nó sống ngoài `TrangThaiTran` thì `buocTiep` không còn là
+phép chuyển trạng thái thuần: gọi hai lần trên cùng một trạng thái ra hai kết
+quả khác nhau, và React gọi đúp (StrictMode) hay người dùng bấm đúp là lệch
+ngay — đúng loại lỗi P1 sinh ra để chặn. Trạng thái của `mulberry32` chỉ là
+**một số 32-bit**, nên đưa vào trạng thái trận là rẻ. `buocTiep` đọc
+`hatGiong`, chạy, rồi trả `hatGiong` mới cùng trạng thái mới.
+
+**(2) Vì sao tách chiến thuật xuất phát khỏi chiến thuật hiện tại.** P1 định
+nghĩa phát lại bằng *(mã trận + hai đội + **chiến thuật xuất phát hai bên** +
+đội chủ nhà + chuỗi can thiệp)*. Nếu chỉ có một trường và can thiệp giữa trận
+ghi đè lên nó thì ngay sau lần đổi chỉ thị đầu tiên, **vế "chiến thuật xuất
+phát" biến mất khỏi trạng thái** và không còn dựng lại được đầu vào để phát
+lại. Hai trường tách bạch thì `TrangThaiTran` tự nó mang đủ mọi thứ cần để
+phát lại chính nó.
+
+**(3) Vì sao cần bộ đếm thô, tách khỏi dòng sự kiện.** `cacSuKien` đã đi qua
+bộ lọc mật độ của D27, chỉ còn 60–100 dòng. Đếm số quả tạt từ danh sách đã
+cắt là đo **màn hình**, không đo **giả lập** — AC-8.3 khi đó có thể xanh hay
+đỏ vì bộ lọc chứ không vì chỉ thị. `ThongKeBen` tăng trong lúc chạy và không
+bao giờ bị cắt. Đây cũng là chỗ `TrangTran` lấy số cho bảng so sánh của
+AC-8.12.
+
+Giai đoạn này chỉ khai những bộ đếm mà AC-8.3, AC-8.4, AC-8.5 và AC-8.12 cần.
+Giai đoạn 4 (AC-11.2, AC-11.3) sẽ thêm bộ đếm của nó vào cùng chỗ — không
+khai trước ở đây.
+
 ## III.5. Contracts
 
 | Tên | Input | Output | Lỗi có thể xảy ra |
@@ -749,9 +793,9 @@ CanThiep
 | `taoMaTran` | `rng: Rng` | `string` 10 ký tự | — (nguồn ngẫu nhiên thật do **giao diện** tạo, như `FormCauThu` đã làm ở GĐ1) |
 | `kiemTraBatDauDuoc` | `{ doiNha, doiKhach, dangKyNha, dangKyKhach }` | `{ batDauDuoc: true }` hoặc `{ batDauDuoc: false, cacLyDo }` | — (trả lý do, không ném) |
 | `taoTran` | `CauHinhTran` | `TrangThaiTran` ở phút 0 | `InvalidMatchSetup` nếu cấu hình không qua `kiemTraBatDauDuoc` |
-| `buocTiep` | `TrangThaiTran` | `TrangThaiTran` mới, tiến đúng **một phút** | — (trận đã kết thúc thì trả nguyên trạng) |
+| `buocTiep` | `TrangThaiTran` | `TrangThaiTran` mới, tiến đúng **một phút**. **Hàm thuần**: cùng đầu vào luôn ra cùng đầu ra, vì hạt giống nằm trong trạng thái | — (trận đã kết thúc thì trả nguyên trạng) |
 | `chayHetTran` | `TrangThaiTran` | `TrangThaiTran` đã kết thúc | — |
-| `apDungCanThiep` | `TrangThaiTran`, `CanThiep` | `{ thanhCong: true, trangThai }` hoặc `{ thanhCong: false, lyDo }` | `het-luot-thay`, `khong-phai-doi-cua-ban`, `cau-thu-khong-trong-danh-sach`, `da-nhan-the-do` |
+| `apDungCanThiep` | `TrangThaiTran`, `CanThiep` | `{ thanhCong: true, trangThai }` hoặc `{ thanhCong: false, lyDo }` — chỉ **xếp vào hàng đợi** `canThiepChoAp`, không đổi thế trận ngay (D30) | `het-luot-thay`, `khong-phai-doi-cua-ban`, `cau-thu-khong-trong-danh-sach`, `da-nhan-the-do` |
 | `dungCauTuongThuat` *(ui)* | `SuKien`, bảng tên cầu thủ | `string` tiếng Việt | — |
 
 `FORMATIONS`, `ROLES`, `CHI_THI`, `MUC_TRU_HIEU_SUAT`, `mucSaiViTri`,
@@ -788,7 +832,7 @@ CanThiep
 | AC-9.9 | `DangKyDoiHinh` — đúng 11 chính và đúng 7 dự bị; người ngoài 18 không dùng được trong trận |
 | AC-9.10 | `TrangTran` gắn `beforeunload` khi trận đang chạy; rời đi thì trận mất (D32) |
 | AC-3.5 *(đóng nốt)* | Logo hai đội hiện ở `ChonCapDau` và đầu `TrangTran` |
-| AC-3.7 *(đóng nốt)* | `ChonCapDau` gọi `trungMauAo`; trùng thì đội khách chuyển `mauAoDangDung: 'phu'` và nói rõ cho người dùng |
+| AC-3.7 *(đóng nốt)* | `ChonCapDau` gọi `trungMauAo`; trùng thì đội khách chuyển `mauAoDangDung: 'phu'` và nói rõ cho người dùng. Nếu áo phụ của khách **cũng trùng** thì giữ áo chính và báo người dùng tự đổi màu — ứng dụng không tự chế ra màu thứ ba |
 | AC-5.7 *(đóng nốt)* | AC-8.9 ở trên |
 
 ## III.7. Chiến lược kiểm thử

@@ -6,7 +6,7 @@
 | **Plan** | `./plan.md` |
 | **Phạm vi** | Giai đoạn 1 (36 AC), Giai đoạn 2 (22 AC) và Giai đoạn 3 (26 AC) |
 | **Tiến độ** | 65/99 — Giai đoạn 1 xong (38/39, còn T035); Giai đoạn 2 xong trọn (T040–T065); Giai đoạn 3 chưa bắt đầu (T066–T098) |
-| **Sửa đổi** | 2026-10-28 — thêm Giai đoạn 3 (Phase 11–14) |
+| **Sửa đổi** | 2026-10-28 — thêm Giai đoạn 3 (Phase 11–14), rồi sửa theo kết quả `/analyze` |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
 > Mỗi task phải: chạm file cụ thể + có cách kiểm chứng + đủ nhỏ để làm trong một lần.
@@ -532,7 +532,7 @@ trước vì engine sai thì mọi thứ vẽ lên màn hình đều vô nghĩa.
 
 - [ ] **T070** — Máy trạng thái trận
   - File: `src/engine/tran.ts`, `src/engine/tran.test.ts`
-  - Xong khi: test xanh — `taoTran` ra phút 0 với bù giờ mỗi hiệp trong 1..5 **chốt ngay lúc tạo**; `buocTiep` tiến đúng một phút; `chayHetTran` dừng sau 90 phút cộng bù giờ; trận hoà **kết thúc là hoà**, không có hiệp phụ; mọi sự kiện phát ra đều mang playerId của người **đang trên sân tại phút đó**; và dòng sự kiện của một trận thật nằm trong **dải 60..100 trên ít nhất 20 mã trận khác nhau**.
+  - Xong khi: test xanh — `taoTran` ra phút 0 với bù giờ mỗi hiệp trong 1..5 **chốt ngay lúc tạo**; `buocTiep` tiến đúng một phút; `chayHetTran` dừng sau 90 phút cộng bù giờ; trận hoà **kết thúc là hoà**, không có hiệp phụ; mọi sự kiện phát ra đều mang playerId của người **đang trên sân tại phút đó**; và dòng sự kiện của một trận thật nằm trong **dải 60..100 trên ít nhất 20 mã trận khác nhau**. Và **`buocTiep` là hàm thuần**: gọi hai lần trên **cùng một** trạng thái ra hai kết quả giống hệt — hạt giống nằm trong `TrangThaiTran` (ghi chú (1) của plan III.4), không phải trong một closure bên ngoài.
   - AC: AC-8.1, AC-8.2, AC-8.15
   - Phụ thuộc: T068, T069
 
@@ -543,7 +543,7 @@ trước vì engine sai thì mọi thứ vẽ lên màn hình đều vô nghĩa.
   - Phụ thuộc: T070
 
 - [ ] **T072** — Canh biên giới tầng `engine/`
-  - File: `src/domain/boundaries.test.ts`
+  - File: `src/engine/boundaries.test.ts` *(file riêng của tầng engine — một tầng không đi tuần tầng khác; `src/engine/__fixtures__/` được bỏ qua vì chỉ dựng object thuần cho test)*
   - Xong khi: test xanh — không file nào trong `src/engine/` import `react`, `ui`, `hooks`, `services` hay `storage`; không file nào chứa `Math.random`, `Date.now`, `crypto.getRandomValues` sau khi bỏ comment (P1); test tự khẳng định đọc được **ít nhất 5 file** trong `engine/`, để một glob hỏng không làm test xanh một cách vô nghĩa — đúng lỗi mà bản đầu của `boundaries.test.ts` đã phòng.
   - AC: — *(hiến pháp P1, P2)*
   - Phụ thuộc: T070
@@ -594,19 +594,19 @@ một trận bóng vô lý.
 
 - [ ] **T079** — Bộ dựng đội mẫu cho test so sánh, và test AC-8.3
   - File: `src/engine/__fixtures__/doiMau.ts`, `src/engine/sosanh.tanCongBien.test.ts`
-  - Xong khi: test xanh — dựng được hai đội 18 người với chỉ số đặt theo ý muốn; chạy **10 mã trận cố định** với `huong-tan-cong: 'bien'` cho số quả tạt trung bình **nhiều hơn ít nhất 50%** so với `'trung-lo'`, cùng đội, cùng đối thủ, chỉ đổi đúng một chỉ thị. Test in ra hai con số trung bình, để lần sau chỉnh cân bằng còn biết đang đứng ở đâu.
+  - Xong khi: test xanh — dựng được hai đội 18 người với chỉ số đặt theo ý muốn; chạy **10 mã trận cố định** với `huong-tan-cong: 'bien'` cho số quả tạt trung bình **nhiều hơn ít nhất 50%** so với `'trung-lo'`, cùng đội, cùng đối thủ, chỉ đổi đúng một chỉ thị. Đếm từ **`thongKe.tatCanh`**, KHÔNG đếm từ `cacSuKien` — danh sách sự kiện đã qua bộ lọc mật độ của D27 nên đếm ở đó là đo màn hình chứ không đo giả lập. Test in ra hai con số trung bình, để lần sau chỉnh cân bằng còn biết đang đứng ở đâu.
   - AC: AC-8.3
   - Phụ thuộc: T077
 
 - [ ] **T080** [P] — Test so sánh AC-8.4: pressing cao
   - File: `src/engine/sosanh.pressing.test.ts`
-  - Xong khi: test xanh — pressing cao so với pressing thấp trên cùng 10 mã trận: số lần cướp bóng ở dải cao **tăng**, VÀ số tình huống đối thủ thoát xuống sau hàng phòng ngự **cũng tăng**. Phải khẳng định **cả hai chiều trong cùng một test** — chỉ kiểm chiều có lợi thì một engine chỉnh ẩu vẫn qua, mà AC-8.4 nói rõ là đánh đổi.
+  - Xong khi: test xanh — pressing cao so với pressing thấp trên cùng 10 mã trận: số lần cướp bóng ở dải cao **tăng**, VÀ số tình huống đối thủ thoát xuống sau hàng phòng ngự **cũng tăng**. Phải khẳng định **cả hai chiều trong cùng một test** — chỉ kiểm chiều có lợi thì một engine chỉnh ẩu vẫn qua, mà AC-8.4 nói rõ là đánh đổi. Hai con số đọc từ **`thongKe.cuopBongDaiCao`** và **`thongKe.biThoatXuong`**.
   - AC: AC-8.4
   - Phụ thuộc: T079
 
 - [ ] **T081** [P] — Test so sánh AC-8.5: xếp sai vị trí
   - File: `src/engine/sosanh.saiViTri.test.ts`
-  - Xong khi: test xanh — cùng một mã trận, chỉ đổi ô của **đúng một cầu thủ** qua bốn trạng thái (đúng / nhẹ / vừa / nặng), mọi thứ khác giữ nguyên, cho bốn con số đóng góp **giảm dần nghiêm ngặt**.
+  - Xong khi: test xanh — cùng một mã trận, chỉ đổi ô của **đúng một cầu thủ** qua bốn trạng thái (đúng / nhẹ / vừa / nặng), mọi thứ khác giữ nguyên, cho bốn con số **`thongKe.dongGopTheoCauThu[id]`** giảm dần nghiêm ngặt.
   - AC: AC-8.5
   - Phụ thuộc: T079
 
@@ -656,7 +656,7 @@ Giai đoạn 3 bàn giao được cho người dùng (P6).
 
 - [ ] **T088** — Màn chọn cặp đấu và đăng ký đội hình
   - File: `src/ui/pages/ChonCapDau.tsx`, `src/ui/components/DangKyDoiHinh.tsx`, sửa `src/App.tsx`
-  - Xong khi: chọn được hai đội khác nhau và chỉ định chủ nhà hoặc **sân trung lập**; đăng ký đúng 11 chính và đúng 7 dự bị cho mỗi đội; đội chưa đủ điều kiện thì nút bắt đầu bị chặn kèm **từng lý do một**; logo hai đội hiện ở màn này (đóng nốt AC-3.5); hai đội trùng màu áo thì một đội **tự chuyển sang áo phụ và nói rõ việc đổi** (đóng nốt AC-3.7); mã trận hiện ra trước khi bấm bắt đầu.
+  - Xong khi: chọn được hai đội khác nhau và chỉ định chủ nhà hoặc **sân trung lập**; đăng ký đúng 11 chính và đúng 7 dự bị cho mỗi đội; đội chưa đủ điều kiện thì nút bắt đầu bị chặn kèm **từng lý do một**; logo hai đội hiện ở màn này (đóng nốt AC-3.5); hai đội trùng màu áo thì một đội **tự chuyển sang áo phụ và nói rõ việc đổi** (đóng nốt AC-3.7); mã trận hiện ra trước khi bấm bắt đầu. Chỉ có đúng một đội trong hệ thống thì màn này **nêu rõ cần ít nhất 2 đội** và mời tạo đội đối thủ (spec mục 5).
   - AC: AC-8.9, AC-8.10, AC-8.14, AC-9.9, AC-3.5, AC-3.7
   - Phụ thuộc: T086, T084
 
@@ -668,7 +668,7 @@ Giai đoạn 3 bàn giao được cho người dùng (P6).
 
 - [ ] **T090** — Cảnh báo khi rời trang giữa trận
   - File: sửa `src/ui/pages/TrangTran.tsx`
-  - Xong khi: trận đang chạy mà đóng tab hoặc tải lại thì trình duyệt hỏi xác nhận; trận **đã kết thúc thì không hỏi nữa**; rời đi thật thì trận không còn, đúng như spec mô tả — không ghi gì xuống IndexedDB (D32).
+  - Xong khi: trận đang chạy mà đóng tab hoặc tải lại thì trình duyệt hỏi xác nhận; trận **đã kết thúc thì không hỏi nữa**; rời đi thật thì trận không còn, đúng như spec mô tả — không ghi gì xuống IndexedDB (D32). Trang trận **không có lối rời đi nào khác** ngoài cảnh báo này, nên dòng "xoá đội khi đang có trận dở" ở spec mục 5 không xảy ra được — ghi ra đây để không ai phải đoán.
   - AC: AC-9.10
   - Phụ thuộc: T089
 
@@ -682,13 +682,13 @@ hoàn tất.
 
 - [ ] **T091** — Áp can thiệp giữa trận trong engine
   - File: `src/engine/tran.ts`, `src/engine/canThiep.test.ts`
-  - Xong khi: test xanh — thay người đổi `trenSan` và `duBi`, ghi sự kiện tại **đúng phút**, các phút sau tính theo người mới; lần thay thứ 6 bị từ chối với lý do `het-luot-thay`; can thiệp vào đội không phải của người dùng bị từ chối; không thay được cầu thủ đã nhận thẻ đỏ, cũng không đưa vào được người ngoài danh sách 18; đổi chỉ thị hoặc vai trò chỉ ảnh hưởng **từ phút hiện tại trở đi** và **các sự kiện đã phát không đổi một dòng**.
+  - Xong khi: test xanh — thay người đổi `trenSan` và `duBi`, ghi sự kiện tại **đúng phút**, các phút sau tính theo người mới; lần thay thứ 6 bị từ chối với lý do `het-luot-thay`; can thiệp vào đội không phải của người dùng bị từ chối; không thay được cầu thủ đã nhận thẻ đỏ, cũng không đưa vào được người ngoài danh sách 18; đổi chỉ thị hoặc vai trò chỉ ảnh hưởng **từ phút hiện tại trở đi** và **các sự kiện đã phát không đổi một dòng**. Thêm một bất biến: trên nhiều mã trận có **cả thẻ đỏ lẫn thay người**, mọi `cacCauThu` của mọi sự kiện đều nằm trong `trenSan` tại đúng phút đó — không có dòng tường thuật nào nhắc tên người đã rời sân (AC-8.2 chỉ được kiểm ở T070, trước khi có hai thứ này).
   - AC: AC-9.5, AC-9.6, AC-9.7, AC-9.8
   - Phụ thuộc: T077
 
 - [ ] **T092** — Phát lại trận có can thiệp
   - File: `src/engine/taiLap.test.ts` *(thêm vào file T071 đã tạo)*
-  - Xong khi: test xanh — chạy một trận có **ít nhất 3 can thiệp ở ba phút khác nhau** (một thay người, một đổi chỉ thị, một đổi vai trò), ghi lại `canThiep[]`, rồi chạy lại từ đầu với cùng mã trận và áp lại đúng danh sách đó: **tỉ số và từng dòng sự kiện giống hệt**. Đây đúng là dòng Definition of Done thứ hai mà `spec.md` mục 7 đã ghi sẵn từ Giai đoạn 1.
+  - Xong khi: test xanh — chạy một trận có **ít nhất 3 can thiệp ở ba phút khác nhau** (một thay người, một đổi chỉ thị, một đổi vai trò), ghi lại `canThiep[]`, rồi chạy lại từ đầu với cùng mã trận và áp lại đúng danh sách đó: **tỉ số và từng dòng sự kiện giống hệt**. Đầu vào phát lại phải được dựng lại **từ chính `TrangThaiTran`** — `maTran`, `chienThuatXuatPhat` của hai bên, đội chủ nhà, `canThiep[]` — chứ không từ biến cục bộ của test; nếu lấy từ biến cục bộ thì test vẫn xanh kể cả khi trạng thái trận đã đánh mất chiến thuật xuất phát. Đây đúng là dòng Definition of Done thứ hai mà `spec.md` mục 7 đã ghi sẵn từ Giai đoạn 1.
   - AC: AC-8.11
   - Phụ thuộc: T071, T091
 
@@ -706,7 +706,7 @@ hoàn tất.
 
 - [ ] **T095** — So sánh hai lần chạy cùng mã trận
   - File: sửa `src/ui/pages/TrangTran.tsx`
-  - Xong khi: chạy lại cùng một mã trận sau khi đã đổi chiến thuật thì hiện bảng so hai kết quả của **cùng mã trận đó** (tỉ số, số cú sút, số cơ hội rõ ràng); ghi rõ trong mô tả commit rằng kết quả cũ chỉ giữ **trong phiên làm việc**, đóng app là mất — quyết định D31, phần bền thuộc Giai đoạn 4.
+  - Xong khi: chạy lại cùng một mã trận sau khi đã đổi chiến thuật thì hiện bảng so hai kết quả của **cùng mã trận đó** (tỉ số, số cú sút, số cơ hội rõ ràng — lấy từ `thongKe`, không đếm lại từ dòng sự kiện); ghi rõ trong mô tả commit rằng kết quả cũ chỉ giữ **trong phiên làm việc**, đóng app là mất — quyết định D31, phần bền thuộc Giai đoạn 4.
   - AC: AC-8.12
   - Phụ thuộc: T094
 
