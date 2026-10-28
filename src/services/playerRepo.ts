@@ -187,7 +187,7 @@ export async function save(input: LuuCauThuInput): Promise<Player> {
 export async function remove(id: string): Promise<void> {
   try {
     const db = await moDb()
-    const tx = db.transaction(['players', 'images'], 'readwrite')
+    const tx = db.transaction(['players', 'images', 'tactics'], 'readwrite')
     const kho = tx.objectStore('players')
 
     const p = await kho.get(id)
@@ -199,6 +199,29 @@ export async function remove(id: string): Promise<void> {
     if (p.portraitImageId) {
       await tx.objectStore('images').delete(p.portraitImageId)
     }
+
+    /*
+      Gỡ cầu thủ khỏi mọi ô đội hình của đội — cả bộ đang dùng và các bộ có
+      tên — trong CÙNG transaction với việc xoá (AC-2.7).
+
+      Không làm việc này thì `oVien` giữ lại một `playerId` treo, và chính
+      phép kiểm `InvalidTactic` của `tacticRepo` sẽ làm bộ chiến thuật đó
+      không lưu lại được nữa: người dùng mất chiến thuật chỉ vì xoá một cầu
+      thủ, đúng thứ P3 cấm.
+    */
+    const khoChienThuat = tx.objectStore('tactics')
+    const cacBo = await khoChienThuat.index('byTeam').getAll(p.teamId)
+    for (const bo of cacBo) {
+      if (!bo.oVien.some((o) => o.playerId === id)) continue
+      await khoChienThuat.put({
+        ...bo,
+        oVien: bo.oVien.map((o) =>
+          o.playerId === id ? { ...o, playerId: null } : o,
+        ),
+        updatedAt: Date.now(),
+      })
+    }
+
     await kho.delete(id)
     await tx.done
   } catch (loi) {

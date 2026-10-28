@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import type { Player } from '../domain/types'
 import { DB_NAME, dongDb, moDb } from '../storage/db'
 import { LoiUngDung } from './errors'
+import * as tacticRepo from './tacticRepo'
 import * as teamRepo from './teamRepo'
 
 function xoaDatabase(): Promise<void> {
@@ -208,6 +209,43 @@ describe('xoá đội (AC-1.6) — không để lại dữ liệu mồ côi', ()
   it('xoá đội không tồn tại báo NotFound', async () => {
     await expect(teamRepo.remove('khong-co')).rejects.toMatchObject({
       ma: 'NotFound',
+    })
+  })
+})
+
+describe('xoá đội thì dọn cả chiến thuật (AC-1.6)', () => {
+  it('bộ đang dùng và các bộ có tên của đội đều bị xoá', async () => {
+    const doi = await teamRepo.create({ name: 'Đội A' })
+    await tacticRepo.layChienThuatDangDung(doi.id)
+    await tacticRepo.luuThanhBo(doi.id, 'Bộ 1')
+    await tacticRepo.luuThanhBo(doi.id, 'Bộ 2')
+
+    const db = await moDb()
+    expect(await db.count('tactics')).toBe(3)
+
+    await teamRepo.remove(doi.id)
+
+    expect(await db.count('tactics')).toBe(0)
+  })
+
+  it('không chạm chiến thuật của đội khác', async () => {
+    const a = await teamRepo.create({ name: 'Đội A' })
+    const b = await teamRepo.create({ name: 'Đội B' })
+    await tacticRepo.layChienThuatDangDung(a.id)
+    await tacticRepo.luuThanhBo(b.id, 'Của B')
+
+    await teamRepo.remove(a.id)
+
+    const db = await moDb()
+    const conLai = await db.getAll('tactics')
+    expect(conLai.every((c) => c.teamId === b.id)).toBe(true)
+    expect(conLai).toHaveLength(2)
+  })
+
+  it('đội không có chiến thuật nào thì vẫn xoá được bình thường', async () => {
+    const doi = await teamRepo.create({ name: 'Đội A' })
+    await expect(teamRepo.remove(doi.id)).resolves.toEqual({
+      removedPlayers: 0,
     })
   })
 })

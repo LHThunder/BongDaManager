@@ -34,6 +34,11 @@ export type MaLoi =
   | 'StorageUnavailable'
   /** Mã màu không hợp lệ (AC-3.8). */
   | 'InvalidColor'
+  /**
+   * Bộ chiến thuật sai hình dạng: không đủ ô, ô lạ, cầu thủ không thuộc đội,
+   * một cầu thủ ở hai ô, hoặc vai trò không áp dụng được cho vị trí của ô.
+   */
+  | 'InvalidTactic'
 
 /**
  * Thông tin kèm theo lỗi, để `ui/strings.ts` ghép được câu cụ thể —

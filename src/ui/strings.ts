@@ -240,5 +240,19 @@ export function cauLoi(loi: LoiUngDung): string {
       return 'Không mở được bộ lưu trữ của trình duyệt. Hãy thử tải lại trang.'
     case 'InvalidColor':
       return 'Mã màu không hợp lệ. Hãy chọn lại màu áo.'
+    case 'InvalidTactic':
+      return `Không lưu được bộ chiến thuật${LY_DO_CHIEN_THUAT_SAI[String(loi.chiTiet.truong)] ?? ''}. Chiến thuật đang lưu của bạn không bị thay đổi.`
   }
+}
+
+/** Mệnh đề nêu rõ bộ chiến thuật sai ở đâu, ghép vào câu `InvalidTactic`. */
+const LY_DO_CHIEN_THUAT_SAI: Readonly<Record<string, string>> = {
+  'so-o': ' vì số ô không khớp với sơ đồ',
+  'slot-la': ' vì có ô không thuộc sơ đồ này',
+  'vai-tro-khong-phu-hop': ' vì có vai trò không dùng được cho vị trí của ô',
+  'cau-thu-khac-doi': ' vì có ô xếp cầu thủ không thuộc đội này',
+  'cau-thu-trung-o': ' vì một cầu thủ đang được xếp vào hai ô',
+  'thieu-chi-thi': ' vì thiếu một chỉ thị toàn đội',
+  'bo-cua-doi-khac': ' vì bộ này thuộc đội khác',
+  ten: ' khi chưa đặt tên cho bộ',
 }

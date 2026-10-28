@@ -6,8 +6,10 @@ import type {
   GkAttributeValues,
   PositionId,
 } from '../domain/types'
+import { laySoDo } from '../domain/formations'
 import { DB_NAME, dongDb, moDb } from '../storage/db'
 import * as playerRepo from './playerRepo'
+import * as tacticRepo from './tacticRepo'
 import * as teamRepo from './teamRepo'
 
 function xoaDatabase(): Promise<void> {
@@ -271,5 +273,97 @@ describe('danh sách và xoá cầu thủ (AC-2.7)', () => {
     await expect(playerRepo.remove('khong-co')).rejects.toMatchObject({
       ma: 'NotFound',
     })
+  })
+})
+
+describe('xoá cầu thủ thì ô đội hình của họ thành trống (AC-2.7)', () => {
+  /** Hai id ô trung vệ của bộ đang dùng. */
+  function oTrungVe(formationId: Parameters<typeof laySoDo>[0]): string[] {
+    return laySoDo(formationId)
+      .oVien.filter((o) => o.viTri === 'DC')
+      .map((o) => o.slotId)
+  }
+
+  /** Xếp một cầu thủ vào ô trung vệ đầu tiên của bộ đang dùng. */
+  async function xepVaoDoiHinh(doiId: string, playerId: string) {
+    const bo = await tacticRepo.layChienThuatDangDung(doiId)
+    const slotId = oTrungVe(bo.formationId)[0]
+    return tacticRepo.luu({
+      ...bo,
+      oVien: bo.oVien.map((o) => (o.slotId === slotId ? { ...o, playerId } : o)),
+    })
+  }
+
+  it('ô trong bộ đang dùng và trong bộ có tên đều thành trống', async () => {
+    const cauThu = await playerRepo.save(input({ shirtNumber: 4 }))
+
+    await xepVaoDoiHinh(teamId, cauThu.id)
+    await tacticRepo.luuThanhBo(teamId, 'Bộ đã lưu')
+
+    await playerRepo.remove(cauThu.id)
+
+    const db = await moDb()
+    const cacBo = await db.getAllFromIndex('tactics', 'byTeam', teamId)
+    expect(cacBo).toHaveLength(2)
+    for (const bo of cacBo) {
+      expect(
+        bo.oVien.filter((o) => o.playerId === cauThu.id),
+        bo.ten ?? 'bộ đang dùng',
+      ).toEqual([])
+    }
+  })
+
+  it('bộ chiến thuật vẫn nạp lại được, không ném InvalidTactic', async () => {
+    const cauThu = await playerRepo.save(input({ shirtNumber: 4 }))
+    const bo = await xepVaoDoiHinh(teamId, cauThu.id)
+
+    await playerRepo.remove(cauThu.id)
+
+    const docLai = await tacticRepo.layChienThuatDangDung(teamId)
+    expect(docLai.id).toBe(bo.id)
+    await expect(tacticRepo.luu(docLai)).resolves.toBeTruthy()
+  })
+
+  it('cầu thủ khác trong cùng đội vẫn ở đúng ô của họ', async () => {
+    const a = await playerRepo.save(input({ shirtNumber: 4 }))
+    const b = await playerRepo.save(input({ shirtNumber: 5 }))
+
+    const bo = await tacticRepo.layChienThuatDangDung(teamId)
+    const [o1, o2] = oTrungVe(bo.formationId)
+    await tacticRepo.luu({
+      ...bo,
+      oVien: bo.oVien.map((o) => {
+        if (o.slotId === o1) return { ...o, playerId: a.id }
+        if (o.slotId === o2) return { ...o, playerId: b.id }
+        return o
+      }),
+    })
+
+    await playerRepo.remove(a.id)
+
+    const docLai = await tacticRepo.layChienThuatDangDung(teamId)
+    expect(docLai.oVien.find((o) => o.slotId === o2)?.playerId).toBe(b.id)
+    expect(docLai.oVien.find((o) => o.slotId === o1)?.playerId).toBeNull()
+  })
+
+  it('không chạm chiến thuật của đội khác', async () => {
+    const cuaA = await playerRepo.save(input({ shirtNumber: 4 }))
+    await xepVaoDoiHinh(teamId, cuaA.id)
+    const boB = await tacticRepo.layChienThuatDangDung(teamId2)
+
+    await playerRepo.remove(cuaA.id)
+
+    const db = await moDb()
+    expect(await db.get('tactics', boB.id)).toEqual(boB)
+  })
+
+  it('cầu thủ không nằm trong đội hình nào thì không bộ nào bị ghi lại', async () => {
+    const cauThu = await playerRepo.save(input({ shirtNumber: 9 }))
+    const bo = await tacticRepo.layChienThuatDangDung(teamId)
+
+    await playerRepo.remove(cauThu.id)
+
+    const db = await moDb()
+    expect(await db.get('tactics', bo.id)).toEqual(bo)
   })
 })

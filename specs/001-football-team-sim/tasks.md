@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | Giai đoạn 1 (36 AC) và Giai đoạn 2 (22 AC) |
-| **Tiến độ** | 44/66 — Giai đoạn 1 xong (38/39, còn T035); Giai đoạn 2 đang làm Phase 7 (T040–T045 xong) |
+| **Tiến độ** | 47/66 — Giai đoạn 1 xong (38/39, còn T035); Giai đoạn 2: Phase 7 xong (T040–T047b) |
 | **Sửa đổi** | 2026-10-26 — sửa theo kết quả `/analyze` |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -359,20 +359,20 @@ nhìn vào giao diện không thấy được.
   - AC: AC-5.10, AC-7.4
   - Phụ thuộc: T040, T042, T043
 
-- [ ] **T046** — `tacticRepo`
+- [x] **T046** — `tacticRepo`
   - File: `src/services/tacticRepo.ts`, `src/services/errors.ts` (thêm mã `InvalidTactic`), `src/ui/strings.ts` (thêm câu cho mã mới), `src/services/tacticRepo.test.ts`
   - Ghi chú: `cauLoi` trong `ui/strings.ts` là `switch` vét cạn trên `MaLoi`. Thêm mã mà không thêm câu thì hàm có đường trả về `undefined` trong khi khai `: string`, và `tsc --noEmit` đỏ — nên hai file phải sửa cùng nhau.
   - Xong khi: test xanh — `layChienThuatDangDung` tự tạo bộ mặc định cho đội chưa có; `luu` rồi đọc lại ra đúng; `luuThanhBo` nhân bản bộ đang dùng thành bộ có tên mà **không làm đổi bộ đang dùng**; `danhSachBo` chỉ trả các bộ có tên; `apDungBo` đổi `activeTacticId`; bộ sai hình dạng bị từ chối bằng `InvalidTactic` — không đủ 11 ô, ô trỏ tới cầu thủ của đội khác, vai trò không áp dụng được cho vị trí của ô.
   - AC: AC-5.10, AC-7.5, AC-7.6
   - Phụ thuộc: T045
 
-- [ ] **T047** — Xoá đội thì dọn cả chiến thuật
+- [x] **T047** — Xoá đội thì dọn cả chiến thuật
   - File: `src/services/teamRepo.ts`, `src/services/teamRepo.test.ts`
   - Xong khi: test xanh — xoá một đội thì mọi chiến thuật của đội đó (cả bộ đang dùng và các bộ có tên) bị xoá trong **cùng transaction** với cầu thủ và ảnh; không chạm chiến thuật của đội khác.
   - AC: AC-1.6
   - Phụ thuộc: T046
 
-- [ ] **T047b** — Xoá cầu thủ thì ô đội hình của họ thành trống
+- [x] **T047b** — Xoá cầu thủ thì ô đội hình của họ thành trống
   - File: `src/services/playerRepo.ts`, `src/services/playerRepo.test.ts`
   - Xong khi: test xanh — xoá một cầu thủ đang được xếp trong đội hình thì mọi ô trỏ tới họ (ở **cả** bộ chiến thuật đang dùng **và** các bộ có tên của đội) có `playerId` thành `null`, **trong cùng transaction** với việc xoá cầu thủ và ảnh; sau đó `tacticRepo.layChienThuatDangDung` vẫn nạp được bộ đó mà không ném `InvalidTactic`; chiến thuật của đội khác không bị chạm; xoá một cầu thủ **không** nằm trong đội hình nào thì không chiến thuật nào bị ghi lại.
   - AC: AC-2.7 *(đóng nốt phần mà Giai đoạn 1 ghi là hoãn sang GĐ2)*

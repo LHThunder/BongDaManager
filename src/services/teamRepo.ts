@@ -182,10 +182,14 @@ export interface KetQuaXoaDoi {
 export async function remove(id: string): Promise<KetQuaXoaDoi> {
   try {
     const db = await moDb()
-    const tx = db.transaction(['teams', 'players', 'images'], 'readwrite')
+    const tx = db.transaction(
+      ['teams', 'players', 'images', 'tactics'],
+      'readwrite',
+    )
     const khoDoi = tx.objectStore('teams')
     const khoCauThu = tx.objectStore('players')
     const khoAnh = tx.objectStore('images')
+    const khoChienThuat = tx.objectStore('tactics')
 
     const team = await khoDoi.get(id)
     if (!team) {
@@ -199,6 +203,15 @@ export async function remove(id: string): Promise<KetQuaXoaDoi> {
         await khoAnh.delete(p.portraitImageId)
       }
       await khoCauThu.delete(p.id)
+    }
+
+    /*
+      Xoá cả chiến thuật của đội — bộ đang dùng và các bộ có tên — trong CÙNG
+      transaction này (AC-1.6). Để sót lại thì database có những bản ghi trỏ
+      tới một đội không còn tồn tại, và chúng sẽ lớn dần theo mỗi lần xoá đội.
+    */
+    for (const key of await khoChienThuat.index('byTeam').getAllKeys(id)) {
+      await khoChienThuat.delete(key)
     }
 
     if (team.logoImageId) {
