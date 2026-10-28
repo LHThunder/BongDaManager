@@ -1,4 +1,6 @@
 import { tenChiSo } from '../domain/attributes'
+import type { FormationId } from '../domain/formations'
+import type { MucSai } from '../domain/misplacement'
 import type { AttributeId, GkAttributeId } from '../domain/types'
 import type { LoiUngDung } from '../services/errors'
 
@@ -204,6 +206,132 @@ export const LUU_TRU = {
 } as const
 
 /** Tên hiển thị của chỉ số, lấy từ domain để không khai báo hai lần. */
+// ---------------------------------------------------------------------------
+// Giai đoạn 2 — chiến thuật
+// ---------------------------------------------------------------------------
+
+/*
+  Tên hiển thị của sơ đồ trùng với id, vì tên sơ đồ bóng đá vốn là dãy số —
+  không có gì để dịch. Bảng này vẫn tồn tại để component không phải đọc id
+  thẳng từ `domain`, và để sau này thêm chú thích cho từng sơ đồ thì chỉ sửa
+  một chỗ.
+*/
+export const TEN_SO_DO: Readonly<Record<FormationId, string>> = {
+  '4-4-2': '4-4-2',
+  '4-4-1-1': '4-4-1-1',
+  '4-3-3': '4-3-3',
+  '4-2-3-1': '4-2-3-1',
+  '4-1-4-1': '4-1-4-1',
+  '3-5-2': '3-5-2',
+  '3-4-3': '3-4-3',
+  '5-3-2': '5-3-2',
+}
+
+export const TRANG_CHIEN_THUAT = {
+  tieuDe: 'Chiến thuật',
+  moChienThuat: 'Chiến thuật',
+  nhanChonSoDo: 'Sơ đồ',
+  tieuDeNgoaiSan: 'Ngoài sân',
+  ngoaiSanTrong: 'Mọi cầu thủ đều đã ở trên sân.',
+  chuaCoCauThu: 'Đội này chưa có cầu thủ nào để xếp đội hình.',
+  oTrong: 'Ô trống',
+  nhanO: (tenViTri: string) => `Ô ${tenViTri}`,
+  oCoNguoi: (tenViTri: string, tenCauThu: string, soAo: number) =>
+    `Ô ${tenViTri}: ${tenCauThu}, số ${soAo}`,
+  soAo: (so: number) => `Số ${so}`,
+  boRaNgoai: 'Đưa ra ngoài sân',
+  datVaoO: 'Đặt vào ô này',
+  nhacLen: 'Nhấc cầu thủ này lên',
+  datXuong: 'Đặt cầu thủ đang nhấc vào đây',
+  thoiNhac: 'Thôi, không xếp nữa',
+  dangNhac: (ten: string) => `Đang nhấc ${ten}. Chọn một ô để đặt xuống.`,
+  huongDanBanPhim:
+    'Dùng Tab để đi giữa các ô và cầu thủ. Nhấn Enter hoặc Space để nhấc một cầu thủ lên, dùng phím mũi tên để chuyển sang ô khác, rồi nhấn Enter hoặc Space để đặt xuống. Nhấn Esc để thôi.',
+  /*
+    @dnd-kit tự đọc những câu này cho trình đọc màn hình. Mặc định của nó là
+    tiếng Anh kèm id nội bộ ("Picked up draggable item cau-thu:a4ec…"), nên
+    phải thay hết — P8 nói giao diện chỉ có tiếng Việt, và trình đọc màn hình
+    cũng là giao diện.
+  */
+  moTaKeoDuoc: 'cầu thủ, kéo được',
+  huongDanDocManHinh:
+    'Nhấn Enter hoặc Space để nhấc cầu thủ lên. Khi đang nhấc, dùng phím mũi tên để chọn ô, Enter hoặc Space để đặt xuống, Esc để thôi.',
+  baoNhacLen: (ten: string) => `Đã nhấc ${ten}.`,
+  baoDangOTren: (ten: string) => `Đang ở trên ${ten}.`,
+  baoDatXuong: (ten: string) => `Đã đặt vào ${ten}.`,
+  baoDatLaiChoCu: 'Đã trả về chỗ cũ.',
+  baoThoiNhac: 'Đã thôi, không xếp nữa.',
+  tenVungNgoaiSan: 'danh sách ngoài sân',
+} as const
+
+/** Nhãn chữ cho ba mức sai vị trí — không chỉ dùng màu viền (P9). */
+export const MUC_SAI_VI_TRI: Readonly<Record<MucSai, string>> = {
+  dung: 'Đúng vị trí',
+  nhe: 'Lệch nhẹ',
+  vua: 'Lệch vừa',
+  nang: 'Sai nặng',
+}
+
+export const SAI_VI_TRI = {
+  nhan: (muc: MucSai, phanTramTru: number) =>
+    muc === 'dung'
+      ? MUC_SAI_VI_TRI.dung
+      : `${MUC_SAI_VI_TRI[muc]} — giảm ${phanTramTru}% hiệu suất`,
+  giaiThich: (tenViTriO: string, cacViTriSoTruong: string) =>
+    `Ô này là ${tenViTriO}, còn vị trí sở trường của cầu thủ là ${cacViTriSoTruong}.`,
+} as const
+
+export const TINH_TRANG_DOI_HINH = {
+  sanSang: 'Đội hình đã đủ điều kiện thi đấu.',
+  tieuDeChuaDu: 'Đội hình chưa đủ điều kiện',
+  thieuNguoi: (soCo: number, soCan: number) =>
+    `Mới xếp ${soCo} trong ${soCan} ô. Hãy xếp đủ ${soCan} cầu thủ.`,
+  thieuThuMon: 'Chưa có thủ môn trong khung thành.',
+  hoSoChuaHoanTat: (tenCauThu: readonly string[]) =>
+    tenCauThu.length === 1
+      ? `Cầu thủ ${tenCauThu[0]} còn thiếu chỉ số, hãy điền đủ trước khi vào trận.`
+      : `${tenCauThu.length} cầu thủ còn thiếu chỉ số: ${tenCauThu.join(', ')}.`,
+} as const
+
+export const DOI_SO_DO = {
+  daXepLai: (tenSoDo: string) => `Đã xếp lại đội hình theo sơ đồ ${tenSoDo}.`,
+  biDayRa: (ten: readonly string[]) =>
+    `Không còn ô phù hợp cho ${ten.join(', ')} — những cầu thủ này đã ra ngoài sân.`,
+  biXepSai: (ten: readonly string[]) =>
+    `Đang xếp sai vị trí sở trường: ${ten.join(', ')}.`,
+} as const
+
+export const VAI_TRO = {
+  tieuDe: 'Vai trò',
+  nhanChon: 'Vai trò của ô này',
+  chiSoQuanTrong: 'Chỉ số quan trọng',
+  tieuDeChuaDat: 'Cầu thủ chưa đáp ứng vai trò này',
+  chiSoChuaDat: (tenChiSo: string, giaTri: number) =>
+    `${tenChiSo}: ${giaTri}`,
+  chiSoChuaDien: (tenChiSo: string) => `${tenChiSo}: chưa điền`,
+  chuaDanhGiaDuoc:
+    'Hồ sơ cầu thủ còn thiếu chỉ số nên chưa đánh giá được vai trò này.',
+  datHet: 'Cầu thủ đáp ứng mọi chỉ số quan trọng của vai trò này.',
+} as const
+
+export const CHI_THI_DOI = {
+  tieuDe: 'Chỉ thị toàn đội',
+  moTa: 'Mỗi mức đều có cái được và cái mất — không có mức nào tốt hơn hẳn.',
+  tieuDeXungDot: 'Hai chỉ thị đang chống nhau',
+  ghiChuXungDot:
+    'Bạn vẫn lưu được như thế này; đây chỉ là lời nhắc.',
+} as const
+
+export const BO_CHIEN_THUAT = {
+  tieuDe: 'Bộ chiến thuật đã lưu',
+  dangDung: 'Đang dùng',
+  luuThanhBo: 'Lưu thành bộ mới',
+  nhanTenBo: 'Tên bộ chiến thuật',
+  gidanhTenBo: 'Ví dụ: Phòng ngự chắc',
+  apDung: 'Dùng bộ này',
+  chuaCoBo: 'Bạn chưa lưu bộ chiến thuật nào.',
+} as const
+
 export function nhanChiSo(id: AttributeId | GkAttributeId): string {
   return tenChiSo(id)
 }

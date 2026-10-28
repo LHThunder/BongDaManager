@@ -5,7 +5,13 @@ import { viTriTotNhat } from '../../domain/rating'
 import type { Player, Team } from '../../domain/types'
 import { usePlayers } from '../../hooks/usePlayers'
 import * as teamRepo from '../../services/teamRepo'
-import { CHAN_THUAN, CHUNG, TRANG_DOI, XOA_CAU_THU } from '../strings'
+import {
+  CHAN_THUAN,
+  CHUNG,
+  TRANG_CHIEN_THUAT,
+  TRANG_DOI,
+  XOA_CAU_THU,
+} from '../strings'
 import { AnhThayThe } from '../components/AnhThayThe'
 import { FormCauThu } from '../components/FormCauThu'
 import { HopXacNhan } from '../components/HopXacNhan'
@@ -13,6 +19,7 @@ import { HopXacNhan } from '../components/HopXacNhan'
 interface Props {
   readonly teamId: string
   readonly onQuayLai: () => void
+  readonly onMoChienThuat: (teamId: string) => void
 }
 
 type KhoaSapXep = 'ten' | 'soAo' | 'tuoi' | 'viTri'
@@ -44,7 +51,7 @@ function sapXep(cauThu: readonly Player[], khoa: KhoaSapXep): Player[] {
 }
 
 /** Trang của một đội: thông tin đội và danh sách cầu thủ (AC-2.7, AC-2.8). */
-export function TrangDoi({ teamId, onQuayLai }: Props) {
+export function TrangDoi({ teamId, onQuayLai, onMoChienThuat }: Props) {
   const [doi, datDoi] = useState<Team | null>(null)
   const { cauThu, napCauThu, xoaCauThu } = usePlayers(teamId)
   const [khoa, datKhoa] = useState<KhoaSapXep>('soAo')
@@ -85,19 +92,29 @@ export function TrangDoi({ teamId, onQuayLai }: Props) {
         {CHUNG.quayLai}
       </button>
 
-      <div className="mt-4 flex items-center gap-4">
-        <AnhThayThe
-          anhId={doi.logoImageId}
-          ten={doi.name}
-          mauNen={doi.primaryColor}
-          kichThuoc="lon"
-        />
-        <div>
-          <p className="text-sm uppercase tracking-wide text-slate-500">
-            {TRANG_DOI.doiNay}
-          </p>
-          <h2 className="text-2xl font-bold text-slate-900">{doi.name}</h2>
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <AnhThayThe
+            anhId={doi.logoImageId}
+            ten={doi.name}
+            mauNen={doi.primaryColor}
+            kichThuoc="lon"
+          />
+          <div>
+            <p className="text-sm uppercase tracking-wide text-slate-500">
+              {TRANG_DOI.doiNay}
+            </p>
+            <h2 className="text-2xl font-bold text-slate-900">{doi.name}</h2>
+          </div>
         </div>
+
+        <button
+          type="button"
+          onClick={() => onMoChienThuat(teamId)}
+          className="rounded-md border border-blue-700 px-4 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-400"
+        >
+          {TRANG_CHIEN_THUAT.moChienThuat}
+        </button>
       </div>
 
       <div className="mt-8 flex flex-wrap items-center justify-between gap-3">

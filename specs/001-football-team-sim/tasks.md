@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | Giai đoạn 1 (36 AC) và Giai đoạn 2 (22 AC) |
-| **Tiến độ** | 47/66 — Giai đoạn 1 xong (38/39, còn T035); Giai đoạn 2: Phase 7 xong (T040–T047b) |
+| **Tiến độ** | 54/66 — Giai đoạn 1 xong (38/39, còn T035); Giai đoạn 2: Phase 7 và Phase 8 xong (T040–T054) |
 | **Sửa đổi** | 2026-10-26 — sửa theo kết quả `/analyze` |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -384,43 +384,43 @@ nhìn vào giao diện không thấy được.
 Kết thúc phase: mở trang chiến thuật, chọn sơ đồ, kéo người vào ô bằng chuột
 **và** bằng bàn phím, thấy mức sai vị trí, rời trang rồi quay lại vẫn còn.
 
-- [ ] **T048** [P] — Chuỗi hiển thị cho Giai đoạn 2
+- [x] **T048** [P] — Chuỗi hiển thị cho Giai đoạn 2
   - File: `src/ui/strings.ts`
   - Xong khi: có nhãn cho trang chiến thuật, tên 8 sơ đồ, nhãn ba mức sai vị trí, nhãn 6 chỉ thị và các mức, câu cho tình trạng đội hình; `grep` byte non-ASCII xác nhận không component nào viết chuỗi hiển thị trực tiếp (P8), như cách đã kiểm ở Giai đoạn 1.
   - Phụ thuộc: —
 
-- [ ] **T049** — Sân bóng và 11 ô vị trí
+- [x] **T049** — Sân bóng và 11 ô vị trí
   - File: `src/ui/components/SanBong.tsx`, `src/ui/components/OViTri.tsx`
   - Xong khi: sân vẽ bằng CSS và SVG nội tuyến, **không tài nguyên nào tải từ ngoài** (P4); chọn một sơ đồ thì hiện đúng 11 ô ở đúng toạ độ phần trăm; ô trống hiện tên vị trí; sân giữ tỉ lệ khi khung co giãn.
   - AC: AC-5.1, AC-5.2
   - Phụ thuộc: T040, T048
 
-- [ ] **T050** — Hook chiến thuật và phần store
+- [x] **T050** — Hook chiến thuật và phần store
   - File: `src/hooks/useTactic.ts`, `src/store/appStore.ts`
   - Xong khi: `npx tsc --noEmit` sạch; đổi một ô thì ghi xuống lưu trữ ngay, không có nút Lưu (AC-4.1 vẫn áp dụng); selector trả **tham chiếu ổn định** khi không có chiến thuật, không tạo object mới mỗi lần gọi (lỗi vòng lặp render ở T020 đã dạy bài này).
   - AC: AC-5.10
   - Phụ thuộc: T046
   
-- [ ] **T051** — Trang chiến thuật và lối vào từ trang đội
+- [x] **T051** — Trang chiến thuật và lối vào từ trang đội
   - File: `src/ui/pages/TrangChienThuat.tsx`, sửa `src/ui/pages/TrangDoi.tsx`, sửa `src/App.tsx`
   - Xong khi: từ trang đội bấm được sang trang chiến thuật của đúng đội đó và quay lại được; trang hiện sân, danh sách cầu thủ ngoài sân, và bộ chọn sơ đồ; chọn sơ đồ khác thì 11 ô đổi theo; **tên đội trên trang này đọc từ store dùng chung, không giữ bản sao riêng** — đổi tên đội ở danh sách đội rồi mở lại trang chiến thuật thì thấy tên mới (AC-1.5).
   - AC: AC-5.1, AC-1.5 *(đóng nốt phần mà Giai đoạn 1 ghi là hoãn sang GĐ2)*
   - Phụ thuộc: T049, T050
 
-- [ ] **T052** — Kéo-thả bằng chuột: đặt, đổi chỗ, bỏ ra ngoài
+- [x] **T052** — Kéo-thả bằng chuột: đặt, đổi chỗ, bỏ ra ngoài
   - File: `src/ui/components/DanhSachNgoaiSan.tsx`, sửa `src/ui/components/OViTri.tsx`, sửa `src/ui/pages/TrangChienThuat.tsx`
   - Xong khi: kéo một cầu thủ từ danh sách vào ô trống thì ô hiện ảnh (hoặc hình thay thế), tên và số áo; kéo **từ ô sang ô đã có người** thì hai ô đổi chỗ; kéo **từ băng ghế vào ô đã có người** thì người cũ về băng ghế — cả hai trường hợp đều không làm mất cầu thủ nào (AC-5.4 nói "đổi chỗ" nhưng không nói trường hợp kéo từ băng ghế, nên chốt ở đây); kéo một cầu thủ ra khỏi sân thì ô thành trống và người đó về danh sách ngoài sân.
   - **Thứ tự đo bundle:** chạy `npm run build` và ghi số **trước khi** `npm install @dnd-kit/core`, rồi build lại và ghi số thứ hai; cả hai số vào mô tả commit (rủi ro R7 — không trích con số từ trí nhớ, như lần tôi ghi sai "fflate 8KB").
   - AC: AC-5.3, AC-5.4, AC-5.6
   - Phụ thuộc: T051
 
-- [ ] **T053** — Xếp người chỉ bằng bàn phím
+- [x] **T053** — Xếp người chỉ bằng bàn phím
   - File: sửa `src/ui/components/DanhSachNgoaiSan.tsx`, sửa `src/ui/components/OViTri.tsx`
   - Xong khi: **tự tay xếp trọn một đội hình 11 người mà không chạm chuột**, dùng Tab để đi và bàn phím để nhấc/đặt/đổi chỗ; mỗi ô và mỗi cầu thủ ngoài sân là một đích focus thấy rõ; nếu phần bàn phím của `@dnd-kit` không dùng được thì **dừng và báo người dùng** trước khi tự viết cơ chế thứ hai (đường lùi của R7).
   - AC: AC-5.9
   - Phụ thuộc: T052
 
-- [ ] **T054** [P] — Nhãn mức sai vị trí trên ô
+- [x] **T054** [P] — Nhãn mức sai vị trí trên ô
   - File: sửa `src/ui/components/OViTri.tsx`
   - Xong khi: cầu thủ xếp sai vị trí thì ô hiện **nhãn chữ** của mức (nhẹ / vừa / nặng) kèm mức trừ hiệu suất, không chỉ đổi màu viền (P9); xếp đúng vị trí thì không có nhãn nào.
   - AC: AC-5.5

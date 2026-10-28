@@ -2,11 +2,13 @@ import { useCallback, useState } from 'react'
 import { useAppStore } from './store/appStore'
 import { CHUNG, cauLoi } from './ui/strings'
 import { DanhSachDoi } from './ui/pages/DanhSachDoi'
+import { TrangChienThuat } from './ui/pages/TrangChienThuat'
 import { TrangDoi } from './ui/pages/TrangDoi'
 
 type Khung =
   | { readonly loai: 'danh-sach-doi' }
   | { readonly loai: 'trang-doi'; readonly teamId: string }
+  | { readonly loai: 'trang-chien-thuat'; readonly teamId: string }
 
 export default function App() {
   const [khung, datKhung] = useState<Khung>({ loai: 'danh-sach-doi' })
@@ -19,6 +21,10 @@ export default function App() {
 
   const veDanhSach = useCallback(() => {
     datKhung({ loai: 'danh-sach-doi' })
+  }, [])
+
+  const moChienThuat = useCallback((teamId: string) => {
+    datKhung({ loai: 'trang-chien-thuat', teamId })
   }, [])
 
   return (
@@ -51,10 +57,21 @@ export default function App() {
       )}
 
       <main className="mx-auto max-w-5xl px-4 py-8">
-        {khung.loai === 'danh-sach-doi' ? (
-          <DanhSachDoi onMoDoi={moDoi} />
-        ) : (
-          <TrangDoi teamId={khung.teamId} onQuayLai={veDanhSach} />
+        {khung.loai === 'danh-sach-doi' && <DanhSachDoi onMoDoi={moDoi} />}
+
+        {khung.loai === 'trang-doi' && (
+          <TrangDoi
+            teamId={khung.teamId}
+            onQuayLai={veDanhSach}
+            onMoChienThuat={moChienThuat}
+          />
+        )}
+
+        {khung.loai === 'trang-chien-thuat' && (
+          <TrangChienThuat
+            teamId={khung.teamId}
+            onQuayLai={() => moDoi(khung.teamId)}
+          />
         )}
       </main>
     </div>

@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { Player } from '../domain/types'
+import type { Player, Tactic } from '../domain/types'
 import type { LoiUngDung } from '../services/errors'
 import type { TeamSummary } from '../services/teamRepo'
 
@@ -36,6 +36,10 @@ export interface AppState {
   readonly doiDangMo: string | null
   readonly dangTaiCauThu: boolean
 
+  /** Bộ chiến thuật đang mở, và đội mà nó thuộc về. */
+  readonly chienThuat: Tactic | null
+  readonly doiCuaChienThuat: string | null
+
   datDanhSachDoi(teams: readonly TeamSummary[]): void
   datDangTai(dangTai: boolean): void
   themDoi(doi: TeamSummary): void
@@ -50,6 +54,8 @@ export interface AppState {
   datDangTaiCauThu(dangTai: boolean): void
   luuCauThu(cauThu: Player): void
   boCauThu(id: string): void
+
+  datChienThuat(teamId: string, chienThuat: Tactic | null): void
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -109,6 +115,12 @@ export const useAppStore = create<AppState>((set) => ({
     }),
 
   boCauThu: (id) => set((s) => ({ cauThu: s.cauThu.filter((p) => p.id !== id) })),
+
+  chienThuat: null,
+  doiCuaChienThuat: null,
+
+  datChienThuat: (teamId, chienThuat) =>
+    set({ doiCuaChienThuat: teamId, chienThuat }),
 }))
 
 /** Trạng thái ban đầu, dùng để test dọn store giữa các lần chạy. */
@@ -121,5 +133,7 @@ export function datLaiStore(): void {
     cauThu: [],
     doiDangMo: null,
     dangTaiCauThu: false,
+    chienThuat: null,
+    doiCuaChienThuat: null,
   })
 }
