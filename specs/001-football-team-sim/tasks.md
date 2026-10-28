@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | Giai đoạn 1 (36 AC), Giai đoạn 2 (22 AC) và Giai đoạn 3 (26 AC) |
-| **Tiến độ** | 90/99 — Giai đoạn 1 xong (38/39, còn T035); Giai đoạn 2 xong trọn; Giai đoạn 3 đang làm (Phase 11, 12, 13 xong: T066–T090) |
+| **Tiến độ** | 98/99 — Giai đoạn 1 xong (38/39, còn T035); Giai đoạn 2 xong trọn; Giai đoạn 3 xong trọn (T066–T098) |
 | **Sửa đổi** | 2026-10-28 — thêm Giai đoạn 3 (Phase 11–14), rồi sửa theo kết quả `/analyze` |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -680,53 +680,62 @@ Kết thúc phase: thay người, đổi chỉ thị và vai trò giữa trận;
 trận đó kèm chuỗi can thiệp; so được hai kết quả cùng mã trận. Giai đoạn 3
 hoàn tất.
 
-- [ ] **T091** — Áp can thiệp giữa trận trong engine
+- [x] **T091** — Áp can thiệp giữa trận trong engine
   - File: `src/engine/tran.ts`, `src/engine/canThiep.test.ts`
   - Xong khi: test xanh — thay người đổi `trenSan` và `duBi`, ghi sự kiện tại **đúng phút**, các phút sau tính theo người mới; lần thay thứ 6 bị từ chối với lý do `het-luot-thay`; can thiệp vào đội không phải của người dùng bị từ chối; không thay được cầu thủ đã nhận thẻ đỏ, cũng không đưa vào được người ngoài danh sách 18; đổi chỉ thị hoặc vai trò chỉ ảnh hưởng **từ phút hiện tại trở đi** và **các sự kiện đã phát không đổi một dòng**. Thêm một bất biến: trên nhiều mã trận có **cả thẻ đỏ lẫn thay người**, mọi `cacCauThu` của mọi sự kiện đều nằm trong `trenSan` tại đúng phút đó — không có dòng tường thuật nào nhắc tên người đã rời sân (AC-8.2 chỉ được kiểm ở T070, trước khi có hai thứ này).
   - AC: AC-9.5, AC-9.6, AC-9.7, AC-9.8
   - Phụ thuộc: T077
 
-- [ ] **T092** — Phát lại trận có can thiệp
+- [x] **T092** — Phát lại trận có can thiệp
   - File: `src/engine/taiLap.test.ts` *(thêm vào file T071 đã tạo)*
   - Xong khi: test xanh — chạy một trận có **ít nhất 3 can thiệp ở ba phút khác nhau** (một thay người, một đổi chỉ thị, một đổi vai trò), ghi lại `canThiep[]`, rồi chạy lại từ đầu với cùng mã trận và áp lại đúng danh sách đó: **tỉ số và từng dòng sự kiện giống hệt**. Đầu vào phát lại phải được dựng lại **từ chính `TrangThaiTran`** — `maTran`, `chienThuatXuatPhat` của hai bên, đội chủ nhà, `canThiep[]` — chứ không từ biến cục bộ của test; nếu lấy từ biến cục bộ thì test vẫn xanh kể cả khi trạng thái trận đã đánh mất chiến thuật xuất phát. Đây đúng là dòng Definition of Done thứ hai mà `spec.md` mục 7 đã ghi sẵn từ Giai đoạn 1.
   - AC: AC-8.11
   - Phụ thuộc: T071, T091
 
-- [ ] **T093** — Giao diện thay người
+- [x] **T093** — Giao diện thay người
   - File: `src/ui/components/ThayNguoi.tsx`, sửa `src/ui/pages/TrangTran.tsx`
   - Xong khi: tạm dừng rồi thay được một cầu thủ trên sân bằng một người trong 7 dự bị; dòng sự kiện có dòng thay người tại đúng phút đó; hết 5 lượt thì nút bị chặn kèm câu nói rõ **đã hết lượt**; chỉ thao tác được với đội của người dùng.
   - AC: AC-9.5, AC-9.6, AC-9.8
   - Phụ thuộc: T091, T089
 
-- [ ] **T094** — Đổi chỉ thị và vai trò giữa trận
+- [x] **T094** — Đổi chỉ thị và vai trò giữa trận
   - File: sửa `src/ui/pages/TrangTran.tsx`
   - Xong khi: đang tạm dừng, đổi một chỉ thị của đội mình rồi tiếp tục, và các phút sau diễn ra theo cấu hình mới; **các dòng đã qua không đổi một chữ**; đội còn lại không đổi được gì.
   - AC: AC-9.7, AC-9.8
   - Phụ thuộc: T093
 
-- [ ] **T095** — So sánh hai lần chạy cùng mã trận
+- [x] **T095** — So sánh hai lần chạy cùng mã trận
   - File: sửa `src/ui/pages/TrangTran.tsx`
   - Xong khi: chạy lại cùng một mã trận sau khi đã đổi chiến thuật thì hiện bảng so hai kết quả của **cùng mã trận đó** (tỉ số, số cú sút, số cơ hội rõ ràng — lấy từ `thongKe`, không đếm lại từ dòng sự kiện); ghi rõ trong mô tả commit rằng kết quả cũ chỉ giữ **trong phiên làm việc**, đóng app là mất — quyết định D31, phần bền thuộc Giai đoạn 4.
   - AC: AC-8.12
   - Phụ thuộc: T094
+  - **Hai lỗi phát hiện ở T098 khi kiểm tay, đã sửa trong phạm vi chính dòng "Xong khi" này:**
+    1. Màn chọn cặp đấu sinh mã mới mỗi lần mở, nên **không có đường nào chạy lại cùng một mã** — bảng so sánh đúng về code nhưng người dùng không với tới. Đã cho sửa trực tiếp ô mã trận (kiểm bằng `laMaTranHopLe`, chặn nút bắt đầu khi mã sai) và mở màn với mã của lần chạy trước. Chạm thêm `src/ui/pages/ChonCapDau.tsx` và `src/ui/strings.ts`.
+    2. Trang trận đọc `ketQuaTruoc` **thẳng từ store** trong lúc chính nó ghi kết quả lần này vào đúng ô đó, nên bảng đem trận vừa xong so với chính nó — hai cột luôn bằng nhau. Đã chụp kết quả lần trước vào một `useRef` ở lượt vẽ đầu.
+  - Kiểm tay lại ngày 2026-10-28: cùng mã `K7M2R9XQ4B`, Thành Vinh pressing thấp ra 5–2, đổi sang pressing cao ra 4–2, và bảng hiện đúng hai con số khác nhau.
 
-- [ ] **T096** — Trường hợp biên: thủ môn nhận thẻ đỏ
+- [x] **T096** — Trường hợp biên: thủ môn nhận thẻ đỏ
   - File: sửa `src/engine/tran.ts`, sửa `src/ui/pages/TrangTran.tsx`
   - Xong khi: thủ môn nhận thẻ đỏ thì người dùng phải chọn một cầu thủ trên sân vào bắt gôn; người đó bị tính **mức sai nặng**; nếu còn lượt thay thì đưa được thủ môn dự bị vào thay một cầu thủ khác.
   - Ghi chú: dòng này nằm ở `spec.md` mục 5 (trường hợp biên), không phải một AC riêng — nhưng Definition of Done của spec đòi các trường hợp biên mục 5 được xử lý.
+  - **Hai file ngoài danh sách đã chạm, và lý do:** `src/ui/strings.ts` (mọi câu tiếng Việt ở một chỗ theo P8, không được viết thẳng vào trang) và `src/engine/thuMonTheDo.test.ts` (12 test để kiểm chứng chính dòng "Xong khi" ở trên).
+  - **Một chỗ spec nói chưa đủ rõ, đã chọn cách đọc nào:** câu của mục 5 chỉ nói thủ môn dự bị "vào thay một cầu thủ khác", không nói ai giữ găng sau đó. Để nguyên theo chữ thì thủ môn dự bị đứng ngoài khung và bị trừ mức sai nặng, còn cầu thủ sân vẫn bắt gôn — vô lý. Nên `vao-bat-gon` được làm thành phép **đổi chỗ**: người đang bắt gôn, nếu còn trên sân, nhận lại ô của người vừa vào khung. Cùng một can thiệp vì thế dùng được cả lúc khung trống (ngay sau thẻ đỏ) và lúc thủ môn dự bị đã vào sân cần nhận găng. Nếu cách đọc này sai ý, sửa `spec.md` mục 5 rồi sửa lại engine.
   - Phụ thuộc: T093
 
-- [ ] **T097** — Đo ngân sách chạy hết trận
+- [x] **T097** — Đo ngân sách chạy hết trận
   - File: `src/engine/hieuNang.test.ts`
   - Xong khi: đo `chayHetTran` trên 20 mã trận bằng `performance.now`, ghi **số thật** (trung bình và lớn nhất) vào mô tả commit; test khẳng định mỗi trận **dưới 200ms trong môi trường test**. Ngưỡng này nghiêm hơn ngân sách 3 giây của spec rất nhiều, vì 3 giây là cho máy người dùng kèm cả giao diện và sân 2D của Giai đoạn 4 — cảnh báo sớm thì mới còn chỗ xoay (rủi ro R12).
   - Phụ thuộc: T091
 
-- [ ] **T098** — Kiểm tay 26 AC của Giai đoạn 3
+- [x] **T098** — Kiểm tay 26 AC của Giai đoạn 3
   - File: `specs/001-football-team-sim/spec.md` (tick các ô AC trong phạm vi)
   - Xong khi: 26 AC của US-8 và US-9 được tự tay kiểm trên ứng dụng đang chạy và tick; **tick lại AC-5.7 thành trọn** (phần chặn giả lập đã xong ở T086), tick **AC-3.5** và **AC-3.7** thành trọn; kiểm tay bốn việc chỉ kiểm tay mới thấy — xem trọn một trận rồi tạm dừng / đổi tốc độ / chạy hết; thay người phút 60 rồi thấy tên người mới ở các phút sau; đổi chỉ thị giữa trận rồi đối chiếu các dòng đã qua không đổi; hai đội trùng màu áo thì tự đổi áo phụ. Ghi số đo hiệu năng của T097 vào mô tả commit.
   - **Hai AC vẫn KHÔNG tick được, và đó là đúng:** AC-4.2 và AC-1.5 còn phần lịch sử trận đấu, mà lịch sử là AC-11.7 thuộc Giai đoạn 4. `spec.md` đang ghi nhầm hai phần đó là "thuộc GĐ3" — xem `plan.md` mục III.0.
   - AC: toàn bộ AC-8.x và AC-9.x, cộng AC-3.5, AC-3.7, AC-5.7
   - Phụ thuộc: T072, T078, T080, T081, T082, T083, T090, T092, T095, T096, T097
+  - **Đã kiểm tay ngày 2026-10-28** trên `localhost:5173` với ba đội 18 người (Sông Hàn 15 điểm mọi chỉ số, Thành Vinh 10, Hải Phòng 12 và trùng màu áo chính với Sông Hàn) cộng một đội 5 người để thử phần chặn. Không có lỗi nào trong console suốt lượt kiểm.
+  - Số đo T097: chạy hết trận trên 20 mã — **trung bình 4.0ms, lớn nhất 6.8ms**, ngân sách 200ms. Tạo trận 0.08ms.
+  - **Một phát hiện CHƯA sửa, cần một task riêng:** `congThongKeCong` cộng `cuSut` và `coHoiRoRang` bằng **cùng một điều kiện** `kq.ketCuc === 'dut-diem'` (`src/engine/tran.ts`), nên hai con số luôn bằng nhau — bảng so sánh của AC-8.12 hiện hai dòng trông như hai chỉ tiêu nhưng thực chất là một. AC-8.2 lại coi "cơ hội rõ ràng" là một loại riêng. Sửa chỗ này là đổi ngữ nghĩa engine và sẽ kéo theo các số đo của bốn test so sánh, nên **không tự sửa trong Giai đoạn 3** — xin một task trong plan Giai đoạn 4.
 
 ---
 

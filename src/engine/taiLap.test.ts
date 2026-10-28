@@ -1,6 +1,16 @@
 import { describe, expect, it } from 'vitest'
 import { cauHinhMau, MA_TRAN_CO_DINH } from './__fixtures__/doiMau'
-import { buocTiep, chayHetTran, dongSuKien, taoTran } from './tran'
+import {
+  apDungCanThiep,
+  buocTiep,
+  chayHetTran,
+  dongSuKien,
+  taoTran,
+  type BenTran,
+  type CanThiep,
+  type DangKyBen,
+  type TrangThaiTran,
+} from './tran'
 
 /*
   Tính tái lập (P1, AC-8.11).
@@ -90,5 +100,137 @@ describe('mã trận thật sự quyết định trận đấu', () => {
     const tenA = dongSuKien(a).flatMap((s) => s.cacCauThu)
     const tenB = dongSuKien(b).flatMap((s) => s.cacCauThu)
     expect(tenB).not.toEqual(tenA)
+  })
+})
+
+/*
+  Phát lại một trận CÓ CAN THIỆP (AC-8.11, quyết định D30).
+
+  P1 định nghĩa phát lại bằng *(mã trận + hai đội + chiến thuật xuất phát hai
+  bên + đội chủ nhà + chuỗi can thiệp)*. Phép kiểm dưới đây dựng lại đầu vào
+  **từ chính `TrangThaiTran`**, không từ biến cục bộ của test: nếu lấy từ biến
+  cục bộ thì test vẫn xanh kể cả khi trạng thái trận đã đánh mất chiến thuật
+  xuất phát — đúng cái bẫy mà `/analyze` chỉ ra.
+*/
+/**
+ * Dựng lại đăng ký ban đầu TỪ trạng thái trận.
+ *
+ * Làm được là nhờ hai thứ bất biến suốt trận: `chienThuatXuatPhat` giữ nguyên
+ * 11 ô lúc vào trận, và `cacCauThu` giữ đủ hồ sơ 18 người. `trenSan` và
+ * `duBi` thì đổi theo thay người nên không dùng được cho việc này.
+ */
+function benTuTrangThai(ben: BenTran): DangKyBen {
+  const xuatPhat = ben.chienThuatXuatPhat.oVien
+    .map((o) => o.playerId)
+    .filter((id): id is string => id !== null)
+  const trongDoiHinh = new Set(xuatPhat)
+
+  return {
+    teamId: ben.teamId,
+    chienThuatXuatPhat: ben.chienThuatXuatPhat,
+    trenSan: xuatPhat,
+    duBi: ben.cacCauThu.map((c) => c.id).filter((id) => !trongDoiHinh.has(id)),
+    cacCauThu: ben.cacCauThu,
+  }
+}
+
+describe('phát lại trận có can thiệp (AC-8.11)', () => {
+  /** Chạy một trận và rải ba can thiệp khác loại ở ba phút khác nhau. */
+  function chayCoCanThiep(ma: string) {
+    let tt = taoTran(cauHinhMau(ma))
+
+    while (!tt.ketThuc) {
+      if (tt.phut === 20) {
+        tt = apBuoc(tt, {
+          phut: tt.phut,
+          doi: 'nha',
+          noiDung: {
+            loai: 'thay-nguoi',
+            ra: tt.ben.nha.trenSan[3],
+            vao: tt.ben.nha.duBi[0],
+          },
+        })
+      }
+      if (tt.phut === 40) {
+        tt = apBuoc(tt, {
+          phut: tt.phut,
+          doi: 'nha',
+          noiDung: {
+            loai: 'doi-chi-thi',
+            chiThi: {
+              ...tt.ben.nha.chienThuatHienTai.chiThi,
+              'cuong-do-pressing': 'cao',
+            },
+          },
+        })
+      }
+      if (tt.phut === 60) {
+        const o = tt.ben.nha.chienThuatHienTai.oVien.find(
+          (x) => x.roleId === 'tien-dao-cat-mat',
+        )
+        if (o) {
+          tt = apBuoc(tt, {
+            phut: tt.phut,
+            doi: 'nha',
+            noiDung: {
+              loai: 'doi-vai-tro',
+              slotId: o.slotId,
+              roleId: 'tien-dao-muc-tieu',
+            },
+          })
+        }
+      }
+      tt = buocTiep(tt)
+    }
+
+    return tt
+  }
+
+  function apBuoc(tt: TrangThaiTran, ct: CanThiep): TrangThaiTran {
+    const kq = apDungCanThiep(tt, ct)
+    return kq.thanhCong ? kq.trangThai : tt
+  }
+
+  /** Dựng lại trận từ chính trạng thái cuối, rồi áp lại đúng nhật ký. */
+  function phatLaiTu(xong: TrangThaiTran): TrangThaiTran {
+    let tt = taoTran({
+      maTran: xong.maTran,
+      sanTrungLap: xong.sanTrungLap,
+      doiCuaNguoiDung: xong.doiCuaNguoiDung,
+      nha: benTuTrangThai(xong.ben.nha),
+      khach: benTuTrangThai(xong.ben.khach),
+    })
+
+    const conLai = [...xong.canThiep]
+    while (!tt.ketThuc) {
+      while (conLai.length > 0 && conLai[0].phut === tt.phut) {
+        const ct = conLai.shift()
+        if (ct) tt = apBuoc(tt, ct)
+      }
+      tt = buocTiep(tt)
+    }
+    return tt
+  }
+
+  it('cùng mã trận và cùng chuỗi can thiệp ra đúng từng dòng', () => {
+    for (const ma of MA_TRAN_CO_DINH.slice(0, 5)) {
+      const goc = chayCoCanThiep(ma)
+      expect(goc.canThiep.length, ma).toBeGreaterThanOrEqual(3)
+
+      const phatLai = phatLaiTu(goc)
+
+      expect(phatLai.tiSo, ma).toEqual(goc.tiSo)
+      expect(dongSuKien(phatLai), ma).toEqual(dongSuKien(goc))
+    }
+  })
+
+  it('bỏ một can thiệp khỏi chuỗi thì trận khác đi', () => {
+    const goc = chayCoCanThiep(MA_TRAN_CO_DINH[0])
+    const thieu: TrangThaiTran = {
+      ...goc,
+      canThiep: goc.canThiep.slice(1),
+    }
+
+    expect(dongSuKien(phatLaiTu(thieu))).not.toEqual(dongSuKien(goc))
   })
 })

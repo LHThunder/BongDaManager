@@ -401,8 +401,10 @@ export const CHON_CAP_DAU = {
     'Tắt hoàn toàn lợi thế sân nhà, để so hai chiến thuật cho công bằng.',
   nhanMaTran: 'Mã trận',
   moTaMaTran:
-    'Giữ lại mã này thì sau đấu lại được đúng trận đó, kể cả khi bạn đổi chiến thuật.',
+    'Giữ lại mã này — hoặc dán lại một mã cũ — thì đấu lại được đúng trận đó, kể cả khi bạn đổi chiến thuật.',
   maTranMoi: 'Sinh mã mới',
+  maTranKhongHopLe:
+    'Mã trận gồm đúng 10 ký tự, dùng chữ số và chữ cái trừ I, L, O, U.',
   batDau: 'Bắt đầu trận',
   tieuDeChuaBatDauDuoc: 'Chưa bắt đầu được',
   canHaiDoi: 'Cần ít nhất 2 đội mới đấu được. Hãy tạo thêm một đội đối thủ.',
@@ -455,4 +457,62 @@ export const TRAN_DAU = {
   nhanTheVang: 'Thẻ vàng',
   nhanTheDo: 'Thẻ đỏ',
   quayLai: 'Rời trận',
+} as const
+
+export const THAY_NGUOI = {
+  tieuDe: 'Thay người',
+  conLuot: (con: number, toiDa: number) =>
+    `Còn ${con} trong ${toiDa} lượt thay.`,
+  canTamDung: 'Hãy tạm dừng trận trước khi thay người.',
+  nhanRa: 'Ra sân',
+  nhanVao: 'Vào sân',
+  chonCauThu: '— Chọn cầu thủ —',
+  thucHien: 'Thay',
+  hetLuot: 'Đã hết lượt thay người.',
+} as const
+
+export const CAN_THIEP_GIUA_TRAN = {
+  tieuDeChiThi: 'Đổi chỉ thị giữa trận',
+  moTa: 'Thay đổi chỉ áp dụng từ phút tiếp theo; những phút đã qua giữ nguyên.',
+  chiDoiDuocDoiCuaBan: 'Bạn chỉ can thiệp được vào đội của mình.',
+} as const
+
+/** Câu cho từng lý do can thiệp bị từ chối. */
+export const LY_DO_TU_CHOI_CAN_THIEP: Readonly<Record<string, string>> = {
+  'tran-da-ket-thuc': 'Trận đã kết thúc, không can thiệp được nữa.',
+  'khong-phai-doi-cua-ban': 'Bạn chỉ can thiệp được vào đội của mình.',
+  'het-luot-thay': 'Đã hết lượt thay người.',
+  'cau-thu-khong-tren-san': 'Cầu thủ này không có trên sân.',
+  'cau-thu-khong-trong-du-bi': 'Cầu thủ này không nằm trong danh sách dự bị.',
+  'da-nhan-the-do': 'Cầu thủ này đã nhận thẻ đỏ.',
+  'o-khong-ton-tai': 'Ô này không thuộc sơ đồ đang dùng.',
+  'vai-tro-khong-phu-hop': 'Vai trò không dùng được cho vị trí của ô.',
+  'khung-thanh-da-co-thu-mon': 'Khung thành đã có thủ môn thực thụ.',
+  'cau-thu-da-bat-gon': 'Cầu thủ này đang bắt gôn rồi.',
+}
+
+/** Khối chọn người vào bắt gôn khi khung thành bỏ trống (spec mục 5). */
+export const VAO_BAT_GON = {
+  tieuDeTrong: 'Khung thành đang bỏ trống',
+  tieuDeChuaChay: (ten: string) => `${ten} đang bắt gôn thay`,
+  moTa: 'Chọn một cầu thủ trên sân vào bắt gôn. Người đó bị trừ hiệu suất ở mức sai nặng.',
+  nhanChon: 'Người vào bắt gôn',
+  chonCauThu: '— chọn —',
+  thucHien: 'Cho vào bắt gôn',
+  conLuotThay: (conLuot: number) =>
+    `Còn ${conLuot} lượt thay: đưa thủ môn dự bị vào thay một cầu thủ khác, rồi cho người đó bắt gôn.`,
+  hetLuotThay: 'Đã hết lượt thay, nên phải dùng một cầu thủ trên sân.',
+  canTamDung: 'Tạm dừng trận để chọn người vào bắt gôn.',
+} as const
+
+export const SO_SANH_TRAN = {
+  tieuDe: 'So với lần chạy trước cùng mã trận',
+  moTa: 'Kết quả cũ chỉ giữ trong phiên làm việc này.',
+  cotChiTieu: 'Chỉ tiêu',
+  cotLanTruoc: 'Lần trước',
+  cotLanNay: 'Lần này',
+  tiSo: 'Tỉ số',
+  cuSut: 'Số cú sút',
+  coHoi: 'Cơ hội rõ ràng',
+  hai: (nha: number, khach: number) => `${nha} – ${khach}`,
 } as const

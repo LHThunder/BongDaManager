@@ -1,5 +1,13 @@
 import { create } from 'zustand'
 import type { TrangThaiTran } from '../engine/tran'
+
+/** Tóm tắt một lần chạy, đủ để so hai lần cùng mã trận (AC-8.12). */
+export interface KetQuaDaChay {
+  readonly maTran: string
+  readonly tiSo: { readonly nha: number; readonly khach: number }
+  readonly cuSut: { readonly nha: number; readonly khach: number }
+  readonly coHoi: { readonly nha: number; readonly khach: number }
+}
 import type { Player, Tactic } from '../domain/types'
 import type { LoiUngDung } from '../services/errors'
 import type { TeamSummary } from '../services/teamRepo'
@@ -70,6 +78,14 @@ export interface AppState {
   */
   readonly tranDangChay: boolean
   datTranDangChay(dangChay: boolean): void
+
+  /*
+    Kết quả lần chạy trước của cùng một mã trận, để so sánh (AC-8.12).
+    Chỉ giữ TRONG PHIÊN làm việc — phần bền thuộc Giai đoạn 4 (quyết định
+    D31), nên đóng app là mất.
+  */
+  readonly ketQuaTruoc: KetQuaDaChay | null
+  datKetQuaTruoc(kq: KetQuaDaChay | null): void
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -141,6 +157,9 @@ export const useAppStore = create<AppState>((set) => ({
 
   tranDangChay: false,
   datTranDangChay: (tranDangChay) => set({ tranDangChay }),
+
+  ketQuaTruoc: null,
+  datKetQuaTruoc: (ketQuaTruoc) => set({ ketQuaTruoc }),
 }))
 
 /** Trạng thái ban đầu, dùng để test dọn store giữa các lần chạy. */
@@ -157,5 +176,6 @@ export function datLaiStore(): void {
     doiCuaChienThuat: null,
     tran: null,
     tranDangChay: false,
+    ketQuaTruoc: null,
   })
 }

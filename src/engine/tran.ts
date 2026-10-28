@@ -1,7 +1,9 @@
 import { laySoDo } from '../domain/formations'
 import { kiemTraBatDauDuoc, LoiCauHinhTran } from './batDau'
-import type { RoleId } from '../domain/roles'
+import { laThuMonThucThu } from '../domain/misplacement'
+import { vaiTroApDungDuoc, type RoleId } from '../domain/roles'
 import type { PositionId, Tactic } from '../domain/types'
+import type { BoChiThi } from '../domain/instructions'
 import { heSoCuaBo, type HeSoChiThi } from './chiThi'
 import { chayChuoiBong, type KetQuaChuoi } from './chuoiBong'
 import { hatGiongTuMaTran, taoRngTuHatGiong, type RngCoTrangThai } from './rng'
@@ -17,8 +19,8 @@ import {
   type UngVienSuKien,
 } from './suKien'
 import {
-
   laLoiNghiemTrong,
+  daRoiSanVivThe,
   rutThe,
   xacSuatAnThe,
   type TheDaNhan,
@@ -56,6 +58,11 @@ export interface CauHinhTran {
   readonly khach: DangKyBen
   /** true thì tắt hoàn toàn lợi thế sân nhà (AC-8.14). */
   readonly sanTrungLap: boolean
+  /**
+   * Bên mà người dùng điều khiển; chỉ bên này can thiệp được giữa trận
+   * (AC-9.8). Không khai thì mặc định là đội chủ nhà.
+   */
+  readonly doiCuaNguoiDung?: BenDoi
 }
 
 export interface ThongKeBen {
@@ -88,12 +95,51 @@ export interface BenTran {
   readonly thongKe: ThongKeBen
 }
 
+export interface ThayNguoi {
+  readonly loai: 'thay-nguoi'
+  readonly ra: string
+  readonly vao: string
+}
+
+export interface DoiChiThi {
+  readonly loai: 'doi-chi-thi'
+  readonly chiThi: BoChiThi
+}
+
+export interface VaoBatGon {
+  readonly loai: 'vao-bat-gon'
+  readonly playerId: string
+}
+
+export interface DoiVaiTro {
+  readonly loai: 'doi-vai-tro'
+  readonly slotId: string
+  readonly roleId: RoleId
+}
+
+export type NoiDungCanThiep =
+  | ThayNguoi
+  | DoiChiThi
+  | DoiVaiTro
+  | VaoBatGon
+
 export interface CanThiep {
   readonly phut: number
   readonly doi: BenDoi
-  readonly loai: 'thay-nguoi' | 'doi-chi-thi' | 'doi-vai-tro'
-  readonly chiTiet: unknown
+  readonly noiDung: NoiDungCanThiep
 }
+
+export type LyDoTuChoiCanThiep =
+  | 'tran-da-ket-thuc'
+  | 'khong-phai-doi-cua-ban'
+  | 'het-luot-thay'
+  | 'cau-thu-khong-tren-san'
+  | 'cau-thu-khong-trong-du-bi'
+  | 'da-nhan-the-do'
+  | 'o-khong-ton-tai'
+  | 'vai-tro-khong-phu-hop'
+  | 'khung-thanh-da-co-thu-mon'
+  | 'cau-thu-da-bat-gon'
 
 export interface TrangThaiTran {
   readonly maTran: string
@@ -102,6 +148,8 @@ export interface TrangThaiTran {
   readonly phut: number
   readonly buGio: { readonly hiep1: number; readonly hiep2: number }
   readonly sanTrungLap: boolean
+  /** Bên mà người dùng điều khiển; chỉ bên này can thiệp được (AC-9.8). */
+  readonly doiCuaNguoiDung: BenDoi
   readonly tiSo: TiSo
   readonly ben: { readonly nha: BenTran; readonly khach: BenTran }
   readonly ungVien: readonly UngVienSuKien[]
@@ -199,6 +247,7 @@ export function taoTran(cauHinh: CauHinhTran): TrangThaiTran {
     phut: 0,
     buGio: { hiep1, hiep2 },
     sanTrungLap: cauHinh.sanTrungLap,
+    doiCuaNguoiDung: cauHinh.doiCuaNguoiDung ?? 'nha',
     tiSo: { nha: 0, khach: 0 },
     ben: { nha: taoBen(cauHinh.nha), khach: taoBen(cauHinh.khach) },
     ungVien: [],
@@ -277,6 +326,36 @@ function doiHinhTrenSan(ben: BenTran): readonly ViTriTrenSan[] {
     })
   }
   return ra
+}
+
+/** slotId của ô thủ môn trong sơ đồ đang dùng; null nếu sơ đồ không có. */
+function slotThuMon(ben: BenTran): string | null {
+  const o = laySoDo(ben.chienThuatHienTai.formationId).oVien.find(
+    (x) => x.viTri === 'GK',
+  )
+  return o?.slotId ?? null
+}
+
+/**
+ * Ai đang đứng trong khung thành, hay null khi khung bỏ trống (mục 5 của
+ * spec: thủ môn nhận thẻ đỏ thì ô thủ môn còn tên người đã rời sân).
+ *
+ * Lọc theo `trenSan` vì thẻ đỏ gỡ người khỏi sân mà không đụng bộ chiến thuật.
+ */
+export function nguoiTrongKhung(ben: BenTran): string | null {
+  const slot = slotThuMon(ben)
+  if (slot === null) return null
+  const o = ben.chienThuatHienTai.oVien.find((x) => x.slotId === slot)
+  if (!o?.playerId || !ben.trenSan.includes(o.playerId)) return null
+  return o.playerId
+}
+
+/** true khi người đang bắt gôn là thủ môn thực thụ, không phải người chữa cháy. */
+export function khungThanhCoThuMon(ben: BenTran): boolean {
+  const id = nguoiTrongKhung(ben)
+  if (id === null) return false
+  const hoSo = ben.cacCauThu.find((c) => c.id === id)
+  return hoSo ? laThuMonThucThu(hoSo.positions) : false
 }
 
 function mucPressingCuaBen(ben: BenTran): MucPressing {
@@ -475,8 +554,209 @@ function moiKietSuc(ben: BenTran): readonly string[] {
   )
 }
 
-export function buocTiep(tt: TrangThaiTran): TrangThaiTran {
-  if (tt.ketThuc) return tt
+// ---------------------------------------------------------------------------
+// Can thiệp giữa trận (AC-9.5 → AC-9.8, quyết định D30 và D30b)
+// ---------------------------------------------------------------------------
+
+export type KetQuaCanThiep =
+  | { readonly thanhCong: true; readonly trangThai: TrangThaiTran }
+  | { readonly thanhCong: false; readonly lyDo: LyDoTuChoiCanThiep }
+
+function benTheoDoi(tt: TrangThaiTran, doi: BenDoi): BenTran {
+  return doi === 'nha' ? tt.ben.nha : tt.ben.khach
+}
+
+function datBen(
+  tt: TrangThaiTran,
+  doi: BenDoi,
+  ben: BenTran,
+): TrangThaiTran {
+  return {
+    ...tt,
+    ben: doi === 'nha' ? { ...tt.ben, nha: ben } : { ...tt.ben, khach: ben },
+  }
+}
+
+/** Kiểm một can thiệp có hợp lệ không, KHÔNG đổi gì. */
+function kiemTraCanThiep(
+  tt: TrangThaiTran,
+  canThiep: CanThiep,
+): LyDoTuChoiCanThiep | null {
+  if (tt.ketThuc) return 'tran-da-ket-thuc'
+  if (canThiep.doi !== tt.doiCuaNguoiDung) return 'khong-phai-doi-cua-ban'
+
+  const ben = benTheoDoi(tt, canThiep.doi)
+  const nd = canThiep.noiDung
+
+  if (nd.loai === 'thay-nguoi') {
+    if (ben.soLanThay >= SO_LAN_THAY_TOI_DA) return 'het-luot-thay'
+    if (!ben.trenSan.includes(nd.ra)) return 'cau-thu-khong-tren-san'
+    if (!ben.duBi.includes(nd.vao)) return 'cau-thu-khong-trong-du-bi'
+    if (daRoiSanVivThe(ben.the[nd.vao])) return 'da-nhan-the-do'
+    return null
+  }
+
+  if (nd.loai === 'vao-bat-gon') {
+    if (!ben.trenSan.includes(nd.playerId)) return 'cau-thu-khong-tren-san'
+    if (nguoiTrongKhung(ben) === nd.playerId) return 'cau-thu-da-bat-gon'
+    if (khungThanhCoThuMon(ben)) return 'khung-thanh-da-co-thu-mon'
+    return null
+  }
+
+  if (nd.loai === 'doi-vai-tro') {
+    const soDo = laySoDo(ben.chienThuatHienTai.formationId)
+    const o = soDo.oVien.find((x) => x.slotId === nd.slotId)
+    if (!o) return 'o-khong-ton-tai'
+    if (!vaiTroApDungDuoc(nd.roleId, o.viTri)) return 'vai-tro-khong-phu-hop'
+    return null
+  }
+
+  return null
+}
+
+/** Áp một can thiệp đã qua kiểm, trả về bên đã đổi. */
+function apVaoBen(ben: BenTran, noiDung: NoiDungCanThiep): BenTran {
+  switch (noiDung.loai) {
+    case 'thay-nguoi':
+      return {
+        ...ben,
+        trenSan: ben.trenSan.map((id) =>
+          id === noiDung.ra ? noiDung.vao : id,
+        ),
+        duBi: ben.duBi.filter((id) => id !== noiDung.vao),
+        soLanThay: ben.soLanThay + 1,
+        chienThuatHienTai: {
+          ...ben.chienThuatHienTai,
+          oVien: ben.chienThuatHienTai.oVien.map((o) =>
+            o.playerId === noiDung.ra ? { ...o, playerId: noiDung.vao } : o,
+          ),
+        },
+      }
+
+    case 'doi-chi-thi':
+      return {
+        ...ben,
+        chienThuatHienTai: {
+          ...ben.chienThuatHienTai,
+          chiThi: noiDung.chiThi,
+        },
+      }
+
+    case 'doi-vai-tro':
+      return {
+        ...ben,
+        chienThuatHienTai: {
+          ...ben.chienThuatHienTai,
+          oVien: ben.chienThuatHienTai.oVien.map((o) =>
+            o.slotId === noiDung.slotId
+              ? { ...o, roleId: noiDung.roleId }
+              : o,
+          ),
+        },
+      }
+
+    /*
+      Đưa một người trên sân vào bắt gôn (mục 5 của spec).
+
+      Là một phép ĐỔI CHỖ, không phải phép gán: người đang bắt gôn — nếu còn
+      trên sân — nhận lại ô của người vừa vào khung. Nhờ vậy cùng một can
+      thiệp dùng được cho cả hai bước: lúc thủ môn vừa bị thẻ đỏ (khung trống,
+      ô của người chữa cháy bỏ trống theo, đúng vì đội chỉ còn 10 người), và
+      lúc thủ môn dự bị đã vào sân rồi cần nhận lại đôi găng.
+
+      Không đổi `roleId` của ô: vai trò là của Ô chứ không của người (AC-6.6).
+      Cầu thủ sân đứng trong khung vì thế bị trừ hai lần — nền sức mạnh tính
+      theo ba chỉ số thủ môn mà họ không có, cộng mức sai vị trí `nang` —
+      đúng như mục 5 đòi, và không cần thêm luật nào ở đây.
+    */
+    case 'vao-bat-gon': {
+      const slotGon = slotThuMon(ben)
+      if (slotGon === null) return ben
+
+      const dangBat = nguoiTrongKhung(ben)
+      const oCu = ben.chienThuatHienTai.oVien.find(
+        (o) => o.playerId === noiDung.playerId,
+      )
+
+      return {
+        ...ben,
+        chienThuatHienTai: {
+          ...ben.chienThuatHienTai,
+          oVien: ben.chienThuatHienTai.oVien.map((o) => {
+            if (o.slotId === slotGon) {
+              return { ...o, playerId: noiDung.playerId }
+            }
+            if (oCu && o.slotId === oCu.slotId) {
+              return { ...o, playerId: dangBat }
+            }
+            return o
+          }),
+        },
+      }
+    }
+  }
+}
+
+/**
+ * Xếp một can thiệp vào hàng đợi (quyết định D30b).
+ *
+ * KHÔNG đổi thế trận ngay: `buocTiep` áp hết hàng đợi ở ĐẦU phút kế tiếp,
+ * trước khi mô phỏng phút đó. Lúc chạy trực tiếp và lúc phát lại đi qua cùng
+ * một đường, nên thứ tự tiêu thụ `Rng` không bao giờ lệch — nếu áp tức thì
+ * thì người dùng bấm giữa phút X còn bản phát lại áp ở đầu phút X, và dòng
+ * sự kiện sẽ khác đi.
+ */
+export function apDungCanThiep(
+  tt: TrangThaiTran,
+  canThiep: CanThiep,
+): KetQuaCanThiep {
+  const lyDo = kiemTraCanThiep(tt, canThiep)
+  if (lyDo) return { thanhCong: false, lyDo }
+
+  return {
+    thanhCong: true,
+    trangThai: {
+      ...tt,
+      canThiep: [...tt.canThiep, canThiep],
+      canThiepChoAp: [...tt.canThiepChoAp, canThiep],
+    },
+  }
+}
+
+/** Áp hết hàng đợi ở đầu phút, và trả về những dòng sự kiện phát sinh. */
+function apHangDoi(tt: TrangThaiTran): {
+  readonly trangThai: TrangThaiTran
+  readonly daThay: readonly CanThiep[]
+} {
+  if (tt.canThiepChoAp.length === 0) {
+    return { trangThai: tt, daThay: [] }
+  }
+
+  let hienTai = tt
+  for (const ct of tt.canThiepChoAp) {
+    // Kiểm lại ngay trước khi áp: giữa lúc xếp hàng và lúc áp, cầu thủ có
+    // thể đã nhận thẻ đỏ.
+    if (kiemTraCanThiep(hienTai, ct)) continue
+    hienTai = datBen(
+      hienTai,
+      ct.doi,
+      apVaoBen(benTheoDoi(hienTai, ct.doi), ct.noiDung),
+    )
+  }
+
+  return {
+    trangThai: { ...hienTai, canThiepChoAp: [] },
+    daThay: tt.canThiepChoAp.filter((ct) => ct.noiDung.loai === 'thay-nguoi'),
+  }
+}
+
+export const SO_LAN_THAY_TOI_DA = 5
+
+export function buocTiep(ttVao: TrangThaiTran): TrangThaiTran {
+  if (ttVao.ketThuc) return ttVao
+
+  // Can thiệp có hiệu lực từ ĐẦU phút này, trước khi mô phỏng (D30b).
+  const { trangThai: tt, daThay } = apHangDoi(ttVao)
 
   const rng = taoRngTuHatGiong(tt.hatGiong)
   const phut = tt.phut + 1
@@ -506,6 +786,12 @@ export function buocTiep(tt: TrangThaiTran): TrangThaiTran {
         diem,
       ),
     )
+  }
+
+  // Thay người vừa áp được ghi vào dòng sự kiện tại đúng phút này (AC-9.5).
+  for (const ct of daThay) {
+    if (ct.noiDung.loai !== 'thay-nguoi') continue
+    themUngVien('thay-nguoi', ct.doi, [ct.noiDung.vao, ct.noiDung.ra], null, 100)
   }
 
   for (let i = 0; i < SO_CHUOI_MOI_PHUT; i += 1) {

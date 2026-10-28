@@ -7,7 +7,7 @@ import {
   SO_CAU_THU_DU_BI,
   type LyDoKhongBatDau,
 } from '../../engine/batDau'
-import { taoMaTran } from '../../engine/rng'
+import { DO_DAI_MA_TRAN, laMaTranHopLe, taoMaTran } from '../../engine/rng'
 import type { CauHinhTran, DangKyBen } from '../../engine/tran'
 import { useMatch } from '../../hooks/useMatch'
 import { useTeams } from '../../hooks/useTeams'
@@ -93,7 +93,19 @@ export function ChonCapDau({ onQuayLai, onDaBatDau }: Props) {
   const [idNha, datIdNha] = useState('')
   const [idKhach, datIdKhach] = useState('')
   const [sanTrungLap, datSanTrungLap] = useState(false)
-  const [maTran, datMaTran] = useState(() => taoMaTran(RNG_THAT))
+  /*
+    Mã trận SỬA ĐƯỢC, và mở ra với mã của lần chạy trước nếu phiên này đã chạy
+    một trận (AC-8.11, AC-8.12).
+
+    Nếu màn này chỉ sinh mã mới mỗi lần mở thì người dùng không bao giờ chạy
+    lại được cùng một mã, nên bảng so sánh của AC-8.12 không có đường nào tới
+    được — engine tái lập đúng nhưng người dùng không với tới.
+  */
+  const maLanTruoc = useAppStore((s) => s.ketQuaTruoc?.maTran)
+  const [maTran, datMaTran] = useState(
+    () => maLanTruoc ?? taoMaTran(RNG_THAT),
+  )
+  const maHopLe = laMaTranHopLe(maTran)
   const [duLieu, datDuLieu] = useState<Record<string, DuLieuDoi>>({})
   const [dangKy, datDangKy] = useState<
     Record<string, Record<string, VaiTroDangKy>>
@@ -307,9 +319,25 @@ export function ChonCapDau({ onQuayLai, onDaBatDau }: Props) {
                 {CHON_CAP_DAU.nhanMaTran}
               </span>
               <span className="mt-1 flex items-center gap-2">
-                <code className="rounded bg-slate-100 px-2 py-1 font-mono text-sm">
-                  {maTran}
-                </code>
+                <input
+                  type="text"
+                  value={maTran}
+                  onChange={(e) =>
+                    datMaTran(
+                      e.target.value.toUpperCase().slice(0, DO_DAI_MA_TRAN),
+                    )
+                  }
+                  maxLength={DO_DAI_MA_TRAN}
+                  spellCheck={false}
+                  autoComplete="off"
+                  aria-label={CHON_CAP_DAU.nhanMaTran}
+                  aria-invalid={!maHopLe}
+                  className={`w-32 rounded border px-2 py-1 font-mono text-sm uppercase focus:outline-none focus:ring-2 focus:ring-blue-300 ${
+                    maHopLe
+                      ? 'border-slate-300 focus:border-blue-600'
+                      : 'border-red-400 bg-red-50'
+                  }`}
+                />
                 <button
                   type="button"
                   onClick={() => datMaTran(taoMaTran(RNG_THAT))}
@@ -321,6 +349,14 @@ export function ChonCapDau({ onQuayLai, onDaBatDau }: Props) {
               <span className="mt-1 block text-xs text-slate-500">
                 {CHON_CAP_DAU.moTaMaTran}
               </span>
+              {!maHopLe && (
+                <span
+                  role="status"
+                  className="mt-1 block text-xs font-medium text-red-700"
+                >
+                  {CHON_CAP_DAU.maTranKhongHopLe}
+                </span>
+              )}
             </div>
           </div>
 
@@ -362,7 +398,7 @@ export function ChonCapDau({ onQuayLai, onDaBatDau }: Props) {
           <button
             type="button"
             onClick={batDau}
-            disabled={idNha === '' || idKhach === ''}
+            disabled={idNha === '' || idKhach === '' || !maHopLe}
             className="mt-4 rounded-md bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:cursor-not-allowed disabled:bg-slate-300"
           >
             {CHON_CAP_DAU.batDau}

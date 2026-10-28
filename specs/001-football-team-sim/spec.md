@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **ID** | `001-football-team-sim` |
-| **Status** | Planned — Giai đoạn 1 và Giai đoạn 2 đã hiện thực và kiểm chứng (54/99 AC tick, trong đó AC-5.7 và AC-1.5 mới xong một phần); Giai đoạn 3 đã có plan (`plan.md` PHẦN III); Giai đoạn 4 chưa lập plan |
+| **Status** | Planned — Giai đoạn 1, 2 và 3 đã hiện thực và kiểm chứng (84/99 AC tick; AC-1.5 còn phần lịch sử trận đấu). 15 AC chưa tick: AC-10.x và AC-11.x thuộc Giai đoạn 4, AC-4.2 chờ lịch sử trận đấu, AC-4.7 chưa quan sát được trên giao diện. Giai đoạn 4 chưa lập plan |
 | **Created** | 2026-10-26 |
 | **Clarified** | 2026-10-26 |
 | **Amended** | 2026-10-26 — khớp constitution v1.0.0 (P1); và sửa theo kết quả `/analyze` (AC-2.1b, AC-4.8, AC-4.9); xem mục 10 |
@@ -71,7 +71,7 @@ Là một **fan bóng đá**, tôi muốn **tạo không giới hạn số độ
 - [x] AC-1.2 — KHI người dùng tạo đội với tên không rỗng THÌ hệ thống PHẢI tạo đội đó và đưa người dùng vào trang quản lý đội vừa tạo.
 - [x] AC-1.3 — KHI người dùng tạo đội mà để trống tên THÌ hệ thống PHẢI từ chối tạo và chỉ rõ trường tên đang thiếu.
 - [x] AC-1.4 — KHI đã có ít nhất một đội THÌ hệ thống PHẢI hiển thị danh sách tất cả các đội, mỗi đội kèm tên, logo (hoặc hình thay thế) và số lượng cầu thủ hiện có.
-- [x] AC-1.5 *(trừ lịch sử trận đấu)* — KHI người dùng đổi tên một đội THÌ hệ thống PHẢI cập nhật tên đó ở mọi nơi đang hiển thị đội (danh sách đội, trang chiến thuật, lịch sử trận đấu). **→ Giai đoạn 2 đóng nốt phần trang chiến thuật: trang đọc tên đội từ store dùng chung, không giữ bản sao riêng. Lịch sử trận đấu thuộc GĐ3**
+- [x] AC-1.5 *(trừ lịch sử trận đấu)* — KHI người dùng đổi tên một đội THÌ hệ thống PHẢI cập nhật tên đó ở mọi nơi đang hiển thị đội (danh sách đội, trang chiến thuật, lịch sử trận đấu). **→ Giai đoạn 2 đóng nốt phần trang chiến thuật: trang đọc tên đội từ store dùng chung, không giữ bản sao riêng. Lịch sử trận đấu thuộc GĐ4 (AC-11.7), không phải GĐ3 — ghi chú cũ ghi nhầm, xem `plan.md` mục III.0**
 - [x] AC-1.6 — KHI người dùng yêu cầu xoá một đội THÌ hệ thống PHẢI hỏi xác nhận có nêu tên đội và số cầu thủ sẽ mất, và CHỈ xoá sau khi người dùng xác nhận. **→ Kiểm lại ở Giai đoạn 2: xoá đội dọn cả chiến thuật của đội đó.**
 - [x] AC-1.7 — KHI người dùng tạo đội trùng tên với đội đã có THÌ hệ thống PHẢI cảnh báo trùng tên nhưng VẪN cho phép tiếp tục nếu người dùng xác nhận.
 
@@ -100,9 +100,9 @@ Là một **fan**, tôi muốn **gắn ảnh chân dung cho cầu thủ, logo v�
 - [x] AC-3.2 — KHI ảnh người dùng chọn lớn hơn giới hạn ở mục 6 THÌ hệ thống PHẢI tự giảm kích thước ảnh xuống trong giới hạn mà không cần người dùng làm gì thêm.
 - [x] AC-3.3 — KHI người dùng chọn tệp không phải ảnh, hoặc ảnh bị lỗi không đọc được THÌ hệ thống PHẢI thông báo rõ tệp không dùng được và giữ nguyên ảnh cũ (nếu có).
 - [x] AC-3.4 — KHI một cầu thủ chưa có ảnh THÌ hệ thống PHẢI hiển thị hình thay thế dạng tròn gồm các chữ cái đầu của tên cầu thủ trên nền màu áo chính của đội.
-- [ ] AC-3.5 — KHI người dùng gắn logo cho đội THÌ hệ thống PHẢI hiển thị logo đó ở danh sách đội, trang đội, trang chiến thuật và trong màn hình trận đấu. **→ Giai đoạn 1: logo đã hiện ở danh sách đội và trang đội; màn hình trận đấu thuộc GĐ3**
+- [x] AC-3.5 — KHI người dùng gắn logo cho đội THÌ hệ thống PHẢI hiển thị logo đó ở danh sách đội, trang đội, trang chiến thuật và trong màn hình trận đấu. **→ Giai đoạn 3 đóng nốt: logo hai đội hiện trên màn hình trận, cạnh tỉ số (kiểm tay ngày 2026-10-28 với một logo thật)**
 - [x] AC-3.6 — KHI người dùng chọn màu áo chính và màu áo phụ cho đội THÌ hệ thống PHẢI dùng màu áo chính để nhuộm các thành phần nhận diện của đội đó.
-- [ ] AC-3.7 — KHI hai đội gặp nhau mà màu áo chính của hai đội quá giống nhau THÌ hệ thống PHẢI tự chuyển một đội sang màu áo phụ và nói rõ việc đổi đó cho người dùng. **→ Giai đoạn 1: đã cảnh báo khi người dùng chọn màu trùng đội khác; việc tự đổi sang áo phụ trong trận thuộc GĐ3**
+- [x] AC-3.7 — KHI hai đội gặp nhau mà màu áo chính của hai đội quá giống nhau THÌ hệ thống PHẢI tự chuyển một đội sang màu áo phụ và nói rõ việc đổi đó cho người dùng. **→ Giai đoạn 3 đóng nốt: màn chọn cặp đấu tự chuyển một đội sang áo phụ và nói rõ đội nào đổi (kiểm tay ngày 2026-10-28 với hai đội cùng màu chính)**
 - [x] AC-3.8 — KHI người dùng chọn một màu áo khiến chữ trên nền màu đó khó đọc THÌ hệ thống PHẢI tự chọn màu chữ tương phản đủ theo mục 6, không để người dùng phải tự xử lý.
 
 ### US-4: Lưu trữ, sao lưu và phục hồi dữ liệu
@@ -110,7 +110,7 @@ Là một **người đã bỏ công nhập liệu**, tôi muốn **dữ liệu 
 
 **Acceptance criteria:**
 - [x] AC-4.1 — KHI người dùng tạo hoặc sửa bất kỳ dữ liệu nào THÌ hệ thống PHẢI tự lưu lại mà không cần bấm nút Lưu.
-- [ ] AC-4.2 — KHI người dùng đóng ứng dụng rồi mở lại trên cùng máy, cùng trình duyệt THÌ toàn bộ đội, cầu thủ, ảnh, chiến thuật và lịch sử trận đấu PHẢI còn nguyên. **→ Giai đoạn 1: đội, cầu thủ, ảnh và chiến thuật đã tồn tại qua lần mở lại; lịch sử trận đấu thuộc GĐ3**
+- [ ] AC-4.2 — KHI người dùng đóng ứng dụng rồi mở lại trên cùng máy, cùng trình duyệt THÌ toàn bộ đội, cầu thủ, ảnh, chiến thuật và lịch sử trận đấu PHẢI còn nguyên. **→ Giai đoạn 1: đội, cầu thủ, ảnh và chiến thuật đã tồn tại qua lần mở lại; lịch sử trận đấu thuộc GĐ4 (AC-11.7), không phải GĐ3 — ghi chú cũ ghi nhầm, xem `plan.md` mục III.0. Giai đoạn 3 không tick được AC này, và đó là đúng**
 - [x] AC-4.3 — KHI người dùng yêu cầu xuất dữ liệu THÌ hệ thống PHẢI tạo ra một tệp duy nhất chứa toàn bộ đội, cầu thủ, ảnh, chiến thuật và lịch sử trận đấu.
 - [x] AC-4.4 — KHI người dùng nhập lại tệp đã xuất trên một máy hoặc trình duyệt khác THÌ toàn bộ dữ liệu PHẢI hiện lên đúng như lúc xuất, kể cả ảnh. **→ Kiểm lại ở Giai đoạn 2 trên tệp v3: chiến thuật và bộ có tên cũng trở lại đúng.**
 - [x] AC-4.5 — KHI người dùng nhập một tệp không đúng định dạng hoặc bị hỏng THÌ hệ thống PHẢI từ chối, nói rõ lý do, và giữ nguyên dữ liệu đang có — không được xoá hay ghi đè một phần. **→ Kiểm lại ở Giai đoạn 2: tệp v3 có ô trỏ tới cầu thủ đội khác bị từ chối, dữ liệu đang có không đổi.**
@@ -133,7 +133,7 @@ Là một **HLV**, tôi muốn **chọn sơ đồ và kéo cầu thủ vào từ
 - [x] AC-5.4 — KHI người dùng kéo cầu thủ vào một ô đã có người THÌ hệ thống PHẢI đổi chỗ hai cầu thủ cho nhau chứ không làm mất cầu thủ nào.
 - [x] AC-5.5 — KHI một cầu thủ được xếp vào ô mà vị trí của ô đó không nằm trong các vị trí sở trường của cầu thủ THÌ hệ thống PHẢI đánh dấu ô đó ngay trên sơ đồ theo đúng một trong ba mức: **sai nhẹ** (cùng tuyến, chỉ lệch trái/phải, ví dụ hậu vệ phải đá hậu vệ trái), **sai vừa** (lệch một tuyến, ví dụ tiền vệ trụ đá trung vệ), **sai nặng** (lệch hai tuyến hoặc hơn, hoặc người không phải thủ môn đứng trong khung); VÀ PHẢI cho người dùng thấy mức đó cùng mức trừ hiệu suất tương ứng.
 - [x] AC-5.6 — KHI người dùng kéo một cầu thủ ra khỏi sân THÌ hệ thống PHẢI trả cầu thủ đó về danh sách ngoài sân và để ô vị trí trống.
-- [x] AC-5.7 *(một phần)* — KHI đội hình chưa đủ 11 cầu thủ, hoặc không có cầu thủ nào ở vị trí thủ môn, hoặc có cầu thủ trong đội hình còn hồ sơ chưa hoàn tất theo AC-2.10 THÌ hệ thống PHẢI nói rõ còn thiếu gì và chặn việc bắt đầu giả lập trận đấu. **Phần đã xong (Giai đoạn 2):** dải tình trạng nêu đúng từng lý do — thiếu người, thiếu thủ môn, có cầu thủ hồ sơ chưa hoàn tất. **Phần còn lại (Giai đoạn 3):** chặn bắt đầu trận, vì hiện chưa có trận nào để chặn.
+- [x] AC-5.7 — KHI đội hình chưa đủ 11 cầu thủ, hoặc không có cầu thủ nào ở vị trí thủ môn, hoặc có cầu thủ trong đội hình còn hồ sơ chưa hoàn tất theo AC-2.10 THÌ hệ thống PHẢI nói rõ còn thiếu gì và chặn việc bắt đầu giả lập trận đấu. **Phần đã xong (Giai đoạn 2):** dải tình trạng nêu đúng từng lý do — thiếu người, thiếu thủ môn, có cầu thủ hồ sơ chưa hoàn tất. **Giai đoạn 3 đóng nốt:** màn chọn cặp đấu chặn nút bắt đầu và nêu từng lý do kèm tên đội (kiểm tay ngày 2026-10-28 với một đội chỉ có 5 cầu thủ).
 - [x] AC-5.8 — KHI người dùng chuyển sang một sơ đồ khác trong lúc đã xếp người THÌ hệ thống PHẢI giữ lại những cầu thủ đó và tự xếp họ vào các ô của sơ đồ mới sao cho khớp vị trí sở trường nhiều nhất có thể, rồi nêu rõ những ai bị đẩy ra ngoài hoặc bị xếp sai vị trí.
 - [x] AC-5.9 — KHI người dùng sắp xếp đội hình mà không dùng chuột THÌ hệ thống PHẢI cho phép đặt và đổi chỗ cầu thủ chỉ bằng bàn phím.
 - [x] AC-5.10 — KHI người dùng rời trang chiến thuật rồi quay lại THÌ sơ đồ, vị trí từng cầu thủ, vai trò và chỉ thị PHẢI còn nguyên như lúc rời đi.
@@ -168,37 +168,37 @@ Là một **HLV**, tôi muốn **ra các chỉ thị chung cho cả đội**, đ
 Là một **người dùng**, tôi muốn **cho hai đội của mình đấu với nhau và nhận một kết quả có cơ sở**, để **biết đội và chiến thuật của tôi mạnh yếu ra sao**.
 
 **Acceptance criteria:**
-- [ ] AC-8.1 — KHI người dùng chọn hai đội khác nhau và bắt đầu trận THÌ hệ thống PHẢI chạy giả lập hai hiệp 45 phút, mỗi hiệp có thêm 1–5 phút bù giờ, và cho ra tỉ số cuối cùng; trận hoà PHẢI kết thúc là hoà.
-- [ ] AC-8.2 — KHI giả lập chạy THÌ hệ thống PHẢI sinh ra một dòng sự kiện theo phút, trong đó mỗi bàn thắng, cơ hội rõ ràng và tình huống đáng chú ý đều gắn với tên cầu thủ cụ thể đang có mặt trên sân.
-- [ ] AC-8.3 — KHI một đội được xếp chỉ thị tấn công biên THÌ số tình huống tạt cánh của đội đó, tính trung bình qua 10 lần giả lập, PHẢI nhiều hơn ít nhất 50% so với cùng đội đó xếp chỉ thị tấn công trung lộ, với cùng đội hình và cùng đối thủ.
-- [ ] AC-8.4 — KHI một đội được xếp pressing cường độ cao THÌ đội đó PHẢI giành lại bóng ở khu vực cao trên sân nhiều hơn, VÀ ĐỒNG THỜI để đối thủ có nhiều tình huống thoát xuống phía sau hàng phòng ngự hơn, so với khi đội đó pressing thấp.
-- [ ] AC-8.5 — KHI một cầu thủ bị xếp sai vị trí THÌ hiệu suất đóng góp của cầu thủ đó trong trận PHẢI thấp hơn so với khi cùng cầu thủ đó được xếp đúng vị trí sở trường, mọi yếu tố khác giữ nguyên; VÀ mức giảm PHẢI nặng dần theo ba mức sai ở AC-5.5.
-- [ ] AC-8.6 — KHI trận đấu tiến về cuối THÌ mức thể lực của từng cầu thủ trên sân PHẢI giảm dần theo thời gian, tốc độ giảm phụ thuộc chỉ số Thể lực của cầu thủ và cường độ pressing của đội.
-- [ ] AC-8.7 — KHI một cầu thủ xuống dưới một mức thể lực nhất định THÌ hiệu suất của cầu thủ đó trong các tình huống tiếp theo PHẢI giảm đi, VÀ hệ thống PHẢI báo cho người dùng biết cầu thủ đang kiệt sức.
-- [ ] AC-8.8 — KHI đội A có mọi cầu thủ cao hơn đội B ít nhất 5 điểm ở mọi chỉ số, cả hai đội đều không có ai bị xếp sai vị trí và đều dùng bộ chỉ thị cân bằng mặc định THÌ qua 10 lần giả lập cùng cặp đấu đó, đội A PHẢI thắng ít nhất 7 lần.
-- [ ] AC-8.9 — KHI người dùng cố bắt đầu trận mà một trong hai đội chưa đủ điều kiện ở AC-5.7 THÌ hệ thống PHẢI chặn lại và chỉ rõ đội nào thiếu gì.
-- [ ] AC-8.10 — KHI người dùng chọn cùng một đội cho cả hai phía THÌ hệ thống PHẢI không cho bắt đầu trận.
-- [ ] AC-8.11 — KHI một trận đấu được giả lập THÌ hệ thống PHẢI sinh và hiển thị một "mã trận" cho trận đó, VÀ PHẢI ghi lại mọi can thiệp giữa trận của người dùng (thay người, đổi chỉ thị, đổi vai trò) kèm phút thực hiện; VÀ KHI người dùng giả lập lại với cùng mã trận, cùng hai đội, cùng chiến thuật xuất phát, cùng đội chủ nhà và cùng chuỗi can thiệp đó THÌ kết quả và toàn bộ dòng sự kiện PHẢI giống y nguyên lần trước.
-- [ ] AC-8.12 — KHI người dùng giả lập lại trên cùng một mã trận nhưng đã đổi chiến thuật của một đội THÌ hệ thống PHẢI chạy trận đó và cho người dùng so sánh kết quả mới với kết quả cũ của cùng mã trận.
-- [ ] AC-8.13 — KHI một cầu thủ phạm lỗi trong trận THÌ hệ thống PHẢI có khả năng rút thẻ vàng, với xác suất cao hơn cho cầu thủ có Quyết đoán thấp và cho đội đang pressing cường độ cao; KHI một cầu thủ nhận thẻ vàng thứ hai hoặc một thẻ đỏ trực tiếp THÌ cầu thủ đó PHẢI rời sân và đội đó PHẢI đá thiếu người cho tới hết trận, không được thay người bù vào.
-- [ ] AC-8.14 — KHI người dùng chọn cặp đấu THÌ hệ thống PHẢI cho chỉ định một đội là chủ nhà, và đội chủ nhà PHẢI được một lợi thế nhỏ trong giả lập; VÀ KHI người dùng chọn "sân trung lập" THÌ lợi thế đó PHẢI bị tắt hoàn toàn cho cả hai đội.
-- [ ] AC-8.15 — KHI một trận đấu kết thúc THÌ dòng sự kiện của trận đó PHẢI gồm từ 60 đến 100 dòng, chỉ ghi những tình huống có ý nghĩa với thế trận.
-- [ ] AC-8.16 — KHI người dùng xem 5 trận liên tiếp THÌ các câu tường thuật cho cùng một loại tình huống PHẢI dùng nhiều cách diễn đạt khác nhau có chèn tên cầu thủ, không lặp lại nguyên một câu cho cùng loại tình huống.
+- [x] AC-8.1 — KHI người dùng chọn hai đội khác nhau và bắt đầu trận THÌ hệ thống PHẢI chạy giả lập hai hiệp 45 phút, mỗi hiệp có thêm 1–5 phút bù giờ, và cho ra tỉ số cuối cùng; trận hoà PHẢI kết thúc là hoà.
+- [x] AC-8.2 — KHI giả lập chạy THÌ hệ thống PHẢI sinh ra một dòng sự kiện theo phút, trong đó mỗi bàn thắng, cơ hội rõ ràng và tình huống đáng chú ý đều gắn với tên cầu thủ cụ thể đang có mặt trên sân.
+- [x] AC-8.3 — KHI một đội được xếp chỉ thị tấn công biên THÌ số tình huống tạt cánh của đội đó, tính trung bình qua 10 lần giả lập, PHẢI nhiều hơn ít nhất 50% so với cùng đội đó xếp chỉ thị tấn công trung lộ, với cùng đội hình và cùng đối thủ.
+- [x] AC-8.4 — KHI một đội được xếp pressing cường độ cao THÌ đội đó PHẢI giành lại bóng ở khu vực cao trên sân nhiều hơn, VÀ ĐỒNG THỜI để đối thủ có nhiều tình huống thoát xuống phía sau hàng phòng ngự hơn, so với khi đội đó pressing thấp.
+- [x] AC-8.5 — KHI một cầu thủ bị xếp sai vị trí THÌ hiệu suất đóng góp của cầu thủ đó trong trận PHẢI thấp hơn so với khi cùng cầu thủ đó được xếp đúng vị trí sở trường, mọi yếu tố khác giữ nguyên; VÀ mức giảm PHẢI nặng dần theo ba mức sai ở AC-5.5.
+- [x] AC-8.6 — KHI trận đấu tiến về cuối THÌ mức thể lực của từng cầu thủ trên sân PHẢI giảm dần theo thời gian, tốc độ giảm phụ thuộc chỉ số Thể lực của cầu thủ và cường độ pressing của đội.
+- [x] AC-8.7 — KHI một cầu thủ xuống dưới một mức thể lực nhất định THÌ hiệu suất của cầu thủ đó trong các tình huống tiếp theo PHẢI giảm đi, VÀ hệ thống PHẢI báo cho người dùng biết cầu thủ đang kiệt sức.
+- [x] AC-8.8 — KHI đội A có mọi cầu thủ cao hơn đội B ít nhất 5 điểm ở mọi chỉ số, cả hai đội đều không có ai bị xếp sai vị trí và đều dùng bộ chỉ thị cân bằng mặc định THÌ qua 10 lần giả lập cùng cặp đấu đó, đội A PHẢI thắng ít nhất 7 lần.
+- [x] AC-8.9 — KHI người dùng cố bắt đầu trận mà một trong hai đội chưa đủ điều kiện ở AC-5.7 THÌ hệ thống PHẢI chặn lại và chỉ rõ đội nào thiếu gì.
+- [x] AC-8.10 — KHI người dùng chọn cùng một đội cho cả hai phía THÌ hệ thống PHẢI không cho bắt đầu trận.
+- [x] AC-8.11 — KHI một trận đấu được giả lập THÌ hệ thống PHẢI sinh và hiển thị một "mã trận" cho trận đó, VÀ PHẢI ghi lại mọi can thiệp giữa trận của người dùng (thay người, đổi chỉ thị, đổi vai trò) kèm phút thực hiện; VÀ KHI người dùng giả lập lại với cùng mã trận, cùng hai đội, cùng chiến thuật xuất phát, cùng đội chủ nhà và cùng chuỗi can thiệp đó THÌ kết quả và toàn bộ dòng sự kiện PHẢI giống y nguyên lần trước.
+- [x] AC-8.12 — KHI người dùng giả lập lại trên cùng một mã trận nhưng đã đổi chiến thuật của một đội THÌ hệ thống PHẢI chạy trận đó và cho người dùng so sánh kết quả mới với kết quả cũ của cùng mã trận.
+- [x] AC-8.13 — KHI một cầu thủ phạm lỗi trong trận THÌ hệ thống PHẢI có khả năng rút thẻ vàng, với xác suất cao hơn cho cầu thủ có Quyết đoán thấp và cho đội đang pressing cường độ cao; KHI một cầu thủ nhận thẻ vàng thứ hai hoặc một thẻ đỏ trực tiếp THÌ cầu thủ đó PHẢI rời sân và đội đó PHẢI đá thiếu người cho tới hết trận, không được thay người bù vào.
+- [x] AC-8.14 — KHI người dùng chọn cặp đấu THÌ hệ thống PHẢI cho chỉ định một đội là chủ nhà, và đội chủ nhà PHẢI được một lợi thế nhỏ trong giả lập; VÀ KHI người dùng chọn "sân trung lập" THÌ lợi thế đó PHẢI bị tắt hoàn toàn cho cả hai đội.
+- [x] AC-8.15 — KHI một trận đấu kết thúc THÌ dòng sự kiện của trận đó PHẢI gồm từ 60 đến 100 dòng, chỉ ghi những tình huống có ý nghĩa với thế trận.
+- [x] AC-8.16 — KHI người dùng xem 5 trận liên tiếp THÌ các câu tường thuật cho cùng một loại tình huống PHẢI dùng nhiều cách diễn đạt khác nhau có chèn tên cầu thủ, không lặp lại nguyên một câu cho cùng loại tình huống.
 
 ### US-9: Theo dõi trận đấu và can thiệp giữa trận
 Là một **HLV**, tôi muốn **xem trận đấu diễn ra theo thời gian và can thiệp khi nó đi sai hướng**, để **cảm giác mình thật sự đang chỉ đạo chứ không chỉ bấm nút xem kết quả**.
 
 **Acceptance criteria:**
-- [ ] AC-9.1 — KHI trận đấu bắt đầu THÌ hệ thống PHẢI hiển thị dòng tường thuật chạy dần theo phút, kèm tỉ số và phút hiện tại luôn nhìn thấy được.
-- [ ] AC-9.2 — KHI người dùng bấm tạm dừng THÌ hệ thống PHẢI dừng dòng tường thuật tại phút hiện tại và cho phép tiếp tục từ đúng chỗ đó.
-- [ ] AC-9.3 — KHI người dùng đổi tốc độ tường thuật THÌ hệ thống PHẢI cho ít nhất 3 mức tốc độ và áp dụng ngay mức được chọn.
-- [ ] AC-9.4 — KHI người dùng chọn chạy hết trận ngay THÌ hệ thống PHẢI nhảy tới kết thúc trận và vẫn giữ đầy đủ dòng sự kiện của toàn bộ trận để xem lại.
-- [ ] AC-9.5 — KHI trận đang tạm dừng VÀ người dùng thay một cầu thủ trên sân bằng một cầu thủ trong danh sách dự bị THÌ hệ thống PHẢI thực hiện việc thay người tại phút đó, ghi nó vào dòng sự kiện, và các phút sau đó PHẢI tính theo cầu thủ mới.
-- [ ] AC-9.6 — KHI người dùng đã thực hiện 5 lần thay người trong một trận THÌ hệ thống PHẢI chặn việc thay người tiếp và nói rõ đã hết lượt.
-- [ ] AC-9.7 — KHI trận đang diễn ra VÀ người dùng đổi chỉ thị đội hoặc vai trò THÌ các phút sau đó PHẢI diễn ra theo cấu hình mới, còn các phút đã qua PHẢI giữ nguyên không bị tính lại.
-- [ ] AC-9.8 — KHI người dùng đổi chiến thuật hoặc thay người giữa trận THÌ hệ thống PHẢI chỉ cho phép làm điều đó với đội của chính người dùng, không cho can thiệp vào đội còn lại.
-- [ ] AC-9.9 — KHI người dùng bắt đầu một trận THÌ hệ thống PHẢI yêu cầu chọn 11 cầu thủ chính và đúng 7 cầu thủ dự bị từ danh sách đội; VÀ những cầu thủ không nằm trong 18 người đó PHẢI không được dùng trong trận đó.
-- [ ] AC-9.10 — KHI người dùng tìm cách đóng ứng dụng trong lúc trận đang diễn ra THÌ hệ thống PHẢI cảnh báo rằng trận sẽ bị huỷ trước khi cho rời đi.
+- [x] AC-9.1 — KHI trận đấu bắt đầu THÌ hệ thống PHẢI hiển thị dòng tường thuật chạy dần theo phút, kèm tỉ số và phút hiện tại luôn nhìn thấy được.
+- [x] AC-9.2 — KHI người dùng bấm tạm dừng THÌ hệ thống PHẢI dừng dòng tường thuật tại phút hiện tại và cho phép tiếp tục từ đúng chỗ đó.
+- [x] AC-9.3 — KHI người dùng đổi tốc độ tường thuật THÌ hệ thống PHẢI cho ít nhất 3 mức tốc độ và áp dụng ngay mức được chọn.
+- [x] AC-9.4 — KHI người dùng chọn chạy hết trận ngay THÌ hệ thống PHẢI nhảy tới kết thúc trận và vẫn giữ đầy đủ dòng sự kiện của toàn bộ trận để xem lại.
+- [x] AC-9.5 — KHI trận đang tạm dừng VÀ người dùng thay một cầu thủ trên sân bằng một cầu thủ trong danh sách dự bị THÌ hệ thống PHẢI thực hiện việc thay người tại phút đó, ghi nó vào dòng sự kiện, và các phút sau đó PHẢI tính theo cầu thủ mới.
+- [x] AC-9.6 — KHI người dùng đã thực hiện 5 lần thay người trong một trận THÌ hệ thống PHẢI chặn việc thay người tiếp và nói rõ đã hết lượt.
+- [x] AC-9.7 — KHI trận đang diễn ra VÀ người dùng đổi chỉ thị đội hoặc vai trò THÌ các phút sau đó PHẢI diễn ra theo cấu hình mới, còn các phút đã qua PHẢI giữ nguyên không bị tính lại.
+- [x] AC-9.8 — KHI người dùng đổi chiến thuật hoặc thay người giữa trận THÌ hệ thống PHẢI chỉ cho phép làm điều đó với đội của chính người dùng, không cho can thiệp vào đội còn lại.
+- [x] AC-9.9 — KHI người dùng bắt đầu một trận THÌ hệ thống PHẢI yêu cầu chọn 11 cầu thủ chính và đúng 7 cầu thủ dự bị từ danh sách đội; VÀ những cầu thủ không nằm trong 18 người đó PHẢI không được dùng trong trận đó.
+- [x] AC-9.10 — KHI người dùng tìm cách đóng ứng dụng trong lúc trận đang diễn ra THÌ hệ thống PHẢI cảnh báo rằng trận sẽ bị huỷ trước khi cho rời đi.
 
 ---
 
@@ -316,8 +316,8 @@ Là một **HLV**, tôi muốn **một bản báo cáo sau trận**, để **bi�
 
 **Các giai đoạn sau:**
 
-- [ ] AC-8.3, AC-8.4, AC-8.5, AC-8.8 được kiểm chứng bằng phép so sánh thực tế giữa hai cấu hình chiến thuật, không chỉ bằng việc đọc code
-- [ ] AC-8.11 được kiểm chứng bằng cách chạy lại cùng mã trận với cùng chuỗi can thiệp giữa trận và đối chiếu từng dòng sự kiện
+- [x] AC-8.3, AC-8.4, AC-8.5, AC-8.8 được kiểm chứng bằng phép so sánh thực tế giữa hai cấu hình chiến thuật, không chỉ bằng việc đọc code — bốn test riêng trong `src/engine/sosanh.*.test.ts`, mỗi test in ra số đo thật
+- [x] AC-8.11 được kiểm chứng bằng cách chạy lại cùng mã trận với cùng chuỗi can thiệp giữa trận và đối chiếu từng dòng sự kiện — `src/engine/taiLap.test.ts` (dựng lại đầu vào từ chính `TrangThaiTran`, không từ biến cục bộ của test) và kiểm tay ngày 2026-10-28: cùng mã `P3V8N1TZ6C` chạy hai lần cho 178 dòng giống nhau từng ký tự
 
 ## 8. Câu hỏi mở
 

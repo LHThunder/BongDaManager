@@ -1,13 +1,30 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { SuKien } from '../../engine/suKien'
-import { dongSuKien, phutHienThi } from '../../engine/tran'
+import {
+  dongSuKien,
+  khungThanhCoThuMon,
+  nguoiTrongKhung,
+  phutHienThi,
+  SO_LAN_THAY_TOI_DA,
+  type NoiDungCanThiep,
+} from '../../engine/tran'
 import { useMatch } from '../../hooks/useMatch'
 import * as playerRepo from '../../services/playerRepo'
 import { useAppStore } from '../../store/appStore'
 import { AnhThayThe } from '../components/AnhThayThe'
 import { BangDieuKhienTran } from '../components/BangDieuKhienTran'
+import { ChiThiDoi } from '../components/ChiThiDoi'
 import { DongTuongThuat } from '../components/DongTuongThuat'
-import { CHON_CAP_DAU, CHUNG, TRAN_DAU } from '../strings'
+import { ThayNguoi } from '../components/ThayNguoi'
+import {
+  CAN_THIEP_GIUA_TRAN,
+  CHON_CAP_DAU,
+  CHUNG,
+  LY_DO_TU_CHOI_CAN_THIEP,
+  SO_SANH_TRAN,
+  TRAN_DAU,
+  VAO_BAT_GON,
+} from '../strings'
 
 interface Props {
   readonly onRoiTran: () => void
@@ -28,8 +45,46 @@ export function TrangTran({ onRoiTran }: Props) {
     tamDung,
     tiepTuc,
     chayHet,
+    canThiep,
     roiTran,
   } = useMatch()
+
+  const [loiCanThiep, datLoiCanThiep] = useState<string | null>(null)
+  const [nguoiVaoGon, datNguoiVaoGon] = useState('')
+
+  /*
+    Chụp kết quả lần trước NGAY LÚC VÀO TRANG, không đọc thẳng từ store khi
+    vẽ bảng: trang này cũng là nơi GHI kết quả lần chạy này vào đúng ô đó.
+    Đọc thẳng thì tới lúc vẽ, ô kia đã mang số của chính trận vừa xong, và
+    bảng so sánh đem trận này so với chính nó — hai cột luôn bằng nhau.
+
+    Trang trận được dựng lại cho từng trận (rời trận là mất, quyết định D32),
+    nên đọc một lần ở lượt vẽ đầu là đúng thời điểm.
+  */
+  const ketQuaTruoc = useRef(useAppStore.getState().ketQuaTruoc).current
+
+  /*
+    Cất kết quả lại NGAY khi trận kết thúc, để lần chạy sau cùng mã trận có
+    cái mà so (AC-8.12). Cất đúng một lần cho mỗi trận.
+  */
+  const daKetThuc = tran?.ketThuc ?? false
+  const daCat = useRef(false)
+  useEffect(() => {
+    if (!tran || !daKetThuc || daCat.current) return
+    daCat.current = true
+    useAppStore.getState().datKetQuaTruoc({
+      maTran: tran.maTran,
+      tiSo: tran.tiSo,
+      cuSut: {
+        nha: tran.ben.nha.thongKe.cuSut,
+        khach: tran.ben.khach.thongKe.cuSut,
+      },
+      coHoi: {
+        nha: tran.ben.nha.thongKe.coHoiRoRang,
+        khach: tran.ben.khach.thongKe.coHoiRoRang,
+      },
+    })
+  }, [tran, daKetThuc])
 
   const teams = useAppStore((s) => s.teams)
 
@@ -87,6 +142,62 @@ export function TrangTran({ onRoiTran }: Props) {
 
   const ht = phutHienThi(tran, Math.max(tran.phut, 1))
   const cacSuKien = dongSuKien(tran)
+
+  const benCuaNguoiDung =
+    tran.doiCuaNguoiDung === 'nha' ? tran.ben.nha : tran.ben.khach
+
+  const dangTamDung = !dangChay && !tran.ketThuc
+  const dangBatGon = nguoiTrongKhung(benCuaNguoiDung)
+  const conLuotThay = SO_LAN_THAY_TOI_DA - benCuaNguoiDung.soLanThay
+
+  /*
+    So hai lần chạy CÙNG một mã trận (AC-8.12). Kết quả cũ được giữ trong
+    phiên làm việc; phần bền thuộc Giai đoạn 4 (quyết định D31).
+  */
+  const soSanh =
+    tran.ketThuc && ketQuaTruoc && ketQuaTruoc.maTran === tran.maTran
+      ? [
+          {
+            ten: SO_SANH_TRAN.tiSo,
+            cu: SO_SANH_TRAN.hai(
+              ketQuaTruoc.tiSo.nha,
+              ketQuaTruoc.tiSo.khach,
+            ),
+            moi: SO_SANH_TRAN.hai(tran.tiSo.nha, tran.tiSo.khach),
+          },
+          {
+            ten: SO_SANH_TRAN.cuSut,
+            cu: SO_SANH_TRAN.hai(
+              ketQuaTruoc.cuSut.nha,
+              ketQuaTruoc.cuSut.khach,
+            ),
+            moi: SO_SANH_TRAN.hai(
+              tran.ben.nha.thongKe.cuSut,
+              tran.ben.khach.thongKe.cuSut,
+            ),
+          },
+          {
+            ten: SO_SANH_TRAN.coHoi,
+            cu: SO_SANH_TRAN.hai(
+              ketQuaTruoc.coHoi.nha,
+              ketQuaTruoc.coHoi.khach,
+            ),
+            moi: SO_SANH_TRAN.hai(
+              tran.ben.nha.thongKe.coHoiRoRang,
+              tran.ben.khach.thongKe.coHoiRoRang,
+            ),
+          },
+        ]
+      : null
+
+  const guiCanThiep = (noiDung: NoiDungCanThiep) => {
+    const lyDo = canThiep({
+      phut: tran.phut,
+      doi: tran.doiCuaNguoiDung,
+      noiDung,
+    })
+    datLoiCanThiep(lyDo ? (LY_DO_TU_CHOI_CAN_THIEP[lyDo] ?? lyDo) : null)
+  }
 
   return (
     <div>
@@ -162,12 +273,136 @@ export function TrangTran({ onRoiTran }: Props) {
         />
       </div>
 
-      <div className="mt-6">
+      {soSanh && (
+        <section className="mt-4 rounded-lg border border-slate-200 bg-white p-4">
+          <h3 className="text-base font-semibold text-slate-900">
+            {SO_SANH_TRAN.tieuDe}
+          </h3>
+          <p className="mt-0.5 text-sm text-slate-500">{SO_SANH_TRAN.moTa}</p>
+          <table className="mt-2 w-full max-w-md text-sm">
+            <thead>
+              <tr className="text-left text-slate-600">
+                <th className="font-medium">{SO_SANH_TRAN.cotChiTieu}</th>
+                <th className="font-medium">{SO_SANH_TRAN.cotLanTruoc}</th>
+                <th className="font-medium">{SO_SANH_TRAN.cotLanNay}</th>
+              </tr>
+            </thead>
+            <tbody className="text-slate-900">
+              {soSanh.map((d) => (
+                <tr key={d.ten}>
+                  <td className="py-0.5">{d.ten}</td>
+                  <td className="py-0.5 font-mono">{d.cu}</td>
+                  <td className="py-0.5 font-mono">{d.moi}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
+      )}
+
+      <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <DongTuongThuat
           cacSuKien={cacSuKien}
           tenCauThu={(id) => tenTheoId.get(id) ?? id}
           tenDoi={tenDoi}
         />
+
+        {/* Can thiệp giữa trận, chỉ với đội của người dùng (AC-9.8). */}
+        <div className="space-y-4">
+          {/*
+            Thủ môn nhận thẻ đỏ (spec mục 5). Khối này chỉ hiện khi khung thành
+            KHÔNG có thủ môn thực thụ — vừa lúc khung bỏ trống, vừa lúc một cầu
+            thủ sân đang chữa cháy và thủ môn dự bị đã vào sân chờ nhận găng.
+          */}
+          {!tran.ketThuc && !khungThanhCoThuMon(benCuaNguoiDung) && (
+            <section className="rounded-lg border-2 border-amber-400 bg-amber-50 p-4">
+              <h3 className="text-base font-semibold text-amber-950">
+                {dangBatGon === null
+                  ? VAO_BAT_GON.tieuDeTrong
+                  : VAO_BAT_GON.tieuDeChuaChay(
+                      tenTheoId.get(dangBatGon) ?? dangBatGon,
+                    )}
+              </h3>
+              <p className="mt-0.5 text-sm text-amber-900">
+                {VAO_BAT_GON.moTa}
+              </p>
+              <p className="mt-1 text-sm text-amber-900">
+                {conLuotThay > 0
+                  ? VAO_BAT_GON.conLuotThay(conLuotThay)
+                  : VAO_BAT_GON.hetLuotThay}
+              </p>
+
+              {!dangTamDung && (
+                <p className="mt-2 text-sm text-amber-800">
+                  {VAO_BAT_GON.canTamDung}
+                </p>
+              )}
+
+              <div className="mt-3 flex flex-wrap items-end gap-2">
+                <label className="text-sm text-amber-950">
+                  <span className="block">{VAO_BAT_GON.nhanChon}</span>
+                  <select
+                    value={nguoiVaoGon}
+                    onChange={(e) => datNguoiVaoGon(e.target.value)}
+                    disabled={!dangTamDung}
+                    className="mt-1 rounded border border-amber-400 px-2 py-1 disabled:bg-slate-100 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  >
+                    <option value="">{VAO_BAT_GON.chonCauThu}</option>
+                    {benCuaNguoiDung.trenSan
+                      .filter((id) => id !== dangBatGon)
+                      .map((id) => (
+                        <option key={id} value={id}>
+                          {tenTheoId.get(id) ?? id}
+                        </option>
+                      ))}
+                  </select>
+                </label>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    guiCanThiep({
+                      loai: 'vao-bat-gon',
+                      playerId: nguoiVaoGon,
+                    })
+                    datNguoiVaoGon('')
+                  }}
+                  disabled={!dangTamDung || nguoiVaoGon === ''}
+                  className="rounded-md bg-amber-700 px-3 py-1.5 text-sm font-medium text-white hover:bg-amber-800 focus:outline-none focus:ring-2 focus:ring-amber-400 disabled:cursor-not-allowed disabled:bg-slate-300"
+                >
+                  {VAO_BAT_GON.thucHien}
+                </button>
+              </div>
+            </section>
+          )}
+
+          <ThayNguoi
+            ben={benCuaNguoiDung}
+            tenCauThu={(id) => tenTheoId.get(id) ?? id}
+            tamDung={dangTamDung}
+            loi={loiCanThiep}
+            onThay={(ra, vao) =>
+              guiCanThiep({ loai: 'thay-nguoi', ra, vao })
+            }
+          />
+
+          <section className="rounded-lg border border-slate-200 bg-white p-4">
+            <h3 className="text-base font-semibold text-slate-900">
+              {CAN_THIEP_GIUA_TRAN.tieuDeChiThi}
+            </h3>
+            <p className="mt-0.5 text-sm text-slate-500">
+              {CAN_THIEP_GIUA_TRAN.moTa}
+            </p>
+            <div className="mt-3">
+              <ChiThiDoi
+                chiThi={benCuaNguoiDung.chienThuatHienTai.chiThi}
+                onDoi={(chiThi) =>
+                  guiCanThiep({ loai: 'doi-chi-thi', chiThi })
+                }
+              />
+            </div>
+          </section>
+        </div>
       </div>
     </div>
   )

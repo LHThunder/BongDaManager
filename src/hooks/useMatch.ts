@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { LoiCauHinhTran, type LyDoKhongBatDau } from '../engine/batDau'
 import {
+  apDungCanThiep,
   buocTiep,
   chayHetTran,
   taoTran,
+  type CanThiep,
   type CauHinhTran,
-
+  type LyDoTuChoiCanThiep,
 } from '../engine/tran'
 import { useAppStore } from '../store/appStore'
 
@@ -73,6 +75,21 @@ export function useMatch() {
     useAppStore.getState().datTran(chayHetTran(hienTai))
   }, [])
 
+  /**
+   * Xếp một can thiệp vào hàng đợi của trận. Trả về lý do nếu bị từ chối,
+   * `null` nếu nhận.
+   */
+  const canThiep = useCallback((ct: CanThiep): LyDoTuChoiCanThiep | null => {
+    const hienTai = useAppStore.getState().tran
+    if (!hienTai) return 'tran-da-ket-thuc'
+
+    const kq = apDungCanThiep(hienTai, ct)
+    if (!kq.thanhCong) return kq.lyDo
+
+    useAppStore.getState().datTran(kq.trangThai)
+    return null
+  }, [])
+
   const roiTran = useCallback(() => {
     datDangChay(false)
     useAppStore.getState().datTran(null)
@@ -117,6 +134,7 @@ export function useMatch() {
     tamDung,
     tiepTuc,
     chayHet,
+    canThiep,
     roiTran,
   }
 }
