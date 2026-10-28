@@ -31,6 +31,8 @@ import {
 } from '../components/DanhSachNgoaiSan'
 import { OViTri, type DuLieuO } from '../components/OViTri'
 import { SanBong } from '../components/SanBong'
+import { BoChienThuat } from '../components/BoChienThuat'
+import { ChiThiDoi } from '../components/ChiThiDoi'
 import { ChonVaiTro } from '../components/ChonVaiTro'
 import {
   CHUNG,
@@ -165,6 +167,11 @@ export function TrangChienThuat({ teamId, onQuayLai }: Props) {
     datCauThuVaoO,
     boKhoiSan,
     datVaiTroChoO,
+    datChiThi,
+    cacBo,
+    napDanhSachBo,
+    luuThanhBo,
+    apDungBo,
   } = useTactic(teamId)
 
   /** Ô đang mở bảng chọn vai trò; `null` là không mở ô nào. */
@@ -290,6 +297,10 @@ export function TrangChienThuat({ teamId, onQuayLai }: Props) {
   useEffect(() => {
     void napChienThuat()
   }, [napChienThuat])
+
+  useEffect(() => {
+    void napDanhSachBo()
+  }, [napDanhSachBo])
 
   const cauThuTheoId = useMemo(
     () => new Map(cauThu.map((p) => [p.id, p])),
@@ -494,6 +505,28 @@ export function TrangChienThuat({ teamId, onQuayLai }: Props) {
           </div>
         </div>
       </DndContext>
+
+      <div className="mt-6 grid gap-6 lg:grid-cols-2">
+        <ChiThiDoi
+          chiThi={chienThuat.chiThi}
+          onDoi={(chiThi) => {
+            void datChiThi(chiThi)
+          }}
+        />
+
+        <BoChienThuat
+          cacBo={cacBo}
+          idDangDung={chienThuat.id}
+          onLuuThanhBo={(ten) => {
+            void luuThanhBo(ten)
+          }}
+          onApDung={(id) => {
+            datODangChon(null)
+            datBaoDoiSoDo([])
+            void apDungBo(id)
+          }}
+        />
+      </div>
     </div>
   )
 }

@@ -1,6 +1,13 @@
 import { z } from 'zod'
 import { ATTRIBUTES, GK_ATTRIBUTES } from '../domain/attributes'
+import { FORMATIONS } from '../domain/formations'
+import {
+  CHI_THI,
+  THU_TU_CHI_THI,
+  type ChiThiId,
+} from '../domain/instructions'
 import { kiemTraToHopViTri, POSITIONS } from '../domain/positions'
+import { ROLES, vaiTroApDungDuoc, type RoleId } from '../domain/roles'
 import type { PositionId } from '../domain/types'
 import { CHI_SO_MAX, CHI_SO_MIN } from '../domain/types'
 
@@ -71,6 +78,42 @@ const AnhV2 = z.object({
   duongDan: z.string().min(1),
 })
 
+/** v3: đội mang thêm bộ chiến thuật đang dùng. */
+const DoiV3 = Doi.extend({
+  activeTacticId: z.string().min(1).nullable(),
+})
+
+const ID_SO_DO = FORMATIONS.map((s) => s.id)
+const ID_VAI_TRO = ROLES.map((v) => v.id)
+
+const MucCuaChiThi = Object.fromEntries(
+  THU_TU_CHI_THI.map((id) => [
+    id,
+    z.enum(
+      CHI_THI[id].cacMuc.map((m) => m.muc as string) as [string, ...string[]],
+    ),
+  ]),
+) as Record<ChiThiId, z.ZodEnum<[string, ...string[]]>>
+
+const ChiThi = z.object(MucCuaChiThi)
+
+const OChienThuat = z.object({
+  slotId: z.string().min(1),
+  playerId: z.string().min(1).nullable(),
+  roleId: z.enum(ID_VAI_TRO as [string, ...string[]]),
+})
+
+const ChienThuat = z.object({
+  id: z.string().min(1),
+  teamId: z.string().min(1),
+  ten: z.string().min(1).nullable(),
+  formationId: z.enum(ID_SO_DO as [string, ...string[]]),
+  oVien: z.array(OChienThuat),
+  chiThi: ChiThi,
+  createdAt: z.number().int().nonnegative(),
+  updatedAt: z.number().int().nonnegative(),
+})
+
 const PHAN_CHUNG = {
   exportedAt: z.string().min(1),
   teams: z.array(Doi),
@@ -89,10 +132,20 @@ const ThanTepV2 = z.object({
   images: z.array(AnhV2),
 })
 
+const ThanTepV3 = z.object({
+  schemaVersion: z.literal(3),
+  exportedAt: z.string().min(1),
+  teams: z.array(DoiV3),
+  players: z.array(CauThu),
+  images: z.array(AnhV2),
+  tactics: z.array(ChienThuat),
+})
+
 export type TepSaoLuuV1 = z.infer<typeof ThanTepV1>
 export type TepSaoLuuV2 = z.infer<typeof ThanTepV2>
+export type TepSaoLuuV3 = z.infer<typeof ThanTepV3>
 /** Hình dạng hiện tại mà phần còn lại của ứng dụng làm việc với. */
-export type ManifestHienTai = TepSaoLuuV2
+export type ManifestHienTai = TepSaoLuuV3
 
 function idTrungLap(cacId: readonly string[]): string | null {
   const daThay = new Set<string>()
@@ -227,8 +280,119 @@ function kiemToanVen(
   })
 }
 
+/**
+ * Phần kiểm riêng của v3: chiến thuật phải trỏ đúng chỗ.
+ *
+ * Một tệp "đúng hình dạng" mà có ô trỏ tới cầu thủ của đội khác, hay
+ * `activeTacticId` trỏ vào bộ không tồn tại, thì sau khi nhập sẽ cho ra một
+ * bộ chiến thuật `tacticRepo` từ chối nạp — tức là người dùng mất chiến
+ * thuật dù tệp nhập "thành công". P3 không cho phép điều đó.
+ */
+function kiemChienThuat(tep: TepSaoLuuV3, ctx: z.RefinementCtx): void {
+  const idDoi = new Set(tep.teams.map((d) => d.id))
+  const doiCuaCauThu = new Map(tep.players.map((p) => [p.id, p.teamId]))
+  const idChienThuat = new Set(tep.tactics.map((c) => c.id))
+
+  const trung = idTrungLap(tep.tactics.map((c) => c.id))
+  if (trung) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['tactics'],
+      message: `có hai bộ chiến thuật cùng id "${trung}"`,
+    })
+  }
+
+  tep.tactics.forEach((bo, i) => {
+    if (!idDoi.has(bo.teamId)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['tactics', i, 'teamId'],
+        message: 'trỏ tới một đội không có trong tệp',
+      })
+      return
+    }
+
+    const soDo = FORMATIONS.find((s) => s.id === bo.formationId)
+    if (!soDo) return
+
+    const viTriTheoSlot = new Map(soDo.oVien.map((o) => [o.slotId, o.viTri]))
+    if (bo.oVien.length !== soDo.oVien.length) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['tactics', i, 'oVien'],
+        message: `sơ đồ ${bo.formationId} cần ${soDo.oVien.length} ô, tệp có ${bo.oVien.length}`,
+      })
+      return
+    }
+
+    const daGap = new Set<string>()
+    bo.oVien.forEach((o, j) => {
+      const viTri = viTriTheoSlot.get(o.slotId)
+      if (viTri === undefined) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['tactics', i, 'oVien', j, 'slotId'],
+          message: `không phải ô của sơ đồ ${bo.formationId}`,
+        })
+        return
+      }
+
+      if (!vaiTroApDungDuoc(o.roleId as RoleId, viTri)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['tactics', i, 'oVien', j, 'roleId'],
+          message: 'vai trò không dùng được cho vị trí của ô',
+        })
+      }
+
+      if (o.playerId === null) return
+
+      if (doiCuaCauThu.get(o.playerId) !== bo.teamId) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['tactics', i, 'oVien', j, 'playerId'],
+          message: 'cầu thủ không thuộc đội của bộ chiến thuật này',
+        })
+      }
+
+      if (daGap.has(o.playerId)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['tactics', i, 'oVien', j, 'playerId'],
+          message: 'một cầu thủ được xếp vào hai ô',
+        })
+      }
+      daGap.add(o.playerId)
+    })
+  })
+
+  tep.teams.forEach((doi, i) => {
+    if (doi.activeTacticId === null) return
+    if (!idChienThuat.has(doi.activeTacticId)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['teams', i, 'activeTacticId'],
+        message: 'trỏ tới một bộ chiến thuật không có trong tệp',
+      })
+      return
+    }
+    const bo = tep.tactics.find((c) => c.id === doi.activeTacticId)
+    if (bo && bo.teamId !== doi.id) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['teams', i, 'activeTacticId'],
+        message: 'trỏ tới bộ chiến thuật của đội khác',
+      })
+    }
+  })
+}
+
 export const SchemaSaoLuuV1 = ThanTepV1.superRefine(kiemToanVen)
 export const SchemaSaoLuuV2 = ThanTepV2.superRefine(kiemToanVen)
+export const SchemaSaoLuuV3 = ThanTepV3.superRefine((tep, ctx) => {
+  kiemToanVen(tep, ctx)
+  kiemChienThuat(tep, ctx)
+})
 
 /**
  * Schema theo từng phiên bản. P7: thêm bản mới CẠNH bản cũ, không sửa bản cũ —
@@ -237,6 +401,7 @@ export const SchemaSaoLuuV2 = ThanTepV2.superRefine(kiemToanVen)
 export const SCHEMA_THEO_PHIEN_BAN = {
   1: SchemaSaoLuuV1,
   2: SchemaSaoLuuV2,
+  3: SchemaSaoLuuV3,
 } as const
 
 export type PhienBanTep = keyof typeof SCHEMA_THEO_PHIEN_BAN

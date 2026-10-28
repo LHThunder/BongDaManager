@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { useCallback, useState } from 'react'
 import type { FormationId } from '../domain/formations'
 import { xepLaiKhiDoiSoDo, type KetQuaXepLai } from '../domain/lineup'
 import { vaiTroMacDinh, type RoleId } from '../domain/roles'
@@ -177,6 +177,49 @@ export function useTactic(teamId: string) {
     [chienThuat, ghi],
   )
 
+  // ---------------------------------------------------------------------
+  // Bộ chiến thuật có tên (AC-7.5, AC-7.6)
+  // ---------------------------------------------------------------------
+
+  /*
+    Danh sách bộ có tên giữ ở ngay hook này chứ không vào store dùng chung:
+    chỉ trang chiến thuật cần tới nó, và store chỉ nên giữ thứ mà nhiều màn
+    hình cùng đọc.
+  */
+  const [cacBo, datCacBo] = useState<readonly Tactic[]>([])
+
+  const napDanhSachBo = useCallback(async (): Promise<void> => {
+    try {
+      datCacBo(await tacticRepo.danhSachBo(teamId))
+    } catch (loi) {
+      ghiNhanLoiLuuTru(loi)
+    }
+  }, [teamId])
+
+  const luuThanhBo = useCallback(
+    async (ten: string): Promise<void> => {
+      try {
+        await tacticRepo.luuThanhBo(teamId, ten)
+        datCacBo(await tacticRepo.danhSachBo(teamId))
+      } catch (loi) {
+        ghiNhanLoiLuuTru(loi)
+      }
+    },
+    [teamId],
+  )
+
+  const apDungBo = useCallback(
+    async (tacticId: string): Promise<void> => {
+      try {
+        const bo = await tacticRepo.apDungBo(teamId, tacticId)
+        useAppStore.getState().datChienThuat(teamId, bo)
+      } catch (loi) {
+        ghiNhanLoiLuuTru(loi)
+      }
+    },
+    [teamId],
+  )
+
   return {
     chienThuat,
     napChienThuat,
@@ -186,5 +229,9 @@ export function useTactic(teamId: string) {
     doiSoDo,
     datVaiTroChoO,
     datChiThi,
+    cacBo,
+    napDanhSachBo,
+    luuThanhBo,
+    apDungBo,
   }
 }

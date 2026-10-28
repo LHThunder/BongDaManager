@@ -13,7 +13,7 @@
 */
 
 /** Phiên bản hình dạng dữ liệu mà bản ứng dụng này phát hành. */
-export const SCHEMA_VERSION = 2
+export const SCHEMA_VERSION = 3
 
 /**
  * Một bước nâng phiên bản. `MIGRATIONS[i]` nâng dữ liệu từ phiên bản `i + 1`
@@ -47,6 +47,26 @@ function nangV1LenV2(data: unknown): unknown {
   }
 }
 
+/**
+ * v2 -> v3: thêm chiến thuật.
+ *
+ * Tệp v1 và v2 không có chiến thuật nào, nên bước này chỉ mở ra chỗ trống:
+ * mỗi đội thêm `activeTacticId: null` và tệp thêm `tactics: []`. Việc gán bộ
+ * chiến thuật mặc định cho những đội đó là việc của `backupService` lúc
+ * nhập, vì chỉ ở đó mới dựng được bản ghi thật (có id, có 11 ô) — còn ở đây
+ * thì chuỗi migration phải thuần hình dạng.
+ */
+function nangV2LenV3(data: unknown): unknown {
+  const tep = data as { teams?: object[] }
+
+  return {
+    ...(data as object),
+    schemaVersion: 3,
+    teams: (tep.teams ?? []).map((d) => ({ ...d, activeTacticId: null })),
+    tactics: [],
+  }
+}
+
 /** Phần mở rộng theo kiểu ảnh, để tệp ZIP mở ra xem được bằng mắt. */
 export function duoiAnh(mime: string): string {
   switch (mime) {
@@ -66,7 +86,7 @@ export function duongDanAnh(id: string, mime: string): string {
 }
 
 /** `MIGRATIONS[i]` nâng dữ liệu từ phiên bản `i + 1` lên `i + 2`. */
-export const MIGRATIONS: readonly Migration[] = [nangV1LenV2]
+export const MIGRATIONS: readonly Migration[] = [nangV1LenV2, nangV2LenV3]
 
 export type LoiMigration =
   /** Số phiên bản không phải số nguyên dương. */

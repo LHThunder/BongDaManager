@@ -1,6 +1,6 @@
 import { strToU8, unzipSync, zipSync, type Zippable } from 'fflate'
-import type { Player, Team } from '../domain/types'
-import { moDb, type StoredImage } from '../storage/db'
+import type { Player, Tactic, Team } from '../domain/types'
+import { moDb, taoChienThuatMacDinh, type StoredImage } from '../storage/db'
 import {
   MigrationError,
   SCHEMA_VERSION,
@@ -83,11 +83,17 @@ export async function exportAll(): Promise<Blob> {
     const teams = await db.getAll('teams')
     const players = await db.getAll('players')
     const images = await db.getAll('images')
+    const tactics = await db.getAll('tactics')
 
     const manifest: ManifestHienTai = {
-      schemaVersion: 2,
+      schemaVersion: 3,
       exportedAt: new Date().toISOString(),
       teams,
+      tactics: tactics.map((c) => ({
+        ...c,
+        oVien: c.oVien.map((o) => ({ ...o })),
+        chiThi: { ...c.chiThi },
+      })),
       players: players.map((p) => ({
         ...p,
         positions: [...p.positions],
@@ -307,6 +313,7 @@ interface DuLieuSanSang {
   readonly teams: Team[]
   readonly players: Player[]
   readonly images: StoredImage[]
+  readonly tactics: Tactic[]
 }
 
 /**
@@ -339,17 +346,41 @@ function chuanBiDuLieu(daDoc: TepDaDoc, cheDo: CheDoNhap): DuLieuSanSang {
     }
   })
 
+  const tactics: Tactic[] = manifest.tactics.map((c) => ({
+    ...c,
+    id: anhXa(c.id),
+    teamId: anhXa(c.teamId),
+    formationId: c.formationId as Tactic['formationId'],
+    oVien: c.oVien.map((o) => ({
+      slotId: o.slotId,
+      playerId: o.playerId === null ? null : anhXa(o.playerId),
+      roleId: o.roleId as Tactic['oVien'][number]['roleId'],
+    })),
+    chiThi: c.chiThi as Tactic['chiThi'],
+  }))
+
   const teams: Team[] = manifest.teams.map((d) => ({
     ...d,
     id: anhXa(d.id),
     logoImageId: d.logoImageId === null ? null : anhXa(d.logoImageId),
-    /*
-      Tệp sao lưu v1 và v2 không có chiến thuật (P7 — tệp cũ vẫn phải nhập
-      được). Đội nhập vào từ tệp cũ bắt đầu với bộ mặc định, do `moDb` gieo ở
-      lần mở sau hoặc `tacticRepo` tạo khi mở trang chiến thuật.
-    */
-    activeTacticId: null,
+    activeTacticId:
+      d.activeTacticId === null ? null : anhXa(d.activeTacticId),
   }))
+
+  /*
+    Tệp v1 và v2 không có chiến thuật nào (P7 — tệp cũ vẫn phải nhập được).
+    Đội đến từ tệp cũ được gán bộ mặc định NGAY TẠI ĐÂY, chứ không để đó chờ
+    `moDb` gieo ở lần mở sau: nhập xong mà mở trang chiến thuật ngay thì đội
+    phải đã có bộ dùng được.
+  */
+  const bayGio = Date.now()
+  for (let i = 0; i < teams.length; i++) {
+    const doi = teams[i]
+    if (doi.activeTacticId !== null) continue
+    const macDinh = taoChienThuatMacDinh(doi.id, bayGio)
+    tactics.push(macDinh)
+    teams[i] = { ...doi, activeTacticId: macDinh.id }
+  }
 
   const players: Player[] = manifest.players.map((p) => ({
     ...p,
@@ -362,7 +393,7 @@ function chuanBiDuLieu(daDoc: TepDaDoc, cheDo: CheDoNhap): DuLieuSanSang {
       p.portraitImageId === null ? null : anhXa(p.portraitImageId),
   }))
 
-  return { teams, players, images }
+  return { teams, players, images, tactics }
 }
 
 export async function importAll(
@@ -375,17 +406,22 @@ export async function importAll(
 
   try {
     const db = await moDb()
-    const tx = db.transaction(['teams', 'players', 'images', 'meta'], 'readwrite')
+    const tx = db.transaction(
+      ['teams', 'players', 'images', 'meta', 'tactics'],
+      'readwrite',
+    )
 
     if (cheDo === 'thay-the') {
       await tx.objectStore('teams').clear()
       await tx.objectStore('players').clear()
       await tx.objectStore('images').clear()
+      await tx.objectStore('tactics').clear()
     }
 
     for (const a of sanSang.images) await tx.objectStore('images').put(a)
     for (const d of sanSang.teams) await tx.objectStore('teams').put(d)
     for (const p of sanSang.players) await tx.objectStore('players').put(p)
+    for (const c of sanSang.tactics) await tx.objectStore('tactics').put(c)
 
     await tx.objectStore('meta').put({
       key: 'schemaVersion',

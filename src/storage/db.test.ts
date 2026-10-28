@@ -58,7 +58,7 @@ describe('mở database', () => {
   it('ghi sẵn schemaVersion hiện tại vào meta', async () => {
     await moDb()
     expect(await docSchemaVersion()).toBe(SCHEMA_VERSION)
-    expect(SCHEMA_VERSION).toBe(2)
+    expect(SCHEMA_VERSION).toBe(3)
   })
 
   it('mở lại nhiều lần thì dùng chung một kết nối', async () => {

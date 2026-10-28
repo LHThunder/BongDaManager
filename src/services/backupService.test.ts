@@ -4,7 +4,12 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { ATTRIBUTES } from '../domain/attributes'
 import type { AttributeValues } from '../domain/types'
 import { DB_NAME, dongDb, moDb } from '../storage/db'
-import { SCHEMA_VERSION } from '../storage/migrations'
+import { duongDanAnh, SCHEMA_VERSION } from '../storage/migrations'
+import { laySoDo, SO_DO_MAC_DINH } from '../domain/formations'
+import { vaiTroMacDinh } from '../domain/roles'
+import { cacXungDot } from '../domain/instructions'
+import { SCHEMA_THEO_PHIEN_BAN } from './backupSchema'
+import * as tacticRepo from './tacticRepo'
 import * as backup from './backupService'
 import * as playerRepo from './playerRepo'
 import * as teamRepo from './teamRepo'
@@ -143,7 +148,7 @@ describe('xuất tệp ZIP (AC-4.3)', () => {
     )
   })
 
-  it('manifest khai phiên bản 2 và có đủ ba phần', async () => {
+  it('manifest khai phiên bản 3 và có đủ các phần', async () => {
     await dungDuLieuMau()
     const m = (await docManifest(await backup.exportAll())) as unknown as {
       schemaVersion: number
@@ -151,7 +156,7 @@ describe('xuất tệp ZIP (AC-4.3)', () => {
       players: unknown[]
       images: { id: string; mime: string; duongDan: string; data?: string }[]
     }
-    expect(m.schemaVersion).toBe(2)
+    expect(m.schemaVersion).toBe(3)
     expect(m.teams).toHaveLength(1)
     expect(m.players).toHaveLength(1)
     expect(m.images).toHaveLength(1)
@@ -318,7 +323,7 @@ describe('tương thích ngược với tệp v1 (hiến pháp P7)', () => {
     await dungDuLieuMau()
     const tepV1 = await taoTepV1()
     expect(await backup.inspect(tepV1)).toMatchObject({
-      schemaVersion: 2, // manifest đã được nâng lên hình dạng hiện tại
+      schemaVersion: 3, // manifest đã được nâng lên hình dạng hiện tại
       soDoi: 1,
       soCauThu: 1,
       soAnh: 1,
@@ -530,7 +535,7 @@ describe('xem trước tệp trước khi chọn chế độ (AC-4.6)', () => {
   it('inspect trả số đội, số cầu thủ, số ảnh và phiên bản', async () => {
     await dungDuLieuMau()
     expect(await backup.inspect(await backup.exportAll())).toMatchObject({
-      schemaVersion: 2,
+      schemaVersion: 3,
       soDoi: 1,
       soCauThu: 1,
       soAnh: 1,
@@ -596,5 +601,208 @@ describe('chế độ gộp giữ cả hai khi trùng (AC-4.6, spec mục 5)', (
     await backup.importAll(tep, 'gop')
 
     expect(await demTatCa()).toEqual({ teams: 3, players: 3, images: 3 })
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Tệp v3: chiến thuật (T064)
+// ---------------------------------------------------------------------------
+
+/** Dựng một tệp v2 thật: ZIP, manifest khai phiên bản 2, không có chiến thuật. */
+async function taoTepV2(): Promise<Blob> {
+  const db = await moDb()
+  const teams = await db.getAll('teams')
+  const players = await db.getAll('players')
+  const images = await db.getAll('images')
+
+  const manifest = {
+    schemaVersion: 2,
+    exportedAt: new Date().toISOString(),
+    // Bỏ `activeTacticId`: tệp v2 thật không có trường đó.
+    teams: teams.map(({ activeTacticId: _bo, ...d }) => d),
+    players,
+    images: images.map((a) => ({
+      id: a.id,
+      mime: a.blob.type || 'image/jpeg',
+      duongDan: duongDanAnh(a.id, a.blob.type || 'image/jpeg'),
+    })),
+  }
+
+  const noiDung: Record<string, Uint8Array> = {
+    [backup.TEN_MANIFEST]: strToU8(JSON.stringify(manifest)),
+  }
+  for (const a of images) {
+    const mime = a.blob.type || 'image/jpeg'
+    noiDung[duongDanAnh(a.id, mime)] = new Uint8Array(await a.blob.arrayBuffer())
+  }
+
+  return new Blob([zipSync(noiDung)], { type: 'application/zip' })
+}
+
+describe('tệp sao lưu v3 mang theo chiến thuật (AC-4.4, AC-5.10)', () => {
+  it('SCHEMA_VERSION là 3 và có đủ schema cho cả ba phiên bản (P7)', () => {
+    expect(SCHEMA_VERSION).toBe(3)
+    expect(Object.keys(SCHEMA_THEO_PHIEN_BAN).sort()).toEqual(['1', '2', '3'])
+  })
+
+  it('manifest v3 có mảng tactics', async () => {
+    const { doi } = await dungDuLieuMau()
+    const m = (await docManifest(await backup.exportAll())) as unknown as {
+      schemaVersion: number
+      tactics: { teamId: string; oVien: unknown[] }[]
+    }
+
+    expect(m.schemaVersion).toBe(3)
+    expect(m.tactics).toHaveLength(1)
+    expect(m.tactics[0].teamId).toBe(doi.id)
+    expect(m.tactics[0].oVien).toHaveLength(11)
+  })
+
+  it('xuất rồi nhập lại ra đúng chiến thuật cũ', async () => {
+    const { doi } = await dungDuLieuMau()
+    const goc = await tacticRepo.layChienThuatDangDung(doi.id)
+    // Đổi sơ đồ thì phải dựng lại ô theo sơ đồ mới — `luu` từ chối bộ có ô
+    // không thuộc sơ đồ đang khai, đúng như `doiSoDo` vẫn làm.
+    const daSua = await tacticRepo.luu({
+      ...goc,
+      formationId: '4-3-3',
+      oVien: laySoDo('4-3-3').oVien.map((o) => ({
+        slotId: o.slotId,
+        playerId: null,
+        roleId: vaiTroMacDinh(o.viTri),
+      })),
+      chiThi: { ...goc.chiThi, 'do-cao-doi-hinh': 'cao' },
+    })
+    await tacticRepo.luuThanhBo(doi.id, 'Bộ đã lưu')
+
+    const tep = await backup.exportAll()
+    await backup.importAll(tep, 'thay-the')
+
+    const db = await moDb()
+    const cacBo = await db.getAll('tactics')
+    expect(cacBo).toHaveLength(2)
+
+    const dangDung = cacBo.find((c) => c.id === daSua.id)
+    expect(dangDung?.formationId).toBe('4-3-3')
+    expect(dangDung?.chiThi['do-cao-doi-hinh']).toBe('cao')
+    expect(dangDung?.oVien).toEqual(daSua.oVien)
+    expect(cacBo.some((c) => c.ten === 'Bộ đã lưu')).toBe(true)
+
+    const doiSau = await teamRepo.get(doi.id)
+    expect(doiSau.activeTacticId).toBe(daSua.id)
+  })
+
+  it('nhập tệp v2 (chưa có chiến thuật) thì đội được gán bộ mặc định', async () => {
+    await dungDuLieuMau()
+    const tepV2 = await taoTepV2()
+
+    await backup.importAll(tepV2, 'thay-the')
+
+    const db = await moDb()
+    const teams = await db.getAll('teams')
+    const tactics = await db.getAll('tactics')
+
+    expect(teams).toHaveLength(1)
+    expect(tactics).toHaveLength(1)
+    expect(teams[0].activeTacticId).toBe(tactics[0].id)
+    expect(tactics[0].formationId).toBe(SO_DO_MAC_DINH)
+    expect(tactics[0].oVien).toHaveLength(11)
+    expect(cacXungDot(tactics[0].chiThi)).toEqual([])
+  })
+
+  it('nhập tệp v1 (JSON base64) cũng được gán bộ mặc định', async () => {
+    await dungDuLieuMau()
+    const tepV1 = await taoTepV1()
+
+    await backup.importAll(tepV1, 'thay-the')
+
+    const db = await moDb()
+    const teams = await db.getAll('teams')
+    const tactics = await db.getAll('tactics')
+
+    expect(tactics).toHaveLength(1)
+    expect(teams[0].activeTacticId).toBe(tactics[0].id)
+    expect(tactics[0].oVien.every((o) => o.playerId === null)).toBe(true)
+  })
+
+  it('bộ chiến thuật nhập từ tệp v2 nạp được ngay, không ném InvalidTactic', async () => {
+    const { doi } = await dungDuLieuMau()
+    const tepV2 = await taoTepV2()
+    await backup.importAll(tepV2, 'thay-the')
+
+    await expect(
+      tacticRepo.layChienThuatDangDung(doi.id),
+    ).resolves.toMatchObject({ formationId: SO_DO_MAC_DINH })
+  })
+
+  it('chế độ gộp đánh id mới cho cả chiến thuật, không ghi đè bộ đang có', async () => {
+    const { doi } = await dungDuLieuMau('Đội A')
+    await tacticRepo.luuThanhBo(doi.id, 'Bộ của tôi')
+    const tep = await backup.exportAll()
+
+    await backup.importAll(tep, 'gop')
+
+    const db = await moDb()
+    const teams = await db.getAll('teams')
+    const tactics = await db.getAll('tactics')
+
+    expect(teams).toHaveLength(2)
+    expect(tactics).toHaveLength(4)
+    // Mỗi đội trỏ tới một bộ của CHÍNH nó.
+    for (const d of teams) {
+      const bo = tactics.find((c) => c.id === d.activeTacticId)
+      expect(bo?.teamId, d.name).toBe(d.id)
+    }
+  })
+
+  it('tệp khai schemaVersion 4 bị từ chối', async () => {
+    const tep = new Blob(
+      [
+        JSON.stringify({
+          schemaVersion: 4,
+          exportedAt: new Date().toISOString(),
+          teams: [],
+          players: [],
+          images: [],
+          tactics: [],
+        }),
+      ],
+      { type: 'application/json' },
+    )
+
+    await expect(backup.inspect(tep)).rejects.toMatchObject({
+      ma: 'VersionTooNew',
+    })
+  })
+
+  it('bộ chiến thuật trỏ tới cầu thủ đội khác thì cả tệp bị từ chối', async () => {
+    const { doi } = await dungDuLieuMau()
+    await tacticRepo.layChienThuatDangDung(doi.id)
+    const tep = await backup.exportAll()
+
+    const muc = unzipSync(new Uint8Array(await tep.arrayBuffer()))
+    const m = JSON.parse(strFromU8(muc[backup.TEN_MANIFEST])) as {
+      tactics: { oVien: { playerId: string | null }[] }[]
+    }
+    m.tactics[0].oVien[1].playerId = 'cau-thu-khong-ton-tai'
+    muc[backup.TEN_MANIFEST] = strToU8(JSON.stringify(m))
+    const tepHong = new Blob([zipSync(muc)], { type: 'application/zip' })
+
+    await expect(backup.inspect(tepHong)).rejects.toMatchObject({
+      ma: 'SchemaInvalid',
+    })
+  })
+
+  it('tệp hỏng không làm đổi dữ liệu đang có (P3)', async () => {
+    const { doi } = await dungDuLieuMau('Đội đang có')
+    const truoc = await demTatCa()
+
+    const tepHong = new Blob([
+      JSON.stringify({ schemaVersion: 3, teams: 'sai kiểu' }),
+    ])
+    await expect(backup.importAll(tepHong, 'thay-the')).rejects.toBeTruthy()
+
+    expect(await demTatCa()).toEqual(truoc)
+    expect((await teamRepo.get(doi.id)).name).toBe('Đội đang có')
   })
 })

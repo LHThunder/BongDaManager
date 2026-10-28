@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | Giai đoạn 1 (36 AC) và Giai đoạn 2 (22 AC) |
-| **Tiến độ** | 59/66 — Giai đoạn 1 xong (38/39, còn T035); Giai đoạn 2: Phase 7, 8, 9 xong (T040–T059); còn Phase 10 (T060–T065) |
+| **Tiến độ** | 65/66 — Giai đoạn 1 xong (38/39, còn T035); Giai đoạn 2 xong trọn (T040–T065) |
 | **Sửa đổi** | 2026-10-26 — sửa theo kết quả `/analyze` |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -460,37 +460,37 @@ Kết thúc phase: mở trang chiến thuật, chọn sơ đồ, kéo người v
 
 ## Phase 10 — Lát 8: Chỉ thị đội và tệp sao lưu v3
 
-- [ ] **T060** — Đặt 6 chỉ thị đội kèm câu đánh đổi
+- [x] **T060** — Đặt 6 chỉ thị đội kèm câu đánh đổi
   - File: `src/ui/components/ChiThiDoi.tsx`, sửa `src/ui/pages/TrangChienThuat.tsx`
   - Xong khi: đặt được cả 6 chỉ thị; đổi một mức thì **câu đánh đổi của đúng mức đó** hiện ra ngay; thay đổi được ghi xuống lưu trữ ngay và còn sau khi tải lại trang.
   - AC: AC-7.1, AC-7.2
   - Phụ thuộc: T043, T051
 
-- [ ] **T061** — Cảnh báo tổ hợp chỉ thị xung đột
+- [x] **T061** — Cảnh báo tổ hợp chỉ thị xung đột
   - File: sửa `src/ui/components/ChiThiDoi.tsx`
   - Xong khi: chọn bẫy việt vị bật cùng đội hình thấp thì hiện cảnh báo nêu rõ xung đột, **nhưng vẫn giữ được lựa chọn** nếu người dùng muốn (AC-7.3 nói cảnh báo, không chặn); bộ cân bằng mặc định không hiện cảnh báo nào.
   - AC: AC-7.3
   - Phụ thuộc: T060
 
-- [ ] **T062** [P] — Đội mới có sẵn bộ chỉ thị cân bằng
+- [x] **T062** [P] — Đội mới có sẵn bộ chỉ thị cân bằng
   - File: sửa `src/services/teamRepo.ts`, sửa `src/services/teamRepo.test.ts`
   - Xong khi: test xanh — tạo đội mới thì đội có ngay một chiến thuật dùng được với chỉ thị cân bằng và vai trò mặc định, không cần người dùng chỉnh gì; `cacXungDot` trên bộ đó trả rỗng.
   - AC: AC-7.4
   - Phụ thuộc: T043, T045
 
-- [ ] **T063** — Lưu bộ chiến thuật có tên và chọn lại
+- [x] **T063** — Lưu bộ chiến thuật có tên và chọn lại
   - File: `src/ui/components/BoChienThuat.tsx`, sửa `src/ui/pages/TrangChienThuat.tsx`
   - Xong khi: lưu bộ đang dùng dưới một tên thì tên đó xuất hiện trong danh sách bộ của đội; chọn lại một bộ thì sơ đồ, vai trò và chỉ thị trở về đúng bộ đó; tên rỗng bị chặn; bộ đang dùng sau khi chọn lại là bộ vừa áp dụng (AC-7.6).
   - AC: AC-7.5, AC-7.6
   - Phụ thuộc: T046, T060
 
-- [ ] **T064** [P] — Tệp sao lưu v3 chứa chiến thuật, vẫn đọc được v1 và v2
+- [x] **T064** [P] — Tệp sao lưu v3 chứa chiến thuật, vẫn đọc được v1 và v2
   - File: `src/storage/migrations.ts`, `src/services/backupSchema.ts`, `src/services/backupService.ts`, `src/services/backupService.test.ts`
   - Xong khi: test xanh — `SCHEMA_VERSION` là 3; schema v3 thêm cạnh v1 và v2, **không sửa hai schema cũ** (P7); bước migration v2→v3 thêm `tactics: []` và `activeTacticId: null`; xuất v3 rồi nhập lại ra đúng chiến thuật; **nhập tệp v2 (ZIP, chưa có chiến thuật) thì mọi đội được gán bộ mặc định**; **nhập tệp v1 (JSON base64) cũng vậy**; tệp khai `schemaVersion: 4` bị từ chối; tính tất-cả-hoặc-không-gì vẫn giữ cho cả ba phiên bản.
   - AC: AC-4.4, AC-4.5, AC-5.10
   - Phụ thuộc: T046
 
-- [ ] **T065** — Kiểm tay 22 AC của Giai đoạn 2
+- [x] **T065** — Kiểm tay 22 AC của Giai đoạn 2
   - File: `specs/001-football-team-sim/spec.md` (tick các ô AC trong phạm vi)
   - Xong khi: 21 AC làm trọn được tự tay kiểm trên ứng dụng đang chạy và tick; AC-5.7 ghi rõ phần nào đã xong, **không** tick trọn; kiểm luôn hai việc mà chỉ kiểm tay mới thấy: xếp trọn đội hình **chỉ bằng bàn phím**, và đổi sơ đồ khi đã xếp đủ người rồi đọc thông báo; ghi số đo bundle trước/sau `@dnd-kit` vào mô tả commit.
   - **Tick lại ba AC của Giai đoạn 1 có phạm vi rộng ra:** bỏ tick **AC-4.4** và **AC-4.5** rồi kiểm lại trên tệp v3 (vì giờ tệp sao lưu phải chứa cả chiến thuật), và kiểm lại **AC-1.6** (xoá đội dọn cả chiến thuật). Một cái tick cũ không còn nói đúng khi phạm vi của AC đã khác.

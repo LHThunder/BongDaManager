@@ -1,5 +1,5 @@
 import type { Team } from '../domain/types'
-import { moDb } from '../storage/db'
+import { moDb, taoChienThuatMacDinh } from '../storage/db'
 import { LoiUngDung, chuanHoaLoiLuuTru } from './errors'
 
 /** Màu áo mặc định cho đội mới; người dùng đổi được ở Giai đoạn 3 (AC-3.6). */
@@ -105,7 +105,7 @@ export async function create(input: TaoDoiInput): Promise<Team> {
     logoImageId: input.logoImageId ?? null,
     primaryColor: input.primaryColor ?? MAU_AO_MAC_DINH.chinh,
     secondaryColor: input.secondaryColor ?? MAU_AO_MAC_DINH.phu,
-    // `tacticRepo.layChienThuatDangDung` tạo bộ mặc định ở lần mở đầu tiên.
+    // Được thay bằng id bộ chiến thuật ngay bên dưới (AC-7.4).
     activeTacticId: null,
     createdAt: bayGio,
     updatedAt: bayGio,
@@ -113,8 +113,20 @@ export async function create(input: TaoDoiInput): Promise<Team> {
 
   try {
     const db = await moDb()
-    await db.add('teams', team)
-    return team
+
+    /*
+      Đội mới nhận luôn một bộ chiến thuật dùng được: 4-4-2, vai trò mặc định
+      cho từng ô, chỉ thị cân bằng không sinh xung đột (AC-7.4). Tạo trong
+      CÙNG transaction với đội, nếu không sẽ có lúc tồn tại một đội không có
+      chiến thuật nào.
+    */
+    const chienThuat = taoChienThuatMacDinh(team.id, bayGio)
+    const tx = db.transaction(['teams', 'tactics'], 'readwrite')
+    await tx.objectStore('teams').add({ ...team, activeTacticId: chienThuat.id })
+    await tx.objectStore('tactics').add(chienThuat)
+    await tx.done
+
+    return { ...team, activeTacticId: chienThuat.id }
   } catch (loi) {
     throw chuanHoaLoiLuuTru(loi)
   }

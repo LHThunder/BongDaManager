@@ -1,5 +1,8 @@
 import 'fake-indexeddb/auto'
 import { beforeEach, describe, expect, it } from 'vitest'
+import { laySoDo, SO_DO_MAC_DINH } from '../domain/formations'
+import { cacXungDot, THU_TU_CHI_THI } from '../domain/instructions'
+import { vaiTroApDungDuoc } from '../domain/roles'
 import type { Player } from '../domain/types'
 import { DB_NAME, dongDb, moDb } from '../storage/db'
 import { LoiUngDung } from './errors'
@@ -247,5 +250,51 @@ describe('xoá đội thì dọn cả chiến thuật (AC-1.6)', () => {
     await expect(teamRepo.remove(doi.id)).resolves.toEqual({
       removedPlayers: 0,
     })
+  })
+})
+
+describe('đội mới có sẵn bộ chỉ thị cân bằng (AC-7.4)', () => {
+  it('tạo đội là có ngay một chiến thuật, activeTacticId trỏ đúng vào nó', async () => {
+    const doi = await teamRepo.create({ name: 'Đội mới' })
+
+    expect(doi.activeTacticId).toBeTruthy()
+
+    const db = await moDb()
+    const cuaDoi = await db.getAllFromIndex('tactics', 'byTeam', doi.id)
+    expect(cuaDoi).toHaveLength(1)
+    expect(cuaDoi[0].id).toBe(doi.activeTacticId)
+  })
+
+  it('chiến thuật đó dùng được ngay: đủ 11 ô, vai trò mặc định hợp lệ', async () => {
+    const doi = await teamRepo.create({ name: 'Đội mới' })
+    const db = await moDb()
+    const bo = (await db.getAllFromIndex('tactics', 'byTeam', doi.id))[0]
+
+    expect(bo.formationId).toBe(SO_DO_MAC_DINH)
+    expect(bo.oVien).toHaveLength(11)
+
+    const viTriTheoSlot = new Map(
+      laySoDo(bo.formationId).oVien.map((o) => [o.slotId, o.viTri]),
+    )
+    for (const o of bo.oVien) {
+      const viTri = viTriTheoSlot.get(o.slotId)
+      expect(viTri, o.slotId).toBeDefined()
+      expect(vaiTroApDungDuoc(o.roleId, viTri!), o.slotId).toBe(true)
+    }
+  })
+
+  it('bộ chỉ thị của đội mới không sinh xung đột nào', async () => {
+    const doi = await teamRepo.create({ name: 'Đội mới' })
+    const db = await moDb()
+    const bo = (await db.getAllFromIndex('tactics', 'byTeam', doi.id))[0]
+
+    expect(Object.keys(bo.chiThi).sort()).toEqual([...THU_TU_CHI_THI].sort())
+    expect(cacXungDot(bo.chiThi)).toEqual([])
+  })
+
+  it('đọc lại đội từ database cũng thấy activeTacticId', async () => {
+    const doi = await teamRepo.create({ name: 'Đội mới' })
+    await dongDb()
+    expect((await teamRepo.get(doi.id)).activeTacticId).toBe(doi.activeTacticId)
   })
 })

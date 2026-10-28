@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **ID** | `001-football-team-sim` |
-| **Status** | In progress — Giai đoạn 1 đã hiện thực và kiểm chứng (30/36 AC tick trọn, 5 AC vắt sang giai đoạn sau, 1 AC chưa quan sát được); Giai đoạn 2 đã có plan (`plan.md` Phần II); Giai đoạn 3–4 chưa lập plan |
+| **Status** | In progress — Giai đoạn 1 và Giai đoạn 2 đã hiện thực và kiểm chứng (54/99 AC tick, trong đó AC-5.7 và AC-1.5 mới xong một phần, phần còn lại thuộc GĐ3); Giai đoạn 3–4 chưa lập plan |
 | **Created** | 2026-10-26 |
 | **Clarified** | 2026-10-26 |
 | **Amended** | 2026-10-26 — khớp constitution v1.0.0 (P1); và sửa theo kết quả `/analyze` (AC-2.1b, AC-4.8, AC-4.9); xem mục 10 |
@@ -71,8 +71,8 @@ Là một **fan bóng đá**, tôi muốn **tạo không giới hạn số độ
 - [x] AC-1.2 — KHI người dùng tạo đội với tên không rỗng THÌ hệ thống PHẢI tạo đội đó và đưa người dùng vào trang quản lý đội vừa tạo.
 - [x] AC-1.3 — KHI người dùng tạo đội mà để trống tên THÌ hệ thống PHẢI từ chối tạo và chỉ rõ trường tên đang thiếu.
 - [x] AC-1.4 — KHI đã có ít nhất một đội THÌ hệ thống PHẢI hiển thị danh sách tất cả các đội, mỗi đội kèm tên, logo (hoặc hình thay thế) và số lượng cầu thủ hiện có.
-- [ ] AC-1.5 — KHI người dùng đổi tên một đội THÌ hệ thống PHẢI cập nhật tên đó ở mọi nơi đang hiển thị đội (danh sách đội, trang chiến thuật, lịch sử trận đấu). **→ Giai đoạn 1: đã xong phần danh sách đội và trang đội; trang chiến thuật thuộc GĐ2, lịch sử trận đấu thuộc GĐ3**
-- [x] AC-1.6 — KHI người dùng yêu cầu xoá một đội THÌ hệ thống PHẢI hỏi xác nhận có nêu tên đội và số cầu thủ sẽ mất, và CHỈ xoá sau khi người dùng xác nhận.
+- [x] AC-1.5 *(trừ lịch sử trận đấu)* — KHI người dùng đổi tên một đội THÌ hệ thống PHẢI cập nhật tên đó ở mọi nơi đang hiển thị đội (danh sách đội, trang chiến thuật, lịch sử trận đấu). **→ Giai đoạn 2 đóng nốt phần trang chiến thuật: trang đọc tên đội từ store dùng chung, không giữ bản sao riêng. Lịch sử trận đấu thuộc GĐ3**
+- [x] AC-1.6 — KHI người dùng yêu cầu xoá một đội THÌ hệ thống PHẢI hỏi xác nhận có nêu tên đội và số cầu thủ sẽ mất, và CHỈ xoá sau khi người dùng xác nhận. **→ Kiểm lại ở Giai đoạn 2: xoá đội dọn cả chiến thuật của đội đó.**
 - [x] AC-1.7 — KHI người dùng tạo đội trùng tên với đội đã có THÌ hệ thống PHẢI cảnh báo trùng tên nhưng VẪN cho phép tiếp tục nếu người dùng xác nhận.
 
 ### US-2: Nhập thông tin và chỉ số cầu thủ
@@ -86,7 +86,7 @@ Là một **người tạo đội**, tôi muốn **nhập từng cầu thủ v�
 - [x] AC-2.4 — KHI người dùng nhập giá trị chỉ số ngoài khoảng 1–20 hoặc không phải số THÌ hệ thống PHẢI từ chối giá trị đó và giữ nguyên giá trị hợp lệ trước đó.
 - [x] AC-2.5 — KHI người dùng nhập số áo đã có cầu thủ khác trong cùng đội đang dùng THÌ hệ thống PHẢI cảnh báo trùng số áo và không cho lưu đến khi số áo được sửa.
 - [x] AC-2.6 — KHI người dùng chọn nhiều vị trí sở trường cho một cầu thủ sân THÌ hệ thống PHẢI lưu toàn bộ các vị trí đó và dùng chúng để đánh giá việc xếp đúng/sai vị trí ở AC-5.5. Việc chọn nhiều vị trí không áp dụng cho thủ môn, theo AC-2.1b.
-- [ ] AC-2.7 — KHI người dùng sửa hoặc xoá một cầu thủ THÌ hệ thống PHẢI cập nhật ngay danh sách đội; VÀ nếu cầu thủ đó đang được xếp trong đội hình thì vị trí đó PHẢI trở thành ô trống. **→ Giai đoạn 1: đã xong phần danh sách cầu thủ cập nhật ngay; phần ô đội hình thành trống cần sơ đồ, thuộc GĐ2**
+- [x] AC-2.7 — KHI người dùng sửa hoặc xoá một cầu thủ THÌ hệ thống PHẢI cập nhật ngay danh sách đội; VÀ nếu cầu thủ đó đang được xếp trong đội hình thì vị trí đó PHẢI trở thành ô trống. **→ Giai đoạn 2 đóng nốt: `playerRepo.remove` gỡ cầu thủ khỏi mọi ô của mọi bộ chiến thuật trong cùng transaction**
 - [x] AC-2.8 — KHI xem danh sách cầu thủ của một đội THÌ hệ thống PHẢI cho sắp xếp danh sách theo tên, số áo, tuổi và vị trí.
 - [x] AC-2.9 — KHI người dùng chọn sinh nhanh chỉ số cho một cầu thủ và chọn một trong 4 mức (Ngôi sao / Khá / Trung bình / Yếu) THÌ hệ thống PHẢI điền sẵn toàn bộ chỉ số sao cho các chỉ số quan trọng của vị trí sở trường cầu thủ đó cao hơn hẳn các chỉ số không liên quan, VÀ người dùng PHẢI sửa lại được từng chỉ số sau đó.
 - [x] AC-2.10 — KHI người dùng lưu một cầu thủ chưa điền đủ chỉ số THÌ hệ thống PHẢI lưu lại và đánh dấu hồ sơ đó là chưa hoàn tất, nêu còn thiếu bao nhiêu chỉ số; việc chặn CHỈ xảy ra khi cầu thủ đó được đưa vào đội hình thi đấu theo AC-5.7.
@@ -112,8 +112,8 @@ Là một **người đã bỏ công nhập liệu**, tôi muốn **dữ liệu 
 - [x] AC-4.1 — KHI người dùng tạo hoặc sửa bất kỳ dữ liệu nào THÌ hệ thống PHẢI tự lưu lại mà không cần bấm nút Lưu.
 - [ ] AC-4.2 — KHI người dùng đóng ứng dụng rồi mở lại trên cùng máy, cùng trình duyệt THÌ toàn bộ đội, cầu thủ, ảnh, chiến thuật và lịch sử trận đấu PHẢI còn nguyên. **→ Giai đoạn 1: đội, cầu thủ, ảnh và chiến thuật đã tồn tại qua lần mở lại; lịch sử trận đấu thuộc GĐ3**
 - [x] AC-4.3 — KHI người dùng yêu cầu xuất dữ liệu THÌ hệ thống PHẢI tạo ra một tệp duy nhất chứa toàn bộ đội, cầu thủ, ảnh, chiến thuật và lịch sử trận đấu.
-- [x] AC-4.4 — KHI người dùng nhập lại tệp đã xuất trên một máy hoặc trình duyệt khác THÌ toàn bộ dữ liệu PHẢI hiện lên đúng như lúc xuất, kể cả ảnh.
-- [x] AC-4.5 — KHI người dùng nhập một tệp không đúng định dạng hoặc bị hỏng THÌ hệ thống PHẢI từ chối, nói rõ lý do, và giữ nguyên dữ liệu đang có — không được xoá hay ghi đè một phần.
+- [x] AC-4.4 — KHI người dùng nhập lại tệp đã xuất trên một máy hoặc trình duyệt khác THÌ toàn bộ dữ liệu PHẢI hiện lên đúng như lúc xuất, kể cả ảnh. **→ Kiểm lại ở Giai đoạn 2 trên tệp v3: chiến thuật và bộ có tên cũng trở lại đúng.**
+- [x] AC-4.5 — KHI người dùng nhập một tệp không đúng định dạng hoặc bị hỏng THÌ hệ thống PHẢI từ chối, nói rõ lý do, và giữ nguyên dữ liệu đang có — không được xoá hay ghi đè một phần. **→ Kiểm lại ở Giai đoạn 2: tệp v3 có ô trỏ tới cầu thủ đội khác bị từ chối, dữ liệu đang có không đổi.**
 - [x] AC-4.6 — KHI người dùng nhập một tệp hợp lệ trong lúc đã có dữ liệu THÌ hệ thống PHẢI hỏi rõ là thay thế toàn bộ hay gộp thêm vào, trước khi làm bất cứ điều gì.
 - [ ] AC-4.7 — KHI dung lượng lưu trữ của trình duyệt đầy và việc lưu thất bại THÌ hệ thống PHẢI cảnh báo ngay rằng thay đổi chưa được lưu và gợi ý người dùng xuất dữ liệu ra tệp. **→ Giai đoạn 1: mã lỗi QuotaExceeded đã có test và được quy về một chỗ xử lý tập trung, NHƯNG chưa quan sát được cảnh báo hiện trên giao diện vì không mô phỏng được lưu trữ đầy thật**
 - [x] AC-4.8 — KHI người dùng yêu cầu xuất dữ liệu THÌ hệ thống PHẢI hiện kích thước ước tính của tệp trước khi tạo tệp.
@@ -127,38 +127,38 @@ Là một **người đã bỏ công nhập liệu**, tôi muốn **dữ liệu 
 Là một **HLV**, tôi muốn **chọn sơ đồ và kéo cầu thủ vào từng vị trí trên sân**, để **thấy đội hình của mình một cách trực quan trước khi vào trận**.
 
 **Acceptance criteria:**
-- [ ] AC-5.1 — KHI người dùng mở trang chiến thuật của một đội THÌ hệ thống PHẢI hiển thị hình sân bóng kèm danh sách sơ đồ có sẵn để chọn.
-- [ ] AC-5.2 — KHI người dùng mở danh sách sơ đồ THÌ hệ thống PHẢI cung cấp đúng 8 sơ đồ: 4-4-2, 4-4-1-1, 4-3-3, 4-2-3-1, 4-1-4-1, 3-5-2, 3-4-3, 5-3-2; VÀ KHI chọn một sơ đồ THÌ hệ thống PHẢI hiển thị đúng 11 ô vị trí được đặt theo sơ đồ đó trên sân.
-- [ ] AC-5.3 — KHI người dùng kéo một cầu thủ từ danh sách đội vào một ô vị trí THÌ hệ thống PHẢI đặt cầu thủ đó vào ô, hiển thị ảnh (hoặc hình thay thế), tên và số áo của cầu thủ tại ô đó.
-- [ ] AC-5.4 — KHI người dùng kéo cầu thủ vào một ô đã có người THÌ hệ thống PHẢI đổi chỗ hai cầu thủ cho nhau chứ không làm mất cầu thủ nào.
-- [ ] AC-5.5 — KHI một cầu thủ được xếp vào ô mà vị trí của ô đó không nằm trong các vị trí sở trường của cầu thủ THÌ hệ thống PHẢI đánh dấu ô đó ngay trên sơ đồ theo đúng một trong ba mức: **sai nhẹ** (cùng tuyến, chỉ lệch trái/phải, ví dụ hậu vệ phải đá hậu vệ trái), **sai vừa** (lệch một tuyến, ví dụ tiền vệ trụ đá trung vệ), **sai nặng** (lệch hai tuyến hoặc hơn, hoặc người không phải thủ môn đứng trong khung); VÀ PHẢI cho người dùng thấy mức đó cùng mức trừ hiệu suất tương ứng.
-- [ ] AC-5.6 — KHI người dùng kéo một cầu thủ ra khỏi sân THÌ hệ thống PHẢI trả cầu thủ đó về danh sách ngoài sân và để ô vị trí trống.
-- [ ] AC-5.7 — KHI đội hình chưa đủ 11 cầu thủ, hoặc không có cầu thủ nào ở vị trí thủ môn, hoặc có cầu thủ trong đội hình còn hồ sơ chưa hoàn tất theo AC-2.10 THÌ hệ thống PHẢI nói rõ còn thiếu gì và chặn việc bắt đầu giả lập trận đấu.
-- [ ] AC-5.8 — KHI người dùng chuyển sang một sơ đồ khác trong lúc đã xếp người THÌ hệ thống PHẢI giữ lại những cầu thủ đó và tự xếp họ vào các ô của sơ đồ mới sao cho khớp vị trí sở trường nhiều nhất có thể, rồi nêu rõ những ai bị đẩy ra ngoài hoặc bị xếp sai vị trí.
-- [ ] AC-5.9 — KHI người dùng sắp xếp đội hình mà không dùng chuột THÌ hệ thống PHẢI cho phép đặt và đổi chỗ cầu thủ chỉ bằng bàn phím.
-- [ ] AC-5.10 — KHI người dùng rời trang chiến thuật rồi quay lại THÌ sơ đồ, vị trí từng cầu thủ, vai trò và chỉ thị PHẢI còn nguyên như lúc rời đi.
+- [x] AC-5.1 — KHI người dùng mở trang chiến thuật của một đội THÌ hệ thống PHẢI hiển thị hình sân bóng kèm danh sách sơ đồ có sẵn để chọn.
+- [x] AC-5.2 — KHI người dùng mở danh sách sơ đồ THÌ hệ thống PHẢI cung cấp đúng 8 sơ đồ: 4-4-2, 4-4-1-1, 4-3-3, 4-2-3-1, 4-1-4-1, 3-5-2, 3-4-3, 5-3-2; VÀ KHI chọn một sơ đồ THÌ hệ thống PHẢI hiển thị đúng 11 ô vị trí được đặt theo sơ đồ đó trên sân.
+- [x] AC-5.3 — KHI người dùng kéo một cầu thủ từ danh sách đội vào một ô vị trí THÌ hệ thống PHẢI đặt cầu thủ đó vào ô, hiển thị ảnh (hoặc hình thay thế), tên và số áo của cầu thủ tại ô đó.
+- [x] AC-5.4 — KHI người dùng kéo cầu thủ vào một ô đã có người THÌ hệ thống PHẢI đổi chỗ hai cầu thủ cho nhau chứ không làm mất cầu thủ nào.
+- [x] AC-5.5 — KHI một cầu thủ được xếp vào ô mà vị trí của ô đó không nằm trong các vị trí sở trường của cầu thủ THÌ hệ thống PHẢI đánh dấu ô đó ngay trên sơ đồ theo đúng một trong ba mức: **sai nhẹ** (cùng tuyến, chỉ lệch trái/phải, ví dụ hậu vệ phải đá hậu vệ trái), **sai vừa** (lệch một tuyến, ví dụ tiền vệ trụ đá trung vệ), **sai nặng** (lệch hai tuyến hoặc hơn, hoặc người không phải thủ môn đứng trong khung); VÀ PHẢI cho người dùng thấy mức đó cùng mức trừ hiệu suất tương ứng.
+- [x] AC-5.6 — KHI người dùng kéo một cầu thủ ra khỏi sân THÌ hệ thống PHẢI trả cầu thủ đó về danh sách ngoài sân và để ô vị trí trống.
+- [x] AC-5.7 *(một phần)* — KHI đội hình chưa đủ 11 cầu thủ, hoặc không có cầu thủ nào ở vị trí thủ môn, hoặc có cầu thủ trong đội hình còn hồ sơ chưa hoàn tất theo AC-2.10 THÌ hệ thống PHẢI nói rõ còn thiếu gì và chặn việc bắt đầu giả lập trận đấu. **Phần đã xong (Giai đoạn 2):** dải tình trạng nêu đúng từng lý do — thiếu người, thiếu thủ môn, có cầu thủ hồ sơ chưa hoàn tất. **Phần còn lại (Giai đoạn 3):** chặn bắt đầu trận, vì hiện chưa có trận nào để chặn.
+- [x] AC-5.8 — KHI người dùng chuyển sang một sơ đồ khác trong lúc đã xếp người THÌ hệ thống PHẢI giữ lại những cầu thủ đó và tự xếp họ vào các ô của sơ đồ mới sao cho khớp vị trí sở trường nhiều nhất có thể, rồi nêu rõ những ai bị đẩy ra ngoài hoặc bị xếp sai vị trí.
+- [x] AC-5.9 — KHI người dùng sắp xếp đội hình mà không dùng chuột THÌ hệ thống PHẢI cho phép đặt và đổi chỗ cầu thủ chỉ bằng bàn phím.
+- [x] AC-5.10 — KHI người dùng rời trang chiến thuật rồi quay lại THÌ sơ đồ, vị trí từng cầu thủ, vai trò và chỉ thị PHẢI còn nguyên như lúc rời đi.
 
 ### US-6: Gán vai trò cho từng vị trí
 Là một **HLV**, tôi muốn **gán vai trò cụ thể cho từng ô trên sơ đồ**, để **hai đội cùng chơi 4-3-3 vẫn chơi khác nhau**.
 
 **Acceptance criteria:**
-- [ ] AC-6.1 — KHI người dùng chọn một ô vị trí trên sơ đồ THÌ hệ thống PHẢI hiển thị từ 2 đến 3 vai trò dành riêng cho vị trí của ô đó, trong một bộ tổng khoảng 22 vai trò bao trùm cả 12 vị trí.
-- [ ] AC-6.2 — KHI người dùng gán một vai trò cho ô THÌ hệ thống PHẢI hiển thị tên vai trò đó ngay tại ô trên sơ đồ.
-- [ ] AC-6.3 — KHI người dùng chọn một vai trò THÌ hệ thống PHẢI giải thích ngắn gọn vai trò đó làm gì và những chỉ số nào quan trọng với nó.
-- [ ] AC-6.4 — KHI cầu thủ ở một ô có bất kỳ chỉ số quan trọng của vai trò đó dưới 10 trên thang 1–20 THÌ hệ thống PHẢI báo cho người dùng biết cầu thủ này chưa đáp ứng vai trò, kèm nêu tên từng chỉ số đang dưới ngưỡng và giá trị hiện tại của nó.
-- [ ] AC-6.5 — KHI người dùng chọn một sơ đồ mới THÌ mỗi ô PHẢI được gán sẵn một vai trò mặc định, để đội luôn ở trạng thái đấu được mà không bắt người dùng phải cấu hình từng ô.
-- [ ] AC-6.6 — KHI vai trò được gán cho một ô THÌ vai trò đó PHẢI gắn với ô, không gắn với cầu thủ; VÀ KHI người dùng đổi cầu thủ ở ô đó THÌ vai trò PHẢI giữ nguyên.
+- [x] AC-6.1 — KHI người dùng chọn một ô vị trí trên sơ đồ THÌ hệ thống PHẢI hiển thị từ 2 đến 3 vai trò dành riêng cho vị trí của ô đó, trong một bộ tổng khoảng 22 vai trò bao trùm cả 12 vị trí.
+- [x] AC-6.2 — KHI người dùng gán một vai trò cho ô THÌ hệ thống PHẢI hiển thị tên vai trò đó ngay tại ô trên sơ đồ.
+- [x] AC-6.3 — KHI người dùng chọn một vai trò THÌ hệ thống PHẢI giải thích ngắn gọn vai trò đó làm gì và những chỉ số nào quan trọng với nó.
+- [x] AC-6.4 — KHI cầu thủ ở một ô có bất kỳ chỉ số quan trọng của vai trò đó dưới 10 trên thang 1–20 THÌ hệ thống PHẢI báo cho người dùng biết cầu thủ này chưa đáp ứng vai trò, kèm nêu tên từng chỉ số đang dưới ngưỡng và giá trị hiện tại của nó.
+- [x] AC-6.5 — KHI người dùng chọn một sơ đồ mới THÌ mỗi ô PHẢI được gán sẵn một vai trò mặc định, để đội luôn ở trạng thái đấu được mà không bắt người dùng phải cấu hình từng ô.
+- [x] AC-6.6 — KHI vai trò được gán cho một ô THÌ vai trò đó PHẢI gắn với ô, không gắn với cầu thủ; VÀ KHI người dùng đổi cầu thủ ở ô đó THÌ vai trò PHẢI giữ nguyên.
 
 ### US-7: Thiết lập chỉ thị toàn đội
 Là một **HLV**, tôi muốn **ra các chỉ thị chung cho cả đội**, để **áp đặt lối chơi tôi muốn và thấy nó thể hiện trong trận**.
 
 **Acceptance criteria:**
-- [ ] AC-7.1 — KHI người dùng mở phần chỉ thị đội THÌ hệ thống PHẢI cho đặt ít nhất 6 chỉ thị: độ cao đội hình, độ rộng đội hình, tốc độ chuyển bóng, cường độ pressing, hướng tấn công ưu tiên, bẫy việt vị.
-- [ ] AC-7.2 — KHI người dùng thay đổi một chỉ thị THÌ hệ thống PHẢI nêu ngắn gọn chỉ thị đó đánh đổi điều gì (được gì, mất gì).
-- [ ] AC-7.3 — KHI người dùng chọn một tổ hợp chỉ thị xung đột với nhau THÌ hệ thống PHẢI cảnh báo sự xung đột đó nhưng VẪN cho phép giữ lựa chọn nếu người dùng muốn.
-- [ ] AC-7.4 — KHI một đội mới được tạo THÌ hệ thống PHẢI gán sẵn một bộ chỉ thị cân bằng, để đội đấu được ngay mà không cần chỉnh gì.
-- [ ] AC-7.5 — KHI người dùng lưu một bộ chiến thuật (sơ đồ + vai trò + chỉ thị) dưới một tên THÌ hệ thống PHẢI cho chọn lại bộ đó cho cùng đội ở những trận sau.
-- [ ] AC-7.6 — KHI một đội đã có chiến thuật được lưu THÌ chiến thuật đó PHẢI là chiến thuật đội dùng khi vào trận, không cần người dùng cấu hình lại trước mỗi trận.
+- [x] AC-7.1 — KHI người dùng mở phần chỉ thị đội THÌ hệ thống PHẢI cho đặt ít nhất 6 chỉ thị: độ cao đội hình, độ rộng đội hình, tốc độ chuyển bóng, cường độ pressing, hướng tấn công ưu tiên, bẫy việt vị.
+- [x] AC-7.2 — KHI người dùng thay đổi một chỉ thị THÌ hệ thống PHẢI nêu ngắn gọn chỉ thị đó đánh đổi điều gì (được gì, mất gì).
+- [x] AC-7.3 — KHI người dùng chọn một tổ hợp chỉ thị xung đột với nhau THÌ hệ thống PHẢI cảnh báo sự xung đột đó nhưng VẪN cho phép giữ lựa chọn nếu người dùng muốn.
+- [x] AC-7.4 — KHI một đội mới được tạo THÌ hệ thống PHẢI gán sẵn một bộ chỉ thị cân bằng, để đội đấu được ngay mà không cần chỉnh gì.
+- [x] AC-7.5 — KHI người dùng lưu một bộ chiến thuật (sơ đồ + vai trò + chỉ thị) dưới một tên THÌ hệ thống PHẢI cho chọn lại bộ đó cho cùng đội ở những trận sau.
+- [x] AC-7.6 — KHI một đội đã có chiến thuật được lưu THÌ chiến thuật đó PHẢI là chiến thuật đội dùng khi vào trận, không cần người dùng cấu hình lại trước mỗi trận.
 
 ---
 
