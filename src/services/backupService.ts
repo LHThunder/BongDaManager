@@ -343,6 +343,12 @@ function chuanBiDuLieu(daDoc: TepDaDoc, cheDo: CheDoNhap): DuLieuSanSang {
     ...d,
     id: anhXa(d.id),
     logoImageId: d.logoImageId === null ? null : anhXa(d.logoImageId),
+    /*
+      Tệp sao lưu v1 và v2 không có chiến thuật (P7 — tệp cũ vẫn phải nhập
+      được). Đội nhập vào từ tệp cũ bắt đầu với bộ mặc định, do `moDb` gieo ở
+      lần mở sau hoặc `tacticRepo` tạo khi mở trang chiến thuật.
+    */
+    activeTacticId: null,
   }))
 
   const players: Player[] = manifest.players.map((p) => ({

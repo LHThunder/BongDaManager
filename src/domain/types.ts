@@ -1,3 +1,7 @@
+import type { FormationId } from './formations'
+import type { BoChiThi } from './instructions'
+import type { RoleId } from './roles'
+
 /*
   Kiểu dữ liệu của miền bóng đá.
 
@@ -124,6 +128,46 @@ export interface Team {
   /** Màu áo dạng '#RRGGBB'. */
   readonly primaryColor: string
   readonly secondaryColor: string
+  /**
+   * Bộ chiến thuật đang dùng của đội (AC-7.6). `null` nghĩa là đội chưa có bộ
+   * nào — `tacticRepo.layChienThuatDangDung` sẽ tạo bộ mặc định khi cần.
+   */
+  readonly activeTacticId: string | null
+  readonly createdAt: number
+  readonly updatedAt: number
+}
+
+// ---------------------------------------------------------------------------
+// Chiến thuật
+// ---------------------------------------------------------------------------
+
+/*
+  Ba import dưới đây chỉ là KIỂU, nên chúng bị xoá khi biên dịch và không tạo
+  vòng lặp import lúc chạy — `formations.ts` và `roles.ts` cũng chỉ lấy kiểu
+  từ file này.
+*/
+
+/** Một ô trong đội hình: người đứng ở đó và vai trò gắn với ô (D13). */
+export interface OChienThuat {
+  readonly slotId: string
+  /** `null` nghĩa là ô trống. */
+  readonly playerId: string | null
+  /**
+   * Vai trò gắn với Ô, không gắn với cầu thủ (AC-6.6): đổi người vào ô thì
+   * vai trò của ô giữ nguyên.
+   */
+  readonly roleId: RoleId
+}
+
+export interface Tactic {
+  readonly id: string
+  readonly teamId: string
+  /** `null` = bộ đang dùng, chưa đặt tên. Có tên = bộ người dùng lưu lại. */
+  readonly ten: string | null
+  readonly formationId: FormationId
+  /** Đúng 11 ô, cùng thứ tự với `oVien` của sơ đồ. */
+  readonly oVien: readonly OChienThuat[]
+  readonly chiThi: BoChiThi
   readonly createdAt: number
   readonly updatedAt: number
 }

@@ -105,6 +105,8 @@ export async function create(input: TaoDoiInput): Promise<Team> {
     logoImageId: input.logoImageId ?? null,
     primaryColor: input.primaryColor ?? MAU_AO_MAC_DINH.chinh,
     secondaryColor: input.secondaryColor ?? MAU_AO_MAC_DINH.phu,
+    // `tacticRepo.layChienThuatDangDung` tạo bộ mặc định ở lần mở đầu tiên.
+    activeTacticId: null,
     createdAt: bayGio,
     updatedAt: bayGio,
   }

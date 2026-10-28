@@ -1,12 +1,17 @@
 import 'fake-indexeddb/auto'
 import { beforeEach, describe, expect, it } from 'vitest'
+import { laySoDo, SO_DO_MAC_DINH } from '../domain/formations'
+import { CHI_THI_MAC_DINH } from '../domain/instructions'
+import { vaiTroMacDinh } from '../domain/roles'
 import * as teamRepo from '../services/teamRepo'
 import {
   DB_NAME,
+  DB_VERSION,
   TEN_CAC_STORE,
   docSchemaVersion,
   dongDb,
   moDb,
+  taoChienThuatMacDinh,
   yeuCauLuuTruBen,
 } from './db'
 import {
@@ -31,7 +36,7 @@ beforeEach(async () => {
 })
 
 describe('mở database', () => {
-  it('tạo đúng 4 store', async () => {
+  it('tạo đúng 5 store', async () => {
     const db = await moDb()
     expect([...db.objectStoreNames].sort()).toEqual([...TEN_CAC_STORE].sort())
   })
@@ -111,6 +116,224 @@ describe('ghi xuyên thẳng, không có nút Lưu (AC-4.1, quyết định D4)'
     await dongDb()
     const db = await moDb()
     expect(await db.get('teams', doi.id)).toBeUndefined()
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Nâng cấp lên phiên bản 2 (AC-5.10, AC-7.4)
+// ---------------------------------------------------------------------------
+
+/*
+  `moDb()` giờ yêu cầu phiên bản 2, nên nó KHÔNG mở được một database phiên
+  bản 1 nữa. Muốn chứng minh bước nâng cấp thì test phải tự dựng database v1
+  bằng tay: tạo 4 store cũ, nhét dữ liệu, ĐÓNG kết nối, rồi mới gọi `moDb()`.
+  Không đóng trước thì `moDb()` bị chặn; không dựng v1 trước thì nó chỉ mở
+  một database v2 mới toanh và test chẳng chứng minh điều gì.
+*/
+
+interface DoiV1 {
+  id: string
+  name: string
+  logoImageId: string | null
+  primaryColor: string
+  secondaryColor: string
+  createdAt: number
+  updatedAt: number
+}
+
+const DOI_V1: DoiV1[] = [
+  {
+    id: 'doi-1',
+    name: 'Đội Một',
+    logoImageId: 'anh-1',
+    primaryColor: '#112233',
+    secondaryColor: '#ffffff',
+    createdAt: 1000,
+    updatedAt: 2000,
+  },
+  {
+    id: 'doi-2',
+    name: 'Đội Hai',
+    logoImageId: null,
+    primaryColor: '#445566',
+    secondaryColor: '#000000',
+    createdAt: 3000,
+    updatedAt: 4000,
+  },
+]
+
+const CAU_THU_V1 = [
+  {
+    id: 'ct-1',
+    teamId: 'doi-1',
+    name: 'Cầu thủ Một',
+    shirtNumber: 9,
+    age: 25,
+    preferredFoot: 'phai',
+    positions: ['ST'],
+    attributes: { 'dut-diem': 15 },
+    gkAttributes: null,
+    portraitImageId: null,
+    createdAt: 1000,
+    updatedAt: 1000,
+  },
+]
+
+function dungDatabaseV1(): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const yeuCau = indexedDB.open(DB_NAME, 1)
+
+    yeuCau.onupgradeneeded = () => {
+      const db = yeuCau.result
+      db.createObjectStore('meta', { keyPath: 'key' })
+      const teams = db.createObjectStore('teams', { keyPath: 'id' })
+      teams.createIndex('byName', 'name')
+      const players = db.createObjectStore('players', { keyPath: 'id' })
+      players.createIndex('byTeam', 'teamId')
+      players.createIndex('byTeamAndShirt', ['teamId', 'shirtNumber'])
+      db.createObjectStore('images', { keyPath: 'id' })
+    }
+
+    yeuCau.onerror = () => reject(yeuCau.error)
+
+    yeuCau.onsuccess = () => {
+      const db = yeuCau.result
+      const tx = db.transaction(
+        ['meta', 'teams', 'players', 'images'],
+        'readwrite',
+      )
+
+      tx.objectStore('meta').put({ key: 'schemaVersion', value: 2 })
+      for (const doi of DOI_V1) {
+        tx.objectStore('teams').put(doi)
+      }
+      for (const ct of CAU_THU_V1) {
+        tx.objectStore('players').put(ct)
+      }
+      tx.objectStore('images').put({
+        id: 'anh-1',
+        blob: new Blob([new Uint8Array([1, 2, 3])], { type: 'image/webp' }),
+        width: 64,
+        height: 64,
+        byteSize: 3,
+      })
+
+      tx.oncomplete = () => {
+        // Phải đóng, không thì yêu cầu nâng cấp của `moDb()` bị chặn.
+        db.close()
+        resolve()
+      }
+      tx.onerror = () => reject(tx.error)
+    }
+  })
+}
+
+describe('nâng cấp database v1 lên v2 (AC-5.10, AC-7.4)', () => {
+  beforeEach(async () => {
+    await dungDatabaseV1()
+  })
+
+  it('sau nâng cấp có đủ 5 store và tactics có index byTeam', async () => {
+    const db = await moDb()
+
+    expect(db.version).toBe(DB_VERSION)
+    expect([...db.objectStoreNames].sort()).toEqual([...TEN_CAC_STORE].sort())
+    expect([...db.transaction('tactics').store.indexNames]).toContain('byTeam')
+  })
+
+  it('không mất bản ghi nào: đội, cầu thủ và ảnh còn đủ', async () => {
+    const db = await moDb()
+
+    expect(await db.count('teams')).toBe(DOI_V1.length)
+    expect(await db.count('players')).toBe(CAU_THU_V1.length)
+    expect(await db.count('images')).toBe(1)
+
+    const anh = await db.get('images', 'anh-1')
+    expect(anh?.byteSize).toBe(3)
+    expect(await db.get('players', 'ct-1')).toMatchObject({
+      name: 'Cầu thủ Một',
+      shirtNumber: 9,
+    })
+  })
+
+  it('bước nâng cấp chỉ THÊM activeTacticId, không sửa trường nào khác', async () => {
+    const db = await moDb()
+
+    for (const goc of DOI_V1) {
+      const sau = await db.get('teams', goc.id)
+      expect(sau, goc.id).toMatchObject(goc)
+      expect(sau?.activeTacticId, goc.id).toBeTruthy()
+    }
+  })
+
+  it('mỗi đội có đúng một chiến thuật, và activeTacticId trỏ đúng vào nó', async () => {
+    const db = await moDb()
+
+    expect(await db.count('tactics')).toBe(DOI_V1.length)
+
+    for (const goc of DOI_V1) {
+      const cuaDoi = await db.getAllFromIndex('tactics', 'byTeam', goc.id)
+      expect(cuaDoi, goc.id).toHaveLength(1)
+
+      const doi = await db.get('teams', goc.id)
+      expect(doi?.activeTacticId, goc.id).toBe(cuaDoi[0].id)
+    }
+  })
+
+  it('chiến thuật mặc định là 4-4-2, 11 ô trống, vai trò mặc định, chỉ thị cân bằng', async () => {
+    const db = await moDb()
+    const chienThuat = (await db.getAllFromIndex('tactics', 'byTeam', 'doi-1'))[0]
+
+    expect(chienThuat.ten).toBeNull()
+    expect(chienThuat.formationId).toBe(SO_DO_MAC_DINH)
+    expect(chienThuat.chiThi).toEqual(CHI_THI_MAC_DINH)
+    expect(chienThuat.oVien).toEqual(
+      laySoDo(SO_DO_MAC_DINH).oVien.map((o) => ({
+        slotId: o.slotId,
+        playerId: null,
+        roleId: vaiTroMacDinh(o.viTri),
+      })),
+    )
+  })
+
+  it('không chạm schemaVersion trong meta', async () => {
+    await moDb()
+    expect(await docSchemaVersion()).toBe(2)
+  })
+
+  it('mở lại lần nữa không sinh thêm chiến thuật nào', async () => {
+    const db = await moDb()
+    const lanDau = (await db.getAll('tactics')).map((c) => c.id).sort()
+    await dongDb()
+
+    const db2 = await moDb()
+    const lanHai = (await db2.getAll('tactics')).map((c) => c.id).sort()
+
+    expect(lanHai).toEqual(lanDau)
+    expect(lanHai).toHaveLength(DOI_V1.length)
+  })
+})
+
+describe('bộ chiến thuật mặc định (AC-7.4)', () => {
+  it('mỗi lần gọi ra một id khác nhau', () => {
+    const a = taoChienThuatMacDinh('doi-x')
+    const b = taoChienThuatMacDinh('doi-x')
+    expect(a.id).not.toBe(b.id)
+  })
+
+  it('gắn đúng đội, chưa có tên, và createdAt bằng updatedAt', () => {
+    const c = taoChienThuatMacDinh('doi-x', 777)
+    expect(c.teamId).toBe('doi-x')
+    expect(c.ten).toBeNull()
+    expect(c.createdAt).toBe(777)
+    expect(c.updatedAt).toBe(777)
+  })
+
+  it('đúng 11 ô, không ô nào có người, slotId không trùng', () => {
+    const c = taoChienThuatMacDinh('doi-x')
+    expect(c.oVien).toHaveLength(11)
+    expect(c.oVien.every((o) => o.playerId === null)).toBe(true)
+    expect(new Set(c.oVien.map((o) => o.slotId)).size).toBe(11)
   })
 })
 

@@ -1,5 +1,8 @@
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb'
-import type { Player, Team } from '../domain/types'
+import { laySoDo, SO_DO_MAC_DINH } from '../domain/formations'
+import { CHI_THI_MAC_DINH } from '../domain/instructions'
+import { vaiTroMacDinh } from '../domain/roles'
+import type { Player, Tactic, Team } from '../domain/types'
 import { SCHEMA_VERSION } from './migrations'
 
 export const DB_NAME = 'bongda'
@@ -7,8 +10,12 @@ export const DB_NAME = 'bongda'
 /**
  * Phiên bản của chính IndexedDB. Tăng khi cấu trúc store hoặc index đổi —
  * khác với `SCHEMA_VERSION` của tệp sao lưu trong `migrations.ts`.
+ *
+ * Phiên bản 2 thêm store `tactics` và trường `activeTacticId` cho `teams`.
+ * Việc tăng số này KHÔNG LÙI ĐƯỢC bằng `git revert`: bản code cũ yêu cầu
+ * phiên bản 1, và IndexedDB từ chối mở một database có phiên bản cao hơn.
  */
-export const DB_VERSION = 1
+export const DB_VERSION = 2
 
 /** Ảnh đã nén, lưu dạng Blob trong store riêng (quyết định D2 của plan). */
 export interface StoredImage {
@@ -47,9 +54,48 @@ export interface BongDaDB extends DBSchema {
     key: string
     value: StoredImage
   }
+  tactics: {
+    key: string
+    value: Tactic
+    indexes: { byTeam: string }
+  }
 }
 
-export const TEN_CAC_STORE = ['meta', 'teams', 'players', 'images'] as const
+export const TEN_CAC_STORE = [
+  'meta',
+  'teams',
+  'players',
+  'images',
+  'tactics',
+] as const
+
+/**
+ * Bộ chiến thuật mặc định của một đội: sơ đồ 4-4-2, 11 ô trống, vai trò mặc
+ * định của từng ô, chỉ thị cân bằng (AC-5.10, AC-7.4).
+ *
+ * Hàm này nằm ở đây vì bước nâng cấp database cần nó, và `tacticRepo` dùng
+ * lại chính hàm này khi gặp đội chưa có bộ nào — hai chỗ tạo bộ mặc định mà
+ * khác nhau thì sẽ có ngày đội cũ và đội mới có mặc định lệch nhau.
+ */
+export function taoChienThuatMacDinh(
+  teamId: string,
+  bayGio: number = Date.now(),
+): Tactic {
+  return {
+    id: crypto.randomUUID(),
+    teamId,
+    ten: null,
+    formationId: SO_DO_MAC_DINH,
+    oVien: laySoDo(SO_DO_MAC_DINH).oVien.map((o) => ({
+      slotId: o.slotId,
+      playerId: null,
+      roleId: vaiTroMacDinh(o.viTri),
+    })),
+    chiThi: CHI_THI_MAC_DINH,
+    createdAt: bayGio,
+    updatedAt: bayGio,
+  }
+}
 
 let dbDangMo: Promise<IDBPDatabase<BongDaDB>> | null = null
 
@@ -79,10 +125,56 @@ export function moDb(): Promise<IDBPDatabase<BongDaDB>> {
             value: SCHEMA_VERSION,
           })
         }
+
+        /*
+          Lên phiên bản 2: CHỈ thêm một store. Không chạm `teams`, `players`
+          hay `images`, nên không bản ghi nào của người dùng mất (rủi ro R6).
+        */
+        if (phienBanCu < 2) {
+          const tactics = db.createObjectStore('tactics', { keyPath: 'id' })
+          tactics.createIndex('byTeam', 'teamId')
+        }
       },
+    }).then(async (db) => {
+      await themChienThuatConThieu(db)
+      return db
     })
   }
   return dbDangMo
+}
+
+/**
+ * Gieo bộ chiến thuật mặc định cho đội nào chưa có (AC-5.10, AC-7.4). Chạy
+ * ngay sau khi mở database, trước khi trả kết nối cho lớp trên.
+ *
+ * Vì sao không làm trong transaction nâng cấp: transaction `versionchange`
+ * tự commit khi không còn việc đang chờ, nên một chuỗi đọc rồi ghi xen vào
+ * đó rất dễ bị ngắt giữa đường. Làm thành một transaction riêng thì bước này
+ * **chạy lại được**: lần mở sau thấy đội nào còn thiếu thì gieo tiếp, nên
+ * nửa đường bị ngắt cũng không để lại đội nào không có chiến thuật.
+ *
+ * Với bản ghi đội, bước này chỉ THÊM `activeTacticId`; mọi trường khác được
+ * giữ nguyên.
+ */
+async function themChienThuatConThieu(
+  db: IDBPDatabase<BongDaDB>,
+): Promise<void> {
+  const tx = db.transaction(['teams', 'tactics'], 'readwrite')
+  const khoTeams = tx.objectStore('teams')
+  const khoTactics = tx.objectStore('tactics')
+
+  const cacDoi = await khoTeams.getAll()
+  const bayGio = Date.now()
+
+  for (const doi of cacDoi) {
+    if (doi.activeTacticId) continue
+
+    const chienThuat = taoChienThuatMacDinh(doi.id, bayGio)
+    await khoTactics.put(chienThuat)
+    await khoTeams.put({ ...doi, activeTacticId: chienThuat.id })
+  }
+
+  await tx.done
 }
 
 /** Đóng kết nối và quên nó đi. Dùng khi test cần một database sạch. */

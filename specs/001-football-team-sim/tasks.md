@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | Giai đoạn 1 (36 AC) và Giai đoạn 2 (22 AC) |
-| **Tiến độ** | 43/66 — Giai đoạn 1 xong (38/39, còn T035); Giai đoạn 2 đang làm Phase 7 (T040–T044 xong) |
+| **Tiến độ** | 44/66 — Giai đoạn 1 xong (38/39, còn T035); Giai đoạn 2 đang làm Phase 7 (T040–T045 xong) |
 | **Sửa đổi** | 2026-10-26 — sửa theo kết quả `/analyze` |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -352,7 +352,7 @@ nhìn vào giao diện không thấy được.
   - AC: AC-5.7, AC-5.8
   - Phụ thuộc: T040, T041
 
-- [ ] **T045** — Nâng `DB_VERSION` lên 2, thêm store `tactics`
+- [x] **T045** — Nâng `DB_VERSION` lên 2, thêm store `tactics`
   - File: `src/storage/db.ts`, `src/domain/types.ts`, `src/storage/db.test.ts`
   - Xong khi: test xanh trên `fake-indexeddb` — mở database mới có 5 store, `tactics` có index `byTeam`; **nâng cấp từ phiên bản 1 trên database ĐÃ CÓ đội, cầu thủ và ảnh thì không mất bản ghi nào**, mỗi đội có đúng một chiến thuật mặc định (4-4-2, 11 ô trống, vai trò mặc định, chỉ thị cân bằng) và `activeTacticId` trỏ tới nó; bước nâng cấp chỉ THÊM, không sửa không xoá (rủi ro R6).
   - **Cách dựng database v1 để test nâng cấp:** `DB_VERSION` giờ là 2 nên `moDb()` không mở được v1 nữa. Test phải tự gọi `indexedDB.open(DB_NAME, 1)`, trong `onupgradeneeded` tạo tay 4 store cũ (`meta`, `teams`, `players`, `images`) kèm các index của chúng, nhét sẵn đội + cầu thủ + ảnh, **đóng kết nối**, rồi mới gọi `moDb()` để kích hoạt bước nâng cấp. Không làm đúng thứ tự này thì test chỉ mở một database v2 mới toanh và **không chứng minh gì cả** — mà T045 là phòng tuyến duy nhất cho R6 (ảnh hưởng Cao).
