@@ -2,8 +2,9 @@ import { useDraggable, useDroppable } from '@dnd-kit/core'
 import type { OViTriSoDo } from '../../domain/formations'
 import { MUC_TRU_HIEU_SUAT, type MucSai } from '../../domain/misplacement'
 import { layViTri } from '../../domain/positions'
+import { chiSoChuaDat, layVaiTro, type RoleId } from '../../domain/roles'
 import type { Player } from '../../domain/types'
-import { SAI_VI_TRI, TRANG_CHIEN_THUAT } from '../strings'
+import { SAI_VI_TRI, TRANG_CHIEN_THUAT, VAI_TRO } from '../strings'
 import { AnhThayThe } from './AnhThayThe'
 import { idKeo, type DuLieuKeo } from './DanhSachNgoaiSan'
 
@@ -14,6 +15,8 @@ interface Props {
   readonly mauAo: string
   /** Mức sai vị trí của cầu thủ đang đứng ở ô; `null` khi ô trống. */
   readonly mucSai: MucSai | null
+  /** Vai trò gắn với ô này (AC-6.2, AC-6.6). */
+  readonly roleId: RoleId
   readonly dangChon?: boolean
   readonly onChon?: () => void
 }
@@ -44,10 +47,16 @@ export function OViTri({
   cauThu,
   mauAo,
   mucSai,
+  roleId,
   dangChon = false,
   onChon,
 }: Props) {
   const viTri = layViTri(o.viTri)
+  const vaiTro = layVaiTro(roleId)
+
+  // Cảnh báo ngay tại ô khi cầu thủ chưa đáp ứng vai trò (AC-6.4); chi tiết
+  // từng chỉ số nằm trong bảng chọn vai trò.
+  const chuaDat = cauThu === null ? [] : chiSoChuaDat(roleId, cauThu)
 
   const duLieuO: DuLieuO = { slotId: o.slotId }
   const { setNodeRef: datNodeTha, isOver } = useDroppable({
@@ -137,6 +146,16 @@ export function OViTri({
       {cauThu !== null && (
         <span className="max-w-full truncate text-center text-[11px] font-medium text-white">
           {cauThu.name}
+        </span>
+      )}
+
+      <span className="max-w-full truncate text-center text-[10px] leading-tight text-white/80">
+        {vaiTro.ten}
+      </span>
+
+      {chuaDat.length > 0 && (
+        <span className="rounded bg-amber-200/90 px-1 text-center text-[10px] leading-tight text-amber-950">
+          {VAI_TRO.canhBaoNganTaiO(chuaDat.length)}
         </span>
       )}
 

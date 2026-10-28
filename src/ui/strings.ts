@@ -312,6 +312,8 @@ export const VAI_TRO = {
   chuaDanhGiaDuoc:
     'Hồ sơ cầu thủ còn thiếu chỉ số nên chưa đánh giá được vai trò này.',
   datHet: 'Cầu thủ đáp ứng mọi chỉ số quan trọng của vai trò này.',
+  /** Nhãn ngắn ngay tại ô; chi tiết từng chỉ số ở bảng chọn vai trò. */
+  canhBaoNganTaiO: (soChiSo: number) => `Thiếu ${soChiSo} chỉ số của vai trò`,
 } as const
 
 export const CHI_THI_DOI = {

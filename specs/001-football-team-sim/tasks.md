@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | Giai đoạn 1 (36 AC) và Giai đoạn 2 (22 AC) |
-| **Tiến độ** | 54/66 — Giai đoạn 1 xong (38/39, còn T035); Giai đoạn 2: Phase 7 và Phase 8 xong (T040–T054) |
+| **Tiến độ** | 59/66 — Giai đoạn 1 xong (38/39, còn T035); Giai đoạn 2: Phase 7, 8, 9 xong (T040–T059); còn Phase 10 (T060–T065) |
 | **Sửa đổi** | 2026-10-26 — sửa theo kết quả `/analyze` |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -428,31 +428,31 @@ Kết thúc phase: mở trang chiến thuật, chọn sơ đồ, kéo người v
 
 ## Phase 9 — Lát 7: Vai trò và tình trạng đội hình
 
-- [ ] **T055** — Chọn vai trò cho ô
+- [x] **T055** — Chọn vai trò cho ô
   - File: `src/ui/components/ChonVaiTro.tsx`, sửa `src/ui/components/OViTri.tsx`
   - Xong khi: chọn một ô thì hiện 2..3 vai trò dành cho vị trí của ô đó; chọn một vai trò thì tên vai trò hiện ngay tại ô trên sơ đồ; mỗi vai trò kèm câu giải thích ngắn và danh sách chỉ số quan trọng của nó.
   - AC: AC-6.1, AC-6.2, AC-6.3
   - Phụ thuộc: T042, T051
 
-- [ ] **T056** — Cảnh báo cầu thủ chưa đáp ứng vai trò
+- [x] **T056** — Cảnh báo cầu thủ chưa đáp ứng vai trò
   - File: sửa `src/ui/components/ChonVaiTro.tsx`, sửa `src/ui/components/OViTri.tsx`
   - Xong khi: cầu thủ ở ô có chỉ số quan trọng của vai trò dưới 10 thì hiện cảnh báo **nêu tên từng chỉ số và giá trị hiện tại**; cầu thủ đạt hết thì không có cảnh báo; hồ sơ chưa đủ chỉ số thì nói rõ là chưa đánh giá được thay vì báo không đạt.
   - AC: AC-6.4
   - Phụ thuộc: T055
 
-- [ ] **T057** [P] — Vai trò mặc định và vai trò gắn với ô
+- [x] **T057** [P] — Vai trò mặc định và vai trò gắn với ô
   - File: sửa `src/hooks/useTactic.ts`
   - Xong khi: chọn một sơ đồ mới thì **mọi ô đã có vai trò mặc định** mà người dùng không phải làm gì; đổi cầu thủ ở một ô thì `roleId` của ô **không đổi** (AC-6.6) — kiểm bằng cách đổi người ở ô đã gán vai trò riêng rồi xác nhận vai trò còn nguyên.
   - AC: AC-6.5, AC-6.6
   - Phụ thuộc: T055
 
-- [ ] **T058** — Đổi sơ đồ: xếp lại người và nói rõ ai bị ảnh hưởng
+- [x] **T058** — Đổi sơ đồ: xếp lại người và nói rõ ai bị ảnh hưởng
   - File: sửa `src/ui/pages/TrangChienThuat.tsx`
   - Xong khi: đổi sơ đồ khi đã xếp đủ 11 người thì người được giữ lại và tự xếp vào sơ đồ mới; thông báo nêu rõ **ai bị đẩy ra ngoài** và **ai bị xếp sai vị trí kèm mức**; không cầu thủ nào biến mất.
   - AC: AC-5.8
   - Phụ thuộc: T044, T052
 
-- [ ] **T059** — Dải tình trạng đội hình
+- [x] **T059** — Dải tình trạng đội hình
   - File: sửa `src/ui/pages/TrangChienThuat.tsx`
   - Xong khi: đội hình chưa đủ 11 người, hoặc chưa có thủ môn, hoặc có cầu thủ hồ sơ chưa hoàn tất thì dải thông báo nêu **đúng từng lý do**; đủ điều kiện thì dải chuyển sang trạng thái sẵn sàng. Ghi rõ trong mô tả commit là phần "chặn bắt đầu giả lập" của AC-5.7 thuộc GĐ3.
   - AC: AC-5.7 *(một phần — phần chặn giả lập: GĐ3)*

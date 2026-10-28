@@ -9,9 +9,14 @@ import {
   type DragEndEvent,
   type KeyboardCoordinateGetter,
 } from '@dnd-kit/core'
-import { useCallback, useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { FORMATIONS, type FormationId } from '../../domain/formations'
+import {
+  tinhTrangDoiHinh,
+  type LyDoChuaDuDieuKien,
+} from '../../domain/lineup'
 import { mucSaiViTri } from '../../domain/misplacement'
+import { vaiTroMacDinh } from '../../domain/roles'
 import { layViTri } from '../../domain/positions'
 import type { Player } from '../../domain/types'
 import { usePlayers } from '../../hooks/usePlayers'
@@ -26,7 +31,15 @@ import {
 } from '../components/DanhSachNgoaiSan'
 import { OViTri, type DuLieuO } from '../components/OViTri'
 import { SanBong } from '../components/SanBong'
-import { CHUNG, TEN_SO_DO, TRANG_CHIEN_THUAT } from '../strings'
+import { ChonVaiTro } from '../components/ChonVaiTro'
+import {
+  CHUNG,
+  DOI_SO_DO,
+  MUC_SAI_VI_TRI,
+  TEN_SO_DO,
+  TINH_TRANG_DOI_HINH,
+  TRANG_CHIEN_THUAT,
+} from '../strings'
 
 interface Props {
   readonly teamId: string
@@ -104,6 +117,26 @@ const nhayGiuaCacO: KeyboardCoordinateGetter = (
   }
 }
 
+/** Câu tiếng Việt cho một lý do đội hình chưa đủ điều kiện (AC-5.7). */
+function cauLyDo(
+  ly: LyDoChuaDuDieuKien,
+  cauThu: readonly Player[],
+  soO: number,
+): string {
+  switch (ly.loai) {
+    case 'thieu-nguoi':
+      return TINH_TRANG_DOI_HINH.thieuNguoi(ly.soONhanNguoi, soO)
+    case 'thieu-thu-mon':
+      return TINH_TRANG_DOI_HINH.thieuThuMon
+    case 'ho-so-chua-hoan-tat':
+      return TINH_TRANG_DOI_HINH.hoSoChuaHoanTat(
+        ly.cacPlayerId.map(
+          (id) => cauThu.find((p) => p.id === id)?.name ?? id,
+        ),
+      )
+  }
+}
+
 /*
   Trang chiến thuật của một đội (AC-5.1).
 
@@ -125,8 +158,19 @@ export function TrangChienThuat({ teamId, onQuayLai }: Props) {
 
   const { napDanhSachDoi } = useTeams()
   const { cauThu, napCauThu } = usePlayers(teamId)
-  const { chienThuat, napChienThuat, doiSoDo, datCauThuVaoO, boKhoiSan } =
-    useTactic(teamId)
+  const {
+    chienThuat,
+    napChienThuat,
+    doiSoDo,
+    datCauThuVaoO,
+    boKhoiSan,
+    datVaiTroChoO,
+  } = useTactic(teamId)
+
+  /** Ô đang mở bảng chọn vai trò; `null` là không mở ô nào. */
+  const [oDangChon, datODangChon] = useState<string | null>(null)
+  /** Thông báo sau khi đổi sơ đồ (AC-5.8); tự mất khi đổi sơ đồ lần sau. */
+  const [baoDoiSoDo, datBaoDoiSoDo] = useState<readonly string[]>([])
 
   /*
     Ngưỡng 5px: không có nó thì mỗi cú bấm chuột đều bị tính là bắt đầu kéo,
@@ -179,6 +223,41 @@ export function TrangChienThuat({ teamId, onQuayLai }: Props) {
       onDragCancel: () => TRANG_CHIEN_THUAT.baoThoiNhac,
     }),
     [tenDich, tenNguoiKeo],
+  )
+
+  /**
+   * Đổi sơ đồ rồi nói rõ ai bị ảnh hưởng (AC-5.8): ai không còn ô phù hợp và
+   * phải ra ngoài, ai vẫn trên sân nhưng đang đá sai vị trí sở trường.
+   */
+  const khiDoiSoDo = useCallback(
+    async (formationId: FormationId) => {
+      const ketQua = await doiSoDo(formationId)
+      datODangChon(null)
+      if (!ketQua) {
+        datBaoDoiSoDo([])
+        return
+      }
+
+      const ten = (id: string) =>
+        cauThu.find((p) => p.id === id)?.name ?? id
+      const cau: string[] = [DOI_SO_DO.daXepLai(TEN_SO_DO[formationId])]
+
+      if (ketQua.nguoiBiDayRa.length > 0) {
+        cau.push(DOI_SO_DO.biDayRa(ketQua.nguoiBiDayRa.map(ten)))
+      }
+      if (ketQua.nguoiXepSai.length > 0) {
+        cau.push(
+          DOI_SO_DO.biXepSai(
+            ketQua.nguoiXepSai.map(
+              (s) => `${ten(s.playerId)} (${MUC_SAI_VI_TRI[s.mucSai]})`,
+            ),
+          ),
+        )
+      }
+
+      datBaoDoiSoDo(cau)
+    },
+    [cauThu, doiSoDo],
   )
 
   const khiThaXong = useCallback(
@@ -248,6 +327,20 @@ export function TrangChienThuat({ teamId, onQuayLai }: Props) {
     ]),
   )
 
+  const vaiTroTheoSlot = new Map(
+    chienThuat.oVien.map((o) => [o.slotId, o.roleId]),
+  )
+
+  const tinhTrang = tinhTrangDoiHinh(
+    chienThuat.formationId,
+    chienThuat.oVien,
+    cauThu,
+  )
+
+  const oMoBang = oDangChon
+    ? soDo.oVien.find((o) => o.slotId === oDangChon)
+    : undefined
+
   return (
     <div>
       <button
@@ -281,7 +374,7 @@ export function TrangChienThuat({ teamId, onQuayLai }: Props) {
           <select
             value={chienThuat.formationId}
             onChange={(e) => {
-              void doiSoDo(e.target.value as FormationId)
+              void khiDoiSoDo(e.target.value as FormationId)
             }}
             className="rounded border border-slate-300 px-2 py-1 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300"
           >
@@ -293,6 +386,46 @@ export function TrangChienThuat({ teamId, onQuayLai }: Props) {
           </select>
         </label>
       </div>
+
+      {/* Dải tình trạng đội hình (AC-5.7, phần chặn giả lập thuộc GĐ3). */}
+      <div
+        role="status"
+        className={`mt-4 rounded-lg border p-3 ${
+          tinhTrang.duDieuKien
+            ? 'border-emerald-200 bg-emerald-50'
+            : 'border-amber-200 bg-amber-50'
+        }`}
+      >
+        {tinhTrang.duDieuKien ? (
+          <p className="text-sm text-emerald-900">
+            {TINH_TRANG_DOI_HINH.sanSang}
+          </p>
+        ) : (
+          <>
+            <p className="text-sm font-medium text-amber-900">
+              {TINH_TRANG_DOI_HINH.tieuDeChuaDu}
+            </p>
+            <ul className="mt-1 space-y-0.5 text-sm text-amber-900">
+              {tinhTrang.cacLyDo.map((ly) => (
+                <li key={ly.loai}>{cauLyDo(ly, cauThu, soDo.oVien.length)}</li>
+              ))}
+            </ul>
+          </>
+        )}
+      </div>
+
+      {baoDoiSoDo.length > 0 && (
+        <div
+          role="status"
+          className="mt-3 rounded-lg border border-slate-200 bg-white p-3"
+        >
+          {baoDoiSoDo.map((c) => (
+            <p key={c} className="text-sm text-slate-700">
+              {c}
+            </p>
+          ))}
+        </div>
+      )}
 
       <p className="mt-4 text-sm text-slate-500">
         {TRANG_CHIEN_THUAT.huongDanBanPhim}
@@ -325,17 +458,40 @@ export function TrangChienThuat({ teamId, onQuayLai }: Props) {
                         ? null
                         : mucSaiViTri(o.viTri, nguoi.positions)
                     }
+                    roleId={vaiTroTheoSlot.get(o.slotId) ?? vaiTroMacDinh(o.viTri)}
+                    dangChon={oDangChon === o.slotId}
+                    onChon={() =>
+                      datODangChon((hienTai) =>
+                        hienTai === o.slotId ? null : o.slotId,
+                      )
+                    }
                   />
                 )
               }}
             />
           </div>
 
-          <DanhSachNgoaiSan
-            cauThu={ngoaiSan}
-            mauAo={mauAo}
-            doiRong={cauThu.length === 0}
-          />
+          <div className="space-y-6">
+            {oMoBang && (
+              <ChonVaiTro
+                viTri={oMoBang.viTri}
+                vaiTroHienTai={
+                  vaiTroTheoSlot.get(oMoBang.slotId) ?? vaiTroMacDinh(oMoBang.viTri)
+                }
+                cauThu={nguoiTheoSlot.get(oMoBang.slotId) ?? null}
+                onChon={(roleId) => {
+                  void datVaiTroChoO(oMoBang.slotId, roleId)
+                }}
+                onDong={() => datODangChon(null)}
+              />
+            )}
+
+            <DanhSachNgoaiSan
+              cauThu={ngoaiSan}
+              mauAo={mauAo}
+              doiRong={cauThu.length === 0}
+            />
+          </div>
         </div>
       </DndContext>
     </div>
