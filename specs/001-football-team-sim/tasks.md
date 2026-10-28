@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | Giai đoạn 1 (36 AC) và Giai đoạn 2 (22 AC) |
-| **Tiến độ** | 38/65 — Giai đoạn 1 xong (38/39, còn T035); Giai đoạn 2 chưa bắt đầu (T040–T065) |
+| **Tiến độ** | 38/66 — Giai đoạn 1 xong (38/39, còn T035); Giai đoạn 2 chưa bắt đầu (T040–T065 + T047b) |
 | **Sửa đổi** | 2026-10-26 — sửa theo kết quả `/analyze` |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -322,7 +322,8 @@ nhìn vào giao diện không thấy được.
 
 - [ ] **T040** [P] — 8 sơ đồ với toạ độ ô
   - File: `src/domain/formations.ts`, `src/domain/formations.test.ts`
-  - Xong khi: test xanh — đúng 8 sơ đồ (4-4-2, 4-4-1-1, 4-3-3, 4-2-3-1, 4-1-4-1, 3-5-2, 3-4-3, 5-3-2); mỗi sơ đồ đúng 11 ô, đúng một ô thủ môn, `slotId` không trùng, toạ độ `x`/`y` trong 0..100; **tên tổ hợp số khớp số ô theo tuyến** (4-4-2 phải có 4 ô phòng ngự, 4 tiền vệ, 2 tấn công); mọi `viTri` của ô thuộc 12 vị trí của `POSITIONS`.
+  - Xong khi: test xanh — đúng 8 sơ đồ (4-4-2, 4-4-1-1, 4-3-3, 4-2-3-1, 4-1-4-1, 3-5-2, 3-4-3, 5-3-2); mỗi sơ đồ đúng 11 ô, đúng một ô thủ môn, `slotId` không trùng, toạ độ `x`/`y` trong 0..100; mọi `viTri` của ô thuộc 12 vị trí của `POSITIONS`; **`cacDai` khớp các số trong tên sơ đồ** (4-2-3-1 → `[4,2,3,1]`), tổng `cacDai` bằng 10, và **số ô của mỗi dải đúng bằng số tương ứng trong `cacDai`** — ô thủ môn có `dai: 0` và không thuộc dải nào.
+  - Ghi chú: điều kiện này ban đầu viết là "tên khớp số ô theo **tuyến**", và `/analyze` bắt được là **không thể thoả**: `POSITIONS` chỉ có 3 tuyến ngoài sân, trong khi 4-4-1-1, 4-2-3-1 và 4-1-4-1 có 4 dải trong tên (với 4-2-3-1 thì dải "3" và dải "1" đều thuộc tuyến tấn công). Khai `dai` thành dữ liệu của từng ô thì phép kiểm thoả được cho cả 8 sơ đồ và vẫn bắt được lỗi gõ sai bảng toạ độ — xem quyết định D15b của plan.
   - AC: AC-5.2
   - Phụ thuộc: —
 
@@ -334,7 +335,7 @@ nhìn vào giao diện không thấy được.
 
 - [ ] **T042** [P] — 23 vai trò và cảnh báo chỉ số chưa đạt
   - File: `src/domain/roles.ts`, `src/domain/roles.test.ts`
-  - Xong khi: test xanh — tổng đúng 23 vai trò; **mỗi vị trí trong 12 vị trí trả về 2 hoặc 3 vai trò**; mỗi vai trò có `moTa` không rỗng và `chiSoQuanTrong` đều là chỉ số hợp lệ; **vai trò của thủ môn chỉ dùng chỉ số mà thủ môn có** (bất biến giống test đã có cho `POSITION_WEIGHTS`); `vaiTroMacDinh` trả một vai trò áp dụng được cho vị trí đó; `chiSoChuaDat` trả đúng các chỉ số dưới 10 kèm giá trị, và trả rỗng khi hồ sơ đủ cao.
+  - Xong khi: test xanh — tổng số vai trò nằm trong khoảng 20..26 (AC-6.1 nói "khoảng 22"; dự kiến hiện thực 23 — **không ghim đúng một con số**, để sau này thêm một vai trò hợp lý không làm test đỏ vô cớ); **mỗi vị trí trong 12 vị trí trả về 2 hoặc 3 vai trò** — đây mới là điều AC-6.1 thật sự đòi; mỗi vai trò có `moTa` không rỗng và `chiSoQuanTrong` đều là chỉ số hợp lệ; **vai trò của thủ môn chỉ dùng chỉ số mà thủ môn có** (bất biến giống test đã có cho `POSITION_WEIGHTS`); `vaiTroMacDinh` trả một vai trò áp dụng được cho vị trí đó; `chiSoChuaDat` trả đúng các chỉ số dưới 10 kèm giá trị, và trả rỗng khi hồ sơ đủ cao.
   - AC: AC-6.1, AC-6.4, AC-6.5
   - Phụ thuộc: —
 
@@ -353,11 +354,13 @@ nhìn vào giao diện không thấy được.
 - [ ] **T045** — Nâng `DB_VERSION` lên 2, thêm store `tactics`
   - File: `src/storage/db.ts`, `src/domain/types.ts`, `src/storage/db.test.ts`
   - Xong khi: test xanh trên `fake-indexeddb` — mở database mới có 5 store, `tactics` có index `byTeam`; **nâng cấp từ phiên bản 1 trên database ĐÃ CÓ đội, cầu thủ và ảnh thì không mất bản ghi nào**, mỗi đội có đúng một chiến thuật mặc định (4-4-2, 11 ô trống, vai trò mặc định, chỉ thị cân bằng) và `activeTacticId` trỏ tới nó; bước nâng cấp chỉ THÊM, không sửa không xoá (rủi ro R6).
+  - **Cách dựng database v1 để test nâng cấp:** `DB_VERSION` giờ là 2 nên `moDb()` không mở được v1 nữa. Test phải tự gọi `indexedDB.open(DB_NAME, 1)`, trong `onupgradeneeded` tạo tay 4 store cũ (`meta`, `teams`, `players`, `images`) kèm các index của chúng, nhét sẵn đội + cầu thủ + ảnh, **đóng kết nối**, rồi mới gọi `moDb()` để kích hoạt bước nâng cấp. Không làm đúng thứ tự này thì test chỉ mở một database v2 mới toanh và **không chứng minh gì cả** — mà T045 là phòng tuyến duy nhất cho R6 (ảnh hưởng Cao).
   - AC: AC-5.10, AC-7.4
   - Phụ thuộc: T040, T042, T043
 
 - [ ] **T046** — `tacticRepo`
-  - File: `src/services/tacticRepo.ts`, `src/services/errors.ts` (thêm mã `InvalidTactic`), `src/services/tacticRepo.test.ts`
+  - File: `src/services/tacticRepo.ts`, `src/services/errors.ts` (thêm mã `InvalidTactic`), `src/ui/strings.ts` (thêm câu cho mã mới), `src/services/tacticRepo.test.ts`
+  - Ghi chú: `cauLoi` trong `ui/strings.ts` là `switch` vét cạn trên `MaLoi`. Thêm mã mà không thêm câu thì hàm có đường trả về `undefined` trong khi khai `: string`, và `tsc --noEmit` đỏ — nên hai file phải sửa cùng nhau.
   - Xong khi: test xanh — `layChienThuatDangDung` tự tạo bộ mặc định cho đội chưa có; `luu` rồi đọc lại ra đúng; `luuThanhBo` nhân bản bộ đang dùng thành bộ có tên mà **không làm đổi bộ đang dùng**; `danhSachBo` chỉ trả các bộ có tên; `apDungBo` đổi `activeTacticId`; bộ sai hình dạng bị từ chối bằng `InvalidTactic` — không đủ 11 ô, ô trỏ tới cầu thủ của đội khác, vai trò không áp dụng được cho vị trí của ô.
   - AC: AC-5.10, AC-7.5, AC-7.6
   - Phụ thuộc: T045
@@ -367,6 +370,13 @@ nhìn vào giao diện không thấy được.
   - Xong khi: test xanh — xoá một đội thì mọi chiến thuật của đội đó (cả bộ đang dùng và các bộ có tên) bị xoá trong **cùng transaction** với cầu thủ và ảnh; không chạm chiến thuật của đội khác.
   - AC: AC-1.6
   - Phụ thuộc: T046
+
+- [ ] **T047b** — Xoá cầu thủ thì ô đội hình của họ thành trống
+  - File: `src/services/playerRepo.ts`, `src/services/playerRepo.test.ts`
+  - Xong khi: test xanh — xoá một cầu thủ đang được xếp trong đội hình thì mọi ô trỏ tới họ (ở **cả** bộ chiến thuật đang dùng **và** các bộ có tên của đội) có `playerId` thành `null`, **trong cùng transaction** với việc xoá cầu thủ và ảnh; sau đó `tacticRepo.layChienThuatDangDung` vẫn nạp được bộ đó mà không ném `InvalidTactic`; chiến thuật của đội khác không bị chạm; xoá một cầu thủ **không** nằm trong đội hình nào thì không chiến thuật nào bị ghi lại.
+  - AC: AC-2.7 *(đóng nốt phần mà Giai đoạn 1 ghi là hoãn sang GĐ2)*
+  - Phụ thuộc: T046
+  - Ghi chú: task này do `/analyze` bổ sung. Bản `tasks.md` đầu của Giai đoạn 2 bỏ sót nó, và hậu quả là cụ thể: `oVien` giữ một `playerId` treo, rồi chính phép kiểm `InvalidTactic` của T046 làm bộ chiến thuật **không nạp được nữa** — tức là người dùng mất chiến thuật chỉ vì xoá một cầu thủ, đúng thứ P3 cấm.
 
 ## Phase 8 — Lát 6: Sân và xếp người
 
@@ -392,13 +402,14 @@ Kết thúc phase: mở trang chiến thuật, chọn sơ đồ, kéo người v
   
 - [ ] **T051** — Trang chiến thuật và lối vào từ trang đội
   - File: `src/ui/pages/TrangChienThuat.tsx`, sửa `src/ui/pages/TrangDoi.tsx`, sửa `src/App.tsx`
-  - Xong khi: từ trang đội bấm được sang trang chiến thuật của đúng đội đó và quay lại được; trang hiện sân, danh sách cầu thủ ngoài sân, và bộ chọn sơ đồ; chọn sơ đồ khác thì 11 ô đổi theo.
-  - AC: AC-5.1
+  - Xong khi: từ trang đội bấm được sang trang chiến thuật của đúng đội đó và quay lại được; trang hiện sân, danh sách cầu thủ ngoài sân, và bộ chọn sơ đồ; chọn sơ đồ khác thì 11 ô đổi theo; **tên đội trên trang này đọc từ store dùng chung, không giữ bản sao riêng** — đổi tên đội ở danh sách đội rồi mở lại trang chiến thuật thì thấy tên mới (AC-1.5).
+  - AC: AC-5.1, AC-1.5 *(đóng nốt phần mà Giai đoạn 1 ghi là hoãn sang GĐ2)*
   - Phụ thuộc: T049, T050
 
 - [ ] **T052** — Kéo-thả bằng chuột: đặt, đổi chỗ, bỏ ra ngoài
   - File: `src/ui/components/DanhSachNgoaiSan.tsx`, sửa `src/ui/components/OViTri.tsx`, sửa `src/ui/pages/TrangChienThuat.tsx`
-  - Xong khi: kéo một cầu thủ từ danh sách vào ô trống thì ô hiện ảnh (hoặc hình thay thế), tên và số áo; kéo vào ô **đã có người** thì hai cầu thủ đổi chỗ và không ai bị mất; kéo một cầu thủ ra khỏi sân thì ô thành trống và người đó về danh sách ngoài sân; **ghi lại kích thước bundle trước và sau khi thêm `@dnd-kit`** vào mô tả commit (rủi ro R7 — không trích con số từ trí nhớ).
+  - Xong khi: kéo một cầu thủ từ danh sách vào ô trống thì ô hiện ảnh (hoặc hình thay thế), tên và số áo; kéo **từ ô sang ô đã có người** thì hai ô đổi chỗ; kéo **từ băng ghế vào ô đã có người** thì người cũ về băng ghế — cả hai trường hợp đều không làm mất cầu thủ nào (AC-5.4 nói "đổi chỗ" nhưng không nói trường hợp kéo từ băng ghế, nên chốt ở đây); kéo một cầu thủ ra khỏi sân thì ô thành trống và người đó về danh sách ngoài sân.
+  - **Thứ tự đo bundle:** chạy `npm run build` và ghi số **trước khi** `npm install @dnd-kit/core`, rồi build lại và ghi số thứ hai; cả hai số vào mô tả commit (rủi ro R7 — không trích con số từ trí nhớ, như lần tôi ghi sai "fflate 8KB").
   - AC: AC-5.3, AC-5.4, AC-5.6
   - Phụ thuộc: T051
 
@@ -481,7 +492,9 @@ Kết thúc phase: mở trang chiến thuật, chọn sơ đồ, kéo người v
 - [ ] **T065** — Kiểm tay 22 AC của Giai đoạn 2
   - File: `specs/001-football-team-sim/spec.md` (tick các ô AC trong phạm vi)
   - Xong khi: 21 AC làm trọn được tự tay kiểm trên ứng dụng đang chạy và tick; AC-5.7 ghi rõ phần nào đã xong, **không** tick trọn; kiểm luôn hai việc mà chỉ kiểm tay mới thấy: xếp trọn đội hình **chỉ bằng bàn phím**, và đổi sơ đồ khi đã xếp đủ người rồi đọc thông báo; ghi số đo bundle trước/sau `@dnd-kit` vào mô tả commit.
-  - Phụ thuộc: T053, T054, T056, T057, T058, T059, T061, T062, T063, T064
+  - **Tick lại ba AC của Giai đoạn 1 có phạm vi rộng ra:** bỏ tick **AC-4.4** và **AC-4.5** rồi kiểm lại trên tệp v3 (vì giờ tệp sao lưu phải chứa cả chiến thuật), và kiểm lại **AC-1.6** (xoá đội dọn cả chiến thuật). Một cái tick cũ không còn nói đúng khi phạm vi của AC đã khác.
+  - **Tick hai phần vắt từ Giai đoạn 1 mà giai đoạn này đóng nốt:** AC-2.7 (sau T047b) và AC-1.5 (sau T051) — hai AC đó chuyển từ "một phần" sang trọn, trừ phần lịch sử trận đấu của AC-1.5 vẫn thuộc GĐ3.
+  - Phụ thuộc: T047b, T053, T054, T056, T057, T058, T059, T061, T062, T063, T064
 
 ---
 
@@ -528,10 +541,9 @@ Kết thúc phase: mở trang chiến thuật, chọn sơ đồ, kéo người v
 
 36/36 AC trong phạm vi đều có task. **Năm** AC được ghi chú rõ phần vắt sang giai đoạn sau để T033 không tick trọn: AC-1.5, AC-2.7, AC-3.5, AC-3.7, AC-4.2. Mức hoàn thành chính thức của Giai đoạn 1 là **31 trọn + 5 một phần**.
 
-Giai đoạn 2 chạm lại ba AC của Giai đoạn 1, vì chiến thuật trở thành dữ liệu
-phải được dọn và phải đi vào tệp sao lưu: **AC-1.6** (T047 — xoá đội dọn cả
-chiến thuật), **AC-4.4** và **AC-4.5** (T064 — tệp v3). Hai AC sau đã tick ở
-Giai đoạn 1 và phải **tick lại** sau T064, vì phạm vi của chúng rộng ra.
+Giai đoạn 2 chạm lại một số AC của Giai đoạn 1 và đóng nốt hai phần còn nợ —
+xem hai bảng ở cuối phần "Bảng phủ AC — Giai đoạn 2" thay vì liệt kê hai lần ở
+đây.
 
 ### Bảng phủ AC — Giai đoạn 2
 
@@ -546,7 +558,7 @@ Giai đoạn 1 và phải **tick lại** sau T064, vì phạm vi của chúng r�
 | AC-5.7 | T044, T059 *(phần chặn bắt đầu giả lập: Giai đoạn 3)* |
 | AC-5.8 | T044, T058 |
 | AC-5.9 | T053 |
-| AC-5.10 | T045, T046, T050, T064 |
+| AC-5.10 | T045, T046, T050, **T060**, T064 — phần **chỉ thị** của AC này chỉ kiểm trọn được sau khi có `ChiThiDoi` ở Phase 10 |
 | AC-6.1 | T042, T055 |
 | AC-6.2 | T055 |
 | AC-6.3 | T055 |
@@ -563,6 +575,24 @@ Giai đoạn 1 và phải **tick lại** sau T064, vì phạm vi của chúng r�
 22/22 AC của Giai đoạn 2 đều có task. Một AC được ghi chú phần vắt sang giai
 đoạn sau để T065 không tick trọn: **AC-5.7**. Mức hoàn thành dự kiến của Giai
 đoạn 2 là **21 trọn + 1 một phần**.
+
+### Phần vắt từ Giai đoạn 1 mà Giai đoạn 2 đóng nốt
+
+`/analyze` bắt được là bản đầu của Giai đoạn 2 bỏ sót cả hai: tôi chỉ đọc
+US-5→US-7 mà không quay lại đọc chính những ghi chú hoãn mà Giai đoạn 1 để lại.
+
+| AC | Phần còn nợ | Task |
+|---|---|---|
+| AC-2.7 | Xoá cầu thủ thì ô đội hình của họ thành trống | **T047b** |
+| AC-1.5 | Đổi tên đội thì tên mới hiện trên trang chiến thuật | **T051** |
+
+### AC của Giai đoạn 1 bị Giai đoạn 2 làm rộng phạm vi
+
+| AC | Vì sao rộng ra | Task kiểm lại |
+|---|---|---|
+| AC-1.6 | Xoá đội giờ phải dọn cả chiến thuật | T047, T065 |
+| AC-4.4 | Nhập lại phải ra đúng cả chiến thuật | T064, T065 |
+| AC-4.5 | Tệp hỏng không được làm mất chiến thuật | T064, T065 |
 
 ## Ghi chú thực thi
 

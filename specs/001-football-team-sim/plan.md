@@ -344,6 +344,8 @@ Thứ tự này đặt phần nhập liệu trước phần ảnh có lý do: n�
 | **Spec** | `./spec.md` |
 | **Phạm vi** | US-5 → US-7 — **22 AC** (AC-5.1→5.10, AC-6.1→6.6, AC-7.1→7.6) |
 | **Mức hoàn thành dự kiến** | 21 AC làm trọn + **1 AC làm một phần**: AC-5.7 — phần tính và hiện tình trạng đội hình làm ở GĐ2, phần "chặn việc bắt đầu giả lập" cần lối vào trận đấu nên thuộc GĐ3 |
+| **Đóng nốt phần vắt từ GĐ1** | Giai đoạn này **cũng phải đóng** hai phần mà Giai đoạn 1 đã ghi là hoãn sang đây: **AC-2.7** (xoá cầu thủ thì ô đội hình của họ thành trống) và **AC-1.5** (đổi tên đội thì tên mới hiện trên trang chiến thuật). `/analyze` bắt được là bản plan đầu đã bỏ sót cả hai, vì tôi chỉ đọc US-5→US-7 mà không quay lại đọc chính những ghi chú hoãn của GĐ1 |
+| **Chạm lại AC của GĐ1** | **AC-1.6** (xoá đội dọn cả chiến thuật) và **AC-4.4, AC-4.5** (tệp sao lưu chứa chiến thuật) có phạm vi rộng ra, nên phải kiểm lại chứ không dựa vào cái tick cũ |
 | **Status** | Draft |
 | **Updated** | 2026-10-27 |
 
@@ -406,6 +408,7 @@ ui/components/     SanBong.tsx  OViTri.tsx  DanhSachNgoaiSan.tsx
 | D14 | Thuật toán xếp lại người khi đổi sơ đồ (AC-5.8) | Tham lam theo mức sai vị trí, rồi **một lượt cải thiện bằng cách thử đổi chỗ từng cặp** cho tới khi không cải thiện được nữa | Chỉ tham lam một lượt | Tham lam thuần có thể để lại những cặp mà đổi chỗ cho nhau thì cả hai đều khớp hơn. Lượt đổi cặp sửa được đúng loại sai đó với khoảng 30 dòng code |
 | D14b | | | Thuật toán Hungarian (ghép tối ưu toàn cục) | Khoảng 80 dòng code dày đặc chỉ số mảng cho một bài toán 11×11. Phương án đã chọn đạt **tối ưu cục bộ theo phép đổi cặp**, và test sẽ kiểm trên các tình huống cụ thể. Nếu test tìm ra trường hợp mà nó trượt rõ rệt thì mới đổi sang Hungarian — ghi lại ở đây để lần sau không phải bàn lại |
 | D15 | Toạ độ ô trên sân | Phần trăm `x`,`y` trong 0..100, lưu trong `formations.ts`; `y=0` là khung thành đội mình | Toạ độ theo điểm ảnh | Phần trăm thì sân co giãn theo khung mà không phải tính lại; và GĐ4 vẽ sân 2D dùng lại đúng hệ toạ độ này |
+| D15b | Cách kiểm 8 bảng toạ độ gõ tay không bị sai (sửa sau `/analyze`) | Mỗi ô khai thêm `dai`, và test đối chiếu số ô mỗi dải với `cacDai` lấy từ tên sơ đồ | Suy dải từ `tuyen` của `POSITIONS` | **Không làm được**: `POSITIONS` chỉ có 3 tuyến ngoài sân, mà `4-4-1-1`, `4-2-3-1`, `4-1-4-1` có 4 dải trong tên — với 4-2-3-1 thì dải "3" (AML/AM/AMR) và dải "1" (ST) đều thuộc tuyến tấn công. `/analyze` bắt được điều này khi đối chiếu điều kiện test với 8 sơ đồ cụ thể. Khai `dai` thành dữ liệu thì phép kiểm thoả được cho cả 8 và vẫn bắt được lỗi gõ sai |
 | D16 | Mức sai vị trí tính thế nào | Từ `tuyen` và `ben` đã có trong `POSITIONS`: lệch 0 tuyến + khác bên = **nhẹ**, lệch 1 tuyến = **vừa**, lệch ≥2 tuyến hoặc dính khung thành = **nặng**; cầu thủ nhiều vị trí thì lấy mức **nhẹ nhất** trong các vị trí của họ | Một bảng tra tay 12×12 | Bảng tay là 144 ô phải tự nhất quán, và mỗi lần thêm vị trí lại phải sửa cả bảng. Tính từ tuyến và bên thì luật chỉ có một chỗ |
 | D17 | Chỉ thị lưu ở đâu trong tệp sao lưu | Thêm vào tệp v3, cùng chỗ với chiến thuật | Để chỉ thị ngoài tệp sao lưu | AC-5.10 và AC-7.6 nói chiến thuật phải còn nguyên; nếu không nằm trong tệp sao lưu thì mang sang máy khác là mất, mà AC-4.4 nói nhập lại phải ra đúng dữ liệu |
 
@@ -463,7 +466,7 @@ tệp thì khi nhập được gán chiến thuật mặc định, giống như 
 
 | Tên | Input | Output |
 |---|---|---|
-| `FORMATIONS` | — | `Formation[]` — đúng 8 sơ đồ, mỗi sơ đồ `{ id, ten, oVien: { slotId, viTri, x, y }[] }` với 11 ô |
+| `FORMATIONS` | — | `Formation[]` — đúng 8 sơ đồ, mỗi sơ đồ `{ id, ten, cacDai: number[], oVien: { slotId, viTri, dai, x, y }[] }` với 11 ô. `cacDai` là các số trong tên sơ đồ (4-2-3-1 → `[4,2,3,1]`), `dai` của mỗi ô là chỉ số 1-based vào `cacDai`; ô thủ môn có `dai: 0` |
 | `mucSaiViTri(viTriO, viTriSoTruong)` | `PositionId`, `PositionId[]` | `'dung' \| 'nhe' \| 'vua' \| 'nang'` |
 | `MUC_TRU_HIEU_SUAT` | — | `Record<MucSai, number>` — phần trừ cho GĐ3 dùng (AC-5.5, AC-8.5) |
 | `ROLES` | — | `Role[]` — 23 vai trò, mỗi vai trò `{ id, ten, viTriApDung: PositionId[], moTa, chiSoQuanTrong }` |
@@ -503,7 +506,7 @@ vai trò không áp dụng được cho vị trí của ô).
 | AC-5.7 | `tinhTrangDoiHinh` (dùng lại `hoSoHoanTat` của GĐ1) + dải thông báo trên `TrangChienThuat`. **Một phần:** việc chặn bắt đầu giả lập cần lối vào trận đấu, thuộc GĐ3 |
 | AC-5.8 | `xepLaiKhiDoiSoDo` (D14) + thông báo nêu ai bị đẩy ra ngoài, ai bị xếp sai |
 | AC-5.9 | `KeyboardSensor` của `@dnd-kit`; mỗi ô và mỗi cầu thủ ngoài sân là một đích focus |
-| AC-5.10 | `tacticRepo` ghi xuyên thẳng như GĐ1; `TrangChienThuat` nạp lại từ `layChienThuatDangDung` |
+| AC-5.10 | `tacticRepo` ghi xuyên thẳng như GĐ1; `TrangChienThuat` nạp lại từ `layChienThuatDangDung`. Phần **chỉ thị** của AC này chỉ kiểm trọn được sau khi có `ChiThiDoi` |
 | AC-6.1 | `vaiTroChoViTri` + `ChonVaiTro`; test khẳng định mỗi vị trí trong 12 vị trí trả 2..3 vai trò và tổng là 23 |
 | AC-6.2 | `OViTri` hiện tên vai trò ngay tại ô |
 | AC-6.3 | `Role.moTa` + `Role.chiSoQuanTrong` hiện trong `ChonVaiTro` |
@@ -517,7 +520,15 @@ vai trò không áp dụng được cho vị trí của ô).
 | AC-7.5 | `tacticRepo.luuThanhBo` + `danhSachBo` + `apDungBo` |
 | AC-7.6 | `teams.activeTacticId` — GĐ3 đọc đúng bộ này khi vào trận, không hỏi lại người dùng |
 
-22/22 AC có chỗ được hiện thực. AC-5.7 được ghi chú rõ phần vắt sang GĐ3.
+**Hai phần vắt từ Giai đoạn 1 mà giai đoạn này đóng nốt:**
+
+| AC | Được đáp ứng bởi |
+|---|---|
+| AC-2.7 *(phần ô đội hình)* | `playerRepo.remove` gỡ cầu thủ khỏi mọi ô trong mọi chiến thuật của đội, trong **cùng transaction** với việc xoá cầu thủ và ảnh. Không làm việc này thì `oVien` giữ một `playerId` treo, và chính phép kiểm `InvalidTactic` của `tacticRepo` sẽ làm bộ chiến thuật đó không nạp được nữa — P3 cấm điều đó |
+| AC-1.5 *(phần trang chiến thuật)* | `TrangChienThuat` đọc tên đội từ store dùng chung, **không giữ bản sao riêng**, nên đổi tên ở danh sách đội thì trang chiến thuật đổi theo |
+
+22/22 AC của Giai đoạn 2 có chỗ được hiện thực, cộng hai phần vắt từ Giai đoạn 1
+ở bảng trên. AC-5.7 được ghi chú rõ phần vắt sang GĐ3.
 
 ## II.7. Chiến lược kiểm thử
 
