@@ -1,17 +1,17 @@
-# Tasks: Bóng đá Manager — Giai đoạn 1, 2 và 3
+# Tasks: Bóng đá Manager — Giai đoạn 1, 2, 3 và 4
 
 | | |
 |---|---|
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
-| **Phạm vi** | Giai đoạn 1 (36 AC), Giai đoạn 2 (22 AC) và Giai đoạn 3 (26 AC) |
-| **Tiến độ** | 98/99 — Giai đoạn 1 xong (38/39, còn T035); Giai đoạn 2 xong trọn; Giai đoạn 3 xong trọn (T066–T098) |
-| **Sửa đổi** | 2026-10-28 — thêm Giai đoạn 3 (Phase 11–14), rồi sửa theo kết quả `/analyze` |
+| **Phạm vi** | Giai đoạn 1 (36 AC), Giai đoạn 2 (22 AC), Giai đoạn 3 (26 AC) và Giai đoạn 4 (13 AC + 3 AC vắt lại) |
+| **Tiến độ** | 98/128 — Giai đoạn 1 xong (38/39, còn T035); Giai đoạn 2 và 3 xong trọn; Giai đoạn 4 chưa bắt đầu (Phase 15–19: T099–T127) |
+| **Sửa đổi** | 2026-10-28 — thêm Giai đoạn 4 (Phase 15–19) từ `plan.md` PHẦN IV; chưa qua `/analyze` |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
 > Mỗi task phải: chạm file cụ thể + có cách kiểm chứng + đủ nhỏ để làm trong một lần.
 
-Các phase dưới đây là các lát cắt dọc ở `plan.md` — mục 9 cho Giai đoạn 1, mục II.9 cho Giai đoạn 2, mục III.9 cho Giai đoạn 3. Mỗi phase từ Phase 1 trở đi kết thúc là một ứng dụng chạy được và dùng thử được (hiến pháp P6), và là một commit.
+Các phase dưới đây là các lát cắt dọc ở `plan.md` — mục 9 cho Giai đoạn 1, mục II.9 cho Giai đoạn 2, mục III.9 cho Giai đoạn 3, mục IV.9 cho Giai đoạn 4. Mỗi phase từ Phase 1 trở đi kết thúc là một ứng dụng chạy được và dùng thử được (hiến pháp P6), và là một commit.
 
 ---
 
@@ -739,6 +739,219 @@ hoàn tất.
 
 ---
 
+## Phase 15 — Lát 13: Thống kê thật và sửa hai lỗi engine
+
+Kết thúc phase: chưa có màn hình mới, nhưng dòng tường thuật có thêm loại
+**cứu thua** chưa từng hiện ra trong bất kỳ trận nào trước đây, và ba bộ đếm
+của mỗi bên không còn trùng nhau. Phase này đi trước vì mọi thứ của Giai đoạn
+4 dựa trên bộ đếm mới.
+
+> **Phase này đổi thứ tự tiêu thụ `Rng`** (quyết định D34), nên **mã trận lưu
+> từ Giai đoạn 3 không còn phát lại ra đúng trận cũ** — rủi ro R16, đã công bố
+> ở đầu `plan.md`. Trước khi bắt đầu T099, nhắc người dùng xuất tệp sao lưu.
+
+- [ ] **T099** — Tách `cuSut` và `coHoiRoRang` thành hai chỉ tiêu thật
+  - File: sửa `src/engine/tran.ts`, `src/engine/thongKeBen.test.ts`
+  - Xong khi: `cuSut` đếm **mọi** chuỗi kết thúc `dut-diem`, còn `coHoiRoRang` chỉ đếm phần con sút **từ trong vùng dứt điểm** (`laVungDutDiem(kq.vungKetThuc)`) — quyết định D37; test xanh trên 20 mã trận: `coHoiRoRang` ≤ `cuSut` ở **mọi** trận, và **nhỏ hơn hẳn** ở ít nhất 15 trong 20 trận (nếu luôn bằng nhau thì lỗi cũ vẫn còn, chỉ đổi chỗ).
+  - AC: AC-11.2
+  - Phụ thuộc: —
+
+- [ ] **T100** — Tỉ lệ kiểm soát bóng đếm theo số bước
+  - File: sửa `src/engine/tran.ts`, `src/engine/thongKeBen.test.ts`
+  - Xong khi: `ThongKeBen.soBuocGiuBong` cộng dồn `kq.cacHanhDong.length` của bên cầm bóng (quyết định D36); test xanh — cùng một đội với chỉ thị `toc-do-chuyen-bong: cham` có **tỉ lệ bước cao hơn** so với chính đội đó chỉ thị `nhanh`, cùng đối thủ và trung bình qua 20 mã trận. Đây là phép chứng minh con số kiểm soát bóng **không** phải 50/50 cố định.
+  - AC: AC-11.2
+  - Phụ thuộc: T099
+
+- [ ] **T101** — Cứu thua sống thật, và `sutTrungDich` hết bằng số bàn thắng
+  - File: sửa `src/engine/tran.ts`, `src/engine/cuuThua.test.ts`
+  - Xong khi: chuỗi kết thúc `dut-diem` mà không thành bàn thì rút **đúng một lần** để chia thành "bị thủ môn cứu" hay "chệch khung"; bên sút cộng `sutTrungDich`, và `loaiCuaChuoi` trả về `'cuu-thua'` cho trường hợp bị cứu (quyết định D38); test xanh — trên 20 mã trận loại sự kiện `cuu-thua` xuất hiện ở **ít nhất 15 trận**, và `banThang ≤ sutTrungDich ≤ cuSut` ở mọi trận. Mẫu câu tiếng Việt cho `cuu-thua` đã có sẵn từ Giai đoạn 3, không viết thêm.
+  - AC: AC-11.2
+  - Phụ thuộc: T099
+
+- [ ] **T102** — Gán hành động cho cầu thủ cụ thể
+  - File: sửa `src/engine/tran.ts`, `src/engine/ganHanhDong.test.ts`
+  - Xong khi: mỗi chuỗi bóng gán được **người kiến tạo** (bên cầm bóng), **người cướp bóng** (bên phòng ngự, khi chuỗi kết thúc `mat-bong`) và **người phạm lỗi** (bên phòng ngự, khi kết thúc `pham-loi`), rút từ cùng một `Rng`, cân theo sức mạnh trong tình huống **và** theo mức phù hợp của vai trò với vùng xảy ra — quyết định D34; test xanh — qua 20 trận, tiền vệ cánh kiến tạo nhiều hơn trung vệ, và trung vệ cướp bóng nhiều hơn tiền đạo (nếu rút đều tay thì hai phép này đỏ); mọi id được gán đều **có trên sân ở đầu phút đó**, kiểm theo đúng cách đã làm ở `canThiep.test.ts`.
+  - AC: AC-11.3
+  - Phụ thuộc: T101
+
+- [ ] **T103** — `ThongKeCauThu` cho cả 18 người mỗi bên
+  - File: sửa `src/engine/tran.ts`, `src/engine/thongKeCauThu.test.ts`
+  - Xong khi: mỗi cầu thủ có `banThang`, `kienTao`, `cuSut`, `sutTrungDich`, `chuyenThanhCong`, `chuyenHong`, `cuopBong`, `matBong`, `phamLoi`, `canCuu`; trường `dongGopTheoCauThu` cũ **bị bỏ** (quyết định D33); test xanh — với mỗi chỉ tiêu, **tổng theo 18 cầu thủ bằng đúng tổng theo bên** (phép bắt lỗi gán sai người, kiểu lỗi đọc code không thấy); thủ môn có `canCuu` > 0 ở ít nhất một trong 20 trận.
+  - AC: AC-11.3
+  - Phụ thuộc: T102
+
+- [ ] **T104** — Phút vào sân và phút ra sân
+  - File: sửa `src/engine/tran.ts`, `src/engine/thongKeCauThu.test.ts`
+  - Xong khi: `phutVao` / `phutRa` trong `ThongKeCauThu`, `null` nghĩa là đá từ đầu / tới hết trận; engine đặt chúng cả khi **thay người** và khi **thẻ đỏ** (quyết định D50); test xanh — thay người ở phút 60 thì người ra có `phutRa` 60 và người vào có `phutVao` 60; người nhận thẻ đỏ ở phút 70 có `phutRa` 70 **dù không có can thiệp nào**; một người vào sân từ băng ghế rồi bị đuổi có **cả hai** mốc.
+  - AC: AC-11.5
+  - Phụ thuộc: T103
+
+- [ ] **T105** [P] — Đóng số phiên bản engine vào trận
+  - File: sửa `src/engine/tran.ts`, `src/engine/taiLap.test.ts`
+  - Xong khi: `PHIEN_BAN_ENGINE = 2` được xuất ra, và `TrangThaiTran.phienBanEngine` mang đúng giá trị đó (quyết định D35); test xanh — `taoTran` đặt đúng số, và số đó đi qua `chayHetTran` không đổi.
+  - AC: AC-11.7, AC-8.11 *(phần công bố giới hạn phát lại)*
+  - Phụ thuộc: —
+
+- [ ] **T106** [P] — Đường đi của bóng trong sự kiện
+  - File: sửa `src/engine/suKien.ts`, sửa `src/engine/tran.ts`, `src/engine/suKien.test.ts`
+  - Xong khi: `SuKien.duongBong: readonly VungSan[]` lấy từ `kq.cacHanhDong` của chính chuỗi đó (quyết định D40); test xanh — mọi vùng trong `duongBong` đều **kề nhau** theo luật của `vung.ts`; vùng cuối của `duongBong` **bằng** trường `vung` của sự kiện; sự kiện mốc (`bat-dau`, `het-hiep`, `ket-thuc`) có `duongBong` rỗng; **chạy lại cùng mã trận vẫn ra `duongBong` giống từng phần tử** (không tốn lần rút nào, nên không được làm lệch dãy số).
+  - AC: AC-10.2
+  - Phụ thuộc: —
+
+- [ ] **T107** — Gỡ màu áo khỏi engine
+  - File: sửa `src/engine/tran.ts`, `src/ui/mauAo.ts`, sửa `src/ui/pages/ChonCapDau.tsx`, `src/ui/mauAo.test.ts`
+  - Xong khi: trường `mauAoDangDung` **bị bỏ khỏi** `BenTran`; `ui/mauAo.ts` xuất `aoDangDung(nha, khach)` dùng lại `trungMauAo` của `domain/colors.ts` và trả về bên nào mặc áo nào cộng tên đội phải đổi áo; `ChonCapDau` dùng hàm này thay cho logic tại chỗ (quyết định D39); test xanh — hai màu trùng thì **đúng một** bên đổi sang áo phụ, hai màu khác nhau thì không bên nào đổi; `npx tsc --noEmit` sạch sau khi bỏ trường.
+  - AC: AC-3.7 *(kiểm lại — Giai đoạn 3 đã đóng, phase này chỉ dọn chỗ ở)*
+  - Phụ thuộc: —
+
+- [ ] **T108** — Chạy lại bốn test so sánh của P5 và ghi lại số đo
+  - File: `src/engine/sosanh.tanCongBien.test.ts`, `src/engine/sosanh.pressingCao.test.ts`, `src/engine/sosanh.saiViTri.test.ts`, `src/engine/sosanh.doiManhHon.test.ts`
+  - Xong khi: cả bốn test **xanh** với dãy số mới, và **số đo thật** (con số từng test in ra) được ghi vào mô tả commit để so với số của Giai đoạn 3. Nếu một test đỏ thì **cân bằng lại engine**, không hạ ngưỡng — ngưỡng trong bốn test đó đến từ AC, không đến từ thuận tiện (rủi ro R17).
+  - AC: AC-8.3, AC-8.4, AC-8.5, AC-8.8 *(kiểm lại sau khi đổi dãy số)*
+  - Phụ thuộc: T107
+
+## Phase 16 — Lát 14: Báo cáo sau trận
+
+Kết thúc phase: xem trọn một trận, đọc báo cáo đầy đủ — tỉ số, người ghi bàn
+kèm phút, sáu chỉ tiêu mỗi bên, điểm từng cầu thủ kèm bảng giải thích — rồi
+đấu lại ngay bằng một nút.
+
+- [ ] **T109** — Chấm điểm cầu thủ, kèm bảng giải thích
+  - File: `src/engine/diemCauThu.ts`, `src/engine/diemCauThu.test.ts`
+  - Xong khi: `chamDiem(tk, viTriDaDa)` trả về `{ diem, cacThanhPhan }`, mỗi thành phần có tên tiêu chí, số liệu thật và điểm cộng/trừ (quyết định D49); test xanh — điểm **bắt đầu từ 6.0** khi mọi số liệu bằng 0; điểm luôn nằm trong 1–10 kể cả với số liệu cực đoan; **tổng các thành phần cộng đúng bằng** `diem` (nếu lệch thì bảng giải thích đang nói dối); cùng một bộ số liệu mà khác vị trí thì ra **điểm khác nhau** — đó là phần "cân theo vị trí" của AC-11.3.
+  - AC: AC-11.3
+  - Phụ thuộc: T104
+
+- [ ] **T110** — Đóng gói báo cáo sau trận
+  - File: `src/engine/baoCao.ts`, `src/engine/baoCao.test.ts`
+  - Xong khi: `dungBaoCao(tt)` là hàm **thuần**, không I/O, trả về `BaoCaoTran` gồm tỉ số, danh sách người ghi bàn kèm phút, sáu chỉ tiêu mỗi bên (sút, sút trúng đích, kiểm soát bóng, cơ hội rõ ràng, thẻ vàng, thẻ đỏ) và điểm từng cầu thủ đã ra sân; test xanh — số người ghi bàn **bằng đúng tổng tỉ số**; hai tỉ lệ kiểm soát bóng cộng lại bằng 100%; `coHoiRoRang ≤ cuSut` và `banThang ≤ sutTrungDich ≤ cuSut`; **không** chấm điểm cho người chưa ra sân.
+  - AC: AC-11.1, AC-11.2
+  - Phụ thuộc: T109
+
+- [ ] **T111** — Màn báo cáo: tỉ số, người ghi bàn, chỉ tiêu hai bên
+  - File: `src/ui/components/BaoCaoSauTran.tsx`, `src/ui/components/DanhSachGhiBan.tsx`, sửa `src/ui/pages/TrangTran.tsx`, sửa `src/ui/strings.ts`
+  - Xong khi: trận kết thúc thì màn trận hiện báo cáo ngay bên dưới; thấy đúng tỉ số, từng người ghi bàn kèm phút của **cả hai** đội, và sáu chỉ tiêu mỗi bên; dòng tường thuật đầy đủ vẫn xem lại được tại chỗ bằng `DongTuongThuat` đã có; mọi nhãn tiếng Việt và nằm trong `strings.ts` (P8).
+  - AC: AC-11.1, AC-11.2, AC-11.4
+  - Phụ thuộc: T110
+
+- [ ] **T112** — Bảng điểm cầu thủ, mở ra xem được số liệu
+  - File: `src/ui/components/BangDiemCauThu.tsx`, sửa `src/ui/components/BaoCaoSauTran.tsx`, sửa `src/ui/strings.ts`
+  - Xong khi: mỗi cầu thủ đã ra sân có một dòng điểm 1–10; bấm vào một dòng thì **mở ra bảng các thành phần** đã cộng/trừ kèm số liệu thật — đó là phần "người dùng phải xem được những số liệu nào đã dẫn tới điểm đó" của AC-11.3; người vào sân từ băng ghế hiện rõ **đá từ phút nào tới phút nào** (AC-11.5); mở/đóng bảng làm được bằng bàn phím (P9).
+  - AC: AC-11.3, AC-11.5
+  - Phụ thuộc: T111
+
+- [ ] **T113** — Đấu lại ngay cùng cặp đấu
+  - File: sửa `src/ui/components/BaoCaoSauTran.tsx`, sửa `src/hooks/useMatch.ts`, sửa `src/ui/strings.ts`
+  - Xong khi: màn báo cáo có hai nút — "đấu lại cùng mã trận" và "đấu lại với mã mới" — cùng dựng lại `CauHinhTran` từ trận vừa xong, **không** quay về màn chọn cặp đấu và **không** phải đăng ký lại 11+7 (quyết định D47); bấm nút cùng mã ra **đúng tỉ số cũ**; bấm nút mã mới ra trận khác và bảng so sánh của AC-8.12 **không** hiện (vì khác mã).
+  - AC: AC-11.6
+  - Phụ thuộc: T111
+
+## Phase 17 — Lát 15: Sân 2D
+
+Kết thúc phase: xem trận trên sân 2D với đủ 22 điểm, thấy pha bóng dịch
+chuyển theo tình huống, hoặc ẩn sân đi và chỉ đọc dòng tường thuật.
+
+- [ ] **T114** — Sân 2D với đủ 22 điểm
+  - File: `src/ui/components/San2D.tsx`, sửa `src/ui/pages/TrangTran.tsx`
+  - Xong khi: SVG (quyết định D41) vẽ đủ **22 điểm tròn** cho cả hai đội, đặt theo `chienThuatHienTai.oVien` và chỉ thị `do-cao-doi-hinh`, toạ độ suy từ lưới 12 vùng của D23; màu lấy từ `ui/mauAo.ts` của T107 nên hai đội trùng màu áo vẫn phân biệt được (AC-3.7); mỗi điểm có `aria-label` tiếng Việt gồm tên và số áo (P9); đội đá thiếu người sau thẻ đỏ thì **thiếu đúng số điểm đó**.
+  - AC: AC-10.1
+  - Phụ thuộc: T107
+  - Ghi chú: không dùng thư viện đồ hoạ nào (P4, D41).
+
+- [ ] **T115** — Người tham gia dịch tới chỗ bóng, kèm đường bóng
+  - File: sửa `src/ui/components/San2D.tsx`
+  - Xong khi: khi dòng tường thuật sang tình huống mới, những người có tên trong `cacCauThu` của sự kiện **dịch tới** vùng của sự kiện còn người còn lại **giữ chỗ đội hình**; `duongBong` của T106 được vẽ thành đường qua các vùng; di chuyển bằng **CSS transition**, không có vòng lặp animation (D41); tạm dừng trận thì sân **đứng im ở đúng tình huống đó** — AC-10.4 không cần thêm code, nhưng phải kiểm tay thật.
+  - AC: AC-10.2, AC-10.4
+  - Phụ thuộc: T114, T106
+
+- [ ] **T116** — Làm nổi bật người đang tham gia tình huống
+  - File: sửa `src/ui/components/San2D.tsx`
+  - Xong khi: người tham gia có **viền dày lên cộng nhãn chữ** (số áo in đậm và thêm một dấu), không chỉ đổi màu (quyết định D42); kiểm chứng bằng cách xem sân ở **chế độ grayscale** của trình duyệt — vẫn phân biệt được người tham gia với người còn lại. Đây là phép kiểm P9 đòi, vì nền là màu áo người dùng tự chọn.
+  - AC: AC-10.3
+  - Phụ thuộc: T115
+
+- [ ] **T117** [P] — Ẩn và hiện sân 2D, nhớ lựa chọn
+  - File: sửa `src/ui/pages/TrangTran.tsx`, `src/services/tuyChonRepo.ts`, `src/services/tuyChonRepo.test.ts`, sửa `src/ui/strings.ts`
+  - Xong khi: một nút ẩn/hiện sân; lựa chọn lưu trong store `meta` đã có qua `tuyChonRepo` (quyết định D51 — **không** dùng `localStorage`); test xanh cho vòng tròn ghi/đọc tuỳ chọn; kiểm tay — ẩn sân, **tải lại trang**, mở lại trận thì sân vẫn ẩn.
+  - AC: AC-10.6
+  - Phụ thuộc: T114
+
+- [ ] **T118** — Chạy hết trận không bị sân 2D làm chậm
+  - File: sửa `src/ui/pages/TrangTran.tsx`, sửa `src/ui/components/San2D.tsx`
+  - Xong khi: khi bấm "chạy hết trận", giao diện **không vẽ** trạng thái trung gian — engine chạy một lèo rồi vẽ **đúng một lần** ở cuối (quyết định D43); đo bằng `performance.now` trên giao diện với sân **đang bật**: từ lúc bấm tới lúc báo cáo hiện ra **dưới 3 giây** (ngân sách spec mục 6), ghi số thật vào mô tả commit. Đường lùi nếu vỡ ngân sách: tự ẩn sân khi chạy hết trận kèm một dòng nói rõ (rủi ro R19).
+  - AC: AC-10.5
+  - Phụ thuộc: T116, T117
+
+## Phase 18 — Lát 16: Lịch sử 20 trận
+
+Kết thúc phase: đóng rồi mở lại ứng dụng, 20 trận gần nhất còn nguyên, mở
+lại đọc được báo cáo cũ; xuất tệp sao lưu rồi nhập lại thì lịch sử về đủ.
+
+> Trước khi làm T119, **nhắc người dùng xuất tệp sao lưu**: tăng `DB_VERSION`
+> **không lùi được bằng `git revert`**, vì bản code cũ yêu cầu phiên bản thấp
+> hơn và IndexedDB từ chối mở database có phiên bản cao hơn (rủi ro R18, cảnh
+> báo đã ghi sẵn trong `db.ts` từ Giai đoạn 1).
+
+- [ ] **T119** — Store `matches` và nâng `DB_VERSION` lên 3
+  - File: sửa `src/storage/db.ts`, sửa `src/storage/db.test.ts`
+  - Xong khi: store `matches` với key là `id` và index `byKetThucLuc`; `DB_VERSION` = **3**; kiểu `TranDaLuu` khai tường minh, không suy từ dữ liệu mẫu (hiến pháp mục 4); test xanh — mở database phiên bản 2 cũ rồi nâng lên 3 thì **đội, cầu thủ, ảnh và chiến thuật còn nguyên** và store mới rỗng.
+  - AC: AC-11.7
+  - Phụ thuộc: T110
+
+- [ ] **T120** — `matchRepo` giữ đúng 20 trận gần nhất
+  - File: `src/services/matchRepo.ts`, `src/services/matchRepo.test.ts`
+  - Xong khi: `luu`, `danhSach` (mới nhất trước), `doc`; `SO_TRAN_GIU_LAI = 20`; ghi trận mới **và** xoá trận cũ nhất trong **cùng một transaction** (quyết định D45); test xanh — lưu 21 trận thì còn đúng 20 và trận **cũ nhất** mất; `luu` trả về danh sách trận bị loại để giao diện báo một lần; vòng tròn lưu/đọc ra **đúng từng dòng sự kiện**; hàm `xoaTheoDoi` được khai nhưng **không gọi ở đâu** — xoá đội không làm mất lịch sử, và có test khẳng định đúng điều đó (spec mục 5).
+  - AC: AC-11.7
+  - Phụ thuộc: T119
+
+- [ ] **T121** — Lưu trận khi kết thúc, kèm ảnh chụp tên đội
+  - File: sửa `src/hooks/useMatch.ts`, sửa `src/store/appStore.ts`, sửa `src/ui/strings.ts`
+  - Xong khi: trận kết thúc thì tự lưu vào lịch sử, bản ghi giữ **cả** `teamId` **và** ảnh chụp `{ ten, mauChinh, mauPhu, logoImageId }` lúc đó (quyết định D46), cộng `baoCao` đã tính và `phienBanEngine`; lịch sử đủ 20 trận thì hiện **một** thông báo nói rõ trận nào bị loại (spec mục 5); rời trang giữa trận thì **không** lưu gì (AC-9.10 nói trận bị huỷ và không vào lịch sử).
+  - AC: AC-11.7
+  - Phụ thuộc: T120
+
+- [ ] **T122** — Trang lịch sử 20 trận
+  - File: `src/ui/pages/TrangLichSu.tsx`, sửa `src/App.tsx`, sửa `src/ui/strings.ts`
+  - Xong khi: trang liệt kê 20 trận gần nhất (mới nhất trước) kèm tỉ số, hai đội và mã trận; mở một trận ra đọc lại **báo cáo và toàn bộ dòng sự kiện** đã lưu; tên đội lấy từ đội **đang sống** nên đổi tên đội thì lịch sử đổi theo (AC-1.5), còn đội đã xoá thì rơi về ảnh chụp và hiện rõ là **không đấu lại được** (spec mục 5); đi lại được bằng bàn phím (P9).
+  - AC: AC-11.4, AC-1.5, AC-4.2
+  - Phụ thuộc: T121
+
+- [ ] **T123** — Tệp sao lưu v4 mang lịch sử
+  - File: sửa `src/storage/migrations.ts`, sửa `src/services/backupSchema.ts`, sửa `src/services/backupService.ts`, sửa `src/storage/migrations.test.ts`, sửa `src/services/backupService.test.ts`
+  - Xong khi: `SCHEMA_VERSION` = **4**, thân tệp thêm `matches`, migration v3→v4 chỉ thêm `matches: []`; schema zod v3 **không bị sửa**, schema v4 đặt cạnh nó (đúng cách đã ghi trong `migrations.ts`); test xanh — tệp **v1, v2, v3 vẫn nhập được** (P7) và vào với lịch sử rỗng; xuất 20 trận rồi nhập lại ra **đúng từng dòng sự kiện**; tệp hỏng không làm mất lịch sử đang có (P3).
+  - AC: AC-4.2, AC-11.7
+  - Phụ thuộc: T121
+
+- [ ] **T124** — Từ chối phát lại trận khác phiên bản engine
+  - File: sửa `src/services/matchRepo.ts`, sửa `src/ui/pages/TrangLichSu.tsx`, sửa `src/ui/strings.ts`, sửa `src/services/matchRepo.test.ts`
+  - Xong khi: trận có `phienBanEngine` khác bản đang chạy thì **vẫn xem lại được** báo cáo và dòng sự kiện đã lưu, nhưng nút đấu lại bị chặn kèm câu tiếng Việt nói rõ vì sao (quyết định D35, rủi ro R16); test xanh cho cả hai nhánh. Đây là phần bù cho việc mã trận của Giai đoạn 3 không còn phát lại đúng.
+  - AC: AC-11.7, AC-8.11 *(phần công bố giới hạn phát lại)*
+  - Phụ thuộc: T122, T105
+
+- [ ] **T125** — Đo kích thước tệp và kiểm tay AC-4.7
+  - File: `specs/001-football-team-sim/spec.md` (tick AC-4.7)
+  - Xong khi: đo và **ghi số thật** vào mô tả commit — kích thước tệp sao lưu với 20 trận đầy đủ, và thời gian mở ứng dụng với 20 đội cộng 20 trận (ngân sách spec mục 6: **dưới 2 giây**); kiểm tay AC-4.7 bằng cách siết quota lưu trữ của tab rồi lưu một trận: thấy dải cảnh báo tiếng Việt nói rõ **thay đổi chưa được lưu** và gợi ý xuất tệp. Nếu tệp quá lớn thì nén `cacSuKien` bằng `fflate` đã có trong dự án, **không** giảm số trận giữ lại (rủi ro R20 — AC-11.7 nói 20 trận).
+  - AC: AC-4.7, AC-11.7
+  - Phụ thuộc: T123
+
+## Phase 19 — Lát 17: Đóng spec 001
+
+- [ ] **T126** — Kiểm tay 13 AC của Giai đoạn 4 và tick nốt spec
+  - File: `specs/001-football-team-sim/spec.md` (tick các ô AC và đổi `Status`)
+  - Xong khi: 13 AC của US-10 và US-11 được tự tay kiểm trên ứng dụng đang chạy và tick, cộng **AC-4.2** và **AC-1.5** tick trọn; kiểm tay bốn việc chỉ kiểm tay mới thấy — xem một pha tấn công biên trên sân 2D rồi thấy điểm dịch ra biên; xem sân ở chế độ grayscale xem còn phân biệt được người tham gia không; đổi tên một đội rồi mở lịch sử thấy tên mới; xoá một đội rồi mở lịch sử thấy tên cũ và nút đấu lại bị chặn. `Status` của spec đổi thành **`Done`** chỉ khi mọi AC trong phạm vi đã pass.
+  - AC: toàn bộ AC-10.x và AC-11.x, cộng AC-4.2, AC-1.5
+  - Phụ thuộc: T113, T118, T124, T125
+  - Ghi chú: hai AC vẫn **không** tick được và đó là đúng — xem T127.
+
+- [ ] **T127** — Ba món nợ còn lại của spec 001
+  - File: `specs/001-football-team-sim/tasks.md`, `.specify/memory/constitution.md`
+  - Xong khi: **T035** (hai ngân sách hiển thị chưa đo được từ Giai đoạn 1) được đo hoặc được ghi rõ vì sao môi trường này không đo được; hai điểm `[CẦN XÁC NHẬN]` trong hiến pháp mục 7 — thư mục lâu dài của dự án và trình duyệt đích — được người dùng chốt và hiến pháp bump version theo PATCH; `AC-4.7` nếu T125 vẫn không quan sát được thì ghi rõ lý do thay vì tick bừa.
+  - AC: —
+  - Phụ thuộc: T126
+  - Ghi chú: task này **cần người dùng trả lời**, không làm một mình được.
+
+---
+
 ## Bảng phủ AC
 
 | AC | Task |
@@ -747,7 +960,7 @@ hoàn tất.
 | AC-1.2 | T009, T012, T013 |
 | AC-1.3 | T009, T013 |
 | AC-1.4 | T009, T012 |
-| AC-1.5 | T009, T010, T013 *(trang chiến thuật: Giai đoạn 2; lịch sử trận đấu: Giai đoạn 3)* |
+| AC-1.5 | T009, T010, T013, T051, **T122** *(lịch sử trận đấu: Giai đoạn 4)* |
 | AC-1.6 | T009, T014 |
 | AC-1.7 | T009, T013 |
 | AC-2.1 | T004, T022 |
@@ -771,12 +984,12 @@ hoàn tất.
 | AC-3.7 | T024, T028 *(tự đổi áo phụ trong trận: Giai đoạn 3)* |
 | AC-3.8 | T024, T027, T028 |
 | AC-4.1 | T015 |
-| AC-4.2 | T006, T015 *(lịch sử trận đấu: Giai đoạn 3)* |
+| AC-4.2 | T006, T015, **T122**, T123 *(lịch sử trận đấu: Giai đoạn 4)* |
 | AC-4.3 | T029, T032 |
 | AC-4.4 | T030 |
 | AC-4.5 | T030, T032 |
 | AC-4.6 | T030, T032 |
-| AC-4.7 | T031 |
+| AC-4.7 | T031, **T125** *(lần đầu quan sát được: Giai đoạn 4)* |
 | AC-4.8 | T029, T032 |
 | AC-4.9 | T015 |
 
@@ -838,15 +1051,30 @@ xem hai bảng ở cuối phần "Bảng phủ AC — Giai đoạn 2" thay vì l
 | AC-9.8 | T091, T093, T094 |
 | AC-9.9 | T086, T088 |
 | AC-9.10 | T090 |
+| AC-10.1 | T114 |
+| AC-10.2 | T106, T115 |
+| AC-10.3 | T116 |
+| AC-10.4 | T115 |
+| AC-10.5 | T118 |
+| AC-10.6 | T117 |
+| AC-11.1 | T110, T111 |
+| AC-11.2 | T099, T100, T101, T110, T111 |
+| AC-11.3 | T102, T103, T109, T112 |
+| AC-11.4 | T111, T122 |
+| AC-11.5 | T104, T112 |
+| AC-11.6 | T113 |
+| AC-11.7 | T105, T119, T120, T121, T123, T124, T125 |
 
 26/26 AC của Giai đoạn 3 đều có task. Bốn AC in đậm ở cột task là bốn AC dạng
 so sánh của P5 — mỗi cái có **một test riêng** chứ không gộp chung, để khi một
 cái đỏ thì biết ngay engine lệch ở đâu.
 
+13/13 AC của Giai đoạn 4 đều có task, cộng ba AC vắt lại được đóng nốt ở
+Phase 18 và 19 — xem hai bảng dưới.
 
-**13 AC chưa có task, và đó là đúng:** AC-10.1 → AC-10.6 (sân 2D) và AC-11.1 →
-AC-11.7 (báo cáo sau trận, lịch sử 20 trận) thuộc **Giai đoạn 4**, chưa lập
-plan. Chúng sẽ có task khi `plan.md` có PHẦN IV.
+
+**Không còn AC nào thiếu task.** Toàn bộ 99 AC của spec 001 đã có ít nhất một
+task; Phase 19 là chỗ tick nốt và đổi `Status` của spec thành `Done`.
 
 ### Phần vắt từ Giai đoạn 1 mà Giai đoạn 3 đóng nốt
 
@@ -856,17 +1084,28 @@ plan. Chúng sẽ có task khi `plan.md` có PHẦN IV.
 | AC-3.7 | Hai đội trùng màu áo thì tự đổi một đội sang áo phụ trong trận | **T088** |
 | AC-5.7 | Phần chặn bắt đầu giả lập | **T086** |
 
-### Phần vắt vẫn còn nợ sau Giai đoạn 3
+### Phần vắt từ giai đoạn trước mà Giai đoạn 4 đóng nốt
 
-| AC | Phần còn nợ | Thuộc giai đoạn |
+| AC | Phần còn nợ | Task |
 |---|---|---|
-| AC-4.2 | Lịch sử trận đấu còn nguyên sau khi mở lại | **Giai đoạn 4** (AC-11.7) |
-| AC-1.5 | Đổi tên đội thì lịch sử trận đấu đổi theo | **Giai đoạn 4** (AC-11.7) |
+| AC-4.2 | Lịch sử trận đấu còn nguyên sau khi mở lại | **T122**, T123 |
+| AC-1.5 | Đổi tên đội thì lịch sử trận đấu đổi theo | **T122** |
+| AC-4.7 | Dung lượng đầy thì cảnh báo — lần đầu **quan sát được** | **T125** |
 
-`spec.md` đang chú thích hai phần này là "thuộc GĐ3". Đó là chú thích sai:
-lịch sử trận đấu được định nghĩa ở AC-11.7 trong US-11, mà spec xếp US-11 vào
-Giai đoạn 4. T098 **không** tick hai AC đó, và plan Giai đoạn 4 là chỗ sửa lại
-chú thích.
+Chú thích cũ trong `spec.md` ghi phần lịch sử của AC-4.2 và AC-1.5 là "thuộc
+GĐ3"; đó là chú thích sai và đã được sửa lại thành GĐ4 ở T098. AC-4.7 có từ
+Giai đoạn 1 nhưng ba giai đoạn trước chỉ ghi những bản ghi nhỏ nên không có
+cách nào làm đầy dung lượng bằng tay; Giai đoạn 4 là chỗ đầu tiên ghi hàng
+trăm KB mỗi lần — xem `plan.md` mục IV.0.
+
+### Một lỗi engine cố tình để ngoài phạm vi Giai đoạn 4
+
+`thoat-xuong` cũng là loại sự kiện **chết** như `cuu-thua`: khai trong
+`LoaiSuKien`, đã có đủ mẫu câu tiếng Việt, nhưng `loaiCuaChuoi` chưa bao giờ
+trả về nó. Test so sánh của AC-8.4 vẫn đúng vì nó đo bộ đếm `biThoatXuong`
+chứ không đo dòng tường thuật; chỗ thiếu chỉ là người dùng không bao giờ đọc
+được câu đó. **Người dùng đã chốt không nhặt vào Giai đoạn 4**, nên không có
+task cho nó — ghi ở đây để lần sau không ai tưởng là bỏ sót.
 
 
 22/22 AC của Giai đoạn 2 đều có task. Một AC được ghi chú phần vắt sang giai
