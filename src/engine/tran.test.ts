@@ -141,17 +141,50 @@ describe('dòng sự kiện (AC-8.2, AC-8.15)', () => {
     }
   })
 
-  it('mọi sự kiện đều mang cầu thủ đang trên sân của đúng đội đó', () => {
+  /*
+    AC-8.2 nói "cầu thủ đang có mặt TRÊN SÂN" — tại phút xảy ra tình huống,
+    không phải lúc hết trận. Hai mốc đó khác nhau ngay khi có thẻ đỏ: người
+    bị đuổi phút 70 vẫn hợp lệ trong mọi tình huống trước đó.
+
+    Nên phép kiểm đi từng phút và đối chiếu với danh sách trên sân ở ĐẦU phút
+    ấy. Bản đầu của test này so với danh sách cuối trận và vì thế báo sai.
+  */
+  it('mọi sự kiện đều mang cầu thủ có mặt trên sân tại chính phút đó', () => {
+    for (const ma of MA_TRAN_CO_DINH) {
+      let tt = taoTran(cauHinhMau(ma))
+
+      while (!tt.ketThuc) {
+        const truocKhiChay = {
+          nha: new Set(tt.ben.nha.trenSan),
+          khach: new Set(tt.ben.khach.trenSan),
+        }
+        const soUngVienCu = tt.ungVien.length
+
+        tt = buocTiep(tt)
+
+        for (const uv of tt.ungVien.slice(soUngVienCu)) {
+          for (const id of uv.suKien.cacCauThu) {
+            expect(
+              truocKhiChay[uv.suKien.doi].has(id),
+              `${ma} phút ${tt.phut} / ${uv.suKien.loai} / ${id}`,
+            ).toBe(true)
+          }
+        }
+      }
+    }
+  })
+
+  it('không sự kiện nào nhắc tới cầu thủ ngoài danh sách 18 của đội đó', () => {
     for (const ma of MA_TRAN_CO_DINH) {
       const tt = chayHetTran(taoTran(cauHinhMau(ma)))
-      const trenSan = {
-        nha: new Set(tt.ben.nha.trenSan),
-        khach: new Set(tt.ben.khach.trenSan),
+      const doiHinh = {
+        nha: new Set(tt.ben.nha.cacCauThu.map((c) => c.id)),
+        khach: new Set(tt.ben.khach.cacCauThu.map((c) => c.id)),
       }
 
       for (const sk of dongSuKien(tt)) {
         for (const id of sk.cacCauThu) {
-          expect(trenSan[sk.doi].has(id), `${ma} / ${sk.loai} / ${id}`).toBe(
+          expect(doiHinh[sk.doi].has(id), `${ma} / ${sk.loai} / ${id}`).toBe(
             true,
           )
         }

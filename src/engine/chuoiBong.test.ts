@@ -4,8 +4,20 @@ import {
   SO_BUOC_TOI_DA,
   type KetCucChuoi,
 } from './chuoiBong'
+import { HE_SO_TRUNG_TINH } from './chiThi'
 import { taoRng } from './rng'
 import { CAC_VUNG, keNhau, layVung } from './vung'
+
+/*
+  Bối cảnh trung tính: hai đội ngang sức, chỉ thị mặc định. Những bất biến
+  dưới đây phải đúng với MỌI bối cảnh, nên dùng bối cảnh đơn giản nhất.
+*/
+const BOI_CANH_TRUNG_TINH = {
+  heSoCong: HE_SO_TRUNG_TINH,
+  heSoThu: HE_SO_TRUNG_TINH,
+  sucManhCong: 0.5,
+  sucManhThu: 0.5,
+}
 
 const KET_CUC_HOP_LE: KetCucChuoi[] = [
   'dut-diem',
@@ -18,7 +30,7 @@ const KET_CUC_HOP_LE: KetCucChuoi[] = [
 function nhieuChuoi(soLan = 400) {
   const rng = taoRng('CHUOI BONG')
   return Array.from({ length: soLan }, (_, i) =>
-    chayChuoiBong(CAC_VUNG[i % CAC_VUNG.length], rng),
+    chayChuoiBong(CAC_VUNG[i % CAC_VUNG.length], rng, BOI_CANH_TRUNG_TINH),
   )
 }
 
@@ -39,7 +51,7 @@ describe('một chuỗi kiểm soát bóng', () => {
     const rng = taoRng('NHAY COC')
     for (let i = 0; i < 300; i += 1) {
       const batDau = CAC_VUNG[i % CAC_VUNG.length]
-      const kq = chayChuoiBong(batDau, rng)
+      const kq = chayChuoiBong(batDau, rng, BOI_CANH_TRUNG_TINH)
 
       // Mỗi hành động ghi lại vùng xuất phát của nó; dãy vùng đi qua phải
       // là một đường liền, mỗi bước sang vùng kề.
@@ -82,8 +94,8 @@ describe('một chuỗi kiểm soát bóng', () => {
 
 describe('tất định (P1)', () => {
   it('cùng nguồn ngẫu nhiên và cùng vùng bắt đầu ra cùng kết quả', () => {
-    const a = chayChuoiBong(layVung('giua', 1), taoRng('TAT DINH'))
-    const b = chayChuoiBong(layVung('giua', 1), taoRng('TAT DINH'))
+    const a = chayChuoiBong(layVung('giua', 1), taoRng('TAT DINH'), BOI_CANH_TRUNG_TINH)
+    const b = chayChuoiBong(layVung('giua', 1), taoRng('TAT DINH'), BOI_CANH_TRUNG_TINH)
     expect(b).toEqual(a)
   })
 
@@ -91,7 +103,7 @@ describe('tất định (P1)', () => {
     const chay = () => {
       const rng = taoRng('DAY CHUOI')
       return Array.from({ length: 50 }, (_, i) =>
-        chayChuoiBong(CAC_VUNG[i % CAC_VUNG.length], rng),
+        chayChuoiBong(CAC_VUNG[i % CAC_VUNG.length], rng, BOI_CANH_TRUNG_TINH),
       )
     }
     expect(chay()).toEqual(chay())
@@ -101,7 +113,7 @@ describe('tất định (P1)', () => {
     const chay = (ma: string) => {
       const rng = taoRng(ma)
       return Array.from({ length: 50 }, () =>
-        chayChuoiBong(layVung('giua', 1), rng),
+        chayChuoiBong(layVung('giua', 1), rng, BOI_CANH_TRUNG_TINH),
       )
     }
     expect(chay('MA B')).not.toEqual(chay('MA A'))

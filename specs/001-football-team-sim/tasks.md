@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | Giai đoạn 1 (36 AC), Giai đoạn 2 (22 AC) và Giai đoạn 3 (26 AC) |
-| **Tiến độ** | 72/99 — Giai đoạn 1 xong (38/39, còn T035); Giai đoạn 2 xong trọn; Giai đoạn 3 đang làm (Phase 11 xong: T066–T072) |
+| **Tiến độ** | 83/99 — Giai đoạn 1 xong (38/39, còn T035); Giai đoạn 2 xong trọn; Giai đoạn 3 đang làm (Phase 11 và 12 xong: T066–T083) |
 | **Sửa đổi** | 2026-10-28 — thêm Giai đoạn 3 (Phase 11–14), rồi sửa theo kết quả `/analyze` |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -556,67 +556,67 @@ Kết thúc phase: **bốn test so sánh của P5 đều xanh**. Đây là phase
 engine có đáng tin hay không; nếu nó đỏ thì làm giao diện chỉ là trang trí cho
 một trận bóng vô lý.
 
-- [ ] **T073** [P] — Sức mạnh cầu thủ trong một tình huống
+- [x] **T073** [P] — Sức mạnh cầu thủ trong một tình huống
   - File: `src/engine/sucManh.ts`, `src/engine/sucManh.test.ts`
   - Xong khi: test xanh — nền tính từ `chiSoQuanTrong` của **vai trò** nên cùng một cầu thủ ở hai vai trò khác nhau ra hai số khác nhau (nếu bằng nhau thì cả US-6 là vô nghĩa); nhân `(1 − MUC_TRU_HIEU_SUAT[mức])` nên bốn mức sai vị trí cho bốn số **giảm dần nghiêm ngặt**; thể lực thấp làm giảm; hệ số sân nhà chỉ áp cho đội chủ nhà và **bằng đúng 1 khi sân trung lập**.
   - AC: AC-8.5, AC-8.14
   - Phụ thuộc: T070
-- [ ] **T074** [P] — Thể lực
+- [x] **T074** [P] — Thể lực
   - File: `src/engine/theLuc.ts`, `src/engine/theLuc.test.ts`
   - Xong khi: test xanh — thể lực giảm đơn điệu theo phút; cầu thủ `the-luc` cao giảm **chậm hơn** cầu thủ `the-luc` thấp ở cùng mức pressing; cùng một cầu thủ thì pressing cao giảm **nhanh hơn** pressing thấp (AC-8.6 đòi cả hai yếu tố, không phải một); không bao giờ xuống dưới 0.
   - AC: AC-8.6
   - Phụ thuộc: T070
 
-- [ ] **T075** [P] — Thẻ vàng, thẻ đỏ và đá thiếu người
+- [x] **T075** [P] — Thẻ vàng, thẻ đỏ và đá thiếu người
   - File: `src/engine/the.ts`, `src/engine/the.test.ts`
   - Xong khi: test xanh — xác suất ăn thẻ **cao hơn** khi `quyet-doan` thấp (so hai hồ sơ chỉ khác chỉ số đó) và **cao hơn** khi đội pressing cao; thẻ vàng thứ hai thành thẻ đỏ; cầu thủ nhận thẻ đỏ bị gỡ khỏi `trenSan`, không quay lại được, và đội đó đá thiếu người tới hết trận.
   - AC: AC-8.13
   - Phụ thuộc: T070
 
-- [ ] **T076** [P] — Bảng hệ số chỉ thị
+- [x] **T076** [P] — Bảng hệ số chỉ thị
   - File: `src/engine/chiThi.ts`, `src/engine/chiThi.test.ts`
   - Ghi chú: đây là "một bảng duy nhất" của quyết định D24. `plan.md` III.3 không liệt kê tên file này; nó được tách riêng vì D24 nói rõ không được rải thành nhánh `if` trong chuỗi bóng.
   - Xong khi: test xanh — mỗi mức của cả 6 chỉ thị đều có một bộ hệ số; `CHI_THI_MAC_DINH` cho hệ số **trung tính (bằng 1)** ở mọi hướng, nên đội mặc định không bị thiên lệch; không hệ số nào bằng 0 hay âm — một chỉ thị được làm một hành động **hiếm đi**, không được **cấm hẳn**.
   - AC: AC-8.3, AC-8.4
   - Phụ thuộc: T070
 
-- [ ] **T077** — Nối sức mạnh, thể lực, thẻ và chỉ thị vào chuỗi bóng
+- [x] **T077** — Nối sức mạnh, thể lực, thẻ và chỉ thị vào chuỗi bóng
   - File: `src/engine/chuoiBong.ts`, `src/engine/tran.ts`
   - Xong khi: `npx tsc --noEmit` sạch; toàn bộ test cũ vẫn xanh; một trận chạy xong có cả bàn thắng và thẻ trên vài mã trận; và **test tái lập T071 vẫn xanh sau khi nối** — đây là lúc dễ phá tính tất định nhất, vì mỗi nguồn ngẫu nhiên mới gắn vào đều có thể làm lệch thứ tự tiêu thụ `Rng`.
   - AC: AC-8.5, AC-8.6, AC-8.13, AC-8.14
   - Phụ thuộc: T073, T074, T075, T076
 
-- [ ] **T078** — Kiệt sức: phạt hiệu suất và báo cho người dùng
+- [x] **T078** — Kiệt sức: phạt hiệu suất và báo cho người dùng
   - File: `src/engine/sucManh.ts`, `src/engine/suKien.ts`, `src/engine/kietSuc.test.ts`
   - Xong khi: test xanh — dưới ngưỡng kiệt sức thì sức mạnh bị nhân hệ số phạt; **đúng một** sự kiện `kiet-suc` được phát cho mỗi cầu thủ mỗi trận, không phát lại mỗi phút (nếu không thì một mình nó ăn hết dải 60..100 dòng của AC-8.15).
   - AC: AC-8.7
   - Phụ thuộc: T077
 
-- [ ] **T079** — Bộ dựng đội mẫu cho test so sánh, và test AC-8.3
+- [x] **T079** — Bộ dựng đội mẫu cho test so sánh, và test AC-8.3
   - File: `src/engine/__fixtures__/doiMau.ts`, `src/engine/sosanh.tanCongBien.test.ts`
   - Xong khi: test xanh — dựng được hai đội 18 người với chỉ số đặt theo ý muốn; chạy **10 mã trận cố định** với `huong-tan-cong: 'bien'` cho số quả tạt trung bình **nhiều hơn ít nhất 50%** so với `'trung-lo'`, cùng đội, cùng đối thủ, chỉ đổi đúng một chỉ thị. Đếm từ **`thongKe.tatCanh`**, KHÔNG đếm từ `cacSuKien` — danh sách sự kiện đã qua bộ lọc mật độ của D27 nên đếm ở đó là đo màn hình chứ không đo giả lập. Test in ra hai con số trung bình, để lần sau chỉnh cân bằng còn biết đang đứng ở đâu.
   - AC: AC-8.3
   - Phụ thuộc: T077
 
-- [ ] **T080** [P] — Test so sánh AC-8.4: pressing cao
+- [x] **T080** [P] — Test so sánh AC-8.4: pressing cao
   - File: `src/engine/sosanh.pressing.test.ts`
   - Xong khi: test xanh — pressing cao so với pressing thấp trên cùng 10 mã trận: số lần cướp bóng ở dải cao **tăng**, VÀ số tình huống đối thủ thoát xuống sau hàng phòng ngự **cũng tăng**. Phải khẳng định **cả hai chiều trong cùng một test** — chỉ kiểm chiều có lợi thì một engine chỉnh ẩu vẫn qua, mà AC-8.4 nói rõ là đánh đổi. Hai con số đọc từ **`thongKe.cuopBongDaiCao`** và **`thongKe.biThoatXuong`**.
   - AC: AC-8.4
   - Phụ thuộc: T079
 
-- [ ] **T081** [P] — Test so sánh AC-8.5: xếp sai vị trí
+- [x] **T081** [P] — Test so sánh AC-8.5: xếp sai vị trí
   - File: `src/engine/sosanh.saiViTri.test.ts`
   - Xong khi: test xanh — cùng một mã trận, chỉ đổi ô của **đúng một cầu thủ** qua bốn trạng thái (đúng / nhẹ / vừa / nặng), mọi thứ khác giữ nguyên, cho bốn con số **`thongKe.dongGopTheoCauThu[id]`** giảm dần nghiêm ngặt.
   - AC: AC-8.5
   - Phụ thuộc: T079
 
-- [ ] **T082** [P] — Test so sánh AC-8.8: đội mạnh hơn phải thắng
+- [x] **T082** [P] — Test so sánh AC-8.8: đội mạnh hơn phải thắng
   - File: `src/engine/sosanh.doiManhHon.test.ts`
   - Xong khi: test xanh — đội A hơn đội B 5 điểm ở **mọi** chỉ số, hai bên cùng chỉ thị cân bằng mặc định và không ai xếp sai vị trí: qua 10 mã trận cố định, A thắng **ít nhất 7**. Test in ra số thắng/hoà/thua.
   - AC: AC-8.8
   - Phụ thuộc: T079
 
-- [ ] **T083** [P] — Test AC-8.14: lợi thế sân nhà và sân trung lập
+- [x] **T083** [P] — Test AC-8.14: lợi thế sân nhà và sân trung lập
   - File: `src/engine/sosanh.sanNha.test.ts`
   - Xong khi: test xanh — cùng hai đội, qua 10 mã trận cố định, đội được chỉ định chủ nhà có kết quả trung bình tốt hơn; và khi bật **sân trung lập** rồi đổi chỗ hai đội cho nhau thì kết quả **đối xứng** — đây là phép kiểm chứng minh lợi thế đã tắt hẳn chứ không chỉ nhỏ đi.
   - AC: AC-8.14
