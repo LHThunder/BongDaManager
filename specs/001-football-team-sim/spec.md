@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **ID** | `001-football-team-sim` |
-| **Status** | Planned — Giai đoạn 1, 2 và 3 đã hiện thực và kiểm chứng (84/99 AC tick; AC-1.5 còn phần lịch sử trận đấu). 15 AC chưa tick: AC-10.x và AC-11.x thuộc Giai đoạn 4, AC-4.2 chờ lịch sử trận đấu, AC-4.7 chưa quan sát được trên giao diện. Giai đoạn 4 chưa lập plan |
+| **Status** | Planned — Giai đoạn 1, 2 và 3 đã hiện thực và kiểm chứng (84/99 AC tick; AC-1.5 còn phần lịch sử trận đấu). 15 AC chưa tick: AC-10.x và AC-11.x thuộc Giai đoạn 4, AC-4.2 chờ lịch sử trận đấu, AC-4.7 chưa quan sát được trên giao diện. **Giai đoạn 4 đã có plan** (`plan.md` PHẦN IV, ngày 2026-10-28) và đóng cả ba AC vắt lại đó; bước tiếp theo là `/tasks` |
 | **Created** | 2026-10-26 |
 | **Clarified** | 2026-10-26 |
 | **Amended** | 2026-10-26 — khớp constitution v1.0.0 (P1); và sửa theo kết quả `/analyze` (AC-2.1b, AC-4.8, AC-4.9); xem mục 10 |
