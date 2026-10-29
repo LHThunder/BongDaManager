@@ -5,8 +5,8 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | Giai đoạn 1 (36 AC), Giai đoạn 2 (22 AC), Giai đoạn 3 (26 AC) và Giai đoạn 4 (13 AC + 3 AC vắt lại) |
-| **Tiến độ** | 98/128 — Giai đoạn 1 xong (38/39, còn T035); Giai đoạn 2 và 3 xong trọn; Giai đoạn 4 chưa bắt đầu (Phase 15–19: T099–T127) |
-| **Sửa đổi** | 2026-10-28 — thêm Giai đoạn 4 (Phase 15–19) từ `plan.md` PHẦN IV; chưa qua `/analyze` |
+| **Tiến độ** | 98/130 — Giai đoạn 1 xong (38/39, còn T035); Giai đoạn 2 và 3 xong trọn; Giai đoạn 4 chưa bắt đầu (Phase 15–19: T099–T129, gồm T102b) |
+| **Sửa đổi** | 2026-10-29 — sửa Phase 15–19 theo cả 13 phát hiện của `/analyze`: thêm T102b và T128, giữ `dongGopTheoCauThu`, sửa phụ thuộc của T108 |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
 > Mỗi task phải: chạm file cụ thể + có cách kiểm chứng + đủ nhỏ để làm trong một lần.
@@ -764,7 +764,7 @@ của mỗi bên không còn trùng nhau. Phase này đi trước vì mọi th�
 
 - [ ] **T101** — Cứu thua sống thật, và `sutTrungDich` hết bằng số bàn thắng
   - File: sửa `src/engine/tran.ts`, `src/engine/cuuThua.test.ts`
-  - Xong khi: chuỗi kết thúc `dut-diem` mà không thành bàn thì rút **đúng một lần** để chia thành "bị thủ môn cứu" hay "chệch khung"; bên sút cộng `sutTrungDich`, và `loaiCuaChuoi` trả về `'cuu-thua'` cho trường hợp bị cứu (quyết định D38); test xanh — trên 20 mã trận loại sự kiện `cuu-thua` xuất hiện ở **ít nhất 15 trận**, và `banThang ≤ sutTrungDich ≤ cuSut` ở mọi trận. Mẫu câu tiếng Việt cho `cuu-thua` đã có sẵn từ Giai đoạn 3, không viết thêm.
+  - Xong khi: chuỗi kết thúc `dut-diem` mà không thành bàn thì rút **đúng một lần** để chia thành "bị thủ môn cứu" hay "chệch khung"; bên sút cộng `sutTrungDich`, và `loaiCuaChuoi` trả về `'cuu-thua'` cho trường hợp bị cứu; người ghi `canCuu` là người **đang trong khung**, tra bằng `nguoiTrongKhung` đã có trong `tran.ts` từ T096, và **khung trống thì cú sút không tính là bị cứu** (quyết định D38); test xanh — trên 20 mã trận loại sự kiện `cuu-thua` xuất hiện ở **ít nhất 15 trận**, và `banThang ≤ sutTrungDich ≤ cuSut` ở mọi trận. Mẫu câu tiếng Việt cho `cuu-thua` đã có sẵn từ Giai đoạn 3, không viết thêm.
   - AC: AC-11.2
   - Phụ thuộc: T099
 
@@ -774,11 +774,19 @@ của mỗi bên không còn trùng nhau. Phase này đi trước vì mọi th�
   - AC: AC-11.3
   - Phụ thuộc: T101
 
-- [ ] **T103** — `ThongKeCauThu` cho cả 18 người mỗi bên
-  - File: sửa `src/engine/tran.ts`, `src/engine/thongKeCauThu.test.ts`
-  - Xong khi: mỗi cầu thủ có `banThang`, `kienTao`, `cuSut`, `sutTrungDich`, `chuyenThanhCong`, `chuyenHong`, `cuopBong`, `matBong`, `phamLoi`, `canCuu`; trường `dongGopTheoCauThu` cũ **bị bỏ** (quyết định D33); test xanh — với mỗi chỉ tiêu, **tổng theo 18 cầu thủ bằng đúng tổng theo bên** (phép bắt lỗi gán sai người, kiểu lỗi đọc code không thấy); thủ môn có `canCuu` > 0 ở ít nhất một trong 20 trận.
+- [ ] **T102b** — Gán người cho từng bước chuỗi bóng, để có tỉ lệ chuyền
+  - File: sửa `src/engine/tran.ts`, `src/engine/ganHanhDong.test.ts`
+  - Xong khi: **mỗi bước** `chuyen` / `re-bong` của chuỗi được gán một người, rút từ những ô **tại hoặc kề** vùng của bước đó và cân theo sức mạnh; không ai khớp thì rút trong cả 11 người trên sân; `chuyenThanhCong` cộng theo bước, còn `chuyenHong` cộng **một lần cho người giữ bước cuối** khi chuỗi kết thúc `mat-bong` — quyết định D34c và D34d; test xanh — sau một trận, **cả 11 người trên sân** đều có `chuyenThanhCong + chuyenHong > 0`; tiền vệ trung tâm có số đường chuyền **nhiều hơn** tiền đạo qua 20 trận.
   - AC: AC-11.3
   - Phụ thuộc: T102
+  - **Task thêm sau `/analyze`:** AC-11.3 liệt kê **tỉ lệ chuyền chính xác** là một đầu vào của điểm, nhưng T102 chỉ gán 4 vai mỗi chuỗi trong khi một chuỗi có tới 12 bước — 9 trong 11 người sẽ có `chuyenThanhCong = 0` suốt trận. Và `chuyenHong` **không** dẫn xuất được từ `cacHanhDong`: `chuoiBong.ts:131` `return` ngay khi mất bóng, trước khi push hành động (D34d).
+
+- [ ] **T103** — `ThongKeCauThu` cho cả 18 người mỗi bên
+  - File: sửa `src/engine/tran.ts`, `src/engine/thongKeCauThu.test.ts`
+  - Xong khi: mỗi cầu thủ có `banThang`, `kienTao`, `cuSut`, `sutTrungDich`, `chuyenThanhCong`, `chuyenHong`, `cuopBong`, `matBong`, `phamLoi`, `canCuu`; `ThongKeBen` thêm **tổng của bên** cho `chuyenThanhCong` / `chuyenHong` để phép kiểm dưới đây phủ được cả phần chuyền; trường `dongGopTheoCauThu` **GIỮ NGUYÊN** (quyết định D33b — nó là phép đo duy nhất của AC-8.5 ở `sosanh.saiViTri.test.ts:30`); test xanh — với **mỗi** chỉ tiêu, tổng theo 18 cầu thủ bằng đúng tổng theo bên (phép bắt lỗi gán sai người, kiểu lỗi đọc code không thấy); người đang trong khung có `canCuu` > 0 ở ít nhất một trong 20 trận.
+  - AC: AC-11.3
+  - Phụ thuộc: T102b
+  - **Sửa sau `/analyze`:** bản đầu ghi là bỏ `dongGopTheoCauThu`. Bỏ nó làm đỏ `sosanh.saiViTri.test.ts` — test P5 duy nhất chứng minh AC-8.5 — và `tran.test.ts:274` cũng đọc trường đó. Giữ lại rẻ hơn mọi phương án thay thế.
 
 - [ ] **T104** — Phút vào sân và phút ra sân
   - File: sửa `src/engine/tran.ts`, `src/engine/thongKeCauThu.test.ts`
@@ -808,7 +816,8 @@ của mỗi bên không còn trùng nhau. Phase này đi trước vì mọi th�
   - File: `src/engine/sosanh.tanCongBien.test.ts`, `src/engine/sosanh.pressingCao.test.ts`, `src/engine/sosanh.saiViTri.test.ts`, `src/engine/sosanh.doiManhHon.test.ts`
   - Xong khi: cả bốn test **xanh** với dãy số mới, và **số đo thật** (con số từng test in ra) được ghi vào mô tả commit để so với số của Giai đoạn 3. Nếu một test đỏ thì **cân bằng lại engine**, không hạ ngưỡng — ngưỡng trong bốn test đó đến từ AC, không đến từ thuận tiện (rủi ro R17).
   - AC: AC-8.3, AC-8.4, AC-8.5, AC-8.8 *(kiểm lại sau khi đổi dãy số)*
-  - Phụ thuộc: T107
+  - Phụ thuộc: T099, T100, T101, T102, T102b, T103, T104, T107
+  - **Sửa sau `/analyze`:** bản đầu chỉ ghi `Phụ thuộc: T107` — việc gỡ màu áo, chẳng liên quan tới dãy số. Những task thật sự đổi dãy số và đổi bộ đếm là T099–T104, nên nếu chỉ chờ T107 thì số đo ghi vào commit là số của một engine nửa vời, đúng thứ R17 sinh ra để chặn.
 
 ## Phase 16 — Lát 14: Báo cáo sau trận
 
@@ -818,7 +827,7 @@ kèm phút, sáu chỉ tiêu mỗi bên, điểm từng cầu thủ kèm bảng 
 
 - [ ] **T109** — Chấm điểm cầu thủ, kèm bảng giải thích
   - File: `src/engine/diemCauThu.ts`, `src/engine/diemCauThu.test.ts`
-  - Xong khi: `chamDiem(tk, viTriDaDa)` trả về `{ diem, cacThanhPhan }`, mỗi thành phần có tên tiêu chí, số liệu thật và điểm cộng/trừ (quyết định D49); test xanh — điểm **bắt đầu từ 6.0** khi mọi số liệu bằng 0; điểm luôn nằm trong 1–10 kể cả với số liệu cực đoan; **tổng các thành phần cộng đúng bằng** `diem` (nếu lệch thì bảng giải thích đang nói dối); cùng một bộ số liệu mà khác vị trí thì ra **điểm khác nhau** — đó là phần "cân theo vị trí" của AC-11.3.
+  - Xong khi: `chamDiem(tk, viTriDaDa)` trả về `{ diem, cacThanhPhan }`, mỗi thành phần có tên tiêu chí, số liệu thật và điểm cộng/trừ (quyết định D49); bảy tiêu chí mà AC-11.3 liệt kê đều có nguồn thật: bàn thắng, kiến tạo, sút trúng đích, **tỉ lệ chuyền chính xác** (từ T102b), cướp bóng, mất bóng, phạm lỗi; test xanh — điểm **bắt đầu từ 6.0** khi mọi số liệu bằng 0; điểm luôn nằm trong 1–10 kể cả với số liệu cực đoan; **tổng các thành phần cộng đúng bằng** `diem` (nếu lệch thì bảng giải thích đang nói dối); cùng một bộ số liệu mà khác vị trí thì ra **điểm khác nhau** — đó là phần "cân theo vị trí" của AC-11.3.
   - AC: AC-11.3
   - Phụ thuộc: T104
 
@@ -851,10 +860,11 @@ kèm phút, sáu chỉ tiêu mỗi bên, điểm từng cầu thủ kèm bảng 
 Kết thúc phase: xem trận trên sân 2D với đủ 22 điểm, thấy pha bóng dịch
 chuyển theo tình huống, hoặc ẩn sân đi và chỉ đọc dòng tường thuật.
 
-- [ ] **T114** — Sân 2D với đủ 22 điểm
+- [ ] **T114** — Sân 2D với một điểm cho mỗi người trên sân
   - File: `src/ui/components/San2D.tsx`, sửa `src/ui/pages/TrangTran.tsx`
-  - Xong khi: SVG (quyết định D41) vẽ đủ **22 điểm tròn** cho cả hai đội, đặt theo `chienThuatHienTai.oVien` và chỉ thị `do-cao-doi-hinh`, toạ độ suy từ lưới 12 vùng của D23; màu lấy từ `ui/mauAo.ts` của T107 nên hai đội trùng màu áo vẫn phân biệt được (AC-3.7); mỗi điểm có `aria-label` tiếng Việt gồm tên và số áo (P9); đội đá thiếu người sau thẻ đỏ thì **thiếu đúng số điểm đó**.
+  - Xong khi: SVG (quyết định D41) vẽ **một điểm tròn cho mỗi người đang trên sân** của cả hai đội — 22 lúc khai cuộc — đặt theo `chienThuatHienTai.oVien` và chỉ thị `do-cao-doi-hinh`, toạ độ suy từ lưới 12 vùng của D23; màu lấy từ `ui/mauAo.ts` của T107 nên hai đội trùng màu áo vẫn phân biệt được (AC-3.7); mỗi điểm có `aria-label` tiếng Việt gồm tên và số áo (P9); đội đá thiếu người sau thẻ đỏ thì **thiếu đúng số điểm đó**, còn 21.
   - AC: AC-10.1
+  - **Cách đọc con số 22 của AC-10.1, chốt sau `/analyze`:** cả hai đội có 18+18 = 36 người nên "toàn bộ cầu thủ hai đội" không hiểu theo nghĩa chặt được; 22 là **số người trên sân lúc khai cuộc**. Nếu người dùng muốn hiểu khác thì sửa `spec.md` trước rồi sửa task này.
   - Phụ thuộc: T107
   - Ghi chú: không dùng thư viện đồ hoạ nào (P4, D41).
 
@@ -892,15 +902,16 @@ lại đọc được báo cáo cũ; xuất tệp sao lưu rồi nhập lại th
 > hơn và IndexedDB từ chối mở database có phiên bản cao hơn (rủi ro R18, cảnh
 > báo đã ghi sẵn trong `db.ts` từ Giai đoạn 1).
 
-- [ ] **T119** — Store `matches` và nâng `DB_VERSION` lên 3
+- [ ] **T119** — Hai store lịch sử và nâng `DB_VERSION` lên 3
   - File: sửa `src/storage/db.ts`, sửa `src/storage/db.test.ts`
-  - Xong khi: store `matches` với key là `id` và index `byKetThucLuc`; `DB_VERSION` = **3**; kiểu `TranDaLuu` khai tường minh, không suy từ dữ liệu mẫu (hiến pháp mục 4); test xanh — mở database phiên bản 2 cũ rồi nâng lên 3 thì **đội, cầu thủ, ảnh và chiến thuật còn nguyên** và store mới rỗng.
+  - Xong khi: **hai** store mới — `matches` (key `id`, giá trị `TranDaLuu` nặng) và `matchSummaries` (cùng `id`, index `byKetThucLuc`, giá trị `TomTatTran` nhẹ không có dòng sự kiện) theo quyết định D44b; `DB_VERSION` = **3**; bước nâng cũng **ghi lại** hàng `meta.schemaVersion` thành `SCHEMA_VERSION` mới; hai kiểu `TranDaLuu` và `TomTatTran` khai tường minh, không suy từ dữ liệu mẫu (hiến pháp mục 4); test xanh — mở database phiên bản 2 cũ rồi nâng lên 3 thì **đội, cầu thủ, ảnh và chiến thuật còn nguyên**, hai store mới rỗng, và `docSchemaVersion()` trả về số mới chứ không còn mắc ở 3.
   - AC: AC-11.7
   - Phụ thuộc: T110
+  - **Sửa sau `/analyze`:** bản đầu chỉ có một store. Trang lịch sử dựng danh sách bằng `getAll('matches')` sẽ giải tuần tự **cả** dòng sự kiện của 20 trận chỉ để in ra 20 cái tỉ số — đâm vào ngân sách "mở app với 20 đội và 20 trận dưới **2 giây**" của spec mục 6. Và hàng `meta.schemaVersion` chỉ được ghi lúc tạo database (`db.ts:123`), nên máy đã có dữ liệu sẽ mãi mang số cũ.
 
 - [ ] **T120** — `matchRepo` giữ đúng 20 trận gần nhất
   - File: `src/services/matchRepo.ts`, `src/services/matchRepo.test.ts`
-  - Xong khi: `luu`, `danhSach` (mới nhất trước), `doc`; `SO_TRAN_GIU_LAI = 20`; ghi trận mới **và** xoá trận cũ nhất trong **cùng một transaction** (quyết định D45); test xanh — lưu 21 trận thì còn đúng 20 và trận **cũ nhất** mất; `luu` trả về danh sách trận bị loại để giao diện báo một lần; vòng tròn lưu/đọc ra **đúng từng dòng sự kiện**; hàm `xoaTheoDoi` được khai nhưng **không gọi ở đâu** — xoá đội không làm mất lịch sử, và có test khẳng định đúng điều đó (spec mục 5).
+  - Xong khi: `luu`, `danhSach` (mới nhất trước, **chỉ đọc `matchSummaries`** — không chạm store nặng, D44b), `doc` (đọc hàng nặng, chỉ khi mở một trận), `catConHaiMuoi` (dùng sau khi nhập gộp, D48); `SO_TRAN_GIU_LAI = 20`; ghi `matches` và `matchSummaries` **cùng một transaction** với việc xoá trận cũ nhất, để hai store không bao giờ lệch nhau (quyết định D45, D44b); test xanh — lưu 21 trận thì còn đúng 20 và trận **cũ nhất** mất; `luu` trả về danh sách trận bị loại để giao diện báo một lần; vòng tròn lưu/đọc ra **đúng từng dòng sự kiện**; `danhSach` trả về đủ 20 tóm tắt mà **không** đọc hàng nào của `matches`; hàm `xoaTheoDoi` được khai nhưng **không gọi ở đâu** — xoá đội không làm mất lịch sử, và có test khẳng định đúng điều đó (spec mục 5).
   - AC: AC-11.7
   - Phụ thuộc: T119
 
@@ -918,15 +929,17 @@ lại đọc được báo cáo cũ; xuất tệp sao lưu rồi nhập lại th
 
 - [ ] **T123** — Tệp sao lưu v4 mang lịch sử
   - File: sửa `src/storage/migrations.ts`, sửa `src/services/backupSchema.ts`, sửa `src/services/backupService.ts`, sửa `src/storage/migrations.test.ts`, sửa `src/services/backupService.test.ts`
-  - Xong khi: `SCHEMA_VERSION` = **4**, thân tệp thêm `matches`, migration v3→v4 chỉ thêm `matches: []`; schema zod v3 **không bị sửa**, schema v4 đặt cạnh nó (đúng cách đã ghi trong `migrations.ts`); test xanh — tệp **v1, v2, v3 vẫn nhập được** (P7) và vào với lịch sử rỗng; xuất 20 trận rồi nhập lại ra **đúng từng dòng sự kiện**; tệp hỏng không làm mất lịch sử đang có (P3).
+  - Xong khi: `SCHEMA_VERSION` = **4**, thân tệp thêm `matches`, migration v3→v4 chỉ thêm `matches: []`; **đổi `backupService.ts:89`** đang ghi cứng `schemaVersion: 3` thành 4; chế độ nhập **gộp** (`CheDoNhap = 'gop'`, đã có từ Giai đoạn 1) gọi `catConHaiMuoi` để **cắt còn 20 trận mới nhất** theo `ketThucLuc`; schema zod v3 **không bị sửa**, schema v4 đặt cạnh nó (đúng cách đã ghi trong `migrations.ts`); test xanh — tệp **v1, v2, v3 vẫn nhập được** (P7) và vào với lịch sử rỗng; xuất 20 trận rồi nhập lại ra **đúng từng dòng sự kiện**; **gộp** một tệp 20 trận vào máy đang có 20 trận thì còn đúng 20 trận mới nhất, không phải 40; tệp hỏng không làm mất lịch sử đang có (P3).
   - AC: AC-4.2, AC-11.7
   - Phụ thuộc: T121
+  - **Hai chỗ thêm sau `/analyze`:** (a) bỏ sót dòng 89 thì tệp v4 mang nhãn v3, lúc nhập chạy migration v3→v4 và **đặt `matches: []`** — xoá sạch lịch sử khỏi chính bản sao lưu của người dùng, trái P3; (b) gộp 20 vào 20 ra 40 là phá trần của AC-11.7, mà chế độ gộp đã tồn tại từ Giai đoạn 1 nên không thể bỏ qua.
 
 - [ ] **T124** — Từ chối phát lại trận khác phiên bản engine
   - File: sửa `src/services/matchRepo.ts`, sửa `src/ui/pages/TrangLichSu.tsx`, sửa `src/ui/strings.ts`, sửa `src/services/matchRepo.test.ts`
-  - Xong khi: trận có `phienBanEngine` khác bản đang chạy thì **vẫn xem lại được** báo cáo và dòng sự kiện đã lưu, nhưng nút đấu lại bị chặn kèm câu tiếng Việt nói rõ vì sao (quyết định D35, rủi ro R16); test xanh cho cả hai nhánh. Đây là phần bù cho việc mã trận của Giai đoạn 3 không còn phát lại đúng.
+  - Xong khi: trận có `phienBanEngine` khác bản đang chạy thì **vẫn xem lại được** báo cáo và dòng sự kiện đã lưu, nhưng nút đấu lại bị chặn kèm câu tiếng Việt nói rõ vì sao (quyết định D35, rủi ro R16); test xanh cho cả hai nhánh, với bản ghi phiên bản cũ **dựng tay trong test**. Đây là phần bù cho việc mã trận của Giai đoạn 3 không còn phát lại đúng.
   - AC: AC-11.7, AC-8.11 *(phần công bố giới hạn phát lại)*
   - Phụ thuộc: T122, T105
+  - **Ghi nhận sau `/analyze`:** lịch sử ra đời ở chính Giai đoạn 4, nên **không bao giờ** tồn tại bản ghi thật có `phienBanEngine` cũ — hai nhánh của test phải tự dựng bản ghi đó. Điều này cũng là lý do R16 được hạ từ Cao xuống Trung bình: không có gì trong lịch sử bị hỏng, chỉ mã trận người dùng chép tay ra ngoài là hết phát lại đúng.
 
 - [ ] **T125** — Đo kích thước tệp và kiểm tay AC-4.7
   - File: `specs/001-football-team-sim/spec.md` (tick AC-4.7)
@@ -940,15 +953,21 @@ lại đọc được báo cáo cũ; xuất tệp sao lưu rồi nhập lại th
   - File: `specs/001-football-team-sim/spec.md` (tick các ô AC và đổi `Status`)
   - Xong khi: 13 AC của US-10 và US-11 được tự tay kiểm trên ứng dụng đang chạy và tick, cộng **AC-4.2** và **AC-1.5** tick trọn; kiểm tay bốn việc chỉ kiểm tay mới thấy — xem một pha tấn công biên trên sân 2D rồi thấy điểm dịch ra biên; xem sân ở chế độ grayscale xem còn phân biệt được người tham gia không; đổi tên một đội rồi mở lịch sử thấy tên mới; xoá một đội rồi mở lịch sử thấy tên cũ và nút đấu lại bị chặn. `Status` của spec đổi thành **`Done`** chỉ khi mọi AC trong phạm vi đã pass.
   - AC: toàn bộ AC-10.x và AC-11.x, cộng AC-4.2, AC-1.5
-  - Phụ thuộc: T113, T118, T124, T125
-  - Ghi chú: hai AC vẫn **không** tick được và đó là đúng — xem T127.
+  - Phụ thuộc: T113, T118, T124, T125, T128
 
-- [ ] **T127** — Ba món nợ còn lại của spec 001
+- [ ] **T128** — Xoá đội khi đang có trận dở
+  - File: sửa `src/ui/pages/DanhSachDoi.tsx`, sửa `src/hooks/useTeams.ts`, sửa `src/ui/strings.ts`
+  - Xong khi: xoá một đội **đang có trận chạy trong bộ nhớ** thì hỏi xác nhận nêu rõ **trận đang diễn ra sẽ bị bỏ**, và đồng ý thì trận bị huỷ cùng lúc đội bị xoá; xoá một đội **chỉ có trận trong lịch sử** thì lịch sử **không** bị đụng tới (đã có test ở T120) và hộp xác nhận không nói gì về trận đang diễn ra.
+  - AC: — *(dòng "Xoá đội khi đang có trận dở" của `spec.md` mục 5)*
+  - Phụ thuộc: T121
+  - **Task thêm sau `/analyze`:** dòng này rơi qua ba giai đoạn mà không phase nào nhận — Definition of Done Giai đoạn 1 hoãn sang "GĐ2/GĐ3", Giai đoạn 3 không tạo task, bản đầu của Giai đoạn 4 cũng không. Definition of Done của spec đòi các trường hợp biên mục 5 được xử lý, nên nó phải có chỗ.
+
+- [ ] **T129** — Ba món nợ còn lại của spec 001
   - File: `specs/001-football-team-sim/tasks.md`, `.specify/memory/constitution.md`
   - Xong khi: **T035** (hai ngân sách hiển thị chưa đo được từ Giai đoạn 1) được đo hoặc được ghi rõ vì sao môi trường này không đo được; hai điểm `[CẦN XÁC NHẬN]` trong hiến pháp mục 7 — thư mục lâu dài của dự án và trình duyệt đích — được người dùng chốt và hiến pháp bump version theo PATCH; `AC-4.7` nếu T125 vẫn không quan sát được thì ghi rõ lý do thay vì tick bừa.
   - AC: —
   - Phụ thuộc: T126
-  - Ghi chú: task này **cần người dùng trả lời**, không làm một mình được.
+  - **Ghi chú, sửa sau `/analyze`:** task này **cần người dùng trả lời**, nên nó **không chặn** việc T126 đổi `Status` của spec thành `Done`. Ba món nợ này là nợ cũ của Giai đoạn 1 và của hiến pháp, không phải AC nào của spec.
 
 ---
 
@@ -1059,7 +1078,7 @@ xem hai bảng ở cuối phần "Bảng phủ AC — Giai đoạn 2" thay vì l
 | AC-10.6 | T117 |
 | AC-11.1 | T110, T111 |
 | AC-11.2 | T099, T100, T101, T110, T111 |
-| AC-11.3 | T102, T103, T109, T112 |
+| AC-11.3 | T102, **T102b**, T103, T109, T112 |
 | AC-11.4 | T111, T122 |
 | AC-11.5 | T104, T112 |
 | AC-11.6 | T113 |
