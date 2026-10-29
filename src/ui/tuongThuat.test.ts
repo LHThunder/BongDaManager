@@ -74,7 +74,17 @@ describe('bảng mẫu câu (AC-8.16)', () => {
   ra 4 mẫu còn bộ khác ra 2 — tức là test tự bấp bênh, không phải engine kém.
 
   Tầng 1 (5 trận, đúng khung AC nói): không loại nào bị kẹt ở một câu duy nhất.
-  Tầng 2 (20 trận): loại nào xuất hiện nhiều thì phải dùng ít nhất 4 mẫu.
+  Tầng 2 (80 trận): loại nào xuất hiện nhiều thì phải dùng ít nhất 4 mẫu.
+
+  Vì sao 80 chứ không 20: `the-do` là loại thưa nhất, chỉ chừng **0,49 dòng
+  mỗi trận** (đo trên 200 trận: 97 dòng). Ở 20 trận nó xuất hiện khoảng 13
+  lần, và đòi đủ 4 mẫu khác nhau từ 13 lần rút là phép có chừng 3% khả năng
+  đỏ oan — nó đã đỏ thật hai lần khi T102 đổi dãy số (13 dòng/3 mẫu, rồi 17
+  dòng/3 mẫu). Đã kiểm phân bố chỉ số mẫu câu trên 200 trận: 24/18/30/25 trên
+  bốn mẫu, tức ĐỀU — không có mẫu nào bị bỏ quên, chỉ là mẫu test quá nhỏ.
+
+  Ngưỡng "4 mẫu" KHÔNG đổi. Và chính AC-8.16 nói về **5 trận liên tiếp**, phần
+  mà tầng 1 kiểm; tầng 2 là phép mạnh hơn do dự án tự đặt thêm.
 */
 function demMauTheoLoai(soTran: number) {
   const mauDaDung = new Map<LoaiSuKien, Set<string>>()
@@ -109,8 +119,8 @@ describe('không loại nào bị kể bằng một câu cố định (AC-8.16)'
     expect(daKiem, 'không loại nào đủ 3 lần để kiểm').toBeGreaterThan(3)
   })
 
-  it('qua 20 trận, loại nào xuất hiện từ 10 lần đều dùng ít nhất 4 mẫu câu', () => {
-    const { mauDaDung, soLan } = demMauTheoLoai(20)
+  it('qua 80 trận, loại nào xuất hiện từ 10 lần đều dùng ít nhất 4 mẫu câu', () => {
+    const { mauDaDung, soLan } = demMauTheoLoai(80)
 
     let daKiem = 0
     for (const [loai, n] of soLan) {

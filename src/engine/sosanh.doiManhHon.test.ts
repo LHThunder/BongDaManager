@@ -45,7 +45,13 @@ function ketQua(chiSoA: number, chiSoB: number, cacMa: readonly string[]) {
   return { thang, hoa, thua }
 }
 
-const MAU_RONG = Array.from({ length: 60 }, (_, i) => maRong(i))
+/*
+  200 mã, không phải 60. Hai đội giống hệt nhau trên sân trung lập cho
+  120-72-108 ở 300 mã (thắng 40.0%, hiệu số +0,12) — tức KHÔNG có thiên vị
+  giữa hai phía. Nhưng ở 60 mã thì có bộ cho 17-19-24, tức 28% thắng, thấp
+  hơn ngưỡng 33% của test thuần do nhiễu. Nới mẫu, giữ ngưỡng.
+*/
+const MAU_RONG = Array.from({ length: 200 }, (_, i) => maRong(i))
 
 describe('đội mạnh hơn phải thắng (AC-8.8)', () => {
   it('hơn 5 điểm mọi chỉ số thì thắng ít nhất 7 trong 10 trận', () => {

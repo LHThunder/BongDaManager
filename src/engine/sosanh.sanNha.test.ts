@@ -18,8 +18,14 @@ import { chayHetTran, taoTran } from './tran'
   tầm lợi thế sân nhà của bóng đá thật, và vẫn là "nhỏ" như AC nói.
 */
 
+/*
+  MẪU 200 MÃ, không phải 60. Hiệu số sân nhà thật là **+0,58 bàn** mỗi trận
+  (đo trên 300 mã sau khi T102 đổi dãy số), nhưng mẫu 60 mã dao động tới
+  +1,02 — vượt cái trần "nhỏ hơn 1 bàn" mà chính test này đặt ra. Nới mẫu chứ
+  không nới trần: trần đến từ chữ "lợi thế NHỎ" của AC-8.14.
+*/
 const MAU = Array.from(
-  { length: 60 },
+  { length: 200 },
   (_, i) => `Z${String(i).padStart(4, '0')}XQ4B`,
 )
 

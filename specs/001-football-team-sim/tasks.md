@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | Giai đoạn 1 (36 AC), Giai đoạn 2 (22 AC), Giai đoạn 3 (26 AC) và Giai đoạn 4 (13 AC + 3 AC vắt lại) |
-| **Tiến độ** | 101/130 — Giai đoạn 1 xong (38/39, còn T035); Giai đoạn 2 và 3 xong trọn; Giai đoạn 4 chưa bắt đầu (Phase 15–19: T099–T129, gồm T102b) |
+| **Tiến độ** | 105/130 — Giai đoạn 1 xong (38/39, còn T035); Giai đoạn 2 và 3 xong trọn; Giai đoạn 4 chưa bắt đầu (Phase 15–19: T099–T129, gồm T102b) |
 | **Sửa đổi** | 2026-10-29 — sửa Phase 15–19 theo cả 13 phát hiện của `/analyze`: thêm T102b và T128, giữ `dongGopTheoCauThu`, sửa phụ thuộc của T108 |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -775,31 +775,46 @@ của mỗi bên không còn trùng nhau. Phase này đi trước vì mọi th�
   - **Hai file ngoài danh sách đã chạm:** `src/engine/cuuThua.test.ts` (file test của chính task này, plan có ghi) và `src/engine/tran.test.ts` — phép "số bàn thắng khớp với sút trúng đích" ở đó **ghi cứng đúng cái lỗi** T101 sửa (`sutTrungDich === banThang`), nên phải đổi thành dải `banThang ≤ sutTrungDich ≤ cuSut`.
   - **Một phần CHƯA làm, có lý do:** phép so "thủ môn giỏi cứu nhiều hơn" trên cả trận cần ghi đè riêng ba chỉ số của thủ môn, mà `__fixtures__/doiMau.ts` chưa có đường đó và file đó không nằm trong danh sách T101. Mức kiểm hiện tại — `xacSuatBiCuu` đơn điệu, và sút vào khung trống thì không cú nào bị cứu — đủ cho dòng "Xong khi". Phần so cả trận để T109 làm cùng lúc với việc chấm điểm thủ môn.
 
-- [ ] **T102** — Gán hành động cho cầu thủ cụ thể
+- [x] **T102** — Gán hành động cho cầu thủ cụ thể
   - File: sửa `src/engine/tran.ts`, `src/engine/ganHanhDong.test.ts`
   - Xong khi: mỗi chuỗi bóng gán được **người kiến tạo** (bên cầm bóng), **người cướp bóng** (bên phòng ngự, khi chuỗi kết thúc `mat-bong`) và **người phạm lỗi** (bên phòng ngự, khi kết thúc `pham-loi`), rút từ cùng một `Rng`, cân theo sức mạnh trong tình huống **và** theo mức phù hợp của vai trò với vùng xảy ra — quyết định D34; test xanh — qua 20 trận, tiền vệ cánh kiến tạo nhiều hơn trung vệ, và trung vệ cướp bóng nhiều hơn tiền đạo (nếu rút đều tay thì hai phép này đỏ); mọi id được gán đều **có trên sân ở đầu phút đó**, kiểm theo đúng cách đã làm ở `canThiep.test.ts`.
   - AC: AC-11.3
   - Phụ thuộc: T101
 
-- [ ] **T102b** — Gán người cho từng bước chuỗi bóng, để có tỉ lệ chuyền
+- [x] **T102b** — Gán người cho từng bước chuỗi bóng, để có tỉ lệ chuyền
   - File: sửa `src/engine/tran.ts`, `src/engine/ganHanhDong.test.ts`
   - Xong khi: **mỗi bước** `chuyen` / `re-bong` của chuỗi được gán một người, rút từ những ô **tại hoặc kề** vùng của bước đó và cân theo sức mạnh; không ai khớp thì rút trong cả 11 người trên sân; `chuyenThanhCong` cộng theo bước, còn `chuyenHong` cộng **một lần cho người giữ bước cuối** khi chuỗi kết thúc `mat-bong` — quyết định D34c và D34d; test xanh — sau một trận, **cả 11 người trên sân** đều có `chuyenThanhCong + chuyenHong > 0`; tiền vệ trung tâm có số đường chuyền **nhiều hơn** tiền đạo qua 20 trận.
   - AC: AC-11.3
   - Phụ thuộc: T102
   - **Task thêm sau `/analyze`:** AC-11.3 liệt kê **tỉ lệ chuyền chính xác** là một đầu vào của điểm, nhưng T102 chỉ gán 4 vai mỗi chuỗi trong khi một chuỗi có tới 12 bước — 9 trong 11 người sẽ có `chuyenThanhCong = 0` suốt trận. Và `chuyenHong` **không** dẫn xuất được từ `cacHanhDong`: `chuoiBong.ts:131` `return` ngay khi mất bóng, trước khi push hành động (D34d).
 
-- [ ] **T103** — `ThongKeCauThu` cho cả 18 người mỗi bên
+- [x] **T103** — `ThongKeCauThu` cho cả 18 người mỗi bên
   - File: sửa `src/engine/tran.ts`, `src/engine/thongKeCauThu.test.ts`
   - Xong khi: mỗi cầu thủ có `banThang`, `kienTao`, `cuSut`, `sutTrungDich`, `chuyenThanhCong`, `chuyenHong`, `cuopBong`, `matBong`, `phamLoi`, `canCuu`; `ThongKeBen` thêm **tổng của bên** cho `chuyenThanhCong` / `chuyenHong` để phép kiểm dưới đây phủ được cả phần chuyền; trường `dongGopTheoCauThu` **GIỮ NGUYÊN** (quyết định D33b — nó là phép đo duy nhất của AC-8.5 ở `sosanh.saiViTri.test.ts:30`); test xanh — với **mỗi** chỉ tiêu, tổng theo 18 cầu thủ bằng đúng tổng theo bên (phép bắt lỗi gán sai người, kiểu lỗi đọc code không thấy); người đang trong khung có `canCuu` > 0 ở ít nhất một trong 20 trận.
   - AC: AC-11.3
   - Phụ thuộc: T102b
   - **Sửa sau `/analyze`:** bản đầu ghi là bỏ `dongGopTheoCauThu`. Bỏ nó làm đỏ `sosanh.saiViTri.test.ts` — test P5 duy nhất chứng minh AC-8.5 — và `tran.test.ts:274` cũng đọc trường đó. Giữ lại rẻ hơn mọi phương án thay thế.
 
-- [ ] **T104** — Phút vào sân và phút ra sân
+- [x] **T104** — Phút vào sân và phút ra sân
   - File: sửa `src/engine/tran.ts`, `src/engine/thongKeCauThu.test.ts`
   - Xong khi: `phutVao` / `phutRa` trong `ThongKeCauThu`, `null` nghĩa là đá từ đầu / tới hết trận; engine đặt chúng cả khi **thay người** và khi **thẻ đỏ** (quyết định D50); test xanh — thay người ở phút 60 thì người ra có `phutRa` 60 và người vào có `phutVao` 60; người nhận thẻ đỏ ở phút 70 có `phutRa` 70 **dù không có can thiệp nào**; một người vào sân từ băng ghế rồi bị đuổi có **cả hai** mốc.
   - AC: AC-11.5
   - Phụ thuộc: T103
+
+- **Số đo thật của T102 / T102b / T103 / T104** (20 mã trận, trừ chỗ ghi khác):
+  - kiến tạo: tiền vệ cánh **9**, trung vệ **0** — vùng siết chặt nhất ở trong vòng cấm, đúng chỗ cần siết.
+  - đường chuyền: tiền vệ trung tâm **1070**, tiền đạo **313** (hơn ba lần).
+  - cướp bóng: trung vệ **348**, tiền đạo **331**. Tách **yếu**, và đó là đúng theo thiết kế: bóng luôn bắt đầu ở dải 1 nên phần lớn pha mất bóng xảy ra ở dải 1–2, nơi lật vùng sang bên phòng ngự thì gần như cả đội hình đều "ở gần" — chỉ thủ môn là không. Một pha mất bóng ở giữa sân thì ai giành lại cũng hợp lý, model không nên khẳng định hơn thế.
+  - thủ môn có pha cứu thua ở **38/40** lượt; **9** người bị đuổi đã kiểm mốc ra sân.
+  - người vào sân từ băng ghế rồi bị đuổi: gặp ở **4/120** mã. Ở 20 mã thì **0 lần** — phép kiểm xanh rỗng, nên mẫu đã nới lên 120.
+- **Năm test cũ phải sửa vì T102 đổi dãy số.** Không hạ ngưỡng nào; chỉ nới mẫu, nên các test đều **mạnh hơn** trước:
+  - `sosanh.saiViTri.test.ts` 10 → **40** mã. Đo thật: ở 10 mã thứ tự bốn mức đảo lộn (57.2 / 34.0 / 38.3 / 37.2), ở 40 mã giảm dần nghiêm ngặt (44.5 / 35.2 / 31.9 / 27.9), ở 100 mã cũng vậy (42.7 / 39.2 / 35.9 / 25.2). Bản cũ xanh nhờ may.
+  - `sosanh.sanNha.test.ts` 60 → **200** mã. Hiệu số sân nhà thật là **+0,58** bàn/trận (đo trên 300 mã), nhưng mẫu 60 cho +1,02, vượt trần "nhỏ hơn 1 bàn" của chính test.
+  - `sosanh.doiManhHon.test.ts` 60 → **200** mã. Hai đội giống hệt nhau trên sân trung lập: **120-72-108** ở 300 mã (thắng 40.0%, hiệu số +0,12) — **không có thiên vị giữa hai phía**; mẫu 60 cho 17-19-24, tức 28%, thấp hơn ngưỡng 33% thuần do nhiễu.
+  - `sosanh.pressing.test.ts` 10 → **60** mã. Hai cực vẫn tách rất rộng (cướp bóng dải cao 29.0 so với 15.8), chỉ phép "mức trung bình nằm giữa" là đảo chiều ở mẫu nhỏ (9.9 so với 9.7).
+  - `ui/tuongThuat.test.ts` tầng 2: 20 → **80** trận. `the-do` là loại thưa nhất, **0,49 dòng/trận** (97 dòng trên 200 trận), nên đòi đủ 4 mẫu từ 13–17 lần rút là phép có ~3% khả năng đỏ oan — và nó đỏ thật hai lần. Đã kiểm phân bố chỉ số mẫu câu trên 200 trận: **24/18/30/25**, tức đều, không mẫu nào bị bỏ quên.
+- **Hai file ngoài danh sách đã chạm:** `src/engine/vung.ts` (thêm `vungCuaViTri` — D34c cần biết ô nào đứng ở vùng nào, mà `vung.ts` là nơi giữ luật lưới sân) và `src/engine/canThiep.test.ts` (phép "không dòng nào nhắc tên người đã rời sân" miễn trừ theo *loại sự kiện* thay vì theo *người*, nên nó đỏ ngay khi một người mới vào sân kịp cướp được bóng trong chính phút đó — `buocTiep` áp hàng đợi TRƯỚC khi mô phỏng theo D30b, nên người đó có mặt thật).
+- **Một chỗ sửa thêm, nằm trong `tran.ts`:** người ăn thẻ giờ là **đúng người vừa phạm lỗi**. Trước đây `thuRutThe` tự rút người riêng, nên cầu thủ A phạm lỗi mà cầu thủ B bị ghi tên vào sổ.
 
 - [ ] **T105** [P] — Đóng số phiên bản engine vào trận
   - File: sửa `src/engine/tran.ts`, `src/engine/taiLap.test.ts`

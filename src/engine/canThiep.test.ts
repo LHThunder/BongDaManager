@@ -312,19 +312,36 @@ describe('không dòng nào nhắc tên người đã rời sân (AC-8.2)', () =
           }
         }
 
+        /*
+          Ảnh chụp phải tính CẢ người vào sân ở đầu phút này.
+
+          `buocTiep` áp hàng đợi can thiệp TRƯỚC khi mô phỏng (quyết định
+          D30b), nên người vừa vào sân có mặt thật trong các tình huống của
+          chính phút đó — và họ hợp lệ trong MỌI loại dòng, không riêng dòng
+          thay người. Bản đầu của phép kiểm miễn trừ theo *loại sự kiện* thay
+          vì theo *người*, nên nó đỏ ngay khi một người mới vào sân kịp cướp
+          được bóng trong phút đó.
+        */
+        const vaoSanPhutNay = {
+          nha: new Set<string>(),
+          khach: new Set<string>(),
+        }
+        for (const ct of tt.canThiepChoAp) {
+          if (ct.noiDung.loai === 'thay-nguoi') {
+            vaoSanPhutNay[ct.doi].add(ct.noiDung.vao)
+          }
+        }
+
         const truocKhiChay = {
-          nha: new Set(tt.ben.nha.trenSan),
-          khach: new Set(tt.ben.khach.trenSan),
+          nha: new Set([...tt.ben.nha.trenSan, ...vaoSanPhutNay.nha]),
+          khach: new Set([...tt.ben.khach.trenSan, ...vaoSanPhutNay.khach]),
         }
         const soCu = tt.ungVien.length
         tt = buocTiep(tt)
 
         for (const uv of tt.ungVien.slice(soCu)) {
           for (const id of uv.suKien.cacCauThu) {
-            /*
-              Người vừa vào sân hợp lệ ở chính phút thay; ngoài dòng đó ra,
-              mọi tên đều phải có mặt từ đầu phút.
-            */
+            // Người ĐÃ RỜI SÂN thì không được xuất hiện ở bất cứ dòng nào.
             const hopLe =
               truocKhiChay[uv.suKien.doi].has(id) ||
               uv.suKien.loai === 'thay-nguoi'

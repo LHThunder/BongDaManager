@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { PositionId } from '../domain/types'
-import { benMau, MA_TRAN_CO_DINH } from './__fixtures__/doiMau'
+import { benMau } from './__fixtures__/doiMau'
 import { chayHetTran, taoTran } from './tran'
 
 /*
@@ -12,13 +12,30 @@ import { chayHetTran, taoTran } from './tran'
   trò của ô, đối thủ, sân bãi đều y nguyên. Đọc `thongKe.dongGopTheoCauThu`.
 */
 
+/*
+  MẪU PHẢI RỘNG. `dongGopTheoCauThu` của MỘT cầu thủ là con số nhiễu: đo trên
+  10 mã thì thứ tự bốn mức đảo lộn thuần do may mắn (đo thật: 57.2 / 34.0 /
+  38.3 / 37.2 — "nhẹ" thấp hơn "vừa"), còn trên 40 mã thì giảm dần nghiêm
+  ngặt (44.5 / 35.2 / 31.9 / 27.9) và trên 100 mã cũng vậy (42.7 / 39.2 /
+  35.9 / 25.2).
+
+  Bản đầu của test dùng 10 mã cố định và xanh nhờ may. Ngưỡng "giảm dần
+  nghiêm ngặt" KHÔNG đổi — chỉ mẫu rộng ra, nên test mạnh lên chứ không nhẹ đi.
+*/
+const SO_MA = 40
+
+function maDo(i: number): string {
+  return `S${String(i).padStart(4, '0')}XQ4B`
+}
+
 /** Ô số 10 của sơ đồ 4-4-2 là tiền đạo. */
 const SO_AO = 10
 const ID = `A-${SO_AO}`
 
 function dongGopKhiSoTruong(viTri: PositionId): number {
   let tong = 0
-  for (const ma of MA_TRAN_CO_DINH) {
+  for (let i = 0; i < SO_MA; i += 1) {
+    const ma = maDo(i)
     const tt = chayHetTran(
       taoTran({
         maTran: ma,
@@ -29,7 +46,7 @@ function dongGopKhiSoTruong(viTri: PositionId): number {
     )
     tong += tt.ben.nha.thongKe.dongGopTheoCauThu[ID] ?? 0
   }
-  return tong / MA_TRAN_CO_DINH.length
+  return tong / SO_MA
 }
 
 describe('xếp sai vị trí làm giảm đóng góp (AC-8.5)', () => {

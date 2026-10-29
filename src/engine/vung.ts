@@ -1,3 +1,6 @@
+import { layViTri } from '../domain/positions'
+import type { PositionId, PositionLine } from '../domain/types'
+
 /*
   Lưới vùng sân: 3 cột × 4 dải = 12 vùng (quyết định D23).
 
@@ -81,6 +84,35 @@ export function cacVungKe(vung: VungSan): readonly VungSan[] {
 /** Vùng sâu nhất bên phần sân đối phương — chỗ dứt điểm. */
 export function laVungDutDiem(vung: VungSan): boolean {
   return vung.dai === 3
+}
+
+/**
+ * Dải mà mỗi tuyến đứng, tính theo hướng tấn công của chính đội đó.
+ *
+ * Bốn tuyến khớp đúng bốn dải, nên đây là phép ánh xạ 1-1 chứ không phải một
+ * bảng tra tay có thể lệch: thủ môn ở dải 0, hậu vệ dải 1, tiền vệ dải 2,
+ * tiền đạo dải 3.
+ */
+const DAI_CUA_TUYEN: Readonly<Record<PositionLine, DaiSan>> = {
+  'thu-mon': 0,
+  'phong-ngu': 1,
+  'tien-ve': 2,
+  'tan-cong': 3,
+}
+
+/**
+ * Ô vị trí này đứng ở vùng nào trên lưới (quyết định D34c).
+ *
+ * Dùng để biết ai có mặt quanh chỗ bóng đang đi, thay vì rút người đều tay
+ * trong cả đội hình — trung vệ không nên kiến tạo nhiều như tiền vệ cánh.
+ *
+ * Trả về vùng theo hướng tấn công của ĐỘI SỞ HỮU vị trí đó. Bên phòng ngự
+ * nhìn cùng một chỗ trên sân theo chiều ngược lại, nên gọi `latVung` lên kết
+ * quả này trước khi so với vùng của bóng.
+ */
+export function vungCuaViTri(viTri: PositionId): VungSan {
+  const { tuyen, ben } = layViTri(viTri)
+  return layVung(ben, DAI_CUA_TUYEN[tuyen])
 }
 
 /** Vùng thuộc phần sân đối phương — chỗ pressing cao giành lại bóng (AC-8.4). */

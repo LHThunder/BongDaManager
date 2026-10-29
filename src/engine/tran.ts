@@ -31,7 +31,14 @@ import {
   theLucSauMotPhut,
   type MucPressing,
 } from './theLuc'
-import { laDaiCao, layVung, type VungSan } from './vung'
+import {
+  keNhau,
+  laDaiCao,
+  latVung,
+  layVung,
+  vungCuaViTri,
+  type VungSan,
+} from './vung'
 
 /*
   Máy trạng thái trận đấu.
@@ -82,7 +89,65 @@ export interface ThongKeBen {
   readonly biThoatXuong: number
   readonly theVang: number
   readonly theDo: number
+  /**
+   * Tổng đường chuyền của cả bên. Có mặt ở đây để phép kiểm "tổng theo từng
+   * cầu thủ bằng tổng theo bên" phủ được cả phần chuyền — không có nó thì
+   * `chuyenThanhCong` của 11 người có thể rỗng mà chẳng test nào biết
+   * (quyết định D34c).
+   */
+  readonly chuyenThanhCong: number
+  readonly chuyenHong: number
+  /**
+   * Điểm đóng góp của từng cầu thủ, thang `diemCuaChuoi`.
+   *
+   * GIỮ LẠI dù `theoCauThu` đã chi tiết hơn: đây là phép đo duy nhất của
+   * AC-8.5 trong `sosanh.saiViTri.test.ts`, và thang 100 điểm cho bàn thắng /
+   * 6 điểm cho cú sút tách được bốn mức sai vị trí, trong khi một tổng số
+   * nguyên nhỏ thì bốn mức chìm trong nhiễu (quyết định D33b).
+   */
   readonly dongGopTheoCauThu: Readonly<Record<string, number>>
+  /** Số liệu từng cầu thủ, để chấm điểm sau trận (AC-11.3, quyết định D33). */
+  readonly theoCauThu: Readonly<Record<string, ThongKeCauThu>>
+}
+
+/**
+ * Số liệu một trận của một cầu thủ (AC-11.3, AC-11.5).
+ *
+ * Bảy tiêu chí mà AC-11.3 liệt kê để chấm điểm đều có mặt ở đây, cộng
+ * `canCuu` cho thủ môn và hai mốc phút để AC-11.5 nói được "đá từ phút nào
+ * tới phút nào".
+ */
+export interface ThongKeCauThu {
+  /** `null` nghĩa là đá từ đầu trận. */
+  readonly phutVao: number | null
+  /** `null` nghĩa là ở trên sân tới hết trận. */
+  readonly phutRa: number | null
+  readonly banThang: number
+  readonly kienTao: number
+  readonly cuSut: number
+  readonly sutTrungDich: number
+  readonly chuyenThanhCong: number
+  readonly chuyenHong: number
+  readonly cuopBong: number
+  readonly matBong: number
+  readonly phamLoi: number
+  /** Chỉ người đang trong khung thành mới có. */
+  readonly canCuu: number
+}
+
+export const THONG_KE_CAU_THU_RONG: ThongKeCauThu = {
+  phutVao: null,
+  phutRa: null,
+  banThang: 0,
+  kienTao: 0,
+  cuSut: 0,
+  sutTrungDich: 0,
+  chuyenThanhCong: 0,
+  chuyenHong: 0,
+  cuopBong: 0,
+  matBong: 0,
+  phamLoi: 0,
+  canCuu: 0,
 }
 
 export interface BenTran {
@@ -176,6 +241,9 @@ export const NGUONG_DANG_KE = 2
 const THONG_KE_RONG: ThongKeBen = {
   cuSut: 0,
   soBuocGiuBong: 0,
+  chuyenThanhCong: 0,
+  chuyenHong: 0,
+  theoCauThu: {},
   sutTrungDich: 0,
   tatCanh: 0,
   coHoiRoRang: 0,
@@ -417,6 +485,99 @@ function chonCauThuTheoSuc(sm: SucManhBen, rng: RngCoTrangThai): string | null {
 }
 
 // ---------------------------------------------------------------------------
+// Gán hành động cho cầu thủ (AC-11.3, quyết định D34 và D34c)
+// ---------------------------------------------------------------------------
+
+/**
+ * Ai đã làm gì trong một chuỗi bóng.
+ *
+ * `chuoiBong.ts` cố tình KHÔNG biết tới đội hình — nó chỉ cần hai con số sức
+ * mạnh tổng và hai bộ hệ số chỉ thị, nên bốn test so sánh của P5 còn đọc được
+ * là chúng đang đo cái gì (quyết định D34). Việc gán người vì thế xảy ra ở
+ * đây, sau khi chuỗi đã chạy xong.
+ */
+interface GanHanhDong {
+  /** Người kết thúc tình huống — đã có từ Giai đoạn 3. */
+  readonly nguoiKetThuc: string | null
+  /** Người chuyền quả cuối trước bàn thắng; chỉ rút khi có bàn. */
+  readonly nguoiKienTao: string | null
+  readonly nguoiCuopBong: string | null
+  readonly nguoiPhamLoi: string | null
+  /** Một id cho MỖI bước `chuyen` / `re-bong` của chuỗi (D34c). */
+  readonly nguoiChuyen: readonly string[]
+}
+
+const GAN_RONG: GanHanhDong = {
+  nguoiKetThuc: null,
+  nguoiKienTao: null,
+  nguoiCuopBong: null,
+  nguoiPhamLoi: null,
+  nguoiChuyen: [],
+}
+
+/**
+ * Rút một người đang có mặt **tại hoặc kề** `vung`, cân theo sức mạnh.
+ *
+ * `vung` được tính theo hướng tấn công của bên đang giữ bóng, nên với bên
+ * phòng ngự phải lật vùng đứng của họ trước khi so — cùng một chỗ trên sân,
+ * nhìn từ hai chiều ngược nhau.
+ *
+ * Không ai ở gần thì rút trong cả đội hình, để hàm luôn trả về một người khi
+ * trên sân còn người. Rút đều tay thì trung vệ kiến tạo nhiều như tiền vệ
+ * cánh, và điểm cầu thủ ở AC-11.3 thành vô nghĩa (quyết định D34b).
+ */
+function nguoiTaiVung(
+  doiHinh: readonly ViTriTrenSan[],
+  sm: SucManhBen,
+  vung: VungSan,
+  laPhongNgu: boolean,
+  rng: RngCoTrangThai,
+  loaiTru: string | null = null,
+): string | null {
+  const sucTheoId = new Map(sm.theoCauThu.map((x) => [x.id, x.suc]))
+
+  const oGan = doiHinh.filter((v) => {
+    if (v.playerId === loaiTru) return false
+    const dung = laPhongNgu
+      ? latVung(vungCuaViTri(v.viTriO))
+      : vungCuaViTri(v.viTriO)
+    return dung.id === vung.id || keNhau(dung, vung)
+  })
+
+  const ungVien =
+    oGan.length > 0
+      ? oGan
+      : doiHinh.filter((v) => v.playerId !== loaiTru)
+  if (ungVien.length === 0) return null
+
+  let tong = 0
+  for (const v of ungVien) tong += (sucTheoId.get(v.playerId) ?? 0) + 0.05
+  let moc = rng.next() * tong
+  for (const v of ungVien) {
+    moc -= (sucTheoId.get(v.playerId) ?? 0) + 0.05
+    if (moc <= 0) return v.playerId
+  }
+  return ungVien[ungVien.length - 1].playerId
+}
+
+/** Cộng một vài chỉ tiêu vào bản ghi của một cầu thủ. */
+function congCauThu(
+  bang: Record<string, ThongKeCauThu>,
+  playerId: string | null,
+  phan: Partial<ThongKeCauThu>,
+): void {
+  if (!playerId) return
+  const cu = bang[playerId] ?? THONG_KE_CAU_THU_RONG
+  const moi: Record<string, unknown> = { ...cu }
+  for (const [khoa, giaTri] of Object.entries(phan)) {
+    if (typeof giaTri !== 'number') continue
+    const truoc = cu[khoa as keyof ThongKeCauThu]
+    moi[khoa] = (typeof truoc === 'number' ? truoc : 0) + giaTri
+  }
+  bang[playerId] = moi as unknown as ThongKeCauThu
+}
+
+// ---------------------------------------------------------------------------
 // Thống kê
 // ---------------------------------------------------------------------------
 
@@ -485,18 +646,41 @@ function congThongKeCong(
   ben: BenTran,
   kq: KetQuaChuoi,
   coBan: boolean,
-  nguoiKetThuc: string | null,
+  gan: GanHanhDong,
   coHoiRoRang: boolean,
   biCuu: boolean,
 ): BenTran {
   const tk = ben.thongKe
   const soTat = kq.cacHanhDong.filter((h) => h.loai === 'tat-canh').length
   const coSut = kq.ketCuc === 'dut-diem'
+  const nguoiKetThuc = gan.nguoiKetThuc
   const dongGop = { ...tk.dongGopTheoCauThu }
   if (nguoiKetThuc) {
     dongGop[nguoiKetThuc] =
       (dongGop[nguoiKetThuc] ?? 0) + diemCuaChuoi(kq, coBan)
   }
+
+  const theoCauThu = { ...tk.theoCauThu }
+  congCauThu(theoCauThu, nguoiKetThuc, {
+    banThang: coBan ? 1 : 0,
+    cuSut: coSut ? 1 : 0,
+    sutTrungDich: coBan || biCuu ? 1 : 0,
+  })
+  congCauThu(theoCauThu, gan.nguoiKienTao, { kienTao: 1 })
+
+  /*
+    Đường chuyền: mỗi bước một người (D34c). Quả chuyền HỎNG không nằm trong
+    `cacHanhDong` — `chuoiBong.ts` return ngay khi mất bóng, trước khi push —
+    nên nó được tính cho người giữ bước cuối cùng (D34d).
+  */
+  for (const id of gan.nguoiChuyen) {
+    congCauThu(theoCauThu, id, { chuyenThanhCong: 1 })
+  }
+  const matBong = kq.ketCuc === 'mat-bong'
+  const nguoiHong = matBong
+    ? (gan.nguoiChuyen[gan.nguoiChuyen.length - 1] ?? nguoiKetThuc)
+    : null
+  congCauThu(theoCauThu, nguoiHong, { chuyenHong: 1, matBong: 1 })
 
   return {
     ...ben,
@@ -507,7 +691,10 @@ function congThongKeCong(
       sutTrungDich: tk.sutTrungDich + (coBan || biCuu ? 1 : 0),
       tatCanh: tk.tatCanh + soTat,
       coHoiRoRang: tk.coHoiRoRang + (coHoiRoRang ? 1 : 0),
+      chuyenThanhCong: tk.chuyenThanhCong + gan.nguoiChuyen.length,
+      chuyenHong: tk.chuyenHong + (nguoiHong ? 1 : 0),
       dongGopTheoCauThu: dongGop,
+      theoCauThu,
     },
   }
 }
@@ -515,12 +702,18 @@ function congThongKeCong(
 function congThongKeThu(
   ben: BenTran,
   kq: KetQuaChuoi,
+  gan: GanHanhDong,
+  nguoiCuu: string | null,
 ): BenTran {
   const tk = ben.thongKe
   const cuop =
     kq.ketCuc === 'mat-bong' && laDaiCao(kq.vungKetThuc) ? 1 : 0
   const thoat = kq.ketCuc === 'dut-diem' ? 1 : 0
-  if (cuop === 0 && thoat === 0) return ben
+
+  const theoCauThu = { ...tk.theoCauThu }
+  congCauThu(theoCauThu, gan.nguoiCuopBong, { cuopBong: 1 })
+  congCauThu(theoCauThu, gan.nguoiPhamLoi, { phamLoi: 1 })
+  congCauThu(theoCauThu, nguoiCuu, { canCuu: 1 })
 
   return {
     ...ben,
@@ -528,6 +721,7 @@ function congThongKeThu(
       ...tk,
       cuopBongDaiCao: tk.cuopBongDaiCao + cuop,
       biThoatXuong: tk.biThoatXuong + thoat,
+      theoCauThu,
     },
   }
 }
@@ -556,12 +750,18 @@ interface KetQuaThe {
   readonly roiSan: boolean
 }
 
+/**
+ * Thử rút thẻ với **đúng người vừa phạm lỗi**.
+ *
+ * `playerId` do `nguoiTaiVung` rút ở vòng lặp chính (D34), chứ không rút lại ở
+ * đây: hai lần rút riêng thì cầu thủ A phạm lỗi mà cầu thủ B bị ghi tên.
+ */
 function thuRutThe(
   ben: BenTran,
-  sm: SucManhBen,
+  playerId: string | null,
   rng: RngCoTrangThai,
+  phut: number,
 ): KetQuaThe {
-  const playerId = chonCauThuTheoSuc(sm, rng)
   if (!playerId) {
     return { ben, playerId: null, theSauDo: null, roiSan: false }
   }
@@ -575,6 +775,17 @@ function thuRutThe(
   const kq = rutThe(ben.the[playerId], laLoiNghiemTrong(rng.next()))
   const laDo = kq.theSauDo !== 'vang'
 
+  /*
+    Thẻ đỏ cũng là một mốc "ra sân" của AC-11.5, và nó KHÔNG phải can thiệp —
+    nên dẫn xuất hai mốc phút từ danh sách `canThiep` ở tầng giao diện sẽ bỏ
+    sót đúng những người bị đuổi (quyết định D50).
+  */
+  const theoCauThu = { ...ben.thongKe.theoCauThu }
+  if (kq.roiSan) {
+    congCauThu(theoCauThu, playerId, {})
+    theoCauThu[playerId] = { ...theoCauThu[playerId], phutRa: phut }
+  }
+
   return {
     ben: {
       ...ben,
@@ -586,6 +797,7 @@ function thuRutThe(
         ...ben.thongKe,
         theVang: ben.thongKe.theVang + (laDo ? 0 : 1),
         theDo: ben.thongKe.theDo + (laDo ? 1 : 0),
+        theoCauThu,
       },
     },
     playerId,
@@ -664,11 +876,27 @@ function kiemTraCanThiep(
 }
 
 /** Áp một can thiệp đã qua kiểm, trả về bên đã đổi. */
-function apVaoBen(ben: BenTran, noiDung: NoiDungCanThiep): BenTran {
+function apVaoBen(
+  ben: BenTran,
+  noiDung: NoiDungCanThiep,
+  phut: number,
+): BenTran {
   switch (noiDung.loai) {
-    case 'thay-nguoi':
+    case 'thay-nguoi': {
+      /*
+        Hai mốc phút của AC-11.5. `phut` là phút mà can thiệp THẬT SỰ có hiệu
+        lực, cũng là phút của dòng tường thuật "thay người", nên báo cáo và
+        dòng tường thuật không bao giờ lệch nhau một phút.
+      */
+      const theoCauThu = { ...ben.thongKe.theoCauThu }
+      congCauThu(theoCauThu, noiDung.ra, {})
+      congCauThu(theoCauThu, noiDung.vao, {})
+      theoCauThu[noiDung.ra] = { ...theoCauThu[noiDung.ra], phutRa: phut }
+      theoCauThu[noiDung.vao] = { ...theoCauThu[noiDung.vao], phutVao: phut }
+
       return {
         ...ben,
+        thongKe: { ...ben.thongKe, theoCauThu },
         trenSan: ben.trenSan.map((id) =>
           id === noiDung.ra ? noiDung.vao : id,
         ),
@@ -681,6 +909,7 @@ function apVaoBen(ben: BenTran, noiDung: NoiDungCanThiep): BenTran {
           ),
         },
       }
+    }
 
     case 'doi-chi-thi':
       return {
@@ -773,7 +1002,10 @@ export function apDungCanThiep(
 }
 
 /** Áp hết hàng đợi ở đầu phút, và trả về những dòng sự kiện phát sinh. */
-function apHangDoi(tt: TrangThaiTran): {
+function apHangDoi(
+  tt: TrangThaiTran,
+  phut: number,
+): {
   readonly trangThai: TrangThaiTran
   readonly daThay: readonly CanThiep[]
 } {
@@ -789,7 +1021,7 @@ function apHangDoi(tt: TrangThaiTran): {
     hienTai = datBen(
       hienTai,
       ct.doi,
-      apVaoBen(benTheoDoi(hienTai, ct.doi), ct.noiDung),
+      apVaoBen(benTheoDoi(hienTai, ct.doi), ct.noiDung, phut),
     )
   }
 
@@ -805,7 +1037,7 @@ export function buocTiep(ttVao: TrangThaiTran): TrangThaiTran {
   if (ttVao.ketThuc) return ttVao
 
   // Can thiệp có hiệu lực từ ĐẦU phút này, trước khi mô phỏng (D30b).
-  const { trangThai: tt, daThay } = apHangDoi(ttVao)
+  const { trangThai: tt, daThay } = apHangDoi(ttVao, ttVao.phut + 1)
 
   const rng = taoRngTuHatGiong(tt.hatGiong)
   const phut = tt.phut + 1
@@ -895,6 +1127,45 @@ export function buocTiep(ttVao: TrangThaiTran): TrangThaiTran {
       !coBan &&
       rng.next() < xacSuatBiCuu(sucThuMon)
 
+    /*
+      Gán hành động cho người (AC-11.3, quyết định D34 và D34c). Thứ tự rút
+      nối tiếp phần trên và CỐ ĐỊNH: kiến tạo → cướp bóng → phạm lỗi → một
+      lượt cho mỗi bước chuyền.
+
+      `kienTao` chỉ rút khi CÓ BÀN, đúng nghĩa bóng đá, nên tổng kiến tạo của
+      một trận không bao giờ vượt tổng số bàn — một bất biến kiểm được.
+    */
+    const doiHinhCong = doiHinhTrenSan(benCong)
+    const doiHinhThu = doiHinhTrenSan(benThu)
+
+    const nguoiKienTao = coBan
+      ? nguoiTaiVung(doiHinhCong, smCong, kq.vungKetThuc, false, rng, nguoi)
+      : null
+    const nguoiCuopBong =
+      kq.ketCuc === 'mat-bong'
+        ? nguoiTaiVung(doiHinhThu, smThu, kq.vungKetThuc, true, rng)
+        : null
+    const nguoiPhamLoi =
+      kq.ketCuc === 'pham-loi'
+        ? nguoiTaiVung(doiHinhThu, smThu, kq.vungKetThuc, true, rng)
+        : null
+
+    const nguoiChuyen: string[] = []
+    for (const hanhDong of kq.cacHanhDong) {
+      if (hanhDong.loai === 'sut') continue
+      const id = nguoiTaiVung(doiHinhCong, smCong, hanhDong.vung, false, rng)
+      if (id) nguoiChuyen.push(id)
+    }
+
+    const gan: GanHanhDong = {
+      ...GAN_RONG,
+      nguoiKetThuc: nguoi,
+      nguoiKienTao,
+      nguoiCuopBong,
+      nguoiPhamLoi,
+      nguoiChuyen,
+    }
+
     if (coBan) {
       tiSo =
         doi === 'nha'
@@ -906,11 +1177,11 @@ export function buocTiep(ttVao: TrangThaiTran): TrangThaiTran {
       benCong,
       kq,
       coBan,
-      nguoi,
+      gan,
       coHoiRoRang,
       biCuu,
     )
-    let benThuMoi = congThongKeThu(benThu, kq)
+    let benThuMoi = congThongKeThu(benThu, kq, gan, biCuu ? thuMonThu : null)
 
     themUngVien(
       loaiCuaChuoi(kq, coBan, biCuu),
@@ -920,9 +1191,13 @@ export function buocTiep(ttVao: TrangThaiTran): TrangThaiTran {
       diemCuaChuoi(kq, coBan),
     )
 
-    // Phạm lỗi: đội PHÒNG NGỰ là bên có thể ăn thẻ.
+    /*
+      Phạm lỗi: đội PHÒNG NGỰ là bên có thể ăn thẻ, và người ăn thẻ phải là
+      ĐÚNG người vừa phạm lỗi — trước đây hai chỗ rút riêng nên cầu thủ A
+      phạm lỗi mà cầu thủ B bị ghi tên vào sổ.
+    */
     if (kq.ketCuc === 'pham-loi') {
-      const kqThe = thuRutThe(benThuMoi, smThu, rng)
+      const kqThe = thuRutThe(benThuMoi, nguoiPhamLoi, rng, phut)
       benThuMoi = kqThe.ben
       if (kqThe.theSauDo && kqThe.playerId) {
         themUngVien(
