@@ -61,14 +61,19 @@ describe('tạo trận và thời lượng (AC-8.1)', () => {
     expect(buocTiep(xong)).toBe(xong)
   })
 
+  /*
+    Mẫu phải RỘNG, không phải 10 mã cố định. Tỉ lệ hoà của engine là khoảng
+    21% (đo trên 200 mã), nên 10 mã có thể không chứa trận hoà nào thuần do
+    may mắn — và đúng chuyện đó xảy ra khi T099 đổi thứ tự tiêu thụ `Rng`.
+    Test đỏ lúc ấy không phải vì engine sai mà vì mẫu quá nhỏ cho điều nó
+    khẳng định.
+  */
   it('trận hoà kết thúc là hoà, không có hiệp phụ', () => {
-    const cacHoa = MA_TRAN_CO_DINH.map((ma) =>
-      chayHetTran(taoTran(cauHinhMau(ma))),
+    const cacHoa = Array.from({ length: 40 }, (_, i) =>
+      chayHetTran(taoTran(cauHinhMau(`H${String(i).padStart(4, '0')}XQ4B`))),
     ).filter((tt) => tt.tiSo.nha === tt.tiSo.khach)
 
-    expect(cacHoa.length, 'bộ mã cố định không ra trận hoà nào').toBeGreaterThan(
-      0,
-    )
+    expect(cacHoa.length, '40 mã không ra trận hoà nào').toBeGreaterThan(0)
     for (const tt of cacHoa) {
       expect(tt.ketThuc).toBe(true)
       expect(tt.phut).toBe(tongPhutTran(tt))
@@ -263,10 +268,19 @@ describe('thống kê thô, không đi qua bộ lọc mật độ', () => {
     expect(tongCuSut).toBeGreaterThan(soDongCoHoi)
   })
 
-  it('số bàn thắng khớp với sút trúng đích đã ghi nhận', () => {
+  /*
+    Phép này TRƯỚC T101 khẳng định `sutTrungDich === banThang` — tức nó ghi
+    cứng đúng cái lỗi mà T101 sửa: không có khái niệm cứu thua thì "sút trúng
+    đích" và "ghi bàn" là một. Giờ quan hệ đúng là một dải, và `cuuThua.test.ts`
+    là chỗ đo nó trên 20 trận.
+  */
+  it('số bàn thắng ≤ sút trúng đích ≤ cú sút', () => {
     const tt = chayHetTran(taoTran(cauHinhMau(MA)))
-    expect(tt.ben.nha.thongKe.sutTrungDich).toBe(tt.tiSo.nha)
-    expect(tt.ben.khach.thongKe.sutTrungDich).toBe(tt.tiSo.khach)
+    for (const ben of ['nha', 'khach'] as const) {
+      const tk = tt.ben[ben].thongKe
+      expect(tk.sutTrungDich).toBeGreaterThanOrEqual(tt.tiSo[ben])
+      expect(tk.sutTrungDich).toBeLessThanOrEqual(tk.cuSut)
+    }
   })
 
   it('đóng góp được ghi theo từng cầu thủ', () => {

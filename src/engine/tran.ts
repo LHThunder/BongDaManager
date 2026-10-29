@@ -67,6 +67,14 @@ export interface CauHinhTran {
 
 export interface ThongKeBen {
   readonly cuSut: number
+  /**
+   * Tổng số bước chuỗi bóng của bên này, dùng để tính tỉ lệ kiểm soát bóng
+   * (AC-11.2, quyết định D36). Đếm theo BƯỚC chứ không theo số chuỗi: bên
+   * cầm bóng mỗi chuỗi do một lần tung đồng xu quyết, nên tỉ lệ số chuỗi
+   * luôn xấp xỉ 50/50 bất kể chiến thuật — con số in cho người dùng sẽ vô
+   * nghĩa. Đếm theo bước thì hệ số `giuBong` của chỉ thị hiện ra đúng chỗ.
+   */
+  readonly soBuocGiuBong: number
   readonly sutTrungDich: number
   readonly tatCanh: number
   readonly coHoiRoRang: number
@@ -167,6 +175,7 @@ export const NGUONG_DANG_KE = 2
 
 const THONG_KE_RONG: ThongKeBen = {
   cuSut: 0,
+  soBuocGiuBong: 0,
   sutTrungDich: 0,
   tatCanh: 0,
   coHoiRoRang: 0,
@@ -425,8 +434,13 @@ function diemCuaChuoi(kq: KetQuaChuoi, coBan: boolean): number {
   }
 }
 
-function loaiCuaChuoi(kq: KetQuaChuoi, coBan: boolean): LoaiSuKien {
+function loaiCuaChuoi(
+  kq: KetQuaChuoi,
+  coBan: boolean,
+  biCuu: boolean,
+): LoaiSuKien {
   if (coBan) return 'ban-thang'
+  if (biCuu) return 'cuu-thua'
   if (kq.ketCuc === 'dut-diem') return 'co-hoi'
   if (kq.ketCuc === 'mat-bong' && laDaiCao(kq.vungKetThuc)) {
     return 'cuop-bong-cao'
@@ -435,11 +449,45 @@ function loaiCuaChuoi(kq: KetQuaChuoi, coBan: boolean): LoaiSuKien {
   return 'mat-bong'
 }
 
+const NEN_CO_HOI_RO_RANG = 0.25
+const THEO_SUC_CO_HOI_RO_RANG = 0.5
+
+/**
+ * Xác suất một cú sút không thành bàn được tính là **cơ hội rõ ràng**
+ * (AC-11.2, quyết định D37). Tăng theo sức mạnh bên tấn công: đội mạnh hơn
+ * không chỉ sút nhiều hơn, họ còn sút từ những tình huống rõ hơn — đó là
+ * chiều mà AC-8.8 nói tới.
+ */
+export function xacSuatCoHoiRoRang(sucManhCong: number): number {
+  const p = NEN_CO_HOI_RO_RANG + THEO_SUC_CO_HOI_RO_RANG * sucManhCong
+  return Math.min(Math.max(p, 0.1), 0.85)
+}
+
+const NEN_BI_CUU = 0.3
+const THEO_SUC_BI_CUU = 0.7
+
+/**
+ * Xác suất một cú sút không thành bàn bị **thủ môn cứu**, thay vì đi chệch
+ * khung (AC-11.2, quyết định D38).
+ *
+ * `sucThuMon` là sức mạnh của người ĐANG TRONG KHUNG trong tình huống đó, nên
+ * thủ môn giỏi cứu được nhiều hơn — đó là số liệu duy nhất để AC-11.3 chấm
+ * điểm cho thủ môn. Khung bỏ trống (thủ môn vừa nhận thẻ đỏ mà người dùng
+ * chưa chọn ai vào bắt gôn) thì không có ai cứu, nên trả về 0.
+ */
+export function xacSuatBiCuu(sucThuMon: number | null): number {
+  if (sucThuMon === null) return 0
+  const p = NEN_BI_CUU + THEO_SUC_BI_CUU * sucThuMon
+  return Math.min(Math.max(p, 0.05), 0.9)
+}
+
 function congThongKeCong(
   ben: BenTran,
   kq: KetQuaChuoi,
   coBan: boolean,
   nguoiKetThuc: string | null,
+  coHoiRoRang: boolean,
+  biCuu: boolean,
 ): BenTran {
   const tk = ben.thongKe
   const soTat = kq.cacHanhDong.filter((h) => h.loai === 'tat-canh').length
@@ -455,9 +503,10 @@ function congThongKeCong(
     thongKe: {
       ...tk,
       cuSut: tk.cuSut + (coSut ? 1 : 0),
-      sutTrungDich: tk.sutTrungDich + (coBan ? 1 : 0),
+      soBuocGiuBong: tk.soBuocGiuBong + kq.cacHanhDong.length,
+      sutTrungDich: tk.sutTrungDich + (coBan || biCuu ? 1 : 0),
       tatCanh: tk.tatCanh + soTat,
-      coHoiRoRang: tk.coHoiRoRang + (coSut ? 1 : 0),
+      coHoiRoRang: tk.coHoiRoRang + (coHoiRoRang ? 1 : 0),
       dongGopTheoCauThu: dongGop,
     },
   }
@@ -814,6 +863,38 @@ export function buocTiep(ttVao: TrangThaiTran): TrangThaiTran {
     const coBan =
       kq.ketCuc === 'dut-diem' &&
       rng.next() < 0.22 * (smCong.trungBinh + 0.4)
+
+    /*
+      Cơ hội rõ ràng (AC-11.2, quyết định D37). Bàn thắng thì khỏi phải hỏi.
+      Cú sút không thành bàn mới rút một lần, nên bất biến `banThang ≤
+      coHoiRoRang ≤ cuSut` luôn đúng và kiểm được.
+
+      Thứ tự tiêu thụ `Rng` trong một chuỗi là CỐ ĐỊNH và phải giữ nguyên:
+      người kết thúc → bàn thắng → cơ hội rõ ràng. Đổi thứ tự là đổi mọi trận
+      của mọi mã trận (P1).
+    */
+    const coHoiRoRang =
+      kq.ketCuc === 'dut-diem' &&
+      (coBan || rng.next() < xacSuatCoHoiRoRang(smCong.trungBinh))
+
+    /*
+      Cứu thua (AC-11.2, quyết định D38). Chỉ rút khi cú sút KHÔNG thành bàn,
+      và chỉ khi khung thành có người — thủ môn vừa bị đuổi mà chưa ai vào
+      bắt gôn thì không có ai cứu.
+
+      Thứ tự rút trong một chuỗi, cố định: người kết thúc → bàn thắng → cơ hội
+      rõ ràng → bị cứu.
+    */
+    const thuMonThu = nguoiTrongKhung(benThu)
+    const sucThuMon =
+      thuMonThu === null
+        ? null
+        : (smThu.theoCauThu.find((x) => x.id === thuMonThu)?.suc ?? null)
+    const biCuu =
+      kq.ketCuc === 'dut-diem' &&
+      !coBan &&
+      rng.next() < xacSuatBiCuu(sucThuMon)
+
     if (coBan) {
       tiSo =
         doi === 'nha'
@@ -821,11 +902,18 @@ export function buocTiep(ttVao: TrangThaiTran): TrangThaiTran {
           : { nha: tiSo.nha, khach: tiSo.khach + 1 }
     }
 
-    let benCongMoi = congThongKeCong(benCong, kq, coBan, nguoi)
+    let benCongMoi = congThongKeCong(
+      benCong,
+      kq,
+      coBan,
+      nguoi,
+      coHoiRoRang,
+      biCuu,
+    )
     let benThuMoi = congThongKeThu(benThu, kq)
 
     themUngVien(
-      loaiCuaChuoi(kq, coBan),
+      loaiCuaChuoi(kq, coBan, biCuu),
       doi,
       nguoi ? [nguoi] : [],
       kq.vungKetThuc,

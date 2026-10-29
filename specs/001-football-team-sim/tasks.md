@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | Giai đoạn 1 (36 AC), Giai đoạn 2 (22 AC), Giai đoạn 3 (26 AC) và Giai đoạn 4 (13 AC + 3 AC vắt lại) |
-| **Tiến độ** | 98/130 — Giai đoạn 1 xong (38/39, còn T035); Giai đoạn 2 và 3 xong trọn; Giai đoạn 4 chưa bắt đầu (Phase 15–19: T099–T129, gồm T102b) |
+| **Tiến độ** | 101/130 — Giai đoạn 1 xong (38/39, còn T035); Giai đoạn 2 và 3 xong trọn; Giai đoạn 4 chưa bắt đầu (Phase 15–19: T099–T129, gồm T102b) |
 | **Sửa đổi** | 2026-10-29 — sửa Phase 15–19 theo cả 13 phát hiện của `/analyze`: thêm T102b và T128, giữ `dongGopTheoCauThu`, sửa phụ thuộc của T108 |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -750,23 +750,30 @@ của mỗi bên không còn trùng nhau. Phase này đi trước vì mọi th�
 > từ Giai đoạn 3 không còn phát lại ra đúng trận cũ** — rủi ro R16, đã công bố
 > ở đầu `plan.md`. Trước khi bắt đầu T099, nhắc người dùng xuất tệp sao lưu.
 
-- [ ] **T099** — Tách `cuSut` và `coHoiRoRang` thành hai chỉ tiêu thật
-  - File: sửa `src/engine/tran.ts`, `src/engine/thongKeBen.test.ts`
-  - Xong khi: `cuSut` đếm **mọi** chuỗi kết thúc `dut-diem`, còn `coHoiRoRang` chỉ đếm phần con sút **từ trong vùng dứt điểm** (`laVungDutDiem(kq.vungKetThuc)`) — quyết định D37; test xanh trên 20 mã trận: `coHoiRoRang` ≤ `cuSut` ở **mọi** trận, và **nhỏ hơn hẳn** ở ít nhất 15 trong 20 trận (nếu luôn bằng nhau thì lỗi cũ vẫn còn, chỉ đổi chỗ).
+- [x] **T099** — Tách `cuSut` và `coHoiRoRang` thành hai chỉ tiêu thật
+  - File: sửa `src/engine/tran.ts`, `src/engine/thongKeBen.test.ts`, sửa `src/engine/tran.test.ts`
+  - Xong khi: `cuSut` đếm **mọi** chuỗi kết thúc `dut-diem`; `coHoiRoRang` tính bàn thắng là cơ hội rõ ràng, còn cú sút không thành bàn thì **rút thêm một lần** với xác suất tăng theo sức mạnh bên tấn công — quyết định D37; test xanh trên 20 mã trận: `banThang ≤ coHoiRoRang ≤ cuSut` ở **mọi** trận, `coHoiRoRang` **nhỏ hơn hẳn** `cuSut` ở ít nhất 15 trong 20 trận (nếu luôn bằng nhau thì lỗi cũ vẫn còn, chỉ đổi chỗ), và đội mạnh hơn có **tỉ lệ** cơ hội rõ ràng trên tổng cú sút cao hơn đội yếu qua 20 trận.
   - AC: AC-11.2
   - Phụ thuộc: —
+  - **Sửa lúc vào code:** bản plan trước chọn `laVungDutDiem(kq.vungKetThuc)` làm tiêu chí. Đọc `chuoiBong.ts:156` thì thấy đó là chỗ **duy nhất** trả về `dut-diem` và nó nằm trong `if (laVungDutDiem(vung) && …)`, nên tiêu chí ấy **luôn đúng** và hai bộ đếm vẫn bằng nhau — xem D37b. Người dùng chốt phương án rút thêm một lần.
+  - **Số đo thật:** 20 mã trận cho 325 cú sút và 198 cơ hội rõ ràng (61%), tách được ở **20/20** trận. Đội 17 điểm có tỉ lệ cơ hội rõ ràng 73.1% còn đội 8 điểm 46.7%.
+  - **Một file ngoài danh sách đã chạm, và lý do:** `src/engine/tran.test.ts` — phép "trận hoà kết thúc là hoà" lọc trận hoà trong **10 mã cố định**, và sau khi đổi thứ tự tiêu thụ `Rng` thì 10 mã đó không còn trận hoà nào. Đo trên 200 mã thì tỉ lệ hoà của engine là **21%** (bóng đá thật khoảng 25%), nên đây là lỗi **mẫu quá nhỏ** chứ không phải engine lệch. Đã nới mẫu lên 40 mã thay vì đi tìm một mã tình cờ ra hoà — cách sau sẽ đỏ lại ở T101 và T102.
 
-- [ ] **T100** — Tỉ lệ kiểm soát bóng đếm theo số bước
+- [x] **T100** — Tỉ lệ kiểm soát bóng đếm theo số bước
   - File: sửa `src/engine/tran.ts`, `src/engine/thongKeBen.test.ts`
   - Xong khi: `ThongKeBen.soBuocGiuBong` cộng dồn `kq.cacHanhDong.length` của bên cầm bóng (quyết định D36); test xanh — cùng một đội với chỉ thị `toc-do-chuyen-bong: cham` có **tỉ lệ bước cao hơn** so với chính đội đó chỉ thị `nhanh`, cùng đối thủ và trung bình qua 20 mã trận. Đây là phép chứng minh con số kiểm soát bóng **không** phải 50/50 cố định.
   - AC: AC-11.2
   - Phụ thuộc: T099
+  - **Số đo thật:** cùng đội, cùng đối thủ, chỉ đổi chỉ thị — chuyền **chậm** giữ bóng **54.2%**, chuyền **nhanh** 46.0%. Chênh 8.2 điểm phần trăm, tức con số kiểm soát bóng phản ứng thật với chiến thuật chứ không mắc ở 50/50.
 
-- [ ] **T101** — Cứu thua sống thật, và `sutTrungDich` hết bằng số bàn thắng
+- [x] **T101** — Cứu thua sống thật, và `sutTrungDich` hết bằng số bàn thắng
   - File: sửa `src/engine/tran.ts`, `src/engine/cuuThua.test.ts`
   - Xong khi: chuỗi kết thúc `dut-diem` mà không thành bàn thì rút **đúng một lần** để chia thành "bị thủ môn cứu" hay "chệch khung"; bên sút cộng `sutTrungDich`, và `loaiCuaChuoi` trả về `'cuu-thua'` cho trường hợp bị cứu; người ghi `canCuu` là người **đang trong khung**, tra bằng `nguoiTrongKhung` đã có trong `tran.ts` từ T096, và **khung trống thì cú sút không tính là bị cứu** (quyết định D38); test xanh — trên 20 mã trận loại sự kiện `cuu-thua` xuất hiện ở **ít nhất 15 trận**, và `banThang ≤ sutTrungDich ≤ cuSut` ở mọi trận. Mẫu câu tiếng Việt cho `cuu-thua` đã có sẵn từ Giai đoạn 3, không viết thêm.
   - AC: AC-11.2
   - Phụ thuộc: T099
+  - **Số đo thật:** 20/20 trận có pha cứu thua, tổng 156 dòng. Sút trúng đích nhiều hơn số bàn ở **39/40** lượt (20 trận × 2 bên) — trước T101 con số đó là 0/40.
+  - **Hai file ngoài danh sách đã chạm:** `src/engine/cuuThua.test.ts` (file test của chính task này, plan có ghi) và `src/engine/tran.test.ts` — phép "số bàn thắng khớp với sút trúng đích" ở đó **ghi cứng đúng cái lỗi** T101 sửa (`sutTrungDich === banThang`), nên phải đổi thành dải `banThang ≤ sutTrungDich ≤ cuSut`.
+  - **Một phần CHƯA làm, có lý do:** phép so "thủ môn giỏi cứu nhiều hơn" trên cả trận cần ghi đè riêng ba chỉ số của thủ môn, mà `__fixtures__/doiMau.ts` chưa có đường đó và file đó không nằm trong danh sách T101. Mức kiểm hiện tại — `xacSuatBiCuu` đơn điệu, và sút vào khung trống thì không cú nào bị cứu — đủ cho dòng "Xong khi". Phần so cả trận để T109 làm cùng lúc với việc chấm điểm thủ môn.
 
 - [ ] **T102** — Gán hành động cho cầu thủ cụ thể
   - File: sửa `src/engine/tran.ts`, `src/engine/ganHanhDong.test.ts`
