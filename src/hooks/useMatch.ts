@@ -1,16 +1,24 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { LoiCauHinhTran, type LyDoKhongBatDau } from '../engine/batDau'
+import { chuanHoaLoiLuuTru } from '../services/errors'
+import { dungBaoCao } from '../engine/baoCao'
 import { taoMaTran } from '../engine/rng'
 import {
   apDungCanThiep,
   buocTiep,
   cauHinhDauLai,
   chayHetTran,
+  dangKyTuTrangThai,
+  dongSuKien,
   taoTran,
   type CanThiep,
   type CauHinhTran,
   type LyDoTuChoiCanThiep,
+  type TrangThaiTran,
 } from '../engine/tran'
+import * as matchRepo from '../services/matchRepo'
+import type { TeamSummary } from '../services/teamRepo'
+import type { AnhChupDoi, TranDaLuu } from '../storage/db'
 import { useAppStore } from '../store/appStore'
 
 /*
@@ -39,6 +47,74 @@ export const CAC_MUC_TOC_DO: readonly MucTocDo[] = [
 /** Nguồn ngẫu nhiên THẬT, tạo ở ngoài engine — engine không được tự gọi (P1). */
 const RNG_THAT = { next: () => Math.random() }
 
+
+/*
+  Lưu trận vào lịch sử khi nó kết thúc (AC-11.7, quyết định D45 và D46).
+
+  Bản ghi giữ CẢ `teamId` lẫn ảnh chụp tên/màu/logo lúc đó: còn đội thì tên
+  phân giải từ đội đang sống nên đổi tên đội là lịch sử đổi theo (AC-1.5);
+  đội đã bị xoá thì rơi về ảnh chụp, nên trận cũ vẫn xem lại được với tên lúc
+  đó (spec mục 5). Giữ một trong hai là mất một trong hai yêu cầu.
+*/
+function anhChupDoi(teamId: string, teams: readonly TeamSummary[]): AnhChupDoi {
+  const doi = teams.find((d) => d.id === teamId)
+  return {
+    teamId,
+    ten: doi?.name ?? '',
+    mauChinh: doi?.primaryColor ?? '#334155',
+    mauPhu: doi?.secondaryColor ?? '#f8fafc',
+    logoImageId: doi?.logoImageId ?? null,
+  }
+}
+
+function dungBanGhi(
+  tt: TrangThaiTran,
+  id: string,
+  teams: readonly TeamSummary[],
+): TranDaLuu {
+  return {
+    id,
+    maTran: tt.maTran,
+    phienBanEngine: tt.phienBanEngine,
+    ketThucLuc: Date.now(),
+    tiSo: tt.tiSo,
+    doiChuNha: anhChupDoi(tt.ben.nha.teamId, teams),
+    doiKhach: anhChupDoi(tt.ben.khach.teamId, teams),
+    sanTrungLap: tt.sanTrungLap,
+    doiCuaNguoiDung: tt.doiCuaNguoiDung,
+    nha: dangKyTuTrangThai(tt.ben.nha),
+    khach: dangKyTuTrangThai(tt.ben.khach),
+    canThiep: tt.canThiep,
+    cacSuKien: dongSuKien(tt),
+    baoCao: dungBaoCao(tt),
+  }
+}
+
+/**
+ * Bắt đầu một trận, KHÔNG phải hook.
+ *
+ * Tách khỏi `useMatch` vì mỗi lần gọi hook là thêm một đồng hồ: hook đăng ký
+ * một `setTimeout` lặp để đi từng phút, nên hai component cùng gọi `useMatch`
+ * trong lúc trận đang chạy sẽ làm trận đi **hai phút mỗi nhịp**. `App` chỉ
+ * cần mở một trận từ lịch sử, không cần đồng hồ, nên nó gọi hàm này.
+ *
+ * Trả về danh sách lý do nếu không bắt đầu được, hay `null` khi đã bắt đầu.
+ */
+export function batDauTranNgay(
+  cauHinh: CauHinhTran,
+): readonly LyDoKhongBatDau[] | null {
+  try {
+    useAppStore.getState().datTran(taoTran(cauHinh))
+    // Mỗi lần bắt đầu là một lần chạy mới, kể cả khi đấu lại cùng mã trận.
+    useAppStore.getState().datIdLanChay(crypto.randomUUID())
+    useAppStore.getState().datTranDangChay(true)
+    return null
+  } catch (loi) {
+    if (loi instanceof LoiCauHinhTran) return loi.cacLyDo
+    throw loi
+  }
+}
+
 export function useMatch() {
   const tran = useAppStore((s) => s.tran)
   const dangChay = useAppStore((s) => s.tranDangChay)
@@ -47,6 +123,8 @@ export function useMatch() {
   const [lyDoKhongBatDau, datLyDoKhongBatDau] = useState<
     readonly LyDoKhongBatDau[]
   >([])
+  /* Số trận cũ vừa bị loại khỏi lịch sử — báo đúng MỘT lần (spec mục 5). */
+  const [daLoaiTranCu, datDaLoaiTranCu] = useState<number | null>(null)
 
   /*
     Giữ mức tốc độ trong ref để đổi tốc độ áp dụng NGAY ở nhịp kế tiếp, không
@@ -56,18 +134,9 @@ export function useMatch() {
   tocDoRef.current = tocDo
 
   const batDauTran = useCallback((cauHinh: CauHinhTran): boolean => {
-    try {
-      useAppStore.getState().datTran(taoTran(cauHinh))
-      datLyDoKhongBatDau([])
-      datDangChay(true)
-      return true
-    } catch (loi) {
-      if (loi instanceof LoiCauHinhTran) {
-        datLyDoKhongBatDau(loi.cacLyDo)
-        return false
-      }
-      throw loi
-    }
+    const loi = batDauTranNgay(cauHinh)
+    datLyDoKhongBatDau(loi ?? [])
+    return loi === null
   }, [])
 
   const tamDung = useCallback(() => datDangChay(false), [])
@@ -139,6 +208,42 @@ export function useMatch() {
     Nguồn ngẫu nhiên THẬT nằm ở đây chứ không trong engine (P1): mã trận mới
     do tầng này sinh ra rồi truyền vào.
   */
+  /*
+    Lưu trận ngay khi nó kết thúc (AC-11.7).
+
+    Chốt `idDaLuu` được đặt TRƯỚC khi chờ ghi đĩa: `useMatch` được gọi từ hai
+    trang khác nhau, nên không có chốt thì một trận kết thúc sẽ vào lịch sử
+    hai lần. Đây đúng cái bẫy đã làm trận đứng im ở phút 0 hồi Giai đoạn 3,
+    khi cờ `dangChay` còn là state riêng của hook.
+  */
+  const daKetThuc = tran?.ketThuc ?? false
+  useEffect(() => {
+    if (!daKetThuc) return
+
+    const st = useAppStore.getState()
+    const tt = st.tran
+    const id = st.idLanChay
+    if (!tt || !tt.ketThuc || !id || st.idDaLuu === id) return
+
+    st.datIdDaLuu(id)
+    void matchRepo
+      .luu(dungBanGhi(tt, id, st.teams))
+      .then(async ({ daLoaiBo }) => {
+        useAppStore.getState().datLichSu(await matchRepo.danhSach())
+        if (daLoaiBo.length > 0) {
+          datDaLoaiTranCu(daLoaiBo.length)
+        }
+      })
+      .catch((loi: unknown) => {
+        /*
+          Ghi lịch sử hỏng thì phải NÓI (AC-4.7): người dùng cần biết trận vừa
+          xem không được lưu, và còn đường xuất tệp sao lưu.
+        */
+        useAppStore.getState().datLoiLuuTru(chuanHoaLoiLuuTru(loi))
+        useAppStore.getState().datIdDaLuu(null)
+      })
+  }, [daKetThuc])
+
   const dauLai = useCallback((dungMaCu: boolean): boolean => {
     const hienTai = useAppStore.getState().tran
     if (!hienTai) return false
@@ -160,5 +265,7 @@ export function useMatch() {
     canThiep,
     roiTran,
     dauLai,
+    daLoaiTranCu,
+    xoaBaoDaLoai: () => datDaLoaiTranCu(null),
   }
 }

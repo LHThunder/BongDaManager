@@ -3,6 +3,10 @@ import { laySoDo, SO_DO_MAC_DINH } from '../domain/formations'
 import { CHI_THI_MAC_DINH } from '../domain/instructions'
 import { vaiTroMacDinh } from '../domain/roles'
 import type { Player, Tactic, Team } from '../domain/types'
+import type { BaoCaoTran } from '../engine/baoCao'
+import type { BenDoi, SuKien, TiSo } from '../engine/suKien'
+import type { CanThiep } from '../engine/tran'
+import type { HoSoCauThu } from '../engine/sucManh'
 import { SCHEMA_VERSION } from './migrations'
 
 export const DB_NAME = 'bongda'
@@ -12,10 +16,11 @@ export const DB_NAME = 'bongda'
  * khác với `SCHEMA_VERSION` của tệp sao lưu trong `migrations.ts`.
  *
  * Phiên bản 2 thêm store `tactics` và trường `activeTacticId` cho `teams`.
+ * Phiên bản 3 thêm hai store lịch sử trận đấu (AC-11.7).
  * Việc tăng số này KHÔNG LÙI ĐƯỢC bằng `git revert`: bản code cũ yêu cầu
  * phiên bản 1, và IndexedDB từ chối mở một database có phiên bản cao hơn.
  */
-export const DB_VERSION = 2
+export const DB_VERSION = 3
 
 /** Ảnh đã nén, lưu dạng Blob trong store riêng (quyết định D2 của plan). */
 export interface StoredImage {
@@ -29,6 +34,69 @@ export interface StoredImage {
 export interface MetaRow {
   readonly key: string
   readonly value: unknown
+}
+
+
+/*
+  Lịch sử trận đấu (AC-11.7, quyết định D44 và D44b).
+
+  HAI store chứ không một: `matches` giữ bản ghi NẶNG có cả dòng sự kiện, còn
+  `matchSummaries` giữ bản tóm tắt nhẹ. Trang lịch sử chỉ đọc store nhẹ; mở
+  một trận ra mới đọc hàng nặng tương ứng.
+
+  Vì sao phải tách: IndexedDB giải tuần tự CẢ hàng, nên `getAll('matches')` để
+  dựng danh sách là đọc hàng trăm KB dòng sự kiện chỉ để in ra 20 cái tỉ số —
+  đâm thẳng vào ngân sách "mở ứng dụng với 20 đội và 20 trận trong dưới 2
+  giây" của spec mục 6. Hai store có nguy cơ lệch nhau nên chúng luôn được ghi
+  và xoá trong CÙNG một transaction (xem `matchRepo`).
+*/
+
+/** Ảnh chụp nhận diện một đội tại thời điểm trận diễn ra (quyết định D46). */
+export interface AnhChupDoi {
+  readonly teamId: string
+  readonly ten: string
+  readonly mauChinh: string
+  readonly mauPhu: string
+  readonly logoImageId: string | null
+}
+
+/** Phần nhẹ của một trận đã lưu: đủ để vẽ một dòng trong trang lịch sử. */
+export interface TomTatTran {
+  readonly id: string
+  readonly maTran: string
+  readonly phienBanEngine: number
+  /** Thời điểm kết thúc, dạng mốc thời gian mili-giây. */
+  readonly ketThucLuc: number
+  readonly tiSo: TiSo
+  readonly doiChuNha: AnhChupDoi
+  readonly doiKhach: AnhChupDoi
+}
+
+/** Đăng ký của một bên, đủ để dựng lại trận theo AC-8.11. */
+export interface BenDaLuu {
+  readonly teamId: string
+  readonly chienThuatXuatPhat: Tactic
+  readonly trenSan: readonly string[]
+  readonly duBi: readonly string[]
+  readonly cacCauThu: readonly HoSoCauThu[]
+}
+
+/**
+ * Một trận đã kết thúc, lưu đủ những gì AC-11.7 liệt kê.
+ *
+ * `baoCao` được lưu THAY VÌ tính lại: điểm cầu thủ dựa trên `ThongKeCauThu`,
+ * mà số liệu đó không suy ra được từ dòng sự kiện đã bị bộ lọc mật độ của D27
+ * cắt. Không lưu thì mở lại trận cũ sẽ ra điểm khác, hoặc không có điểm.
+ */
+export interface TranDaLuu extends TomTatTran {
+  readonly sanTrungLap: boolean
+  readonly doiCuaNguoiDung: BenDoi
+  readonly nha: BenDaLuu
+  readonly khach: BenDaLuu
+  readonly canThiep: readonly CanThiep[]
+  /** Dòng sự kiện ĐẦY ĐỦ sau lọc — đúng những gì người dùng đã đọc. */
+  readonly cacSuKien: readonly SuKien[]
+  readonly baoCao: BaoCaoTran
 }
 
 export interface BongDaDB extends DBSchema {
@@ -59,6 +127,15 @@ export interface BongDaDB extends DBSchema {
     value: Tactic
     indexes: { byTeam: string }
   }
+  matches: {
+    key: string
+    value: TranDaLuu
+  }
+  matchSummaries: {
+    key: string
+    value: TomTatTran
+    indexes: { byKetThucLuc: number }
+  }
 }
 
 export const TEN_CAC_STORE = [
@@ -67,6 +144,8 @@ export const TEN_CAC_STORE = [
   'players',
   'images',
   'tactics',
+  'matches',
+  'matchSummaries',
 ] as const
 
 /**
@@ -133,6 +212,28 @@ export function moDb(): Promise<IDBPDatabase<BongDaDB>> {
         if (phienBanCu < 2) {
           const tactics = db.createObjectStore('tactics', { keyPath: 'id' })
           tactics.createIndex('byTeam', 'teamId')
+        }
+
+        /*
+          Lên phiên bản 3: thêm hai store lịch sử, và GHI LẠI hàng
+          `meta.schemaVersion`.
+
+          Hàng đó trước đây chỉ được ghi lúc tạo database mới, nên máy đã có dữ
+          liệu sẽ mãi mang số cũ sau khi `SCHEMA_VERSION` tăng —
+          `docSchemaVersion()` thành một câu nói sai. Chưa có code sản phẩm nào
+          đọc nó, nhưng để sai là để một cái bẫy cho người sau.
+        */
+        if (phienBanCu < 3) {
+          db.createObjectStore('matches', { keyPath: 'id' })
+          const tomTat = db.createObjectStore('matchSummaries', {
+            keyPath: 'id',
+          })
+          tomTat.createIndex('byKetThucLuc', 'ketThucLuc')
+
+          tx.objectStore('meta').put({
+            key: 'schemaVersion',
+            value: SCHEMA_VERSION,
+          })
         }
       },
     }).then(async (db) => {

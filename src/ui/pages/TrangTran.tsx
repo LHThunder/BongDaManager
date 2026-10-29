@@ -25,6 +25,7 @@ import {
   CAN_THIEP_GIUA_TRAN,
   CHON_CAP_DAU,
   CHUNG,
+  LICH_SU,
   LY_DO_TU_CHOI_CAN_THIEP,
   SO_SANH_TRAN,
   SAN_2D,
@@ -54,6 +55,8 @@ export function TrangTran({ onRoiTran }: Props) {
     canThiep,
     roiTran,
     dauLai,
+    daLoaiTranCu,
+    xoaBaoDaLoai,
   } = useMatch()
 
   const [loiCanThiep, datLoiCanThiep] = useState<string | null>(null)
@@ -321,6 +324,26 @@ export function TrangTran({ onRoiTran }: Props) {
           onDoiTocDo={datTocDo}
         />
       </div>
+
+      {/*
+        Lịch sử đủ 20 trận thì trận cũ nhất rời đi — báo đúng MỘT lần
+        (spec mục 5), và người dùng tự đóng.
+      */}
+      {daLoaiTranCu !== null && (
+        <div
+          role="status"
+          className="mt-4 flex items-start gap-3 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900"
+        >
+          <span className="flex-1">{LICH_SU.daLoaiTranCu(daLoaiTranCu)}</span>
+          <button
+            type="button"
+            onClick={xoaBaoDaLoai}
+            className="shrink-0 font-medium underline focus:outline-none focus:ring-2 focus:ring-amber-400"
+          >
+            {LICH_SU.dongBaoDaLoai}
+          </button>
+        </div>
+      )}
 
       {/*
         Báo cáo sau trận chỉ hiện khi trận đã kết thúc (AC-11.1 → AC-11.3,

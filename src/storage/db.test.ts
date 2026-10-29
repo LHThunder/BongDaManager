@@ -58,7 +58,7 @@ describe('mở database', () => {
   it('ghi sẵn schemaVersion hiện tại vào meta', async () => {
     await moDb()
     expect(await docSchemaVersion()).toBe(SCHEMA_VERSION)
-    expect(SCHEMA_VERSION).toBe(3)
+    expect(SCHEMA_VERSION).toBe(4)
   })
 
   it('mở lại nhiều lần thì dùng chung một kết nối', async () => {
@@ -296,9 +296,17 @@ describe('nâng cấp database v1 lên v2 (AC-5.10, AC-7.4)', () => {
     )
   })
 
-  it('không chạm schemaVersion trong meta', async () => {
+  /*
+    Trước Giai đoạn 4, phép này khẳng định bước nâng cấp KHÔNG chạm hàng
+    `meta.schemaVersion` — nên máy đã có dữ liệu sẽ mãi mang số cũ sau khi
+    `SCHEMA_VERSION` tăng, và `docSchemaVersion()` thành một câu nói sai.
+
+    Bước lên phiên bản 3 ghi lại hàng đó, nên khẳng định đúng bây giờ là:
+    nâng cấp xong thì số trong database khớp số mà bản ứng dụng này phát hành.
+  */
+  it('nâng cấp xong thì schemaVersion trong meta khớp bản hiện tại', async () => {
     await moDb()
-    expect(await docSchemaVersion()).toBe(2)
+    expect(await docSchemaVersion()).toBe(SCHEMA_VERSION)
   })
 
   it('mở lại lần nữa không sinh thêm chiến thuật nào', async () => {

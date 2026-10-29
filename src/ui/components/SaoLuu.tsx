@@ -78,10 +78,14 @@ export function SaoLuu({ onDaNhap }: Props) {
     datLoi(null)
     try {
       const baoCao = await nhapTep(tepDangCho, cheDo)
-      datThongBao(
+      const cau =
         cheDo === 'thay-the'
-          ? SAO_LUU.daNhapThayThe(baoCao.soDoi, baoCao.soCauThu)
-          : SAO_LUU.daNhapGop(baoCao.soDoi, baoCao.soCauThu),
+          ? SAO_LUU.daNhapThayThe(baoCao.soDoi, baoCao.soCauThu, baoCao.soTran)
+          : SAO_LUU.daNhapGop(baoCao.soDoi, baoCao.soCauThu)
+      datThongBao(
+        baoCao.soTranBoQua > 0
+          ? `${cau} ${SAO_LUU.gopBoQuaLichSu(baoCao.soTranBoQua)}`
+          : cau,
       )
       datTepDangCho(null)
       datTomTat(null)

@@ -1,6 +1,12 @@
 import { strToU8, unzipSync, zipSync, type Zippable } from 'fflate'
 import type { Player, Tactic, Team } from '../domain/types'
-import { moDb, taoChienThuatMacDinh, type StoredImage } from '../storage/db'
+import { tomTatCua } from './matchRepo'
+import {
+  moDb,
+  taoChienThuatMacDinh,
+  type StoredImage,
+  type TranDaLuu,
+} from '../storage/db'
 import {
   MigrationError,
   SCHEMA_VERSION,
@@ -47,6 +53,14 @@ export interface BaoCaoNhap {
   readonly soDoi: number
   readonly soCauThu: number
   readonly soAnh: number
+  /** Số trận lịch sử đã nhập vào. */
+  readonly soTran: number
+  /**
+   * Số trận trong tệp bị BỎ QUA vì nhập gộp (quyết định D48b). Lớn hơn 0 thì
+   * giao diện phải nói ra — người dùng có quyền biết tệp của họ còn thứ chưa
+   * vào được.
+   */
+  readonly soTranBoQua: number
 }
 
 export const TEN_MANIFEST = 'manifest.json'
@@ -84,11 +98,18 @@ export async function exportAll(): Promise<Blob> {
     const players = await db.getAll('players')
     const images = await db.getAll('images')
     const tactics = await db.getAll('tactics')
+    const matches = await db.getAll('matches')
 
     const manifest: ManifestHienTai = {
-      schemaVersion: 3,
+      schemaVersion: SCHEMA_VERSION,
       exportedAt: new Date().toISOString(),
       teams,
+      /*
+        Lịch sử trận đấu vào tệp sao lưu (AC-4.2, quyết định D48): P3 đặt
+        đường xuất tệp làm lưới an toàn duy nhất cho dữ liệu người dùng, nên
+        20 trận nằm ngoài tệp thì xuất rồi nhập lại là mất sạch.
+      */
+      matches,
       tactics: tactics.map((c) => ({
         ...c,
         oVien: c.oVien.map((o) => ({ ...o })),
@@ -314,6 +335,20 @@ interface DuLieuSanSang {
   readonly players: Player[]
   readonly images: StoredImage[]
   readonly tactics: Tactic[]
+  /**
+   * Lịch sử trận đấu — **rỗng khi nhập GỘP** (quyết định D48b).
+   *
+   * Chế độ gộp đánh id MỚI cho mọi bản ghi để không ghi đè dữ liệu đang có,
+   * nhưng mỗi bản ghi trận lại trỏ tới đội và cầu thủ bằng id CŨ ở bảy chỗ
+   * lồng nhau (đội hình, dự bị, hồ sơ, ô chiến thuật, can thiệp, dòng sự
+   * kiện, báo cáo). Viết lại id ở cả bảy chỗ mà sót một chỗ thì tên cầu thủ
+   * hiện ra thành uuid, và không test nào báo. Nên gộp bỏ qua lịch sử và
+   * **nói rõ cho người dùng**; nhập thay thế thì mang lịch sử vào đầy đủ, vì
+   * ở đó id không đổi nên mọi thứ khớp sẵn.
+   */
+  readonly matches: readonly TranDaLuu[]
+  /** Số trận trong tệp đã bị bỏ qua vì nhập gộp; 0 khi nhập thay thế. */
+  readonly soTranBoQua: number
 }
 
 /**
@@ -393,7 +428,16 @@ function chuanBiDuLieu(daDoc: TepDaDoc, cheDo: CheDoNhap): DuLieuSanSang {
       p.portraitImageId === null ? null : anhXa(p.portraitImageId),
   }))
 
-  return { teams, players, images, tactics }
+  const giuLichSu = cheDo === 'thay-the'
+
+  return {
+    teams,
+    players,
+    images,
+    tactics,
+    matches: giuLichSu ? manifest.matches : [],
+    soTranBoQua: giuLichSu ? 0 : manifest.matches.length,
+  }
 }
 
 export async function importAll(
@@ -407,7 +451,15 @@ export async function importAll(
   try {
     const db = await moDb()
     const tx = db.transaction(
-      ['teams', 'players', 'images', 'meta', 'tactics'],
+      [
+        'teams',
+        'players',
+        'images',
+        'meta',
+        'tactics',
+        'matches',
+        'matchSummaries',
+      ],
       'readwrite',
     )
 
@@ -416,12 +468,18 @@ export async function importAll(
       await tx.objectStore('players').clear()
       await tx.objectStore('images').clear()
       await tx.objectStore('tactics').clear()
+      await tx.objectStore('matches').clear()
+      await tx.objectStore('matchSummaries').clear()
     }
 
     for (const a of sanSang.images) await tx.objectStore('images').put(a)
     for (const d of sanSang.teams) await tx.objectStore('teams').put(d)
     for (const p of sanSang.players) await tx.objectStore('players').put(p)
     for (const c of sanSang.tactics) await tx.objectStore('tactics').put(c)
+    for (const t of sanSang.matches) {
+      await tx.objectStore('matches').put(t)
+      await tx.objectStore('matchSummaries').put(tomTatCua(t))
+    }
 
     await tx.objectStore('meta').put({
       key: 'schemaVersion',
@@ -435,6 +493,8 @@ export async function importAll(
       soDoi: sanSang.teams.length,
       soCauThu: sanSang.players.length,
       soAnh: sanSang.images.length,
+      soTran: sanSang.matches.length,
+      soTranBoQua: sanSang.soTranBoQua,
     }
   } catch (loi) {
     throw chuanHoaLoiLuuTru(loi)

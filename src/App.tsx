@@ -1,10 +1,13 @@
 import { useCallback, useState } from 'react'
 import { useAppStore } from './store/appStore'
-import { CHON_CAP_DAU, CHUNG, cauLoi } from './ui/strings'
+import { CHON_CAP_DAU, CHUNG, LICH_SU, cauLoi } from './ui/strings'
 import { ChonCapDau } from './ui/pages/ChonCapDau'
 import { DanhSachDoi } from './ui/pages/DanhSachDoi'
 import { TrangChienThuat } from './ui/pages/TrangChienThuat'
 import { TrangDoi } from './ui/pages/TrangDoi'
+import { batDauTranNgay } from './hooks/useMatch'
+import type { TranDaLuu } from './storage/db'
+import { TrangLichSu } from './ui/pages/TrangLichSu'
 import { TrangTran } from './ui/pages/TrangTran'
 
 type Khung =
@@ -13,6 +16,7 @@ type Khung =
   | { readonly loai: 'trang-chien-thuat'; readonly teamId: string }
   | { readonly loai: 'chon-cap-dau' }
   | { readonly loai: 'tran-dau' }
+  | { readonly loai: 'lich-su' }
 
 export default function App() {
   const [khung, datKhung] = useState<Khung>({ loai: 'danh-sach-doi' })
@@ -38,6 +42,34 @@ export default function App() {
   const moTranDau = useCallback(() => {
     datKhung({ loai: 'tran-dau' })
   }, [])
+
+  const moLichSu = useCallback(() => {
+    datKhung({ loai: 'lich-su' })
+  }, [])
+
+  /*
+    Đấu lại một trận trong lịch sử (AC-11.6): dựng lại cấu hình từ bản ghi
+    rồi mở thẳng màn trận — không bắt người dùng chọn lại đội hay đăng ký
+    lại 11+7.
+  */
+  /*
+    Dùng `batDauTranNgay` chứ KHÔNG gọi `useMatch` ở đây: mỗi lần gọi hook là
+    thêm một đồng hồ trận, nên `App` gọi hook thì trận sẽ đi hai phút mỗi
+    nhịp khi màn trận cũng đang mở.
+  */
+  const dauLaiTuLichSu = useCallback(
+    (tran: TranDaLuu) => {
+      const loi = batDauTranNgay({
+        maTran: tran.maTran,
+        sanTrungLap: tran.sanTrungLap,
+        doiCuaNguoiDung: tran.doiCuaNguoiDung,
+        nha: tran.nha,
+        khach: tran.khach,
+      })
+      if (loi === null) datKhung({ loai: 'tran-dau' })
+    },
+    [],
+  )
 
   return (
     <div className="min-h-screen">
@@ -71,7 +103,14 @@ export default function App() {
       <main className="mx-auto max-w-5xl px-4 py-8">
         {khung.loai === 'danh-sach-doi' && (
           <>
-            <div className="mb-4 flex justify-end">
+            <div className="mb-4 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={moLichSu}
+                className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              >
+                {LICH_SU.tieuDe}
+              </button>
               <button
                 type="button"
                 onClick={moChonCapDau}
@@ -89,6 +128,10 @@ export default function App() {
         )}
 
         {khung.loai === 'tran-dau' && <TrangTran onRoiTran={veDanhSach} />}
+
+        {khung.loai === 'lich-su' && (
+          <TrangLichSu onQuayLai={veDanhSach} onDauLai={dauLaiTuLichSu} />
+        )}
 
         {khung.loai === 'trang-doi' && (
           <TrangDoi

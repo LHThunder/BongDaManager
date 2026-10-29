@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import type { TrangThaiTran } from '../engine/tran'
+import type { TomTatTran } from '../storage/db'
 
 /** Tóm tắt một lần chạy, đủ để so hai lần cùng mã trận (AC-8.12). */
 export interface KetQuaDaChay {
@@ -86,6 +87,25 @@ export interface AppState {
   */
   readonly ketQuaTruoc: KetQuaDaChay | null
   datKetQuaTruoc(kq: KetQuaDaChay | null): void
+
+  /*
+    Hai lát phục vụ việc lưu trận vào lịch sử (AC-11.7).
+
+    `idLanChay` sinh mới mỗi lần bắt đầu một trận, kể cả khi đấu lại CÙNG mã
+    trận — hai lần chạy cùng mã vẫn là hai trận trong lịch sử.
+
+    `idDaLuu` là chốt chặn chạy-một-lần: `useMatch` được gọi từ hai trang khác
+    nhau, nên nếu không có chốt thì trận kết thúc sẽ được lưu hai lần. Chốt
+    được đặt TRƯỚC khi chờ ghi đĩa, để lần gọi thứ hai bỏ cuộc ngay.
+  */
+  readonly idLanChay: string | null
+  datIdLanChay(id: string | null): void
+  readonly idDaLuu: string | null
+  datIdDaLuu(id: string | null): void
+
+  /** Danh sách trận đã lưu, để trang lịch sử vẽ mà không đọc lại đĩa. */
+  readonly lichSu: readonly TomTatTran[]
+  datLichSu(ds: readonly TomTatTran[]): void
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -160,6 +180,14 @@ export const useAppStore = create<AppState>((set) => ({
 
   ketQuaTruoc: null,
   datKetQuaTruoc: (ketQuaTruoc) => set({ ketQuaTruoc }),
+
+  idLanChay: null,
+  datIdLanChay: (idLanChay) => set({ idLanChay }),
+  idDaLuu: null,
+  datIdDaLuu: (idDaLuu) => set({ idDaLuu }),
+
+  lichSu: [],
+  datLichSu: (lichSu) => set({ lichSu }),
 }))
 
 /** Trạng thái ban đầu, dùng để test dọn store giữa các lần chạy. */
@@ -177,5 +205,8 @@ export function datLaiStore(): void {
     tran: null,
     tranDangChay: false,
     ketQuaTruoc: null,
+    idLanChay: null,
+    idDaLuu: null,
+    lichSu: [],
   })
 }

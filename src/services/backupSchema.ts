@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import type { TranDaLuu } from '../storage/db'
 import { ATTRIBUTES, GK_ATTRIBUTES } from '../domain/attributes'
 import { FORMATIONS } from '../domain/formations'
 import {
@@ -141,11 +142,130 @@ const ThanTepV3 = z.object({
   tactics: z.array(ChienThuat),
 })
 
+
+/*
+  Lịch sử trận đấu trong tệp sao lưu (AC-11.7, quyết định D48).
+
+  MỨC KIỂM: phần tóm tắt — thứ mà trang lịch sử đọc để vẽ danh sách — được
+  kiểm CHẶT; phần nặng (đội hình, can thiệp, dòng sự kiện, báo cáo) chỉ kiểm
+  đúng những trường mà giao diện thật sự đọc tới.
+
+  Vì sao không kiểm sâu tới từng trường: bản ghi trận ôm gần như toàn bộ kiểu
+  của engine, nên một schema zod đầy đủ sẽ là bản sao thứ hai của chúng — và
+  hai bản sao sẽ có ngày lệch nhau. Đổi lại, mọi trường mà giao diện đọc đều
+  được kiểm, nên một tệp hỏng không thể làm trang lịch sử vỡ.
+*/
+const AnhChupDoiSchema = z.object({
+  teamId: z.string().min(1),
+  ten: z.string(),
+  mauChinh: z.string().min(1),
+  mauPhu: z.string().min(1),
+  logoImageId: z.string().min(1).nullable(),
+})
+
+const SuKienDaLuu = z
+  .object({
+    phut: z.number().int().nonnegative(),
+    buGio: z.boolean(),
+    loai: z.string().min(1),
+    doi: z.enum(['nha', 'khach']),
+    cacCauThu: z.array(z.string()),
+    mauCau: z.number().int().nonnegative(),
+  })
+  .passthrough()
+
+const ThanhPhanDiemDaLuu = z.object({
+  tieuChi: z.string().min(1),
+  soLieu: z.number(),
+  diemCong: z.number(),
+})
+
+const BaoCaoDaLuu = z
+  .object({
+    tiSo: z.object({
+      nha: z.number().int().nonnegative(),
+      khach: z.number().int().nonnegative(),
+    }),
+    nguoiGhiBan: z.array(
+      z.object({
+        doi: z.enum(['nha', 'khach']),
+        playerId: z.string().min(1),
+        phut: z.number().int().nonnegative(),
+        buGio: z.boolean(),
+      }),
+    ),
+    theoBen: z.record(z.string(), z.record(z.string(), z.number())),
+    diemCauThu: z.array(
+      z
+        .object({
+          doi: z.enum(['nha', 'khach']),
+          playerId: z.string().min(1),
+          viTriDaDa: z.string().min(1),
+          diem: z.number(),
+          cacThanhPhan: z.array(ThanhPhanDiemDaLuu),
+          phutVao: z.number().int().nonnegative().nullable(),
+          phutRa: z.number().int().nonnegative().nullable(),
+        })
+        .passthrough(),
+    ),
+  })
+  .passthrough()
+
+const BenDaLuuSchema = z
+  .object({
+    teamId: z.string().min(1),
+    trenSan: z.array(z.string()),
+    duBi: z.array(z.string()),
+  })
+  .passthrough()
+
+const TranDaLuuSchema = z
+  .object({
+    id: z.string().min(1),
+    maTran: z.string().min(1),
+    phienBanEngine: z.number().int().positive(),
+    ketThucLuc: z.number().int().nonnegative(),
+    tiSo: z.object({
+      nha: z.number().int().nonnegative(),
+      khach: z.number().int().nonnegative(),
+    }),
+    doiChuNha: AnhChupDoiSchema,
+    doiKhach: AnhChupDoiSchema,
+    sanTrungLap: z.boolean(),
+    doiCuaNguoiDung: z.enum(['nha', 'khach']),
+    nha: BenDaLuuSchema,
+    khach: BenDaLuuSchema,
+    canThiep: z.array(z.unknown()),
+    cacSuKien: z.array(SuKienDaLuu),
+    baoCao: BaoCaoDaLuu,
+  })
+  .passthrough()
+
+const ThanTepV4 = z.object({
+  schemaVersion: z.literal(4),
+  exportedAt: z.string().min(1),
+  teams: z.array(DoiV3),
+  players: z.array(CauThu),
+  images: z.array(AnhV2),
+  tactics: z.array(ChienThuat),
+  matches: z.array(TranDaLuuSchema),
+})
+
 export type TepSaoLuuV1 = z.infer<typeof ThanTepV1>
 export type TepSaoLuuV2 = z.infer<typeof ThanTepV2>
 export type TepSaoLuuV3 = z.infer<typeof ThanTepV3>
-/** Hình dạng hiện tại mà phần còn lại của ứng dụng làm việc với. */
-export type ManifestHienTai = TepSaoLuuV3
+export type TepSaoLuuV4 = z.infer<typeof ThanTepV4>
+/**
+ * Hình dạng hiện tại mà phần còn lại của ứng dụng làm việc với.
+ *
+ * `matches` dùng thẳng kiểu `TranDaLuu` của lớp lưu trữ chứ không dùng kiểu
+ * zod suy ra: schema zod ở trên là **cổng kiểm dữ liệu vào**, cố tình chỉ
+ * kiểm tới mức giao diện cần, nên kiểu nó suy ra lỏng hơn kiểu thật. Phần
+ * còn lại của ứng dụng phải làm việc với kiểu thật.
+ */
+export type ManifestHienTai = Omit<TepSaoLuuV4, 'matches'> & {
+  readonly matches: readonly TranDaLuu[]
+}
 
 function idTrungLap(cacId: readonly string[]): string | null {
   const daThay = new Set<string>()
@@ -288,7 +408,17 @@ function kiemToanVen(
  * bộ chiến thuật `tacticRepo` từ chối nạp — tức là người dùng mất chiến
  * thuật dù tệp nhập "thành công". P3 không cho phép điều đó.
  */
-function kiemChienThuat(tep: TepSaoLuuV3, ctx: z.RefinementCtx): void {
+/*
+  Nhận kiểu CHUNG của v3 và v4 thay vì riêng v3: hai phiên bản khác nhau đúng
+  một trường `matches`, mà phép kiểm này không đọc tới nó. Ép về `TepSaoLuuV3`
+  thì `schemaVersion: 4` không khớp kiểu literal.
+*/
+type PhanChienThuatCanKiem = Omit<TepSaoLuuV3, 'schemaVersion'>
+
+function kiemChienThuat(
+  tep: PhanChienThuatCanKiem,
+  ctx: z.RefinementCtx,
+): void {
   const idDoi = new Set(tep.teams.map((d) => d.id))
   const doiCuaCauThu = new Map(tep.players.map((p) => [p.id, p.teamId]))
   const idChienThuat = new Set(tep.tactics.map((c) => c.id))
@@ -393,6 +523,10 @@ export const SchemaSaoLuuV3 = ThanTepV3.superRefine((tep, ctx) => {
   kiemToanVen(tep, ctx)
   kiemChienThuat(tep, ctx)
 })
+export const SchemaSaoLuuV4 = ThanTepV4.superRefine((tep, ctx) => {
+  kiemToanVen(tep, ctx)
+  kiemChienThuat(tep, ctx)
+})
 
 /**
  * Schema theo từng phiên bản. P7: thêm bản mới CẠNH bản cũ, không sửa bản cũ —
@@ -402,6 +536,7 @@ export const SCHEMA_THEO_PHIEN_BAN = {
   1: SchemaSaoLuuV1,
   2: SchemaSaoLuuV2,
   3: SchemaSaoLuuV3,
+  4: SchemaSaoLuuV4,
 } as const
 
 export type PhienBanTep = keyof typeof SCHEMA_THEO_PHIEN_BAN

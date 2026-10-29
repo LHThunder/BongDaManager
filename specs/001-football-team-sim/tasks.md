@@ -5,8 +5,8 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | Giai đoạn 1 (36 AC), Giai đoạn 2 (22 AC), Giai đoạn 3 (26 AC) và Giai đoạn 4 (13 AC + 3 AC vắt lại) |
-| **Tiến độ** | 119/131 — Giai đoạn 1 xong (38/39, còn T035); Giai đoạn 2 và 3 xong trọn; Giai đoạn 4 đang làm (Phase 15–17 xong: T099–T118; còn Phase 18–19: T119–T130) |
-| **Sửa đổi** | 2026-10-29 — Phase 15, 16 và 17 (T099–T118) đã hiện thực và commit; Phase 18–19 chưa bắt đầu |
+| **Tiến độ** | 126/132 — Giai đoạn 1 xong (38/39, còn T035); Giai đoạn 2 và 3 xong trọn; Giai đoạn 4 đang làm (Phase 15–18 xong: T099–T125; còn Phase 19: T126–T129, cùng T130 và T131) |
+| **Sửa đổi** | 2026-10-29 — Phase 15–18 (T099–T125) đã hiện thực và commit; còn Phase 19, T130 và T131 |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
 > Mỗi task phải: chạm file cụ thể + có cách kiểm chứng + đủ nhỏ để làm trong một lần.
@@ -974,50 +974,73 @@ lại đọc được báo cáo cũ; xuất tệp sao lưu rồi nhập lại th
 > hơn và IndexedDB từ chối mở database có phiên bản cao hơn (rủi ro R18, cảnh
 > báo đã ghi sẵn trong `db.ts` từ Giai đoạn 1).
 
-- [ ] **T119** — Hai store lịch sử và nâng `DB_VERSION` lên 3
+- [x] **T119** — Hai store lịch sử và nâng `DB_VERSION` lên 3
   - File: sửa `src/storage/db.ts`, sửa `src/storage/db.test.ts`
   - Xong khi: **hai** store mới — `matches` (key `id`, giá trị `TranDaLuu` nặng) và `matchSummaries` (cùng `id`, index `byKetThucLuc`, giá trị `TomTatTran` nhẹ không có dòng sự kiện) theo quyết định D44b; `DB_VERSION` = **3**; bước nâng cũng **ghi lại** hàng `meta.schemaVersion` thành `SCHEMA_VERSION` mới; hai kiểu `TranDaLuu` và `TomTatTran` khai tường minh, không suy từ dữ liệu mẫu (hiến pháp mục 4); test xanh — mở database phiên bản 2 cũ rồi nâng lên 3 thì **đội, cầu thủ, ảnh và chiến thuật còn nguyên**, hai store mới rỗng, và `docSchemaVersion()` trả về số mới chứ không còn mắc ở 3.
   - AC: AC-11.7
   - Phụ thuộc: T110
   - **Sửa sau `/analyze`:** bản đầu chỉ có một store. Trang lịch sử dựng danh sách bằng `getAll('matches')` sẽ giải tuần tự **cả** dòng sự kiện của 20 trận chỉ để in ra 20 cái tỉ số — đâm vào ngân sách "mở app với 20 đội và 20 trận dưới **2 giây**" của spec mục 6. Và hàng `meta.schemaVersion` chỉ được ghi lúc tạo database (`db.ts:123`), nên máy đã có dữ liệu sẽ mãi mang số cũ.
 
-- [ ] **T120** — `matchRepo` giữ đúng 20 trận gần nhất
+- [x] **T120** — `matchRepo` giữ đúng 20 trận gần nhất
   - File: `src/services/matchRepo.ts`, `src/services/matchRepo.test.ts`
   - Xong khi: `luu`, `danhSach` (mới nhất trước, **chỉ đọc `matchSummaries`** — không chạm store nặng, D44b), `doc` (đọc hàng nặng, chỉ khi mở một trận), `catConHaiMuoi` (dùng sau khi nhập gộp, D48); `SO_TRAN_GIU_LAI = 20`; ghi `matches` và `matchSummaries` **cùng một transaction** với việc xoá trận cũ nhất, để hai store không bao giờ lệch nhau (quyết định D45, D44b); test xanh — lưu 21 trận thì còn đúng 20 và trận **cũ nhất** mất; `luu` trả về danh sách trận bị loại để giao diện báo một lần; vòng tròn lưu/đọc ra **đúng từng dòng sự kiện**; `danhSach` trả về đủ 20 tóm tắt mà **không** đọc hàng nào của `matches`; hàm `xoaTheoDoi` được khai nhưng **không gọi ở đâu** — xoá đội không làm mất lịch sử, và có test khẳng định đúng điều đó (spec mục 5).
   - AC: AC-11.7
   - Phụ thuộc: T119
 
-- [ ] **T121** — Lưu trận khi kết thúc, kèm ảnh chụp tên đội
+- [x] **T121** — Lưu trận khi kết thúc, kèm ảnh chụp tên đội
   - File: sửa `src/hooks/useMatch.ts`, sửa `src/store/appStore.ts`, sửa `src/ui/strings.ts`
   - Xong khi: trận kết thúc thì tự lưu vào lịch sử, bản ghi giữ **cả** `teamId` **và** ảnh chụp `{ ten, mauChinh, mauPhu, logoImageId }` lúc đó (quyết định D46), cộng `baoCao` đã tính và `phienBanEngine`; lịch sử đủ 20 trận thì hiện **một** thông báo nói rõ trận nào bị loại (spec mục 5); rời trang giữa trận thì **không** lưu gì (AC-9.10 nói trận bị huỷ và không vào lịch sử).
   - AC: AC-11.7
   - Phụ thuộc: T120
 
-- [ ] **T122** — Trang lịch sử 20 trận
+- [x] **T122** — Trang lịch sử 20 trận
   - File: `src/ui/pages/TrangLichSu.tsx`, sửa `src/App.tsx`, sửa `src/ui/strings.ts`
   - Xong khi: trang liệt kê 20 trận gần nhất (mới nhất trước) kèm tỉ số, hai đội và mã trận; mở một trận ra đọc lại **báo cáo và toàn bộ dòng sự kiện** đã lưu; tên đội lấy từ đội **đang sống** nên đổi tên đội thì lịch sử đổi theo (AC-1.5), còn đội đã xoá thì rơi về ảnh chụp và hiện rõ là **không đấu lại được** (spec mục 5); đi lại được bằng bàn phím (P9).
   - AC: AC-11.4, AC-1.5, AC-4.2
   - Phụ thuộc: T121
 
-- [ ] **T123** — Tệp sao lưu v4 mang lịch sử
+- [x] **T123** — Tệp sao lưu v4 mang lịch sử
   - File: sửa `src/storage/migrations.ts`, sửa `src/services/backupSchema.ts`, sửa `src/services/backupService.ts`, sửa `src/storage/migrations.test.ts`, sửa `src/services/backupService.test.ts`
   - Xong khi: `SCHEMA_VERSION` = **4**, thân tệp thêm `matches`, migration v3→v4 chỉ thêm `matches: []`; **đổi `backupService.ts:89`** đang ghi cứng `schemaVersion: 3` thành 4; chế độ nhập **gộp** (`CheDoNhap = 'gop'`, đã có từ Giai đoạn 1) gọi `catConHaiMuoi` để **cắt còn 20 trận mới nhất** theo `ketThucLuc`; schema zod v3 **không bị sửa**, schema v4 đặt cạnh nó (đúng cách đã ghi trong `migrations.ts`); test xanh — tệp **v1, v2, v3 vẫn nhập được** (P7) và vào với lịch sử rỗng; xuất 20 trận rồi nhập lại ra **đúng từng dòng sự kiện**; **gộp** một tệp 20 trận vào máy đang có 20 trận thì còn đúng 20 trận mới nhất, không phải 40; tệp hỏng không làm mất lịch sử đang có (P3).
   - AC: AC-4.2, AC-11.7
   - Phụ thuộc: T121
   - **Hai chỗ thêm sau `/analyze`:** (a) bỏ sót dòng 89 thì tệp v4 mang nhãn v3, lúc nhập chạy migration v3→v4 và **đặt `matches: []`** — xoá sạch lịch sử khỏi chính bản sao lưu của người dùng, trái P3; (b) gộp 20 vào 20 ra 40 là phá trần của AC-11.7, mà chế độ gộp đã tồn tại từ Giai đoạn 1 nên không thể bỏ qua.
 
-- [ ] **T124** — Từ chối phát lại trận khác phiên bản engine
+- [x] **T124** — Từ chối phát lại trận khác phiên bản engine
   - File: sửa `src/services/matchRepo.ts`, sửa `src/ui/pages/TrangLichSu.tsx`, sửa `src/ui/strings.ts`, sửa `src/services/matchRepo.test.ts`
   - Xong khi: trận có `phienBanEngine` khác bản đang chạy thì **vẫn xem lại được** báo cáo và dòng sự kiện đã lưu, nhưng nút đấu lại bị chặn kèm câu tiếng Việt nói rõ vì sao (quyết định D35, rủi ro R16); test xanh cho cả hai nhánh, với bản ghi phiên bản cũ **dựng tay trong test**. Đây là phần bù cho việc mã trận của Giai đoạn 3 không còn phát lại đúng.
   - AC: AC-11.7, AC-8.11 *(phần công bố giới hạn phát lại)*
   - Phụ thuộc: T122, T105
   - **Ghi nhận sau `/analyze`:** lịch sử ra đời ở chính Giai đoạn 4, nên **không bao giờ** tồn tại bản ghi thật có `phienBanEngine` cũ — hai nhánh của test phải tự dựng bản ghi đó. Điều này cũng là lý do R16 được hạ từ Cao xuống Trung bình: không có gì trong lịch sử bị hỏng, chỉ mã trận người dùng chép tay ra ngoài là hết phát lại đúng.
 
-- [ ] **T125** — Đo kích thước tệp và kiểm tay AC-4.7
+- [x] **T125** — Đo kích thước tệp và kiểm tay AC-4.7
   - File: `specs/001-football-team-sim/spec.md` (tick AC-4.7)
   - Xong khi: đo và **ghi số thật** vào mô tả commit — kích thước tệp sao lưu với 20 trận đầy đủ, và thời gian mở ứng dụng với 20 đội cộng 20 trận (ngân sách spec mục 6: **dưới 2 giây**); kiểm tay AC-4.7 bằng cách siết quota lưu trữ của tab rồi lưu một trận: thấy dải cảnh báo tiếng Việt nói rõ **thay đổi chưa được lưu** và gợi ý xuất tệp. Nếu tệp quá lớn thì nén `cacSuKien` bằng `fflate` đã có trong dự án, **không** giảm số trận giữ lại (rủi ro R20 — AC-11.7 nói 20 trận).
   - AC: AC-4.7, AC-11.7
   - Phụ thuộc: T123
+
+### Ghi chú Phase 18
+
+- **Số đo thật ngày 2026-10-29**, trên app đang chạy với **20 đội / 347 cầu thủ / 20 trận**:
+  - Tệp sao lưu đầy đủ: **96 KB** (nén ZIP), xuất mất 150ms. Rủi ro R20 (tệp phình, phải nén `cacSuKien`) **không xảy ra** — không cần nén thêm.
+  - Đọc danh sách 20 trận: **2ms**. Mở một trận đầy đủ: **1ms**. Đây là phần thưởng của quyết định D44b (tách hai store): đọc danh sách không chạm tới dòng sự kiện.
+  - Mở ứng dụng: vỏ ứng dụng 93ms + mở database và đọc 20 đội 8ms + đọc lịch sử 2ms = **khoảng 103ms**, ngân sách spec mục 6 là **2 giây** — dư 19 lần.
+  - Lưu 21 trận thì còn đúng 20, và trận **cũ nhất** (`do-000`) bị loại — đúng AC-11.7, kiểm trên app thật chứ không chỉ trong test.
+- **AC-1.5 đóng trọn, kiểm tay được**: đổi tên "Sông Hàn FC" thành "Sông Hàn ĐỔI TÊN" rồi mở lịch sử — mọi dòng hiện **tên mới**, không còn dòng nào mang tên cũ.
+- **Trường hợp biên "xoá đội đã có trận trong lịch sử" (spec mục 5) đúng trọn**: xoá "Thành Vinh FC" thì lịch sử **vẫn 20 trận**, vẫn hiện tên cũ kèm nhãn "(đội đã xoá)", nút đấu lại **bị chặn** kèm câu tiếng Việt nói rõ lý do, và trận vẫn **xem lại được** đầy đủ báo cáo lẫn dòng sự kiện. Đây là chỗ quyết định D46 (giữ CẢ `teamId` lẫn ảnh chụp) trả công.
+- **AC-4.7 vẫn KHÔNG tick được, và lý do đã rõ hơn trước.** Không siết được quota lưu trữ từ trong trang, nên đường hiển thị cảnh báo không kiểm tay được đầu-cuối. Từng mảnh thì đã kiểm: một lần ghi hỏng cho ra `LoiUngDung` đúng mã, `chuanHoaLoiLuuTru` ánh xạ `QuotaExceededError` thành `QuotaExceeded`, và `errors.test.ts` phủ phần dựng câu. T129 là chỗ ghi lại điều này thay vì tick bừa.
+- **Một thứ suýt bị báo nhầm thành lỗi**: đặt `loiLuuTru` từ console rồi thấy dải cảnh báo không hiện. Kiểm lại thì `import()` động trong console cho ra **một thể hiện module KHÁC** với thể hiện mà ứng dụng đang chạy (module của app mang hậu tố `?t=` của HMR) — store tôi ghi vào không phải store của app. Không phải lỗi ứng dụng.
+- **Một hành vi thật cần biết, phát hiện lúc kiểm tay:** nâng `DB_VERSION` lên 3 **treo** chừng nào còn một tab khác đang mở database ở phiên bản 2 — `moDb()` không bao giờ resolve, và cả ứng dụng đứng ở "Đang tải…" mà không nói gì. Đóng các tab cũ thì nâng cấp chạy ngay. Đây là `onblocked` của IndexedDB; ứng dụng chưa xử lý nhánh đó. Xem T131.
+- **Một lỗi tôi tự gây ra rồi sửa trong cùng phase:** `App` gọi `useMatch()` để mở trận từ lịch sử, mà mỗi lần gọi hook là **thêm một đồng hồ trận** — nên trong lúc màn trận cũng đang mở, trận đi **hai phút mỗi nhịp**. Đã tách `batDauTranNgay` thành hàm thường (không phải hook) để `App` dùng.
+- **Một chỗ người dùng chốt khác plan:** xem D48b — nhập **gộp** bỏ qua lịch sử của tệp và nói rõ, thay vì gộp rồi cắt còn 20.
+- **Ba file ngoài danh sách đã chạm:** `src/App.tsx` (thêm khung lịch sử và đường đấu lại), `src/ui/components/SaoLuu.tsx` + `src/ui/strings.ts` (câu báo số trận đã nhập và số trận bị bỏ qua khi gộp).
+
+- [ ] **T131** — Nâng `DB_VERSION` bị treo khi còn tab cũ đang mở
+  - File: sửa `src/storage/db.ts`, sửa `src/App.tsx`, sửa `src/ui/strings.ts`, sửa `src/storage/db.test.ts`
+  - Xong khi: `moDb` bắt sự kiện `blocked` của IndexedDB và báo ra thay vì treo im lặng; ứng dụng hiện một câu tiếng Việt bảo người dùng đóng các tab khác của ứng dụng rồi tải lại; test xanh — mở database phiên bản cũ ở một kết nối rồi nâng cấp thì nhận được tín hiệu `blocked` chứ không chờ mãi.
+  - AC: — *(không AC nào đòi; đây là một đường chết lặng mà người dùng không tự hiểu được)*
+  - Phụ thuộc: T119
+  - **Task phát hiện lúc kiểm tay T125.** Chỉ gặp khi nâng phiên bản database, tức một lần cho mỗi lần tăng `DB_VERSION` — nhưng lúc gặp thì ứng dụng đứng ở "Đang tải…" vô hạn và không nói gì.
 
 ## Phase 19 — Lát 17: Đóng spec 001
 

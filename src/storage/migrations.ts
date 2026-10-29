@@ -13,7 +13,7 @@
 */
 
 /** Phiên bản hình dạng dữ liệu mà bản ứng dụng này phát hành. */
-export const SCHEMA_VERSION = 3
+export const SCHEMA_VERSION = 4
 
 /**
  * Một bước nâng phiên bản. `MIGRATIONS[i]` nâng dữ liệu từ phiên bản `i + 1`
@@ -67,6 +67,17 @@ function nangV2LenV3(data: unknown): unknown {
   }
 }
 
+/**
+ * v3 -> v4: thêm lịch sử trận đấu.
+ *
+ * Tệp v1, v2 và v3 không có trận nào, nên bước này chỉ mở ra chỗ trống. Giữ
+ * đúng tinh thần của chuỗi migration: thuần hình dạng, không dựng bản ghi
+ * thật và không chạm byte.
+ */
+function nangV3LenV4(data: unknown): unknown {
+  return { ...(data as object), schemaVersion: 4, matches: [] }
+}
+
 /** Phần mở rộng theo kiểu ảnh, để tệp ZIP mở ra xem được bằng mắt. */
 export function duoiAnh(mime: string): string {
   switch (mime) {
@@ -86,7 +97,11 @@ export function duongDanAnh(id: string, mime: string): string {
 }
 
 /** `MIGRATIONS[i]` nâng dữ liệu từ phiên bản `i + 1` lên `i + 2`. */
-export const MIGRATIONS: readonly Migration[] = [nangV1LenV2, nangV2LenV3]
+export const MIGRATIONS: readonly Migration[] = [
+  nangV1LenV2,
+  nangV2LenV3,
+  nangV3LenV4,
+]
 
 export type LoiMigration =
   /** Số phiên bản không phải số nguyên dương. */

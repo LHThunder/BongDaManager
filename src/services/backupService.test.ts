@@ -148,7 +148,7 @@ describe('xuất tệp ZIP (AC-4.3)', () => {
     )
   })
 
-  it('manifest khai phiên bản 3 và có đủ các phần', async () => {
+  it('manifest khai phiên bản hiện tại và có đủ các phần', async () => {
     await dungDuLieuMau()
     const m = (await docManifest(await backup.exportAll())) as unknown as {
       schemaVersion: number
@@ -156,7 +156,7 @@ describe('xuất tệp ZIP (AC-4.3)', () => {
       players: unknown[]
       images: { id: string; mime: string; duongDan: string; data?: string }[]
     }
-    expect(m.schemaVersion).toBe(3)
+    expect(m.schemaVersion).toBe(SCHEMA_VERSION)
     expect(m.teams).toHaveLength(1)
     expect(m.players).toHaveLength(1)
     expect(m.images).toHaveLength(1)
@@ -323,7 +323,7 @@ describe('tương thích ngược với tệp v1 (hiến pháp P7)', () => {
     await dungDuLieuMau()
     const tepV1 = await taoTepV1()
     expect(await backup.inspect(tepV1)).toMatchObject({
-      schemaVersion: 3, // manifest đã được nâng lên hình dạng hiện tại
+      schemaVersion: SCHEMA_VERSION, // manifest đã được nâng lên hình dạng hiện tại
       soDoi: 1,
       soCauThu: 1,
       soAnh: 1,
@@ -535,7 +535,7 @@ describe('xem trước tệp trước khi chọn chế độ (AC-4.6)', () => {
   it('inspect trả số đội, số cầu thủ, số ảnh và phiên bản', async () => {
     await dungDuLieuMau()
     expect(await backup.inspect(await backup.exportAll())).toMatchObject({
-      schemaVersion: 3,
+      schemaVersion: SCHEMA_VERSION,
       soDoi: 1,
       soCauThu: 1,
       soAnh: 1,
@@ -640,19 +640,24 @@ async function taoTepV2(): Promise<Blob> {
 }
 
 describe('tệp sao lưu v3 mang theo chiến thuật (AC-4.4, AC-5.10)', () => {
-  it('SCHEMA_VERSION là 3 và có đủ schema cho cả ba phiên bản (P7)', () => {
-    expect(SCHEMA_VERSION).toBe(3)
-    expect(Object.keys(SCHEMA_THEO_PHIEN_BAN).sort()).toEqual(['1', '2', '3'])
+  it('SCHEMA_VERSION là 4 và có đủ schema cho cả bốn phiên bản (P7)', () => {
+    expect(SCHEMA_VERSION).toBe(4)
+    expect(Object.keys(SCHEMA_THEO_PHIEN_BAN).sort()).toEqual([
+      '1',
+      '2',
+      '3',
+      '4',
+    ])
   })
 
-  it('manifest v3 có mảng tactics', async () => {
+  it('manifest hiện tại có mảng tactics', async () => {
     const { doi } = await dungDuLieuMau()
     const m = (await docManifest(await backup.exportAll())) as unknown as {
       schemaVersion: number
       tactics: { teamId: string; oVien: unknown[] }[]
     }
 
-    expect(m.schemaVersion).toBe(3)
+    expect(m.schemaVersion).toBe(SCHEMA_VERSION)
     expect(m.tactics).toHaveLength(1)
     expect(m.tactics[0].teamId).toBe(doi.id)
     expect(m.tactics[0].oVien).toHaveLength(11)
@@ -755,11 +760,11 @@ describe('tệp sao lưu v3 mang theo chiến thuật (AC-4.4, AC-5.10)', () => 
     }
   })
 
-  it('tệp khai schemaVersion 4 bị từ chối', async () => {
+  it('tệp khai phiên bản mới hơn ứng dụng bị từ chối', async () => {
     const tep = new Blob(
       [
         JSON.stringify({
-          schemaVersion: 4,
+          schemaVersion: SCHEMA_VERSION + 1,
           exportedAt: new Date().toISOString(),
           teams: [],
           players: [],
@@ -804,5 +809,139 @@ describe('tệp sao lưu v3 mang theo chiến thuật (AC-4.4, AC-5.10)', () => 
 
     expect(await demTatCa()).toEqual(truoc)
     expect((await teamRepo.get(doi.id)).name).toBe('Đội đang có')
+  })
+})
+
+/*
+  Lịch sử trận đấu trong tệp sao lưu (AC-4.2, AC-11.7, quyết định D48 và
+  D48b).
+
+  P3 đặt đường xuất tệp làm lưới an toàn DUY NHẤT cho dữ liệu người dùng, nên
+  20 trận nằm ngoài tệp thì xuất rồi nhập lại là mất sạch.
+*/
+describe('tệp sao lưu v4 mang theo lịch sử trận đấu', () => {
+  /** Lưu `so` trận vào lịch sử, dùng đúng đường mà ứng dụng dùng. */
+  async function luuMayTran(so: number) {
+    const { cauHinhMau, MA_TRAN_CO_DINH } = await import(
+      '../engine/__fixtures__/doiMau'
+    )
+    const { chayHetTran, dangKyTuTrangThai, dongSuKien, taoTran } =
+      await import('../engine/tran')
+    const { dungBaoCao } = await import('../engine/baoCao')
+    const matchRepo = await import('./matchRepo')
+
+    const ra = []
+    for (let i = 0; i < so; i += 1) {
+      const tt = chayHetTran(
+        taoTran(cauHinhMau(MA_TRAN_CO_DINH[i % MA_TRAN_CO_DINH.length])),
+      )
+      const anh = (teamId: string) => ({
+        teamId,
+        ten: `Đội ${teamId}`,
+        mauChinh: '#1d4ed8',
+        mauPhu: '#f8fafc',
+        logoImageId: null,
+      })
+      const ban = {
+        id: `ls-${String(i).padStart(3, '0')}`,
+        maTran: tt.maTran,
+        phienBanEngine: tt.phienBanEngine,
+        ketThucLuc: 1_000 + i,
+        tiSo: tt.tiSo,
+        doiChuNha: anh(tt.ben.nha.teamId),
+        doiKhach: anh(tt.ben.khach.teamId),
+        sanTrungLap: tt.sanTrungLap,
+        doiCuaNguoiDung: tt.doiCuaNguoiDung,
+        nha: dangKyTuTrangThai(tt.ben.nha),
+        khach: dangKyTuTrangThai(tt.ben.khach),
+        canThiep: tt.canThiep,
+        cacSuKien: dongSuKien(tt),
+        baoCao: dungBaoCao(tt),
+      }
+      await matchRepo.luu(ban)
+      ra.push(ban)
+    }
+    return ra
+  }
+
+  it('xuất rồi nhập lại ra ĐÚNG từng dòng sự kiện', async () => {
+    await dungDuLieuMau()
+    const goc = await luuMayTran(3)
+    const tep = await backup.exportAll()
+
+    const baoCao = await backup.importAll(tep, 'thay-the')
+    expect(baoCao.soTran).toBe(3)
+
+    const matchRepo = await import('./matchRepo')
+    for (const t of goc) {
+      const daDoc = await matchRepo.doc(t.id)
+      expect(daDoc?.cacSuKien, t.id).toEqual(t.cacSuKien)
+      expect(daDoc?.baoCao, t.id).toEqual(t.baoCao)
+      expect(daDoc?.tiSo, t.id).toEqual(t.tiSo)
+    }
+  })
+
+  it('tệp v1, v2 và v3 vẫn nhập được, và vào với lịch sử rỗng (P7)', async () => {
+    await dungDuLieuMau()
+    const tepV1 = await taoTepV1()
+
+    const baoCao = await backup.importAll(tepV1, 'thay-the')
+    expect(baoCao.soTran).toBe(0)
+
+    const matchRepo = await import('./matchRepo')
+    expect(await matchRepo.danhSach()).toHaveLength(0)
+  })
+
+  /*
+    Nhập GỘP bỏ qua lịch sử (quyết định D48b), và phải NÓI RA: người dùng có
+    quyền biết tệp của họ còn thứ chưa vào được.
+  */
+  it('nhập gộp bỏ qua lịch sử và báo đúng số trận đã bỏ', async () => {
+    await dungDuLieuMau()
+    await luuMayTran(3)
+    const tep = await backup.exportAll()
+
+    const matchRepo = await import('./matchRepo')
+    const baoCao = await backup.importAll(tep, 'gop')
+
+    expect(baoCao.soTran).toBe(0)
+    expect(baoCao.soTranBoQua).toBe(3)
+    // Lịch sử đang có KHÔNG bị đụng tới.
+    expect(await matchRepo.danhSach()).toHaveLength(3)
+  })
+
+  it('nhập thay thế xoá sạch lịch sử cũ trước khi ghi lịch sử mới', async () => {
+    await dungDuLieuMau()
+    await luuMayTran(2)
+    const tepHaiTran = await backup.exportAll()
+
+    await luuMayTran(3)
+    const matchRepo = await import('./matchRepo')
+    expect(await matchRepo.danhSach()).toHaveLength(3)
+
+    await backup.importAll(tepHaiTran, 'thay-the')
+    expect(await matchRepo.danhSach()).toHaveLength(2)
+  })
+
+  it('tệp hỏng ở phần lịch sử không làm mất lịch sử đang có (P3)', async () => {
+    await dungDuLieuMau()
+    await luuMayTran(2)
+    const matchRepo = await import('./matchRepo')
+    const truoc = await matchRepo.danhSach()
+
+    const tepHong = new Blob([
+      JSON.stringify({
+        schemaVersion: SCHEMA_VERSION,
+        exportedAt: new Date().toISOString(),
+        teams: [],
+        players: [],
+        images: [],
+        tactics: [],
+        matches: [{ id: 'thieu-het-moi-thu' }],
+      }),
+    ])
+
+    await expect(backup.importAll(tepHong, 'thay-the')).rejects.toBeTruthy()
+    expect(await matchRepo.danhSach()).toEqual(truoc)
   })
 })

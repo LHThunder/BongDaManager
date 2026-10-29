@@ -117,10 +117,16 @@ export const SAO_LUU = {
   moTaThayThe: 'Xoá hết dữ liệu đang có rồi dùng dữ liệu trong tệp.',
   nutGop: 'Gộp thêm vào',
   moTaGop: 'Giữ nguyên dữ liệu đang có và thêm dữ liệu trong tệp vào cạnh.',
-  daNhapThayThe: (soDoi: number, soCauThu: number) =>
-    `Đã thay thế toàn bộ dữ liệu: ${soDoi} đội, ${soCauThu} cầu thủ.`,
+  daNhapThayThe: (soDoi: number, soCauThu: number, soTran: number) =>
+    `Đã thay thế toàn bộ dữ liệu: ${soDoi} đội, ${soCauThu} cầu thủ, ${soTran} trận trong lịch sử.`,
   daNhapGop: (soDoi: number, soCauThu: number) =>
     `Đã gộp thêm ${soDoi} đội và ${soCauThu} cầu thủ vào dữ liệu đang có.`,
+  /*
+    Nhập gộp bỏ qua lịch sử (quyết định D48b). Người dùng có quyền biết tệp
+    của họ còn thứ chưa vào được, và biết cách lấy nó: nhập thay thế.
+  */
+  gopBoQuaLichSu: (soTran: number) =>
+    `Tệp còn ${soTran} trận trong lịch sử, nhưng chế độ gộp không nhận lịch sử — vì mỗi bản ghi trận trỏ tới đội và cầu thủ bằng id cũ. Muốn lấy cả lịch sử thì dùng "Thay thế toàn bộ".`,
   canhBaoKhongBen:
     'Trình duyệt không đánh dấu dữ liệu của ứng dụng là lưu trữ bền, nên dữ liệu có thể bị xoá khi máy thiếu chỗ. Hãy xuất tệp sao lưu thường xuyên.',
 } as const
@@ -490,6 +496,39 @@ export const LY_DO_TU_CHOI_CAN_THIEP: Readonly<Record<string, string>> = {
   'khung-thanh-da-co-thu-mon': 'Khung thành đã có thủ môn thực thụ.',
   'cau-thu-da-bat-gon': 'Cầu thủ này đang bắt gôn rồi.',
 }
+
+/** Lịch sử trận đấu (AC-11.7, AC-11.4, AC-4.2). */
+export const LICH_SU = {
+  tieuDe: 'Lịch sử trận đấu',
+  moTa: (giuLai: number) =>
+    `Giữ ${giuLai} trận gần nhất. Trận cũ hơn sẽ tự rời khỏi danh sách.`,
+  chuaCoTran: 'Chưa có trận nào. Hãy đá một trận rồi quay lại đây.',
+  moLink: 'Mở lại',
+  dong: 'Đóng',
+  cotThoiDiem: 'Kết thúc lúc',
+  cotCapDau: 'Cặp đấu',
+  cotTiSo: 'Tỉ số',
+  cotMaTran: 'Mã trận',
+  doiDaXoa: 'đội đã xoá',
+  khongDauLaiDuoc:
+    'Một trong hai đội đã bị xoá, nên trận này chỉ xem lại được chứ không đấu lại được.',
+  khacPhienBan:
+    'Trận này chạy bằng một phiên bản engine cũ hơn, nên chạy lại cùng mã trận sẽ KHÔNG ra đúng trận cũ. Bản ghi vẫn xem lại được nguyên vẹn.',
+  dauLai: 'Đấu lại trận này',
+  /** Câu cho từng lý do không đấu lại được (quyết định D35, spec mục 5). */
+  lyDoKhongDauLai: {
+    'khac-phien-ban-engine':
+      'Không đấu lại được: trận này chạy bằng phiên bản engine cũ hơn, nên cùng mã trận bây giờ sẽ ra một trận khác.',
+    'doi-da-bi-xoa':
+      'Không đấu lại được: một trong hai đội đã bị xoá, nên không còn hồ sơ để dựng lại cặp đấu.',
+  } as Readonly<Record<string, string>>,
+  daLoaiTranCu: (so: number) =>
+    so === 1
+      ? 'Lịch sử đã đủ chỗ, nên trận cũ nhất vừa rời khỏi danh sách.'
+      : `Lịch sử đã đủ chỗ, nên ${so} trận cũ nhất vừa rời khỏi danh sách.`,
+  dongBaoDaLoai: 'Đã hiểu',
+  tieuDeDienBien: 'Diễn biến trận',
+} as const
 
 /** Sân 2D dạng điểm (US-10). */
 export const SAN_2D = {
