@@ -5,8 +5,8 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | Giai đoạn 1 (36 AC), Giai đoạn 2 (22 AC), Giai đoạn 3 (26 AC) và Giai đoạn 4 (13 AC + 3 AC vắt lại) |
-| **Tiến độ** | 114/131 — Giai đoạn 1 xong (38/39, còn T035); Giai đoạn 2 và 3 xong trọn; Giai đoạn 4 đang làm (Phase 15 và 16 xong: T099–T113; còn Phase 17–19: T114–T130) |
-| **Sửa đổi** | 2026-10-29 — Phase 15 và 16 (T099–T113) đã hiện thực và commit; Phase 17–19 chưa bắt đầu |
+| **Tiến độ** | 119/131 — Giai đoạn 1 xong (38/39, còn T035); Giai đoạn 2 và 3 xong trọn; Giai đoạn 4 đang làm (Phase 15–17 xong: T099–T118; còn Phase 18–19: T119–T130) |
+| **Sửa đổi** | 2026-10-29 — Phase 15, 16 và 17 (T099–T118) đã hiện thực và commit; Phase 18–19 chưa bắt đầu |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
 > Mỗi task phải: chạm file cụ thể + có cách kiểm chứng + đủ nhỏ để làm trong một lần.
@@ -916,7 +916,7 @@ kèm phút, sáu chỉ tiêu mỗi bên, điểm từng cầu thủ kèm bảng 
 Kết thúc phase: xem trận trên sân 2D với đủ 22 điểm, thấy pha bóng dịch
 chuyển theo tình huống, hoặc ẩn sân đi và chỉ đọc dòng tường thuật.
 
-- [ ] **T114** — Sân 2D với một điểm cho mỗi người trên sân
+- [x] **T114** — Sân 2D với một điểm cho mỗi người trên sân
   - File: `src/ui/components/San2D.tsx`, sửa `src/ui/pages/TrangTran.tsx`
   - Xong khi: SVG (quyết định D41) vẽ **một điểm tròn cho mỗi người đang trên sân** của cả hai đội — 22 lúc khai cuộc — đặt theo `chienThuatHienTai.oVien` và chỉ thị `do-cao-doi-hinh`, toạ độ suy từ lưới 12 vùng của D23; màu lấy từ `ui/mauAo.ts` của T107 nên hai đội trùng màu áo vẫn phân biệt được (AC-3.7); mỗi điểm có `aria-label` tiếng Việt gồm tên và số áo (P9); đội đá thiếu người sau thẻ đỏ thì **thiếu đúng số điểm đó**, còn 21.
   - AC: AC-10.1
@@ -924,29 +924,45 @@ chuyển theo tình huống, hoặc ẩn sân đi và chỉ đọc dòng tườn
   - Phụ thuộc: T107
   - Ghi chú: không dùng thư viện đồ hoạ nào (P4, D41).
 
-- [ ] **T115** — Người tham gia dịch tới chỗ bóng, kèm đường bóng
+- [x] **T115** — Người tham gia dịch tới chỗ bóng, kèm đường bóng
   - File: sửa `src/ui/components/San2D.tsx`
   - Xong khi: khi dòng tường thuật sang tình huống mới, những người có tên trong `cacCauThu` của sự kiện **dịch tới** vùng của sự kiện còn người còn lại **giữ chỗ đội hình**; `duongBong` của T106 được vẽ thành đường qua các vùng; di chuyển bằng **CSS transition**, không có vòng lặp animation (D41); tạm dừng trận thì sân **đứng im ở đúng tình huống đó** — AC-10.4 không cần thêm code, nhưng phải kiểm tay thật.
   - AC: AC-10.2, AC-10.4
   - Phụ thuộc: T114, T106
 
-- [ ] **T116** — Làm nổi bật người đang tham gia tình huống
+- [x] **T116** — Làm nổi bật người đang tham gia tình huống
   - File: sửa `src/ui/components/San2D.tsx`
   - Xong khi: người tham gia có **viền dày lên cộng nhãn chữ** (số áo in đậm và thêm một dấu), không chỉ đổi màu (quyết định D42); kiểm chứng bằng cách xem sân ở **chế độ grayscale** của trình duyệt — vẫn phân biệt được người tham gia với người còn lại. Đây là phép kiểm P9 đòi, vì nền là màu áo người dùng tự chọn.
   - AC: AC-10.3
   - Phụ thuộc: T115
 
-- [ ] **T117** [P] — Ẩn và hiện sân 2D, nhớ lựa chọn
+- [x] **T117** [P] — Ẩn và hiện sân 2D, nhớ lựa chọn
   - File: sửa `src/ui/pages/TrangTran.tsx`, `src/services/tuyChonRepo.ts`, `src/services/tuyChonRepo.test.ts`, sửa `src/ui/strings.ts`
   - Xong khi: một nút ẩn/hiện sân; lựa chọn lưu trong store `meta` đã có qua `tuyChonRepo` (quyết định D51 — **không** dùng `localStorage`); test xanh cho vòng tròn ghi/đọc tuỳ chọn; kiểm tay — ẩn sân, **tải lại trang**, mở lại trận thì sân vẫn ẩn.
   - AC: AC-10.6
   - Phụ thuộc: T114
 
-- [ ] **T118** — Chạy hết trận không bị sân 2D làm chậm
+- [x] **T118** — Chạy hết trận không bị sân 2D làm chậm
   - File: sửa `src/ui/pages/TrangTran.tsx`, sửa `src/ui/components/San2D.tsx`
   - Xong khi: khi bấm "chạy hết trận", giao diện **không vẽ** trạng thái trung gian — engine chạy một lèo rồi vẽ **đúng một lần** ở cuối (quyết định D43); đo bằng `performance.now` trên giao diện với sân **đang bật**: từ lúc bấm tới lúc báo cáo hiện ra **dưới 3 giây** (ngân sách spec mục 6), ghi số thật vào mô tả commit. Đường lùi nếu vỡ ngân sách: tự ẩn sân khi chạy hết trận kèm một dòng nói rõ (rủi ro R19).
   - AC: AC-10.5
   - Phụ thuộc: T116, T117
+
+### Ghi chú Phase 17
+
+- **Kiểm tay ngày 2026-10-29** trên `localhost:5173`, Sông Hàn gặp Hải Phòng (hai đội **trùng màu áo chính**):
+  - **22 điểm** trên sân, không cặp nào chồng nhau (đo bằng khoảng cách tâm so với đường kính).
+  - Hai màu vẽ ra là `#1d4ed8` và `#111827` — tức Hải Phòng đang mặc **áo phụ**, nên AC-3.7 đúng cả trên sân 2D chứ không chỉ ở màn chọn cặp đấu.
+  - Nhãn trình đọc màn hình đủ tiếng Việt: "Sân 2D: Sông Hàn FC đá từ trái sang phải…" và từng điểm "Sông Hàn FC 2, số áo 2, Hậu vệ trái, Sông Hàn FC, đang tham gia tình huống".
+  - **AC-10.2 đo được**: qua một phút, đúng **2 trong 22** điểm dịch chỗ — người vừa thôi tham gia (về lại đội hình) và người mới tham gia (tới chỗ bóng). 20 người còn lại giữ nguyên vị trí đội hình.
+  - **AC-10.4**: đang tạm dừng, chụp vị trí 22 điểm cách nhau 1,2 giây — giống hệt từng ký tự.
+  - **AC-10.5**: bấm "chạy hết trận" với sân **đang bật**, từ lúc bấm tới lúc báo cáo hiện ra là **120ms**, ngân sách spec mục 6 là **3 giây** — dư 25 lần.
+  - **AC-10.6**: ẩn sân → tải lại trang → mở trận mới, sân **vẫn ẩn**, nút đọc "Hiện sân".
+  - Không có lỗi nào trong console trên tab sạch.
+- **AC-10.3 kiểm bằng ba tín hiệu KHÔNG phụ thuộc màu** (P9, quyết định D42): viền điểm `stroke-width` **1.4 so với 0.5**, số áo `font-weight` **800 so với 500**, và dấu **▲** chỉ có ở người đang tham gia. Cả ba đều là hình dạng, nên tắt màu vẫn phân biệt được.
+- **Một lỗi chỉ ẢNH CHỤP mới thấy, đã sửa:** lúc đầu sân chỉ hiện **13 điểm** thay vì 22, dù DOM đếm đủ 22 `<circle>`. Lưới vùng cố tình cho hai đội đứng CHUNG vùng — tiền đạo đội khách (dải 3 của họ) lật sang chính là dải 0 của đội nhà, tức ngay trước khung thành đội nhà, đúng bóng đá — nhưng vẽ đúng một toạ độ thì hai điểm đè lên nhau. Đã đẩy mỗi đội lệch 4 đơn vị về phía khung thành của mình (`LECH_DOI`), cho khoảng cách 8 so với đường kính 6,8. **Phép kiểm DOM không bắt được lỗi này**; phải nhìn mới thấy.
+- **Một chỗ plan lo thừa, đã ghi lại thay vì làm cho có:** quyết định D43 đòi "chế độ chạy hết trận không vẽ trạng thái trung gian". Đọc code thì kiến trúc của D21 đã lo sẵn: `chayHet` gọi `chayHetTran` **một lần, đồng bộ**, rồi đặt trạng thái cuối vào store — React chỉ vẽ **một lần**, không vẽ 97 trạng thái trung gian. Không có gì để chặn, nên T118 làm đúng phần còn lại là **đo thật** (120ms) chứ không thêm một cờ không làm gì.
+- **Một file ngoài danh sách:** `src/services/tuyChonRepo.test.ts` — đường đọc/ghi dữ liệu thì bắt buộc có test (hiến pháp mục 4).
 
 ## Phase 18 — Lát 16: Lịch sử 20 trận
 

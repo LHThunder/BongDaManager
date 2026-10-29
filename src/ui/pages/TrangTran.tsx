@@ -11,10 +11,13 @@ import {
 } from '../../engine/tran'
 import { useMatch } from '../../hooks/useMatch'
 import * as playerRepo from '../../services/playerRepo'
+import * as tuyChonRepo from '../../services/tuyChonRepo'
+import { aoDangDung, mauAoRaSan } from '../mauAo'
 import { useAppStore } from '../../store/appStore'
 import { AnhThayThe } from '../components/AnhThayThe'
 import { BangDieuKhienTran } from '../components/BangDieuKhienTran'
 import { BaoCaoSauTran } from '../components/BaoCaoSauTran'
+import { San2D } from '../components/San2D'
 import { ChiThiDoi } from '../components/ChiThiDoi'
 import { DongTuongThuat } from '../components/DongTuongThuat'
 import { ThayNguoi } from '../components/ThayNguoi'
@@ -24,6 +27,7 @@ import {
   CHUNG,
   LY_DO_TU_CHOI_CAN_THIEP,
   SO_SANH_TRAN,
+  SAN_2D,
   TRAN_DAU,
   VAO_BAT_GON,
 } from '../strings'
@@ -54,6 +58,29 @@ export function TrangTran({ onRoiTran }: Props) {
 
   const [loiCanThiep, datLoiCanThiep] = useState<string | null>(null)
   const [nguoiVaoGon, datNguoiVaoGon] = useState('')
+
+  /*
+    Tuỳ chọn ẩn/hiện sân 2D (AC-10.6, quyết định D51). Lưu trong store `meta`
+    nên nó sống qua một lần tải lại trang.
+  */
+  const [hienSan, datHienSan] = useState<boolean | null>(null)
+  useEffect(() => {
+    let conHieuLuc = true
+    void tuyChonRepo.docHienSan2D().then((x) => {
+      if (conHieuLuc) datHienSan(x)
+    })
+    return () => {
+      conHieuLuc = false
+    }
+  }, [])
+
+  const doiHienSan = () => {
+    const moi = !(hienSan ?? true)
+    datHienSan(moi)
+    void tuyChonRepo.datHienSan2D(moi).catch(() => {
+      // Lỗi ghi tuỳ chọn hiển thị không nên chặn người xem trận.
+    })
+  }
 
   /*
     Chụp kết quả lần trước NGAY LÚC VÀO TRANG, không đọc thẳng từ store khi
@@ -114,6 +141,10 @@ export function TrangTran({ onRoiTran }: Props) {
   const [tenTheoId, datTenTheoId] = useState<ReadonlyMap<string, string>>(
     new Map(),
   )
+  /* Số áo để in vào từng điểm trên sân 2D (AC-10.1). */
+  const [soAoTheoId, datSoAoTheoId] = useState<ReadonlyMap<string, number>>(
+    new Map(),
+  )
   const idNha = tran?.ben.nha.teamId
   const idKhach = tran?.ben.khach.teamId
 
@@ -127,6 +158,7 @@ export function TrangTran({ onRoiTran }: Props) {
     ]).then(([a, b]) => {
       if (!conHieuLuc) return
       datTenTheoId(new Map([...a, ...b].map((p) => [p.id, p.name])))
+      datSoAoTheoId(new Map([...a, ...b].map((p) => [p.id, p.shirtNumber])))
     })
 
     return () => {
@@ -151,6 +183,20 @@ export function TrangTran({ onRoiTran }: Props) {
 
   const dangTamDung = !dangChay && !tran.ketThuc
   const dangBatGon = nguoiTrongKhung(benCuaNguoiDung)
+
+  /*
+    Sân 2D (US-10). Màu áo lấy từ `ui/mauAo.ts`, cùng nguồn với màn chọn cặp
+    đấu, nên hai đội trùng màu áo vẫn phân biệt được trên sân (AC-3.7).
+
+    VỀ AC-10.5 (chạy hết trận không bị sân làm chậm): kiến trúc của D21 đã lo
+    sẵn chỗ này, không cần thêm cờ chặn vẽ. `chayHet` gọi `chayHetTran` MỘT
+    lần, đồng bộ, rồi đặt trạng thái cuối vào store — nên React chỉ vẽ **một
+    lần**, không vẽ 97 trạng thái trung gian. Quyết định D43 lo đúng chuyện
+    này nhưng hoá ra không có gì phải chặn; việc còn lại của T118 là **đo
+    thật** để chứng minh, chứ không phải thêm một cờ không làm gì.
+  */
+  const mauAo = doiNha && doiKhach ? aoDangDung(doiNha, doiKhach) : null
+  const suKienDangXem = cacSuKien[cacSuKien.length - 1] ?? null
   const conLuotThay = SO_LAN_THAY_TOI_DA - benCuaNguoiDung.soLanThay
 
   /*
@@ -319,6 +365,43 @@ export function TrangTran({ onRoiTran }: Props) {
           </table>
         </section>
       )}
+
+      {/* Sân 2D, ẩn/hiện được và nhớ lựa chọn (AC-10.1 → AC-10.6). */}
+      <section className="mt-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-base font-semibold text-slate-900">
+            {SAN_2D.tieuDe}
+          </h3>
+          <button
+            type="button"
+            onClick={doiHienSan}
+            aria-pressed={hienSan ?? true}
+            className="text-sm text-blue-700 underline hover:text-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          >
+            {(hienSan ?? true) ? SAN_2D.an : SAN_2D.hien}
+          </button>
+        </div>
+
+        {(hienSan ?? true) && mauAo && doiNha && doiKhach && (
+          <div className="mt-2">
+            <San2D
+              nha={{
+                ben: tran.ben.nha,
+                ten: doiNha.name,
+                mauAo: mauAoRaSan(doiNha, mauAo.nha),
+              }}
+              khach={{
+                ben: tran.ben.khach,
+                ten: doiKhach.name,
+                mauAo: mauAoRaSan(doiKhach, mauAo.khach),
+              }}
+              suKien={suKienDangXem}
+              tenCauThu={(id) => tenTheoId.get(id) ?? id}
+              soAo={(id) => soAoTheoId.get(id) ?? null}
+            />
+          </div>
+        )}
+      </section>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <DongTuongThuat
