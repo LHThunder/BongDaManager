@@ -5,8 +5,8 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | Giai đoạn 1 (36 AC), Giai đoạn 2 (22 AC), Giai đoạn 3 (26 AC) và Giai đoạn 4 (13 AC + 3 AC vắt lại) |
-| **Tiến độ** | 128/133 — Giai đoạn 1 xong (38/39, còn T035); Giai đoạn 2 và 3 xong trọn; **Giai đoạn 4 xong, spec 001 đóng** (T126 và T128 đã kiểm tay và tick). Còn 5 task KHÔNG chặn spec: T035, T129 (chờ người dùng trả lời), T130, T131, T132 |
-| **Sửa đổi** | 2026-10-29 — Phase 19 xong: 13 AC của US-10/US-11 cộng AC-4.2 và AC-1.5 đã kiểm tay trên ứng dụng đang chạy, `spec.md` đổi `Status` thành **Done** (98/99 AC). T132 là task mới phát hiện lúc kiểm tay |
+| **Tiến độ** | 129/133 — Giai đoạn 1 xong (38/39, còn T035); Giai đoạn 2 và 3 xong trọn; **Giai đoạn 4 xong, spec 001 đóng** (T126, T128, T129 đã kiểm tay và tick). Còn 4 task KHÔNG chặn spec: T035, T130, T131, T132 |
+| **Sửa đổi** | 2026-10-29 — Phase 19 xong trọn: 13 AC của US-10/US-11 cộng AC-4.2 và AC-1.5 đã kiểm tay trên ứng dụng đang chạy, `spec.md` đổi `Status` thành **Done** (98/99 AC), hiến pháp lên 1.0.1 vì mục 7 đã hết điểm mở. T132 là task mới phát hiện lúc kiểm tay |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
 > Mỗi task phải: chạm file cụ thể + có cách kiểm chứng + đủ nhỏ để làm trong một lần.
@@ -260,6 +260,18 @@ Kết thúc phase: xuất ra tệp, nhập lại trên máy khác ra đúng dữ
     "trang tải xong → script đo chạy" đều vô giá trị; và pane không ghi `paint`/LCP
     để lấy số liệu do trình duyệt tự đo. Tầng dữ liệu đo được đều dưới 70ms nên
     không có dấu hiệu vượt ngân sách, nhưng đó là suy luận, không phải phép đo.
+  - **Thêm ngày 2026-10-29 (T129) — giờ biết CHÍNH XÁC vì sao, chứ không chỉ là độ trễ tiêm script.**
+    Pane ẩn thì trình duyệt coi trang là trang nền: nó **không vẽ** và **không chạy**
+    `requestAnimationFrame`. Hai hệ quả đo được: `first-contentful-paint` của trang báo
+    **152.440ms** — không phải trang chậm 152 giây, mà là thời điểm pane được hiện lên;
+    và một vòng lặp chờ bằng `requestAnimationFrame` không bao giờ chạy tới lần thứ hai.
+    Nên "thời gian tới lúc NHÌN THẤY" là thứ môi trường này không có.
+    **Những gì đo được, do trình duyệt tự ghi nên không dính độ trễ tiêm script:**
+    `loadEventEnd` **381ms** (bản dev, Vite còn biên dịch từng module; bản build nhẹ hơn),
+    và mở một đội rồi dựng xong 18 hàng cầu thủ trong DOM mất **12ms** so với ngân sách 300ms.
+    Phần còn thiếu đúng một thứ: thời điểm trình duyệt vẽ ra màn hình.
+    **Cần người dùng làm, mất một phút:** mở `npm run dev` trong trình duyệt của bạn,
+    tab Performance, tải lại trang, đọc FCP/LCP. Chỉ chỗ đó mới đóng được task này.
   - **Cần làm để đóng task:** mở `npm run dev` trong trình duyệt thật của bạn và đọc
     thời gian trong tab Performance, hoặc thêm `performance.mark` vào `main.tsx` rồi
     đọc lại — cả hai đều không phụ thuộc vào độ trễ tiêm script.
@@ -1058,12 +1070,16 @@ lại đọc được báo cáo cũ; xuất tệp sao lưu rồi nhập lại th
   - **Một nửa của task này KHÔNG dựng được bằng tay, và đó là phát hiện đáng ghi.** Đường duy nhất rời màn trận là nút "Rời trận", mà nút đó gọi `roiTran()` — tức **huỷ trận** — trước khi chuyển trang. Nên trong ứng dụng hiện nay không có trạng thái nào vừa còn trận dở vừa đứng ở danh sách đội, và câu cảnh báo thêm không bao giờ hiện ra. Code vẫn giữ (`coTranDangDien` trong `useTeams.ts`): nó đúng, nhỏ, và là lưới chắn cho ngày màn trận sống qua điều hướng. Nửa kiểm được thì đã kiểm tay 2026-10-29: tạo đội "Đội thử T128" rồi xoá, hộp xác nhận **không** nói gì về trận đang diễn ra, và lịch sử 20 trận không suy chuyển.
   - **Task thêm sau `/analyze`:** dòng này rơi qua ba giai đoạn mà không phase nào nhận — Definition of Done Giai đoạn 1 hoãn sang "GĐ2/GĐ3", Giai đoạn 3 không tạo task, bản đầu của Giai đoạn 4 cũng không. Definition of Done của spec đòi các trường hợp biên mục 5 được xử lý, nên nó phải có chỗ.
 
-- [ ] **T129** — Ba món nợ còn lại của spec 001
+- [x] **T129** — Ba món nợ còn lại của spec 001
   - File: `specs/001-football-team-sim/tasks.md`, `.specify/memory/constitution.md`
   - Xong khi: **T035** (hai ngân sách hiển thị chưa đo được từ Giai đoạn 1) được đo hoặc được ghi rõ vì sao môi trường này không đo được; hai điểm `[CẦN XÁC NHẬN]` trong hiến pháp mục 7 — thư mục lâu dài của dự án và trình duyệt đích — được người dùng chốt và hiến pháp bump version theo PATCH; `AC-4.7` nếu T125 vẫn không quan sát được thì ghi rõ lý do thay vì tick bừa.
   - AC: —
   - Phụ thuộc: T126
   - **Ghi chú, sửa sau `/analyze`:** task này **cần người dùng trả lời**, nên nó **không chặn** việc T126 đổi `Status` của spec thành `Done`. Ba món nợ này là nợ cũ của Giai đoạn 1 và của hiến pháp, không phải AC nào của spec.
+  - **Đóng ngày 2026-10-29. Ba món, ba kết cục khác nhau:**
+    1. **T035** — vẫn mở, nhưng lý do giờ chứng minh được chứ không còn là phỏng đoán: xem ghi chú đã cập nhật tại chính T035.
+    2. **Hai điểm `[CẦN XÁC NHẬN]` của hiến pháp mục 7** — chốt xong, hiến pháp lên **1.0.1** (PATCH, vì chỉ làm rõ chứ không đổi nguyên tắc nào). Thư mục lâu dài là `C:\Users\tungh\source\BongDaManager` — lo ngại ban đầu về thư mục tạm không còn đúng. Trình duyệt đích: **chỉ trình duyệt Chromium người dùng đang dùng**, nên code được phép dựa thẳng vào `crypto.randomUUID`, `navigator.storage.persist`, `createImageBitmap`, `OffscreenCanvas` mà không rào trước — đây là việc hợp thức hoá thứ code đã làm từ Giai đoạn 1.
+    3. **AC-4.7** — ghi rõ lý do ngay tại AC đó trong `spec.md` thay vì tick bừa.
 
 ### Ghi chú Phase 19
 

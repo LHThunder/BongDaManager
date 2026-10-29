@@ -1,7 +1,7 @@
 # Constitution — Ứng dụng tạo đội bóng & giả lập trận đấu
 
 > Hiến pháp kỹ thuật của dự án. Mọi spec / plan / task đều phải tuân thủ.
-> Version: 1.0.0 · Ratified: 2026-10-26 · Last amended: 2026-10-26
+> Version: 1.0.1 · Ratified: 2026-10-26 · Last amended: 2026-10-29
 
 ## 1. Mục đích & phạm vi
 
@@ -118,5 +118,13 @@ Việc xếp và đổi chỗ cầu thủ trên sơ đồ MUST làm được ho�
 
 ## 7. Điểm cần xác nhận
 
-- [CẦN XÁC NHẬN: Dự án sẽ nằm lâu dài ở thư mục nào trên máy? Hiện tại các file spec đang nằm trong thư mục tạm của phiên làm việc này và sẽ mất khi phiên bị xoá.]
-- [CẦN XÁC NHẬN: Trình duyệt đích là trình duyệt nào? Nếu chỉ cần chạy đúng trên một trình duyệt bạn đang dùng thì có thể dùng các tính năng mới và bỏ qua việc kiểm tra tương thích.]
+Không còn điểm nào. Hai điểm mở từ ngày 2026-10-26 đã chốt ngày **2026-10-29**:
+
+- **Thư mục lâu dài của dự án**: `C:\Users\tungh\source\BongDaManager`, một repo git thật
+  với nhánh `001-football-team-sim`. Lo ngại ban đầu — spec nằm trong thư mục tạm của
+  phiên làm việc và mất khi phiên bị xoá — không còn đúng nữa.
+- **Trình duyệt đích**: chỉ cần chạy đúng trên trình duyệt Chromium đời mới mà người
+  dùng đang dùng. **Được phép** dùng tính năng mới mà không kiểm tương thích chéo, và
+  **không** phải viết đường lùi cho Firefox hay Safari. Đây là lý do code được phép dựa
+  thẳng vào `crypto.randomUUID`, `navigator.storage.persist`, `createImageBitmap` và
+  `OffscreenCanvas` mà không rào trước.
