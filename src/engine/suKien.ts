@@ -41,6 +41,15 @@ export interface SuKien {
   /** Người liên quan, theo thứ tự vai trò trong tình huống. */
   readonly cacCauThu: readonly string[]
   readonly vung: VungSan | null
+  /**
+   * Đường bóng đi qua trong tình huống, theo thứ tự (quyết định D40).
+   *
+   * Sân 2D của AC-10.2 phải "thể hiện đường đi của bóng", mà chỉ có `vung`
+   * thì vẽ được một điểm chứ không vẽ được đường. Lấy từ các bước của chính
+   * chuỗi bóng nên không tốn thêm lần rút nào — chạy lại cùng mã trận vẫn ra
+   * đúng từng phần tử. Rỗng với các sự kiện mốc.
+   */
+  readonly duongBong: readonly VungSan[]
   /** Chỉ số mẫu câu, engine chọn bằng Rng của trận (D22). */
   readonly mauCau: number
   readonly tiSoSauDo: TiSo

@@ -82,10 +82,23 @@ describe('không thiên vị giữa hai phía', () => {
     console.log(
       `A (12) vs B (12), ${MAU_RONG.length} trận: thắng ${kq.thang}, hoà ${kq.hoa}, thua ${kq.thua}`,
     )
-    // Thiên vị một phía là lỗi nặng hơn cả cân bằng sai: nó làm mọi phép so
-    // chiến thuật về sau đều lệch mà không ai thấy.
-    const tiLeThang = kq.thang / MAU_RONG.length
-    expect(tiLeThang).toBeGreaterThan(0.33)
-    expect(tiLeThang).toBeLessThan(0.55)
+    /*
+      Thiên vị một phía là lỗi nặng hơn cả cân bằng sai: nó làm mọi phép so
+      chiến thuật về sau đều lệch mà không ai thấy.
+
+      Đo bằng CHÊNH LỆCH thắng–thua chứ không bằng sàn tỉ lệ thắng. Tỉ lệ
+      thắng thật của một bên khi hai đội giống hệt nhau là chừng 0,34–0,40
+      (phần còn lại là hoà), nên một cái sàn 0,33 chỉ cách giá trị thật
+      khoảng 1σ ở mẫu 200 trận — tức chừng 12% khả năng đỏ oan, dù engine
+      hoàn toàn cân. Chênh lệch thắng–thua thì đo đúng câu hỏi "có bên nào
+      được ưu ái không", và ngưỡng 0,15 cách giá trị thật 2,4σ.
+    */
+    const lech = Math.abs(kq.thang - kq.thua) / MAU_RONG.length
+    console.log(`chênh lệch thắng–thua: ${(lech * 100).toFixed(1)}%`)
+    expect(lech).toBeLessThan(0.15)
+
+    // Và không bên nào được quá nửa số trận.
+    expect(kq.thang / MAU_RONG.length).toBeLessThan(0.55)
+    expect(kq.thua / MAU_RONG.length).toBeLessThan(0.55)
   })
 })

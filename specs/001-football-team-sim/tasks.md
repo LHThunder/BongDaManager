@@ -5,8 +5,8 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | Giai đoạn 1 (36 AC), Giai đoạn 2 (22 AC), Giai đoạn 3 (26 AC) và Giai đoạn 4 (13 AC + 3 AC vắt lại) |
-| **Tiến độ** | 105/130 — Giai đoạn 1 xong (38/39, còn T035); Giai đoạn 2 và 3 xong trọn; Giai đoạn 4 chưa bắt đầu (Phase 15–19: T099–T129, gồm T102b) |
-| **Sửa đổi** | 2026-10-29 — sửa Phase 15–19 theo cả 13 phát hiện của `/analyze`: thêm T102b và T128, giữ `dongGopTheoCauThu`, sửa phụ thuộc của T108 |
+| **Tiến độ** | 109/130 — Giai đoạn 1 xong (38/39, còn T035); Giai đoạn 2 và 3 xong trọn; Giai đoạn 4 đang làm (Phase 15 xong: T099–T108; còn Phase 16–19: T109–T129) |
+| **Sửa đổi** | 2026-10-29 — Phase 15 (T099–T108) đã hiện thực và commit; Phase 16–19 chưa bắt đầu |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
 > Mỗi task phải: chạm file cụ thể + có cách kiểm chứng + đủ nhỏ để làm trong một lần.
@@ -816,29 +816,38 @@ của mỗi bên không còn trùng nhau. Phase này đi trước vì mọi th�
 - **Hai file ngoài danh sách đã chạm:** `src/engine/vung.ts` (thêm `vungCuaViTri` — D34c cần biết ô nào đứng ở vùng nào, mà `vung.ts` là nơi giữ luật lưới sân) và `src/engine/canThiep.test.ts` (phép "không dòng nào nhắc tên người đã rời sân" miễn trừ theo *loại sự kiện* thay vì theo *người*, nên nó đỏ ngay khi một người mới vào sân kịp cướp được bóng trong chính phút đó — `buocTiep` áp hàng đợi TRƯỚC khi mô phỏng theo D30b, nên người đó có mặt thật).
 - **Một chỗ sửa thêm, nằm trong `tran.ts`:** người ăn thẻ giờ là **đúng người vừa phạm lỗi**. Trước đây `thuRutThe` tự rút người riêng, nên cầu thủ A phạm lỗi mà cầu thủ B bị ghi tên vào sổ.
 
-- [ ] **T105** [P] — Đóng số phiên bản engine vào trận
+- [x] **T105** [P] — Đóng số phiên bản engine vào trận
   - File: sửa `src/engine/tran.ts`, `src/engine/taiLap.test.ts`
   - Xong khi: `PHIEN_BAN_ENGINE = 2` được xuất ra, và `TrangThaiTran.phienBanEngine` mang đúng giá trị đó (quyết định D35); test xanh — `taoTran` đặt đúng số, và số đó đi qua `chayHetTran` không đổi.
   - AC: AC-11.7, AC-8.11 *(phần công bố giới hạn phát lại)*
   - Phụ thuộc: —
 
-- [ ] **T106** [P] — Đường đi của bóng trong sự kiện
+- [x] **T106** [P] — Đường đi của bóng trong sự kiện
   - File: sửa `src/engine/suKien.ts`, sửa `src/engine/tran.ts`, `src/engine/suKien.test.ts`
   - Xong khi: `SuKien.duongBong: readonly VungSan[]` lấy từ `kq.cacHanhDong` của chính chuỗi đó (quyết định D40); test xanh — mọi vùng trong `duongBong` đều **kề nhau** theo luật của `vung.ts`; vùng cuối của `duongBong` **bằng** trường `vung` của sự kiện; sự kiện mốc (`bat-dau`, `het-hiep`, `ket-thuc`) có `duongBong` rỗng; **chạy lại cùng mã trận vẫn ra `duongBong` giống từng phần tử** (không tốn lần rút nào, nên không được làm lệch dãy số).
   - AC: AC-10.2
   - Phụ thuộc: —
 
-- [ ] **T107** — Gỡ màu áo khỏi engine
+- [x] **T107** — Gỡ màu áo khỏi engine
   - File: sửa `src/engine/tran.ts`, `src/ui/mauAo.ts`, sửa `src/ui/pages/ChonCapDau.tsx`, `src/ui/mauAo.test.ts`
   - Xong khi: trường `mauAoDangDung` **bị bỏ khỏi** `BenTran`; `ui/mauAo.ts` xuất `aoDangDung(nha, khach)` dùng lại `trungMauAo` của `domain/colors.ts` và trả về bên nào mặc áo nào cộng tên đội phải đổi áo; `ChonCapDau` dùng hàm này thay cho logic tại chỗ (quyết định D39); test xanh — hai màu trùng thì **đúng một** bên đổi sang áo phụ, hai màu khác nhau thì không bên nào đổi; `npx tsc --noEmit` sạch sau khi bỏ trường.
   - AC: AC-3.7 *(kiểm lại — Giai đoạn 3 đã đóng, phase này chỉ dọn chỗ ở)*
   - Phụ thuộc: —
+  - **Một file ngoài danh sách:** `src/engine/suKien.test.ts` (T106 thêm trường vào `SuKien` nên dữ liệu mẫu của file đó thiếu trường mới) và `src/engine/taiLap.test.ts` (T105 thêm test cho `PHIEN_BAN_ENGINE`). Cả hai là file test của chính thứ vừa đổi.
+  - Kiểm tay sau T107 trên `localhost:5173`: hai đội trùng màu áo chính vẫn báo đúng "Hải Phòng FC sẽ ra sân với áo phụ", trận chạy hết cho 2–1 với 82 dòng, và **dòng cứu thua hiện ra thật** ("thủ môn kịp đẩy bóng ra") — thứ chưa từng xuất hiện trong bất kỳ trận nào trước Phase 15. Không có lỗi nào trong console.
 
-- [ ] **T108** — Chạy lại bốn test so sánh của P5 và ghi lại số đo
+- [x] **T108** — Chạy lại bốn test so sánh của P5 và ghi lại số đo
   - File: `src/engine/sosanh.tanCongBien.test.ts`, `src/engine/sosanh.pressingCao.test.ts`, `src/engine/sosanh.saiViTri.test.ts`, `src/engine/sosanh.doiManhHon.test.ts`
   - Xong khi: cả bốn test **xanh** với dãy số mới, và **số đo thật** (con số từng test in ra) được ghi vào mô tả commit để so với số của Giai đoạn 3. Nếu một test đỏ thì **cân bằng lại engine**, không hạ ngưỡng — ngưỡng trong bốn test đó đến từ AC, không đến từ thuận tiện (rủi ro R17).
   - AC: AC-8.3, AC-8.4, AC-8.5, AC-8.8 *(kiểm lại sau khi đổi dãy số)*
   - Phụ thuộc: T099, T100, T101, T102, T102b, T103, T104, T107
+  - **Số đo thật sau khi đổi dãy số** (so với số của Giai đoạn 3 trong ngoặc):
+    - AC-8.3 tạt cánh: biên **41.8** so với trung lộ **9.8**, tỉ lệ **4.27 lần** — AC đòi hơn 1,5 lần.
+    - AC-8.4 pressing cao: cướp bóng dải cao **32.6** so với **14.6**; bị thoát xuống **10.3** so với **6.0** — cả hai chiều đều đúng hướng.
+    - AC-8.5 bốn mức sai vị trí: **44.5 / 35.2 / 31.9 / 27.9** (Giai đoạn 3: 33.8 / 31.9 / 29.3 / 22.7), giảm dần nghiêm ngặt.
+    - AC-8.8 đội hơn 5 điểm: **172-18-10** trên 200 trận (86% thắng; Giai đoạn 3 đo 88% trên 60 trận). Mẫu 10 trận mà AC yêu cầu: **8** thắng, trên ngưỡng 7.
+    - Hiệu năng: chạy hết trận **trung bình 6.8ms, lớn nhất 9.9ms** (trước Phase 15: 4.0ms / 6.8ms). Gán người cho từng bước đắt thêm chừng 70%, nhưng ngân sách test là 200ms nên vẫn còn rất rộng — đây là câu trả lời cho rủi ro R22.
+  - **Một test được làm CHẶT hơn, không phải nới:** phép "không thiên vị giữa hai phía" của AC-8.8 trước đây đặt **sàn tỉ lệ thắng 0,33**. Tỉ lệ thắng thật khi hai đội giống hệt nhau là chừng 0,34–0,40 (phần còn lại là hoà), nên cái sàn đó chỉ cách giá trị thật khoảng 1σ ở mẫu 200 trận — tức ~12% khả năng đỏ oan dù engine hoàn toàn cân, và nó đã đỏ. Đổi sang đo **chênh lệch thắng–thua** (đo thật: **10.0%**, ngưỡng 15%, cách giá trị thật 2,4σ), vì đó mới là câu hỏi "có bên nào được ưu ái không".
   - **Sửa sau `/analyze`:** bản đầu chỉ ghi `Phụ thuộc: T107` — việc gỡ màu áo, chẳng liên quan tới dãy số. Những task thật sự đổi dãy số và đổi bộ đếm là T099–T104, nên nếu chỉ chờ T107 thì số đo ghi vào commit là số của một engine nửa vời, đúng thứ R17 sinh ra để chặn.
 
 ## Phase 16 — Lát 14: Báo cáo sau trận

@@ -7,7 +7,9 @@ import {
   type SuKien,
   type UngVienSuKien,
 } from './suKien'
-import { layVung } from './vung'
+import { cauHinhMau, MA_TRAN_CO_DINH } from './__fixtures__/doiMau'
+import { chayHetTran, dongSuKien, taoTran } from './tran'
+import { keNhau, layVung } from './vung'
 
 const TI_SO_0 = { nha: 0, khach: 0 }
 
@@ -23,6 +25,7 @@ function suKien(
     doi: 'nha',
     cacCauThu: ['p1'],
     vung: layVung('giua', 2),
+    duongBong: [layVung('giua', 1), layVung('giua', 2)],
     mauCau,
     tiSoSauDo: TI_SO_0,
   }
@@ -146,5 +149,59 @@ describe('tất định (P1, rủi ro R13)', () => {
     const b = chonSuKien(cacUngVien)
     expect(b).toEqual(a)
     expect(a).toHaveLength(SO_DONG_TOI_DA)
+  })
+})
+
+/*
+  Đường bóng cho sân 2D (AC-10.2, quyết định D40).
+
+  Chỉ có `vung` thì vẽ được một điểm chứ không vẽ được đường, nên sự kiện mang
+  thêm danh sách vùng mà bóng đã đi qua. Nó được dẫn xuất từ các bước của
+  chính chuỗi bóng, KHÔNG rút thêm số nào — nên phép cuối của khối này là phép
+  quan trọng nhất: chạy lại cùng mã trận phải ra đúng từng phần tử.
+*/
+describe('đường bóng trong sự kiện (AC-10.2)', () => {
+  it('mọi vùng trong đường bóng đều kề nhau theo luật lưới sân', () => {
+    for (const ma of MA_TRAN_CO_DINH.slice(0, 5)) {
+      for (const sk of dongSuKien(chayHetTran(taoTran(cauHinhMau(ma))))) {
+        for (let i = 1; i < sk.duongBong.length; i += 1) {
+          const truoc = sk.duongBong[i - 1]
+          const sau = sk.duongBong[i]
+          const lienTuc = truoc.id === sau.id || keNhau(truoc, sau)
+          expect(lienTuc, `${ma} phút ${sk.phut}: ${truoc.id} -> ${sau.id}`).toBe(
+            true,
+          )
+        }
+      }
+    }
+  })
+
+  it('vùng cuối của đường bóng trùng với vùng của sự kiện', () => {
+    for (const ma of MA_TRAN_CO_DINH.slice(0, 5)) {
+      for (const sk of dongSuKien(chayHetTran(taoTran(cauHinhMau(ma))))) {
+        if (sk.duongBong.length === 0) continue
+        expect(sk.duongBong[sk.duongBong.length - 1].id, ma).toBe(sk.vung?.id)
+      }
+    }
+  })
+
+  it('sự kiện mốc không có đường bóng', () => {
+    const MOC: readonly LoaiSuKien[] = ['bat-dau', 'het-hiep', 'ket-thuc']
+    for (const sk of dongSuKien(chayHetTran(taoTran(cauHinhMau('K7M2R9XQ4B'))))) {
+      if (!MOC.includes(sk.loai)) continue
+      expect(sk.duongBong, sk.loai).toHaveLength(0)
+    }
+  })
+
+  it('chạy lại cùng mã trận ra đúng từng phần tử của đường bóng', () => {
+    for (const ma of MA_TRAN_CO_DINH.slice(0, 3)) {
+      const a = dongSuKien(chayHetTran(taoTran(cauHinhMau(ma)))).map((s) =>
+        s.duongBong.map((v) => v.id),
+      )
+      const b = dongSuKien(chayHetTran(taoTran(cauHinhMau(ma)))).map((s) =>
+        s.duongBong.map((v) => v.id),
+      )
+      expect(b, ma).toEqual(a)
+    }
   })
 })

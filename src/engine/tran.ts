@@ -164,7 +164,6 @@ export interface BenTran {
   readonly the: Readonly<Record<string, TheDaNhan>>
   readonly daBaoKietSuc: readonly string[]
   readonly soLanThay: number
-  readonly mauAoDangDung: 'chinh' | 'phu'
   readonly thongKe: ThongKeBen
 }
 
@@ -216,6 +215,12 @@ export type LyDoTuChoiCanThiep =
 
 export interface TrangThaiTran {
   readonly maTran: string
+  /**
+   * Phiên bản engine đã chạy trận này (quyết định D35). Lịch sử trận đấu
+   * mang theo số này, để giao diện biết khi nào một trận cũ không còn phát
+   * lại đúng bằng cách chạy lại.
+   */
+  readonly phienBanEngine: number
   /** Trạng thái 32-bit của nguồn ngẫu nhiên — ghi chú (1) plan III.4. */
   readonly hatGiong: number
   readonly phut: number
@@ -271,7 +276,6 @@ function taoBen(dangKy: DangKyBen): BenTran {
     the: {},
     daBaoKietSuc: [],
     soLanThay: 0,
-    mauAoDangDung: 'chinh',
     thongKe: THONG_KE_RONG,
   }
 }
@@ -320,6 +324,7 @@ export function taoTran(cauHinh: CauHinhTran): TrangThaiTran {
 
   const tt: TrangThaiTran = {
     maTran: cauHinh.maTran,
+    phienBanEngine: PHIEN_BAN_ENGINE,
     hatGiong: rng.hatGiong(),
     phut: 0,
     buGio: { hiep1, hiep2 },
@@ -336,7 +341,7 @@ export function taoTran(cauHinh: CauHinhTran): TrangThaiTran {
   return {
     ...tt,
     ungVien: [
-      taoUngVien(tt, 0, 'bat-dau', 'nha', [], null, mauCauKhaiCuoc, 100),
+      taoUngVien(tt, 0, 'bat-dau', 'nha', [], null, [], mauCauKhaiCuoc, 100),
     ],
   }
 }
@@ -348,6 +353,7 @@ function taoUngVien(
   doi: BenDoi,
   cacCauThu: readonly string[],
   vung: VungSan | null,
+  duongBong: readonly VungSan[],
   mauCau: number,
   diemDangKe: number,
 ): UngVienSuKien {
@@ -360,6 +366,7 @@ function taoUngVien(
       doi,
       cacCauThu,
       vung,
+      duongBong,
       mauCau,
       tiSoSauDo: tt.tiSo,
     },
@@ -580,6 +587,19 @@ function congCauThu(
 // ---------------------------------------------------------------------------
 // Thống kê
 // ---------------------------------------------------------------------------
+
+/**
+ * Đường bóng của một chuỗi, theo thứ tự các bước rồi tới vùng kết thúc
+ * (quyết định D40).
+ *
+ * Dẫn xuất thuần từ `cacHanhDong`, không rút thêm số nào, nên nó không làm
+ * lệch dãy số của P1.
+ */
+function duongBongCuaChuoi(kq: KetQuaChuoi): readonly VungSan[] {
+  const duong = kq.cacHanhDong.map((h) => h.vung)
+  const cuoi = duong[duong.length - 1]
+  return cuoi?.id === kq.vungKetThuc.id ? duong : [...duong, kq.vungKetThuc]
+}
 
 function diemCuaChuoi(kq: KetQuaChuoi, coBan: boolean): number {
   if (coBan) return 100
@@ -1031,6 +1051,18 @@ function apHangDoi(
   }
 }
 
+/**
+ * Phiên bản của chính engine (quyết định D35).
+ *
+ * Giai đoạn 4 rút thêm số từ `Rng` để gán hành động cho từng cầu thủ, nên
+ * **mã trận lưu từ Giai đoạn 3 không còn phát lại ra đúng trận cũ**. P1 hứa
+ * cùng một bộ đầu vào cho cùng kết quả "ở mọi lần chạy và mọi máy", không
+ * hứa qua mọi phiên bản — nhưng đó là thứ phải nói thẳng, nên nó được đóng
+ * vào trận và vào mỗi bản ghi lịch sử để giao diện biết khi nào hai phiên
+ * bản lệch nhau.
+ */
+export const PHIEN_BAN_ENGINE = 2
+
 export const SO_LAN_THAY_TOI_DA = 5
 
 export function buocTiep(ttVao: TrangThaiTran): TrangThaiTran {
@@ -1053,6 +1085,7 @@ export function buocTiep(ttVao: TrangThaiTran): TrangThaiTran {
     doi: BenDoi,
     cacCauThu: readonly string[],
     vung: VungSan | null,
+    duongBong: readonly VungSan[],
     diem: number,
   ) => {
     ungVienMoi.push(
@@ -1063,6 +1096,7 @@ export function buocTiep(ttVao: TrangThaiTran): TrangThaiTran {
         doi,
         cacCauThu,
         vung,
+        duongBong,
         Math.floor(rng.next() * 1000),
         diem,
       ),
@@ -1072,7 +1106,14 @@ export function buocTiep(ttVao: TrangThaiTran): TrangThaiTran {
   // Thay người vừa áp được ghi vào dòng sự kiện tại đúng phút này (AC-9.5).
   for (const ct of daThay) {
     if (ct.noiDung.loai !== 'thay-nguoi') continue
-    themUngVien('thay-nguoi', ct.doi, [ct.noiDung.vao, ct.noiDung.ra], null, 100)
+    themUngVien(
+      'thay-nguoi',
+      ct.doi,
+      [ct.noiDung.vao, ct.noiDung.ra],
+      null,
+      [],
+      100,
+    )
   }
 
   for (let i = 0; i < SO_CHUOI_MOI_PHUT; i += 1) {
@@ -1188,6 +1229,7 @@ export function buocTiep(ttVao: TrangThaiTran): TrangThaiTran {
       doi,
       nguoi ? [nguoi] : [],
       kq.vungKetThuc,
+      duongBongCuaChuoi(kq),
       diemCuaChuoi(kq, coBan),
     )
 
@@ -1205,6 +1247,7 @@ export function buocTiep(ttVao: TrangThaiTran): TrangThaiTran {
           doi === 'nha' ? 'khach' : 'nha',
           [kqThe.playerId],
           kq.vungKetThuc,
+          duongBongCuaChuoi(kq),
           100,
         )
       }
@@ -1227,7 +1270,7 @@ export function buocTiep(ttVao: TrangThaiTran): TrangThaiTran {
     const moi = moiKietSuc(ben)
     if (moi.length === 0) continue
     for (const id of moi) {
-      themUngVien('kiet-suc', doi, [id], null, 100)
+      themUngVien('kiet-suc', doi, [id], null, [], 100)
     }
     const capNhat: BenTran = {
       ...ben,
@@ -1257,12 +1300,12 @@ export function buocTiep(ttVao: TrangThaiTran): TrangThaiTran {
   const mocHiep: UngVienSuKien[] = []
   if (laMocHetHiep) {
     mocHiep.push(
-      taoUngVien(sauTt, phut, 'het-hiep', 'nha', [], null, mauCauHetHiep, 100),
+      taoUngVien(sauTt, phut, 'het-hiep', 'nha', [], null, [], mauCauHetHiep, 100),
     )
   }
   if (ketThuc) {
     mocHiep.push(
-      taoUngVien(sauTt, phut, 'ket-thuc', 'nha', [], null, mauCauKetThuc, 100),
+      taoUngVien(sauTt, phut, 'ket-thuc', 'nha', [], null, [], mauCauKetThuc, 100),
     )
   }
 

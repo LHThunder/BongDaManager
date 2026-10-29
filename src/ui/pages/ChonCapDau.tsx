@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { trungMauAo } from '../../domain/colors'
 import { xepLaiKhiDoiSoDo } from '../../domain/lineup'
 import type { Player, Tactic } from '../../domain/types'
 import {
@@ -10,6 +9,7 @@ import {
 import { DO_DAI_MA_TRAN, laMaTranHopLe, taoMaTran } from '../../engine/rng'
 import type { CauHinhTran, DangKyBen } from '../../engine/tran'
 import { useMatch } from '../../hooks/useMatch'
+import { aoDangDung } from '../mauAo'
 import { useTeams } from '../../hooks/useTeams'
 import * as playerRepo from '../../services/playerRepo'
 import * as tacticRepo from '../../services/tacticRepo'
@@ -142,11 +142,12 @@ export function ChonCapDau({ onQuayLai, onDaBatDau }: Props) {
   const doiNha = teams.find((d) => d.id === idNha)
   const doiKhach = teams.find((d) => d.id === idKhach)
 
-  const trungMau = useMemo(
-    () =>
-      doiNha && doiKhach
-        ? trungMauAo(doiNha.primaryColor, doiKhach.primaryColor)
-        : false,
+  /*
+    Quyết định đổi áo nằm trọn ở `ui/mauAo.ts` (quyết định D39), dùng chung
+    với sân 2D, nên hai chỗ không bao giờ vẽ hai đội với hai bộ màu khác nhau.
+  */
+  const mauAo = useMemo(
+    () => (doiNha && doiKhach ? aoDangDung(doiNha, doiKhach) : null),
     [doiNha, doiKhach],
   )
 
@@ -290,9 +291,9 @@ export function ChonCapDau({ onQuayLai, onDaBatDau }: Props) {
             ))}
           </div>
 
-          {trungMau && doiKhach && (
+          {mauAo?.doiDoiAo && (
             <p className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700">
-              {CHON_CAP_DAU.doiTrungMauAo(doiKhach.name)}
+              {CHON_CAP_DAU.doiTrungMauAo(mauAo.doiDoiAo)}
             </p>
           )}
 

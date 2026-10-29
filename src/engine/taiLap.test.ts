@@ -5,6 +5,7 @@ import {
   buocTiep,
   chayHetTran,
   dongSuKien,
+  PHIEN_BAN_ENGINE,
   taoTran,
   type BenTran,
   type CanThiep,
@@ -64,6 +65,25 @@ describe('chạy lại cùng mã trận (AC-8.11)', () => {
     const sauKhiTamDung = chayHetTran(tt)
 
     expect(sauKhiTamDung).toEqual(chay(ma))
+  })
+})
+
+describe('phiên bản engine đóng vào trận (quyết định D35)', () => {
+  it('taoTran đặt đúng số, và chayHetTran không làm nó đổi', () => {
+    const tt = taoTran(cauHinhMau(MA_TRAN_CO_DINH[0]))
+    expect(tt.phienBanEngine).toBe(PHIEN_BAN_ENGINE)
+    expect(chay(MA_TRAN_CO_DINH[0]).phienBanEngine).toBe(PHIEN_BAN_ENGINE)
+  })
+
+  /*
+    Vì sao con số này tồn tại: Giai đoạn 4 rút thêm số từ `Rng` để gán hành
+    động cho từng cầu thủ, nên mã trận lưu từ Giai đoạn 3 không còn phát lại
+    ra đúng trận cũ. P1 hứa cùng đầu vào cho cùng kết quả "ở mọi lần chạy và
+    mọi máy", không hứa qua mọi phiên bản — nhưng người dùng phải được nói,
+    nên lịch sử trận đấu mang theo số này (T124).
+  */
+  it('số phiên bản lớn hơn 1, vì Giai đoạn 3 là phiên bản 1', () => {
+    expect(PHIEN_BAN_ENGINE).toBeGreaterThan(1)
   })
 })
 
