@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
-import { useTeams } from '../../hooks/useTeams'
+import { coTranDangDien, useTeams } from '../../hooks/useTeams'
 import type { TeamSummary } from '../../services/teamRepo'
+import { useAppStore } from '../../store/appStore'
 import { CHUNG, DANH_SACH_DOI, XOA_DOI } from '../strings'
 import { AnhThayThe } from '../components/AnhThayThe'
 import { FormDoi } from '../components/FormDoi'
@@ -23,6 +24,7 @@ type HopDangMo =
  */
 export function DanhSachDoi({ onMoDoi }: Props) {
   const { teams, dangTai, napDanhSachDoi, xoaDoi } = useTeams()
+  const tran = useAppStore((s) => s.tran)
   const [hop, datHop] = useState<HopDangMo>({ loai: 'khong' })
 
   useEffect(() => {
@@ -140,7 +142,10 @@ export function DanhSachDoi({ onMoDoi }: Props) {
       {hop.loai === 'xoa' && (
         <HopXacNhan
           tieuDe={XOA_DOI.tieuDe}
-          moTa={XOA_DOI.moTa(hop.doi.name, hop.doi.soCauThu)}
+          moTa={
+            XOA_DOI.moTa(hop.doi.name, hop.doi.soCauThu) +
+            (coTranDangDien(tran, hop.doi.id) ? XOA_DOI.tranDangDien : '')
+          }
           nhanXacNhan={XOA_DOI.xacNhan}
           nguyHiem
           onXacNhan={() => {

@@ -1,5 +1,6 @@
 import { useCallback } from 'react'
 import type { Team } from '../domain/types'
+import type { TrangThaiTran } from '../engine/tran'
 import * as teamRepo from '../services/teamRepo'
 import { useAppStore } from '../store/appStore'
 import { ghiNhanLoiLuuTru } from './useBackup'
@@ -14,6 +15,20 @@ import { ghiNhanLoiLuuTru } from './useBackup'
   qua `ghiNhanLoiLuuTru` của `useBackup`, đồng thời vẫn ném tiếp để form đang
   mở biết là việc vừa rồi đã thất bại.
 */
+
+/**
+ * Đội này có đang đá một trận dở trong bộ nhớ không (spec mục 5).
+ *
+ * Chỉ nói về trận ĐANG CHẠY. Trận trong lịch sử không tính: mục 5 nói trận cũ
+ * vẫn phải xem lại được sau khi xoá đội.
+ */
+export function coTranDangDien(
+  tran: TrangThaiTran | null,
+  teamId: string,
+): boolean {
+  if (!tran) return false
+  return tran.ben.nha.teamId === teamId || tran.ben.khach.teamId === teamId
+}
 
 export function useTeams() {
   const teams = useAppStore((s) => s.teams)
@@ -85,6 +100,17 @@ export function useTeams() {
       try {
         const ketQua = await teamRepo.remove(id)
         useAppStore.getState().boDoi(id)
+
+        /*
+          Trận dở của đội vừa xoá bị BỎ, không vào lịch sử (spec mục 5) — một
+          trong hai bên không còn hồ sơ thì trận ấy không còn ý nghĩa gì.
+          Người dùng đã được hộp xác nhận nói trước việc này.
+        */
+        const st = useAppStore.getState()
+        if (coTranDangDien(st.tran, id)) {
+          st.datTranDangChay(false)
+          st.datTran(null)
+        }
         return ketQua
       } catch (loi) {
         ghiNhanLoiLuuTru(loi)

@@ -5,8 +5,8 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | Giai đoạn 1 (36 AC), Giai đoạn 2 (22 AC), Giai đoạn 3 (26 AC) và Giai đoạn 4 (13 AC + 3 AC vắt lại) |
-| **Tiến độ** | 126/132 — Giai đoạn 1 xong (38/39, còn T035); Giai đoạn 2 và 3 xong trọn; Giai đoạn 4 đang làm (Phase 15–18 xong: T099–T125; còn Phase 19: T126–T129, cùng T130 và T131) |
-| **Sửa đổi** | 2026-10-29 — Phase 15–18 (T099–T125) đã hiện thực và commit; còn Phase 19, T130 và T131 |
+| **Tiến độ** | 128/133 — Giai đoạn 1 xong (38/39, còn T035); Giai đoạn 2 và 3 xong trọn; **Giai đoạn 4 xong, spec 001 đóng** (T126 và T128 đã kiểm tay và tick). Còn 5 task KHÔNG chặn spec: T035, T129 (chờ người dùng trả lời), T130, T131, T132 |
+| **Sửa đổi** | 2026-10-29 — Phase 19 xong: 13 AC của US-10/US-11 cộng AC-4.2 và AC-1.5 đã kiểm tay trên ứng dụng đang chạy, `spec.md` đổi `Status` thành **Done** (98/99 AC). T132 là task mới phát hiện lúc kiểm tay |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
 > Mỗi task phải: chạm file cụ thể + có cách kiểm chứng + đủ nhỏ để làm trong một lần.
@@ -1044,17 +1044,18 @@ lại đọc được báo cáo cũ; xuất tệp sao lưu rồi nhập lại th
 
 ## Phase 19 — Lát 17: Đóng spec 001
 
-- [ ] **T126** — Kiểm tay 13 AC của Giai đoạn 4 và tick nốt spec
+- [x] **T126** — Kiểm tay 13 AC của Giai đoạn 4 và tick nốt spec
   - File: `specs/001-football-team-sim/spec.md` (tick các ô AC và đổi `Status`)
   - Xong khi: 13 AC của US-10 và US-11 được tự tay kiểm trên ứng dụng đang chạy và tick, cộng **AC-4.2** và **AC-1.5** tick trọn; kiểm tay bốn việc chỉ kiểm tay mới thấy — xem một pha tấn công biên trên sân 2D rồi thấy điểm dịch ra biên; xem sân ở chế độ grayscale xem còn phân biệt được người tham gia không; đổi tên một đội rồi mở lịch sử thấy tên mới; xoá một đội rồi mở lịch sử thấy tên cũ và nút đấu lại bị chặn. `Status` của spec đổi thành **`Done`** chỉ khi mọi AC trong phạm vi đã pass.
   - AC: toàn bộ AC-10.x và AC-11.x, cộng AC-4.2, AC-1.5
   - Phụ thuộc: T113, T118, T124, T125, T128
 
-- [ ] **T128** — Xoá đội khi đang có trận dở
+- [x] **T128** — Xoá đội khi đang có trận dở
   - File: sửa `src/ui/pages/DanhSachDoi.tsx`, sửa `src/hooks/useTeams.ts`, sửa `src/ui/strings.ts`
   - Xong khi: xoá một đội **đang có trận chạy trong bộ nhớ** thì hỏi xác nhận nêu rõ **trận đang diễn ra sẽ bị bỏ**, và đồng ý thì trận bị huỷ cùng lúc đội bị xoá; xoá một đội **chỉ có trận trong lịch sử** thì lịch sử **không** bị đụng tới (đã có test ở T120) và hộp xác nhận không nói gì về trận đang diễn ra.
   - AC: — *(dòng "Xoá đội khi đang có trận dở" của `spec.md` mục 5)*
   - Phụ thuộc: T121
+  - **Một nửa của task này KHÔNG dựng được bằng tay, và đó là phát hiện đáng ghi.** Đường duy nhất rời màn trận là nút "Rời trận", mà nút đó gọi `roiTran()` — tức **huỷ trận** — trước khi chuyển trang. Nên trong ứng dụng hiện nay không có trạng thái nào vừa còn trận dở vừa đứng ở danh sách đội, và câu cảnh báo thêm không bao giờ hiện ra. Code vẫn giữ (`coTranDangDien` trong `useTeams.ts`): nó đúng, nhỏ, và là lưới chắn cho ngày màn trận sống qua điều hướng. Nửa kiểm được thì đã kiểm tay 2026-10-29: tạo đội "Đội thử T128" rồi xoá, hộp xác nhận **không** nói gì về trận đang diễn ra, và lịch sử 20 trận không suy chuyển.
   - **Task thêm sau `/analyze`:** dòng này rơi qua ba giai đoạn mà không phase nào nhận — Definition of Done Giai đoạn 1 hoãn sang "GĐ2/GĐ3", Giai đoạn 3 không tạo task, bản đầu của Giai đoạn 4 cũng không. Definition of Done của spec đòi các trường hợp biên mục 5 được xử lý, nên nó phải có chỗ.
 
 - [ ] **T129** — Ba món nợ còn lại của spec 001
@@ -1063,6 +1064,22 @@ lại đọc được báo cáo cũ; xuất tệp sao lưu rồi nhập lại th
   - AC: —
   - Phụ thuộc: T126
   - **Ghi chú, sửa sau `/analyze`:** task này **cần người dùng trả lời**, nên nó **không chặn** việc T126 đổi `Status` của spec thành `Done`. Ba món nợ này là nợ cũ của Giai đoạn 1 và của hiến pháp, không phải AC nào của spec.
+
+### Ghi chú Phase 19
+
+- **Cách kiểm**: mọi số liệu dưới đây lấy trên ứng dụng đang chạy ngày 2026-10-29 với 19 đội / 20 trận, không phải từ test. Chi tiết từng AC nằm ngay tại AC đó trong `spec.md`.
+- **Sân 2D đọc bằng DOM chứ không chỉ bằng mắt**: lấy 14 mẫu liên tiếp trong lúc trận chạy rồi so toạ độ 22 điểm. Kết quả sắc hơn nhìn ảnh: **không một cầu thủ nào không-tham-gia đổi chỗ** trong suốt 14 mẫu, còn người tham gia thì dịch đúng tới vùng có bóng — hậu vệ trái đứng `(28 13)` nhảy tới `(56 51)`, tức ra biên bên kia, đúng pha tấn công biên mà AC-10.2 nói tới.
+- **Grayscale**: đặt `filter: grayscale(1)` lên sân rồi chụp. Hai đội vẫn phân biệt được (một đội xám đậm, một đội trắng), và người đang tham gia nhận ra nhờ **dấu ▲** cộng viền dày — hai tín hiệu không phụ thuộc màu, đúng P9. Màu áo là thứ người dùng tự chọn nên không thể dựa vào nó.
+- **Hiệu năng**: "Chạy hết trận" lúc sân đang hiện mất **31ms** (ngân sách mục 6 là 3 giây). Sân 2D không làm chậm gì — đúng như quyết định D41 đã đánh cược khi bỏ canvas và vòng lặp animation.
+- **Hai lỗi engine của Phase 15 nhìn thấy được trên màn hình**: báo cáo ghi 8 cú sút / 3 cơ hội rõ ràng (trước D37 thì hai số này luôn bằng nhau), và dòng tường thuật phút 87 đọc được câu "tưởng đã ghi bàn, nhưng thủ môn kịp đẩy bóng ra" — loại sự kiện `cuu-thua` trước D38 chưa bao giờ xuất hiện.
+- **Một thứ trông như lỗi mà không phải**: ô "Tệp sẽ khoảng NaN MB" ở khung sao lưu. Nguyên nhân là **một bản ghi ảnh trong database thiếu `byteSize`** (và cả `width`, `height`) — bản ghi đó do script tạo dữ liệu thử ghi thẳng vào IndexedDB, không đi qua `luuAnh`. Mọi đường ghi ảnh trong code đều đặt `byteSize = blob.size`, nên đây là dữ liệu thử hỏng chứ không phải lỗi ứng dụng. Có thể bàn thêm việc `coTep` nên chặn `NaN`, nhưng đó là việc ngoài phạm vi spec 001.
+
+- [ ] **T132** — Mỗi tình huống chỉ sáng lên một cầu thủ
+  - File: sửa `src/engine/tran.ts`, sửa `src/engine/tran.test.ts`
+  - Xong khi: sự kiện của một chuỗi bóng mang theo **mọi cầu thủ trực tiếp tham gia** chứ không chỉ người kết thúc — ít nhất là người kiến tạo ở bàn thắng có kiến tạo; test xanh — trong một trận có bàn thắng kèm kiến tạo, sự kiện `ban-thang` có đủ hai id, và sân 2D làm nổi bật cả hai.
+  - AC: AC-10.3 *(phần "những cầu thủ", số nhiều)*
+  - Phụ thuộc: T102b, T116
+  - **Task phát hiện lúc kiểm tay T126.** `themUngVien` ở `tran.ts` truyền `nguoi ? [nguoi] : []` — chỉ người kết thúc. `GanHanhDong` đã có sẵn `nguoiKienTao`, `nguoiCuopBong`, `nguoiChuyen` cho phần thống kê, nên dữ liệu đã nằm sẵn đó. Đếm trên một trận đã lưu: 78/81 sự kiện có đúng 1 cầu thủ, 3 sự kiện có 0 (khai cuộc, hết hiệp, kết thúc), **không sự kiện nào có 2**. Sửa chỗ này **đổi dòng sự kiện** chứ không đổi `Rng`, nên mã trận cũ vẫn phát lại đúng tỉ số — nhưng `taiLap.test.ts` so từng dòng nên vẫn phải chạy lại.
 
 ---
 
@@ -1167,7 +1184,7 @@ xem hai bảng ở cuối phần "Bảng phủ AC — Giai đoạn 2" thay vì l
 | AC-9.10 | T090 |
 | AC-10.1 | T114 |
 | AC-10.2 | T106, T115 |
-| AC-10.3 | T116 |
+| AC-10.3 | T116, T132 *(phần "những cầu thủ", số nhiều — xem Ghi chú Phase 19)* |
 | AC-10.4 | T115 |
 | AC-10.5 | T118 |
 | AC-10.6 | T117 |

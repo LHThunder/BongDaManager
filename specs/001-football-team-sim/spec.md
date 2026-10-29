@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **ID** | `001-football-team-sim` |
-| **Status** | Planned — Giai đoạn 1, 2 và 3 đã hiện thực và kiểm chứng (84/99 AC tick; AC-1.5 còn phần lịch sử trận đấu). 15 AC chưa tick: AC-10.x và AC-11.x thuộc Giai đoạn 4, AC-4.2 chờ lịch sử trận đấu, AC-4.7 chưa quan sát được trên giao diện. **Giai đoạn 4 đã có plan** (`plan.md` PHẦN IV, ngày 2026-10-28) và đóng cả ba AC vắt lại đó; bước tiếp theo là `/tasks` |
+| **Status** | **Done** (ngày 2026-10-29) — cả bốn giai đoạn đã hiện thực và kiểm chứng. **98/99 AC tick**; AC duy nhất chưa tick là **AC-4.7**, vì không có cách nào làm đầy dung lượng lưu trữ từ trong trang để quan sát đường cảnh báo đầu-cuối — từng mảnh của nó đã có test, xem ghi chú ngay tại AC đó và T129 trong `tasks.md` |
 | **Created** | 2026-10-26 |
 | **Clarified** | 2026-10-26 |
 | **Amended** | 2026-10-26 — khớp constitution v1.0.0 (P1); và sửa theo kết quả `/analyze` (AC-2.1b, AC-4.8, AC-4.9); xem mục 10 |
@@ -71,7 +71,7 @@ Là một **fan bóng đá**, tôi muốn **tạo không giới hạn số độ
 - [x] AC-1.2 — KHI người dùng tạo đội với tên không rỗng THÌ hệ thống PHẢI tạo đội đó và đưa người dùng vào trang quản lý đội vừa tạo.
 - [x] AC-1.3 — KHI người dùng tạo đội mà để trống tên THÌ hệ thống PHẢI từ chối tạo và chỉ rõ trường tên đang thiếu.
 - [x] AC-1.4 — KHI đã có ít nhất một đội THÌ hệ thống PHẢI hiển thị danh sách tất cả các đội, mỗi đội kèm tên, logo (hoặc hình thay thế) và số lượng cầu thủ hiện có.
-- [x] AC-1.5 *(trừ lịch sử trận đấu)* — KHI người dùng đổi tên một đội THÌ hệ thống PHẢI cập nhật tên đó ở mọi nơi đang hiển thị đội (danh sách đội, trang chiến thuật, lịch sử trận đấu). **→ Giai đoạn 2 đóng nốt phần trang chiến thuật: trang đọc tên đội từ store dùng chung, không giữ bản sao riêng. Lịch sử trận đấu thuộc GĐ4 (AC-11.7), không phải GĐ3 — ghi chú cũ ghi nhầm, xem `plan.md` mục III.0**
+- [x] AC-1.5 — KHI người dùng đổi tên một đội THÌ hệ thống PHẢI cập nhật tên đó ở mọi nơi đang hiển thị đội (danh sách đội, trang chiến thuật, lịch sử trận đấu). **→ Giai đoạn 2 đóng nốt phần trang chiến thuật: trang đọc tên đội từ store dùng chung, không giữ bản sao riêng. Giai đoạn 4 đóng nốt phần lịch sử — kiểm tay 2026-10-29: đổi tên "Sông Hàn FC" thành "Sông Hàn ĐỔI TÊN" rồi mở lịch sử, mọi dòng hiện tên MỚI và không còn dòng nào mang tên cũ, vì bản ghi trận giữ `teamId` và tên được phân giải từ đội đang sống (quyết định D46)**
 - [x] AC-1.6 — KHI người dùng yêu cầu xoá một đội THÌ hệ thống PHẢI hỏi xác nhận có nêu tên đội và số cầu thủ sẽ mất, và CHỈ xoá sau khi người dùng xác nhận. **→ Kiểm lại ở Giai đoạn 2: xoá đội dọn cả chiến thuật của đội đó.**
 - [x] AC-1.7 — KHI người dùng tạo đội trùng tên với đội đã có THÌ hệ thống PHẢI cảnh báo trùng tên nhưng VẪN cho phép tiếp tục nếu người dùng xác nhận.
 
@@ -110,12 +110,12 @@ Là một **người đã bỏ công nhập liệu**, tôi muốn **dữ liệu 
 
 **Acceptance criteria:**
 - [x] AC-4.1 — KHI người dùng tạo hoặc sửa bất kỳ dữ liệu nào THÌ hệ thống PHẢI tự lưu lại mà không cần bấm nút Lưu.
-- [ ] AC-4.2 — KHI người dùng đóng ứng dụng rồi mở lại trên cùng máy, cùng trình duyệt THÌ toàn bộ đội, cầu thủ, ảnh, chiến thuật và lịch sử trận đấu PHẢI còn nguyên. **→ Giai đoạn 1: đội, cầu thủ, ảnh và chiến thuật đã tồn tại qua lần mở lại; lịch sử trận đấu thuộc GĐ4 (AC-11.7), không phải GĐ3 — ghi chú cũ ghi nhầm, xem `plan.md` mục III.0. Giai đoạn 3 không tick được AC này, và đó là đúng**
+- [x] AC-4.2 — KHI người dùng đóng ứng dụng rồi mở lại trên cùng máy, cùng trình duyệt THÌ toàn bộ đội, cầu thủ, ảnh, chiến thuật và lịch sử trận đấu PHẢI còn nguyên. **→ Giai đoạn 1: đội, cầu thủ, ảnh và chiến thuật đã tồn tại qua lần mở lại. Giai đoạn 4 đóng nốt phần lịch sử — kiểm tay 2026-10-29: tải lại trang với 19 đội và 20 trận thì cả ba thứ còn nguyên, mở một trận cũ vẫn đủ báo cáo lẫn 81 dòng sự kiện**
 - [x] AC-4.3 — KHI người dùng yêu cầu xuất dữ liệu THÌ hệ thống PHẢI tạo ra một tệp duy nhất chứa toàn bộ đội, cầu thủ, ảnh, chiến thuật và lịch sử trận đấu.
 - [x] AC-4.4 — KHI người dùng nhập lại tệp đã xuất trên một máy hoặc trình duyệt khác THÌ toàn bộ dữ liệu PHẢI hiện lên đúng như lúc xuất, kể cả ảnh. **→ Kiểm lại ở Giai đoạn 2 trên tệp v3: chiến thuật và bộ có tên cũng trở lại đúng.**
 - [x] AC-4.5 — KHI người dùng nhập một tệp không đúng định dạng hoặc bị hỏng THÌ hệ thống PHẢI từ chối, nói rõ lý do, và giữ nguyên dữ liệu đang có — không được xoá hay ghi đè một phần. **→ Kiểm lại ở Giai đoạn 2: tệp v3 có ô trỏ tới cầu thủ đội khác bị từ chối, dữ liệu đang có không đổi.**
 - [x] AC-4.6 — KHI người dùng nhập một tệp hợp lệ trong lúc đã có dữ liệu THÌ hệ thống PHẢI hỏi rõ là thay thế toàn bộ hay gộp thêm vào, trước khi làm bất cứ điều gì.
-- [ ] AC-4.7 — KHI dung lượng lưu trữ của trình duyệt đầy và việc lưu thất bại THÌ hệ thống PHẢI cảnh báo ngay rằng thay đổi chưa được lưu và gợi ý người dùng xuất dữ liệu ra tệp. **→ Giai đoạn 1: mã lỗi QuotaExceeded đã có test và được quy về một chỗ xử lý tập trung, NHƯNG chưa quan sát được cảnh báo hiện trên giao diện vì không mô phỏng được lưu trữ đầy thật**
+- [ ] AC-4.7 — KHI dung lượng lưu trữ của trình duyệt đầy và việc lưu thất bại THÌ hệ thống PHẢI cảnh báo ngay rằng thay đổi chưa được lưu và gợi ý người dùng xuất dữ liệu ra tệp. **→ CHƯA TICK, và sẽ không tick cho tới khi có cách quan sát. Từng mảnh đã kiểm: `chuanHoaLoiLuuTru` ánh xạ `QuotaExceededError` thành mã `QuotaExceeded` (có test), `errors.test.ts` phủ phần dựng câu tiếng Việt, và một lần ghi hỏng thật cho ra đúng `LoiUngDung` đó. Thứ KHÔNG kiểm được là đường hiển thị đầu-cuối: không siết được quota của trình duyệt từ trong trang, và đặt `loiLuuTru` từ console thì ghi vào một thể hiện store khác với thể hiện ứng dụng đang chạy. Xem T129**
 - [x] AC-4.8 — KHI người dùng yêu cầu xuất dữ liệu THÌ hệ thống PHẢI hiện kích thước ước tính của tệp trước khi tạo tệp.
 - [x] AC-4.9 — KHI người dùng mở ứng dụng lần đầu THÌ hệ thống PHẢI yêu cầu trình duyệt đánh dấu dữ liệu của ứng dụng là lưu trữ bền; VÀ KHI trình duyệt từ chối THÌ hệ thống PHẢI cho người dùng biết dữ liệu có thể bị trình duyệt xoá và nhắc xuất tệp sao lưu thường xuyên.
 
@@ -208,24 +208,24 @@ Là một **HLV**, tôi muốn **xem trận đấu diễn ra theo thời gian v�
 Là một **người xem**, tôi muốn **thấy pha bóng đang diễn ra ở đâu trên sân**, để **hiểu diễn biến thay vì chỉ đọc chữ**.
 
 **Acceptance criteria:**
-- [ ] AC-10.1 — KHI trận đấu đang diễn ra THÌ hệ thống PHẢI hiển thị hình sân 2D với đủ 22 điểm tròn đại diện toàn bộ cầu thủ hai đội, đặt theo sơ đồ và độ cao đội hình của mỗi đội, mang màu áo đã được phân biệt theo AC-3.7.
-- [ ] AC-10.2 — KHI dòng tường thuật chuyển sang một tình huống mới THÌ các cầu thủ tham gia tình huống đó PHẢI di chuyển tới khu vực sân nơi tình huống diễn ra, kèm thể hiện đường đi của bóng; các cầu thủ còn lại PHẢI giữ vị trí đứng theo đội hình.
-- [ ] AC-10.3 — KHI một tình huống đang diễn ra THÌ hệ thống PHẢI làm nổi bật những cầu thủ đang trực tiếp tham gia tình huống đó, phân biệt được với các cầu thủ còn lại.
-- [ ] AC-10.4 — KHI người dùng tạm dừng trận THÌ sân 2D PHẢI dừng ở đúng trạng thái của phút đó.
-- [ ] AC-10.5 — KHI người dùng chọn tốc độ tường thuật nhanh nhất hoặc chạy hết trận ngay THÌ hệ thống PHẢI vẫn hoàn tất trận trong giới hạn hiệu năng ở mục 6, không bị sân 2D làm chậm lại.
-- [ ] AC-10.6 — KHI người dùng không muốn xem sân 2D THÌ hệ thống PHẢI cho phép ẩn nó và chỉ xem dòng tường thuật.
+- [x] AC-10.1 — KHI trận đấu đang diễn ra THÌ hệ thống PHẢI hiển thị hình sân 2D với đủ 22 điểm tròn đại diện toàn bộ cầu thủ hai đội, đặt theo sơ đồ và độ cao đội hình của mỗi đội, mang màu áo đã được phân biệt theo AC-3.7. **→ Kiểm tay 2026-10-29: đếm đúng 22 `<g>` điểm, hai thủ môn đối xứng ở hai đầu, hình 4-4-2 nhìn rõ; hai đội trùng màu nên đội khách ra sân áo phụ và hai màu điểm khác hẳn nhau**
+- [x] AC-10.2 — KHI dòng tường thuật chuyển sang một tình huống mới THÌ các cầu thủ tham gia tình huống đó PHẢI di chuyển tới khu vực sân nơi tình huống diễn ra, kèm thể hiện đường đi của bóng; các cầu thủ còn lại PHẢI giữ vị trí đứng theo đội hình. **→ Kiểm tay 2026-10-29: lấy 14 mẫu liên tiếp trong trận, mọi cầu thủ KHÔNG tham gia đều giữ đúng một toạ độ suốt 14 mẫu; pha tấn công biên thấy rõ — hậu vệ trái đứng ở `(28 13)` dịch tới `(56 51)` đúng vùng biên có bóng, kèm `polyline` đường bóng và chấm bóng ở cuối đường**
+- [x] AC-10.3 — KHI một tình huống đang diễn ra THÌ hệ thống PHẢI làm nổi bật những cầu thủ đang trực tiếp tham gia tình huống đó, phân biệt được với các cầu thủ còn lại. **→ Kiểm tay 2026-10-29: người tham gia có viền dày 1.4 thay vì 0.5, thêm dấu ▲ phía trên và câu "đang tham gia tình huống" trong `<title>`; xem sân ở chế độ grayscale vẫn phân biệt được. Engine hiện chỉ ghi MỘT cầu thủ cho mỗi tình huống (trừ thay người ghi hai) nên người kiến tạo không sáng lên — xem T132**
+- [x] AC-10.4 — KHI người dùng tạm dừng trận THÌ sân 2D PHẢI dừng ở đúng trạng thái của phút đó. **→ Kiểm tay 2026-10-29: tạm dừng ở phút 46, chụp toạ độ 22 điểm và đường bóng, chờ 2,5 giây rồi chụp lại — giống hệt từng ký tự, dòng sự kiện cũng không dài thêm**
+- [x] AC-10.5 — KHI người dùng chọn tốc độ tường thuật nhanh nhất hoặc chạy hết trận ngay THÌ hệ thống PHẢI vẫn hoàn tất trận trong giới hạn hiệu năng ở mục 6, không bị sân 2D làm chậm lại. **→ Kiểm tay 2026-10-29: bấm "Chạy hết trận" lúc sân đang hiện, đo từ cú bấm tới khi màn hình báo kết thúc: 31ms (ngân sách 3 giây). Trận chạy trọn từ phút 0 đo trước đó: 120ms**
+- [x] AC-10.6 — KHI người dùng không muốn xem sân 2D THÌ hệ thống PHẢI cho phép ẩn nó và chỉ xem dòng tường thuật. **→ Kiểm tay 2026-10-29: bấm "Ẩn sân" thì `<svg>` biến mất và chỉ còn dòng tường thuật; tải lại trang rồi mở trận khác, nút vẫn là "Hiện sân" — lựa chọn nằm trong store `meta`, không phải localStorage**
 
 ### US-11: Đọc báo cáo sau trận
 Là một **HLV**, tôi muốn **một bản báo cáo sau trận**, để **biết chiến thuật của tôi hỏng ở đâu và ai đã chơi tốt**.
 
 **Acceptance criteria:**
-- [ ] AC-11.1 — KHI trận đấu kết thúc THÌ hệ thống PHẢI hiển thị tỉ số cuối cùng cùng danh sách người ghi bàn kèm phút ghi bàn của cả hai đội.
-- [ ] AC-11.2 — KHI xem báo cáo sau trận THÌ hệ thống PHẢI hiển thị, cho từng đội: số lần sút, số lần sút trúng đích, tỉ lệ kiểm soát bóng, số cơ hội rõ ràng, số thẻ vàng và thẻ đỏ.
-- [ ] AC-11.3 — KHI xem báo cáo sau trận THÌ hệ thống PHẢI chấm điểm từng cầu thủ đã ra sân trên thang 1–10, bắt đầu từ 6.0 và cộng/trừ theo bàn thắng, kiến tạo, sút trúng đích, tỉ lệ chuyền chính xác, số lần cướp bóng, số lần mất bóng và số lần phạm lỗi, với các tiêu chí được cân theo vị trí cầu thủ đã đá; VÀ người dùng PHẢI xem được những số liệu nào đã dẫn tới điểm đó.
-- [ ] AC-11.4 — KHI xem báo cáo sau trận THÌ hệ thống PHẢI cho xem lại toàn bộ dòng sự kiện của trận vừa rồi.
-- [ ] AC-11.5 — KHI một cầu thủ vào sân từ băng ghế dự bị THÌ báo cáo PHẢI thể hiện rõ cầu thủ đó đá từ phút nào tới phút nào.
-- [ ] AC-11.6 — KHI trận đấu kết thúc THÌ hệ thống PHẢI cho phép giả lập lại ngay cùng cặp đấu đó mà không phải cấu hình lại từ đầu, với lựa chọn dùng lại mã trận cũ hoặc sinh mã trận mới.
-- [ ] AC-11.7 — KHI một trận đấu kết thúc THÌ hệ thống PHẢI lưu trận đó vào lịch sử gồm tỉ số, đội hình hai bên, chiến thuật xuất phát của hai đội, đội chủ nhà, chuỗi can thiệp giữa trận kèm phút thực hiện, báo cáo sau trận, dòng sự kiện đầy đủ và mã trận — đủ để phát lại y nguyên trận đó theo AC-8.11; lịch sử PHẢI giữ 20 trận gần nhất, VÀ KHI trận thứ 21 được lưu THÌ trận cũ nhất PHẢI bị loại khỏi lịch sử.
+- [x] AC-11.1 — KHI trận đấu kết thúc THÌ hệ thống PHẢI hiển thị tỉ số cuối cùng cùng danh sách người ghi bàn kèm phút ghi bàn của cả hai đội. **→ Kiểm tay 2026-10-29: "Đội đo 10 1 – 0 Đội đo 11", người ghi bàn "17' Đội đo 10 6 (Đội đo 10)"**
+- [x] AC-11.2 — KHI xem báo cáo sau trận THÌ hệ thống PHẢI hiển thị, cho từng đội: số lần sút, số lần sút trúng đích, tỉ lệ kiểm soát bóng, số cơ hội rõ ràng, số thẻ vàng và thẻ đỏ. **→ Kiểm tay 2026-10-29: 8/9 cú sút, 4/7 sút trúng đích, 53%/47% kiểm soát bóng (cộng đúng 100), 3/7 cơ hội rõ ràng, 5/0 thẻ vàng, 0/0 thẻ đỏ. Số cú sút KHÁC số cơ hội rõ ràng — đây là chỗ lỗi D37 từng làm hai con số luôn bằng nhau**
+- [x] AC-11.3 — KHI xem báo cáo sau trận THÌ hệ thống PHẢI chấm điểm từng cầu thủ đã ra sân trên thang 1–10, bắt đầu từ 6.0 và cộng/trừ theo bàn thắng, kiến tạo, sút trúng đích, tỉ lệ chuyền chính xác, số lần cướp bóng, số lần mất bóng và số lần phạm lỗi, với các tiêu chí được cân theo vị trí cầu thủ đã đá; VÀ người dùng PHẢI xem được những số liệu nào đã dẫn tới điểm đó. **→ Kiểm tay 2026-10-29: bấm vào "Đội đo 10 9" (7.4) thấy điểm nền 6.0 rồi Cướp bóng 7 → +0.7, Mất bóng 4 → -0.6, Phạm lỗi 1 → -0.2, Chuyền chính xác 85% → +1.5; cộng lại đúng 7.4. Cùng một trận, hai tiền vệ cùng số liệu khác vị trí cho điểm khác nhau**
+- [x] AC-11.4 — KHI xem báo cáo sau trận THÌ hệ thống PHẢI cho xem lại toàn bộ dòng sự kiện của trận vừa rồi. **→ Kiểm tay 2026-10-29: 81 dòng từ "0' Trọng tài nổi còi khai cuộc" tới "91'+ Không còn thời gian nữa, trọng tài thổi còi kết thúc"; mở lại chính trận đó từ lịch sử cũng đủ 81 dòng**
+- [x] AC-11.5 — KHI một cầu thủ vào sân từ băng ghế dự bị THÌ báo cáo PHẢI thể hiện rõ cầu thủ đó đá từ phút nào tới phút nào. **→ Kiểm tay 2026-10-29: thay người ở phút 44, báo cáo ghi "Đội đo 10 12 — vào sân phút 45" và "Đội đo 10 3 — ra sân phút 45"; người đá trọn trận ghi "đá trọn trận"**
+- [x] AC-11.6 — KHI trận đấu kết thúc THÌ hệ thống PHẢI cho phép giả lập lại ngay cùng cặp đấu đó mà không phải cấu hình lại từ đầu, với lựa chọn dùng lại mã trận cũ hoặc sinh mã trận mới. **→ Kiểm tay 2026-10-29: hai nút "Đấu lại cùng mã trận" và "Đấu lại với mã mới" ngay dưới báo cáo, bấm là vào thẳng trận mới không phải chọn lại đội hay đăng ký lại 11+7; từ lịch sử còn một đường nữa là nút "Đấu lại trận này"**
+- [x] AC-11.7 — KHI một trận đấu kết thúc THÌ hệ thống PHẢI lưu trận đó vào lịch sử gồm tỉ số, đội hình hai bên, chiến thuật xuất phát của hai đội, đội chủ nhà, chuỗi can thiệp giữa trận kèm phút thực hiện, báo cáo sau trận, dòng sự kiện đầy đủ và mã trận — đủ để phát lại y nguyên trận đó theo AC-8.11; lịch sử PHẢI giữ 20 trận gần nhất, VÀ KHI trận thứ 21 được lưu THÌ trận cũ nhất PHẢI bị loại khỏi lịch sử. **→ Kiểm tay 2026-10-29: lịch sử đứng đúng ở 20 dòng, trận mới nhất lên đầu, và lúc lưu trận mới có một dòng báo "Lịch sử đã đủ chỗ, nên trận cũ nhất vừa rời khỏi danh sách" — báo đúng một lần. Hai lần chạy cùng mã `HFGK2MABPX` đều ra 1–0 và được lưu thành hai trận riêng**
 
 ## 4. Luồng chính (happy path)
 
@@ -313,6 +313,14 @@ Là một **HLV**, tôi muốn **một bản báo cáo sau trận**, để **bi�
 - [x] Không vi phạm nguyên tắc nào trong constitution — P4 kiểm bằng bảng mạng: 0 request ra ngoài
 - [x] Mỗi giai đoạn bàn giao đều tự chạy được và dùng thử được, không phụ thuộc giai đoạn sau
 - [x] Dữ liệu xuất ra ở một giai đoạn vẫn nhập lại được — vòng tròn xuất/nhập đã kiểm cả bằng test và trên trình duyệt
+
+**Giai đoạn 4** (đánh dấu ngày 2026-10-29) — **đóng spec 001**:
+
+- [x] Toàn bộ AC ở mục 3 pass — **98/99 tick**; AC duy nhất còn lại là AC-4.7, lý do ghi ngay tại AC đó
+- [x] Trường hợp biên mục 5 được xử lý — bốn dòng còn nợ đã đóng ở giai đoạn này: lịch sử đủ 20 trận báo đúng một lần, xoá đội đã có trận trong lịch sử giữ nguyên trận cũ với tên lúc đó, nhập tệp khi đã có dữ liệu hỏi rõ thay thế hay gộp (gộp thì bỏ qua lịch sử và nói rõ — quyết định D48b), xoá đội khi đang có trận dở hỏi xác nhận nêu rõ trận sẽ bị bỏ. Dòng cuối có code nhưng **không dựng được bằng tay**: rời màn trận đã huỷ trận, nên không có đường nào ở trong ứng dụng vừa còn trận dở vừa đứng ở danh sách đội — xem T128
+- [x] Không vi phạm nguyên tắc nào trong constitution — P1 có một ngoại lệ đã khai báo: D34 đổi thứ tự tiêu thụ `Rng` nên mã trận sinh trước Giai đoạn 4 không phát lại đúng nữa (rủi ro R16); `PHIEN_BAN_ENGINE` là chỗ ứng dụng nhận ra và từ chối hứa đấu lại
+- [x] Mỗi giai đoạn bàn giao đều tự chạy được và dùng thử được, không phụ thuộc giai đoạn sau
+- [x] Dữ liệu xuất ra ở một giai đoạn vẫn nhập lại được — tệp v1–v3 nâng lên v4 có test; tệp v4 đầy đủ 20 đội/347 cầu thủ/20 trận nặng 96 KB
 
 **Các giai đoạn sau:**
 

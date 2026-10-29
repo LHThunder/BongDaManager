@@ -58,6 +58,13 @@ export const XOA_DOI = {
     soCauThu === 0
       ? `Đội "${tenDoi}" sẽ bị xoá. Đội này chưa có cầu thủ nào.`
       : `Đội "${tenDoi}" và toàn bộ ${soCauThu} cầu thủ của đội sẽ bị xoá. Không hoàn tác được.`,
+  /*
+    Chỉ nói thêm câu này khi đội đang có trận CHẠY TRONG BỘ NHỚ (spec mục 5).
+    Đội chỉ có trận trong lịch sử thì không nói gì về trận đang diễn ra, vì
+    lịch sử không bị đụng tới.
+  */
+  tranDangDien:
+    ' Đội này đang có một trận dở; xoá đội thì trận đang diễn ra bị bỏ và không vào lịch sử.',
   xacNhan: 'Xoá đội',
 } as const
 
