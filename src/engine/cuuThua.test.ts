@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { cauHinhMau, MA_TRAN_CO_DINH } from './__fixtures__/doiMau'
+import { benMau, cauHinhMau, MA_TRAN_CO_DINH } from './__fixtures__/doiMau'
 import {
   buocTiep,
   chayHetTran,
@@ -91,16 +91,35 @@ describe('thủ môn giỏi cứu được nhiều hơn', () => {
   })
 
   /*
-    Phép so "thủ môn giỏi cứu nhiều hơn" trên cả trận CHƯA làm ở đây: đội mẫu
-    chưa có cách ghi đè riêng ba chỉ số của thủ môn (`gkAttributes` dựng từ
-    một giá trị chung), nên muốn đo thì phải sửa `__fixtures__/doiMau.ts` —
-    file không nằm trong danh sách của T101.
+    Phép so trên CẢ TRẬN, làm ở T109 cùng lúc với việc chấm điểm thủ môn —
+    T101 hoãn nó lại vì đội mẫu chưa có đường ghi đè riêng ba chỉ số của thủ
+    môn, và `__fixtures__/doiMau.ts` không nằm trong danh sách file của T101.
 
-    Mức kiểm hiện tại là đủ cho dòng "Xong khi" của T101: hàm `xacSuatBiCuu`
-    đơn điệu theo sức thủ môn (ở trên), và bên tấn công sút vào khung trống
-    thì không cú nào bị cứu (ở dưới). Phần so trên cả trận thuộc T109, nơi
-    AC-11.3 cần chấm điểm thủ môn thật.
+    Đo số cú sút BỊ CỨU của bên tấn công, tức `sutTrungDich` trừ số bàn: thủ
+    môn giỏi thì con số đó phải lớn hơn.
   */
+  it('thủ môn giỏi làm bên tấn công bị cứu nhiều hơn', () => {
+    function soBiCuu(chiSoThuMon: number): number {
+      let tong = 0
+      for (const ma of CAC_MA) {
+        const tt = chayHetTran(
+          taoTran({
+            maTran: ma,
+            nha: benMau('A'),
+            khach: benMau('B', { chiSoThuMon }),
+            sanTrungLap: true,
+          }),
+        )
+        tong += tt.ben.nha.thongKe.sutTrungDich - tt.tiSo.nha
+      }
+      return tong
+    }
+
+    const gioi = soBiCuu(19)
+    const te = soBiCuu(4)
+    console.log(`số cú sút bị cứu qua 20 trận — thủ môn 19 điểm: ${gioi}, thủ môn 4 điểm: ${te}`)
+    expect(gioi).toBeGreaterThan(te)
+  })
 })
 
 describe('khung thành bỏ trống thì không có ai cứu thua', () => {

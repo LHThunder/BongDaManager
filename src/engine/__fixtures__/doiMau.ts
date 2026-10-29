@@ -27,6 +27,15 @@ export interface TuyChonDoi {
   readonly ghiDeChiSo?: Readonly<Record<number, AttributeValues>>
   /** Ghi đè vị trí sở trường của một cầu thủ, theo số áo. */
   readonly ghiDeViTri?: Readonly<Record<number, readonly PositionId[]>>
+  /**
+   * Giá trị cho RIÊNG ba chỉ số của thủ môn (Phản xạ, Bắt bóng, Phát động)
+   * và các chỉ số chung của người đứng trong khung.
+   *
+   * Có mặt để đo được "thủ môn giỏi cứu được nhiều hơn" (AC-11.2, AC-11.3):
+   * `chiSo` đổi cả đội nên không tách được phần của thủ môn, còn `ghiDeChiSo`
+   * chỉ với tới bộ chỉ số chung.
+   */
+  readonly chiSoThuMon?: number
 }
 
 function chiSoSan(giaTri: number): AttributeValues {
@@ -61,14 +70,20 @@ export function cacCauThuMau(
   const chinh = oVien.map((o, i) => {
     const so = i + 1
     const laThuMon = o.viTri === 'GK'
+    const giaTriCuaNguoi =
+      laThuMon && tuyChon.chiSoThuMon !== undefined
+        ? tuyChon.chiSoThuMon
+        : giaTri
     return {
       id: `${teamId}-${so}`,
       positions: tuyChon.ghiDeViTri?.[so] ?? [o.viTri],
       attributes: {
-        ...(laThuMon ? chiSoThuMonChung(giaTri) : chiSoSan(giaTri)),
+        ...(laThuMon
+          ? chiSoThuMonChung(giaTriCuaNguoi)
+          : chiSoSan(giaTri)),
         ...(tuyChon.ghiDeChiSo?.[so] ?? {}),
       },
-      gkAttributes: laThuMon ? chiSoThuMonRieng(giaTri) : null,
+      gkAttributes: laThuMon ? chiSoThuMonRieng(giaTriCuaNguoi) : null,
     } satisfies HoSoCauThu
   })
 

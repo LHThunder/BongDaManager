@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { LoiCauHinhTran, type LyDoKhongBatDau } from '../engine/batDau'
+import { taoMaTran } from '../engine/rng'
 import {
   apDungCanThiep,
   buocTiep,
+  cauHinhDauLai,
   chayHetTran,
   taoTran,
   type CanThiep,
@@ -33,6 +35,9 @@ export const CAC_MUC_TOC_DO: readonly MucTocDo[] = [
   'nhanh',
   'rat-nhanh',
 ]
+
+/** Nguồn ngẫu nhiên THẬT, tạo ở ngoài engine — engine không được tự gọi (P1). */
+const RNG_THAT = { next: () => Math.random() }
 
 export function useMatch() {
   const tran = useAppStore((s) => s.tran)
@@ -124,6 +129,24 @@ export function useMatch() {
     }
   }, [dangChay])
 
+  /*
+    Đấu lại đúng cặp đấu vừa rồi (AC-11.6).
+
+    Dựng lại cấu hình TỪ trạng thái trận đang có, nên người dùng không phải
+    chọn lại hai đội hay đăng ký lại 11+7 — đó là chỗ "không phải cấu hình
+    lại từ đầu" mà AC nói tới (quyết định D47).
+
+    Nguồn ngẫu nhiên THẬT nằm ở đây chứ không trong engine (P1): mã trận mới
+    do tầng này sinh ra rồi truyền vào.
+  */
+  const dauLai = useCallback((dungMaCu: boolean): boolean => {
+    const hienTai = useAppStore.getState().tran
+    if (!hienTai) return false
+
+    const ma = dungMaCu ? hienTai.maTran : taoMaTran(RNG_THAT)
+    return batDauTran(cauHinhDauLai(hienTai, ma))
+  }, [batDauTran])
+
   return {
     tran,
     dangChay,
@@ -136,5 +159,6 @@ export function useMatch() {
     chayHet,
     canThiep,
     roiTran,
+    dauLai,
   }
 }

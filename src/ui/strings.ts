@@ -491,6 +491,66 @@ export const LY_DO_TU_CHOI_CAN_THIEP: Readonly<Record<string, string>> = {
   'cau-thu-da-bat-gon': 'Cầu thủ này đang bắt gôn rồi.',
 }
 
+/** Báo cáo sau trận (AC-11.1 → AC-11.5). */
+export const BAO_CAO_SAU_TRAN = {
+  tieuDe: 'Báo cáo sau trận',
+  tieuDeGhiBan: 'Người ghi bàn',
+  chuaCoBanThang: 'Trận này không có bàn thắng nào.',
+  phut: (phut: number, buGio: boolean) => `${phut}'${buGio ? '+' : ''}`,
+
+  tieuDeChiTieu: 'Chỉ tiêu hai đội',
+  cotChiTieu: 'Chỉ tiêu',
+  chiTieu: {
+    cuSut: 'Số cú sút',
+    sutTrungDich: 'Sút trúng đích',
+    kiemSoatBong: 'Kiểm soát bóng',
+    coHoiRoRang: 'Cơ hội rõ ràng',
+    theVang: 'Thẻ vàng',
+    theDo: 'Thẻ đỏ',
+  },
+  phanTram: (x: number) => `${x}%`,
+
+  tieuDeDiem: 'Điểm từng cầu thủ',
+  moTaDiem:
+    'Thang 1–10, bắt đầu từ 6.0. Bấm vào một cầu thủ để xem những số liệu đã dẫn tới điểm đó.',
+  cotCauThu: 'Cầu thủ',
+  cotViTri: 'Vị trí',
+  cotDiem: 'Điểm',
+  moBang: 'Xem số liệu',
+  dongBang: 'Ẩn số liệu',
+  cotSoLieu: 'Số liệu',
+  cotGopDiem: 'Góp vào điểm',
+  diemNen: 'Điểm nền',
+  khongCoSoLieu: 'Cầu thủ này chưa có số liệu nào đáng kể trong trận.',
+
+  /** Nhãn cho từng tiêu chí chấm điểm; engine chỉ trả về khoá (P8). */
+  tieuChi: {
+    'ban-thang': 'Bàn thắng',
+    'kien-tao': 'Kiến tạo',
+    'sut-trung-dich': 'Sút trúng đích',
+    'ti-le-chuyen': 'Chuyền chính xác',
+    'cuop-bong': 'Cướp bóng',
+    'mat-bong': 'Mất bóng',
+    'pham-loi': 'Phạm lỗi',
+    'can-cuu': 'Cứu thua',
+    'tran-diem': 'Chạm trần 10 điểm',
+    'san-diem': 'Chạm sàn 1 điểm',
+  } as Readonly<Record<string, string>>,
+
+  /** Tiêu chí tính theo phần trăm, không theo số lần. */
+  tieuChiTheoPhanTram: new Set(['ti-le-chuyen']),
+
+  vaoSanPhut: (phut: number) => `vào sân phút ${phut}`,
+  raSanPhut: (phut: number) => `ra sân phút ${phut}`,
+  daTronTran: 'đá trọn trận',
+
+  tieuDeDauLai: 'Đấu lại cặp này',
+  moTaDauLai:
+    'Không phải chọn lại hai đội hay đăng ký lại đội hình. Giữ mã trận thì ra đúng trận vừa rồi.',
+  dauLaiCungMa: 'Đấu lại cùng mã trận',
+  dauLaiMaMoi: 'Đấu lại với mã mới',
+} as const
+
 /** Khối chọn người vào bắt gôn khi khung thành bỏ trống (spec mục 5). */
 export const VAO_BAT_GON = {
   tieuDeTrong: 'Khung thành đang bỏ trống',

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { dungBaoCao } from '../../engine/baoCao'
 import type { SuKien } from '../../engine/suKien'
 import {
   dongSuKien,
@@ -13,6 +14,7 @@ import * as playerRepo from '../../services/playerRepo'
 import { useAppStore } from '../../store/appStore'
 import { AnhThayThe } from '../components/AnhThayThe'
 import { BangDieuKhienTran } from '../components/BangDieuKhienTran'
+import { BaoCaoSauTran } from '../components/BaoCaoSauTran'
 import { ChiThiDoi } from '../components/ChiThiDoi'
 import { DongTuongThuat } from '../components/DongTuongThuat'
 import { ThayNguoi } from '../components/ThayNguoi'
@@ -47,6 +49,7 @@ export function TrangTran({ onRoiTran }: Props) {
     chayHet,
     canThiep,
     roiTran,
+    dauLai,
   } = useMatch()
 
   const [loiCanThiep, datLoiCanThiep] = useState<string | null>(null)
@@ -272,6 +275,23 @@ export function TrangTran({ onRoiTran }: Props) {
           onDoiTocDo={datTocDo}
         />
       </div>
+
+      {/*
+        Báo cáo sau trận chỉ hiện khi trận đã kết thúc (AC-11.1 → AC-11.3,
+        AC-11.5, AC-11.6). `dungBaoCao` là hàm thuần của engine nên gọi ngay
+        trong lượt vẽ là an toàn — nó không đọc đồng hồ và không chạm lưu trữ.
+      */}
+      {tran.ketThuc && (
+        <div className="mt-4">
+          <BaoCaoSauTran
+            baoCao={dungBaoCao(tran)}
+            tenCauThu={(id) => tenTheoId.get(id) ?? id}
+            tenDoi={tenDoi}
+            onDauLaiCungMa={() => dauLai(true)}
+            onDauLaiMaMoi={() => dauLai(false)}
+          />
+        </div>
+      )}
 
       {soSanh && (
         <section className="mt-4 rounded-lg border border-slate-200 bg-white p-4">

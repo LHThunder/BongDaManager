@@ -1063,6 +1063,47 @@ function apHangDoi(
  */
 export const PHIEN_BAN_ENGINE = 2
 
+/**
+ * Dựng lại đăng ký ban đầu của một bên TỪ trạng thái trận.
+ *
+ * Làm được là nhờ hai thứ bất biến suốt trận: `chienThuatXuatPhat` giữ nguyên
+ * 11 ô lúc vào trận, và `cacCauThu` giữ đủ hồ sơ 18 người. `trenSan` và
+ * `duBi` thì đổi theo thay người nên không dùng được cho việc này.
+ *
+ * Dùng cho hai việc: đấu lại cùng cặp đấu mà không phải cấu hình lại từ đầu
+ * (AC-11.6), và phát lại một trận để đối chiếu từng dòng sự kiện (AC-8.11).
+ * Hai chỗ đó phải dùng CÙNG một hàm, vì hai bản sao của phép dựng lại này sẽ
+ * có ngày lệch nhau mà không ai thấy.
+ */
+export function dangKyTuTrangThai(ben: BenTran): DangKyBen {
+  const xuatPhat = ben.chienThuatXuatPhat.oVien
+    .map((o) => o.playerId)
+    .filter((id): id is string => id !== null)
+  const trongDoiHinh = new Set(xuatPhat)
+
+  return {
+    teamId: ben.teamId,
+    chienThuatXuatPhat: ben.chienThuatXuatPhat,
+    trenSan: xuatPhat,
+    duBi: ben.cacCauThu.map((c) => c.id).filter((id) => !trongDoiHinh.has(id)),
+    cacCauThu: ben.cacCauThu,
+  }
+}
+
+/** Cấu hình để chạy lại đúng cặp đấu này (AC-11.6). */
+export function cauHinhDauLai(
+  tt: TrangThaiTran,
+  maTran: string,
+): CauHinhTran {
+  return {
+    maTran,
+    sanTrungLap: tt.sanTrungLap,
+    doiCuaNguoiDung: tt.doiCuaNguoiDung,
+    nha: dangKyTuTrangThai(tt.ben.nha),
+    khach: dangKyTuTrangThai(tt.ben.khach),
+  }
+}
+
 export const SO_LAN_THAY_TOI_DA = 5
 
 export function buocTiep(ttVao: TrangThaiTran): TrangThaiTran {

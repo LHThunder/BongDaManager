@@ -5,11 +5,10 @@ import {
   buocTiep,
   chayHetTran,
   dongSuKien,
+  dangKyTuTrangThai,
   PHIEN_BAN_ENGINE,
   taoTran,
-  type BenTran,
   type CanThiep,
-  type DangKyBen,
   type TrangThaiTran,
 } from './tran'
 
@@ -132,27 +131,6 @@ describe('mã trận thật sự quyết định trận đấu', () => {
   cục bộ thì test vẫn xanh kể cả khi trạng thái trận đã đánh mất chiến thuật
   xuất phát — đúng cái bẫy mà `/analyze` chỉ ra.
 */
-/**
- * Dựng lại đăng ký ban đầu TỪ trạng thái trận.
- *
- * Làm được là nhờ hai thứ bất biến suốt trận: `chienThuatXuatPhat` giữ nguyên
- * 11 ô lúc vào trận, và `cacCauThu` giữ đủ hồ sơ 18 người. `trenSan` và
- * `duBi` thì đổi theo thay người nên không dùng được cho việc này.
- */
-function benTuTrangThai(ben: BenTran): DangKyBen {
-  const xuatPhat = ben.chienThuatXuatPhat.oVien
-    .map((o) => o.playerId)
-    .filter((id): id is string => id !== null)
-  const trongDoiHinh = new Set(xuatPhat)
-
-  return {
-    teamId: ben.teamId,
-    chienThuatXuatPhat: ben.chienThuatXuatPhat,
-    trenSan: xuatPhat,
-    duBi: ben.cacCauThu.map((c) => c.id).filter((id) => !trongDoiHinh.has(id)),
-    cacCauThu: ben.cacCauThu,
-  }
-}
 
 describe('phát lại trận có can thiệp (AC-8.11)', () => {
   /** Chạy một trận và rải ba can thiệp khác loại ở ba phút khác nhau. */
@@ -217,8 +195,8 @@ describe('phát lại trận có can thiệp (AC-8.11)', () => {
       maTran: xong.maTran,
       sanTrungLap: xong.sanTrungLap,
       doiCuaNguoiDung: xong.doiCuaNguoiDung,
-      nha: benTuTrangThai(xong.ben.nha),
-      khach: benTuTrangThai(xong.ben.khach),
+      nha: dangKyTuTrangThai(xong.ben.nha),
+      khach: dangKyTuTrangThai(xong.ben.khach),
     })
 
     const conLai = [...xong.canThiep]

@@ -5,8 +5,8 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | Giai đoạn 1 (36 AC), Giai đoạn 2 (22 AC), Giai đoạn 3 (26 AC) và Giai đoạn 4 (13 AC + 3 AC vắt lại) |
-| **Tiến độ** | 109/130 — Giai đoạn 1 xong (38/39, còn T035); Giai đoạn 2 và 3 xong trọn; Giai đoạn 4 đang làm (Phase 15 xong: T099–T108; còn Phase 16–19: T109–T129) |
-| **Sửa đổi** | 2026-10-29 — Phase 15 (T099–T108) đã hiện thực và commit; Phase 16–19 chưa bắt đầu |
+| **Tiến độ** | 114/131 — Giai đoạn 1 xong (38/39, còn T035); Giai đoạn 2 và 3 xong trọn; Giai đoạn 4 đang làm (Phase 15 và 16 xong: T099–T113; còn Phase 17–19: T114–T130) |
+| **Sửa đổi** | 2026-10-29 — Phase 15 và 16 (T099–T113) đã hiện thực và commit; Phase 17–19 chưa bắt đầu |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
 > Mỗi task phải: chạm file cụ thể + có cách kiểm chứng + đủ nhỏ để làm trong một lần.
@@ -856,35 +856,60 @@ Kết thúc phase: xem trọn một trận, đọc báo cáo đầy đủ — t�
 kèm phút, sáu chỉ tiêu mỗi bên, điểm từng cầu thủ kèm bảng giải thích — rồi
 đấu lại ngay bằng một nút.
 
-- [ ] **T109** — Chấm điểm cầu thủ, kèm bảng giải thích
+- [x] **T109** — Chấm điểm cầu thủ, kèm bảng giải thích
   - File: `src/engine/diemCauThu.ts`, `src/engine/diemCauThu.test.ts`
   - Xong khi: `chamDiem(tk, viTriDaDa)` trả về `{ diem, cacThanhPhan }`, mỗi thành phần có tên tiêu chí, số liệu thật và điểm cộng/trừ (quyết định D49); bảy tiêu chí mà AC-11.3 liệt kê đều có nguồn thật: bàn thắng, kiến tạo, sút trúng đích, **tỉ lệ chuyền chính xác** (từ T102b), cướp bóng, mất bóng, phạm lỗi; test xanh — điểm **bắt đầu từ 6.0** khi mọi số liệu bằng 0; điểm luôn nằm trong 1–10 kể cả với số liệu cực đoan; **tổng các thành phần cộng đúng bằng** `diem` (nếu lệch thì bảng giải thích đang nói dối); cùng một bộ số liệu mà khác vị trí thì ra **điểm khác nhau** — đó là phần "cân theo vị trí" của AC-11.3.
   - AC: AC-11.3
   - Phụ thuộc: T104
 
-- [ ] **T110** — Đóng gói báo cáo sau trận
+- [x] **T110** — Đóng gói báo cáo sau trận
   - File: `src/engine/baoCao.ts`, `src/engine/baoCao.test.ts`
   - Xong khi: `dungBaoCao(tt)` là hàm **thuần**, không I/O, trả về `BaoCaoTran` gồm tỉ số, danh sách người ghi bàn kèm phút, sáu chỉ tiêu mỗi bên (sút, sút trúng đích, kiểm soát bóng, cơ hội rõ ràng, thẻ vàng, thẻ đỏ) và điểm từng cầu thủ đã ra sân; test xanh — số người ghi bàn **bằng đúng tổng tỉ số**; hai tỉ lệ kiểm soát bóng cộng lại bằng 100%; `coHoiRoRang ≤ cuSut` và `banThang ≤ sutTrungDich ≤ cuSut`; **không** chấm điểm cho người chưa ra sân.
   - AC: AC-11.1, AC-11.2
   - Phụ thuộc: T109
 
-- [ ] **T111** — Màn báo cáo: tỉ số, người ghi bàn, chỉ tiêu hai bên
+- [x] **T111** — Màn báo cáo: tỉ số, người ghi bàn, chỉ tiêu hai bên
   - File: `src/ui/components/BaoCaoSauTran.tsx`, `src/ui/components/DanhSachGhiBan.tsx`, sửa `src/ui/pages/TrangTran.tsx`, sửa `src/ui/strings.ts`
   - Xong khi: trận kết thúc thì màn trận hiện báo cáo ngay bên dưới; thấy đúng tỉ số, từng người ghi bàn kèm phút của **cả hai** đội, và sáu chỉ tiêu mỗi bên; dòng tường thuật đầy đủ vẫn xem lại được tại chỗ bằng `DongTuongThuat` đã có; mọi nhãn tiếng Việt và nằm trong `strings.ts` (P8).
   - AC: AC-11.1, AC-11.2, AC-11.4
   - Phụ thuộc: T110
 
-- [ ] **T112** — Bảng điểm cầu thủ, mở ra xem được số liệu
+- [x] **T112** — Bảng điểm cầu thủ, mở ra xem được số liệu
   - File: `src/ui/components/BangDiemCauThu.tsx`, sửa `src/ui/components/BaoCaoSauTran.tsx`, sửa `src/ui/strings.ts`
   - Xong khi: mỗi cầu thủ đã ra sân có một dòng điểm 1–10; bấm vào một dòng thì **mở ra bảng các thành phần** đã cộng/trừ kèm số liệu thật — đó là phần "người dùng phải xem được những số liệu nào đã dẫn tới điểm đó" của AC-11.3; người vào sân từ băng ghế hiện rõ **đá từ phút nào tới phút nào** (AC-11.5); mở/đóng bảng làm được bằng bàn phím (P9).
   - AC: AC-11.3, AC-11.5
   - Phụ thuộc: T111
 
-- [ ] **T113** — Đấu lại ngay cùng cặp đấu
+- [x] **T113** — Đấu lại ngay cùng cặp đấu
   - File: sửa `src/ui/components/BaoCaoSauTran.tsx`, sửa `src/hooks/useMatch.ts`, sửa `src/ui/strings.ts`
   - Xong khi: màn báo cáo có hai nút — "đấu lại cùng mã trận" và "đấu lại với mã mới" — cùng dựng lại `CauHinhTran` từ trận vừa xong, **không** quay về màn chọn cặp đấu và **không** phải đăng ký lại 11+7 (quyết định D47); bấm nút cùng mã ra **đúng tỉ số cũ**; bấm nút mã mới ra trận khác và bảng so sánh của AC-8.12 **không** hiện (vì khác mã).
   - AC: AC-11.6
   - Phụ thuộc: T111
+
+### Ghi chú Phase 16
+
+- **Số đo và kiểm tay ngày 2026-10-29** trên `localhost:5173`, Sông Hàn (15 điểm) đánh Thành Vinh (10 điểm), chạy hết trận:
+  - Báo cáo hiện đủ: tỉ số **6–0**, sáu người ghi bàn kèm phút, và sáu chỉ tiêu — 22 cú sút so với 3, kiểm soát bóng **62%/38%**, 15 cơ hội rõ ràng so với 1, mỗi bên một thẻ vàng.
+  - Bảng điểm mở ra đúng những gì AC-11.3 đòi. Cầu thủ điểm cao nhất: điểm nền 6.0, bàn thắng 1 (+1.3), kiến tạo 2 (+1.6), sút trúng đích 2 (+0.6), cướp bóng 13 (+1.3), mất bóng 4 (−0.6), phạm lỗi 1 (−0.2), chuyền chính xác 86% (+1.7), **chạm trần 10 điểm 11.7 (−1.7)** → tổng đúng **10.0**.
+  - Đấu lại **cùng mã** `JJ69B86350` ra lại đúng **6–0**; đấu lại **mã mới** `291395CGEK` ra **2–2**, và bảng so sánh cùng mã đúng là không hiện. Không phải chọn lại đội hay đăng ký lại 11+7.
+  - T109 cũng đóng nốt phép so mà T101 hoãn: thủ môn 19 điểm cứu được **117** cú sút qua 20 trận, thủ môn 4 điểm chỉ **49**.
+  - Không có lỗi nào trong console.
+- **Một chỗ plan nói ngược hiến pháp, đã theo hiến pháp:** contract ở `plan.md` mục IV.5 ghi `ThanhPhanDiem { ten: string }`, tức engine giữ chữ tiếng Việt của giao diện. P2 không cho engine chạm chữ của giao diện và P8 đặt mọi chữ ở `ui/strings.ts`; mục 6 Quản trị của hiến pháp xếp **Constitution > Plan**. Nên engine trả về **khoá** `tieuChi`, giao diện tra nhãn — đúng cách mà D22 đã làm với mẫu câu tường thuật.
+- **Hai khoá ngoài bảy tiêu chí của AC-11.3, có lý do:**
+  - `can-cuu` cho người đứng trong khung. Chính D38 nói lý do nó tồn tại: "thủ môn hiện **không có số liệu nào** nên AC-11.3 không chấm nổi điểm cho họ".
+  - `tran-diem` / `san-diem` ghi phần bị kẹp khi điểm thô vượt 10 hoặc tụt dưới 1. Không có nó thì một người đáng 11,7 hiện ra 10 với bảng cộng lại thành 11,7 — bảng **nói dối**, và AC-11.3 không thoả dù con số điểm trông vẫn hợp lý.
+- **Ba file ngoài danh sách đã chạm, và lý do:**
+  - `src/engine/tran.ts` — thêm `dangKyTuTrangThai` và `cauHinhDauLai`. T113 cần dựng lại cấu hình từ trận đang có, mà `taiLap.test.ts` đã có một bản sao riêng của đúng phép dựng lại đó. Hai bản sao sẽ có ngày lệch nhau, nên gom về engine làm một.
+  - `src/engine/taiLap.test.ts` — bỏ bản sao riêng, dùng hàm của engine.
+  - `src/engine/__fixtures__/doiMau.ts` — thêm `chiSoThuMon` để ghi đè riêng ba chỉ số của thủ môn. T101 đã ghi nhận là phép so "thủ môn giỏi cứu nhiều hơn" chờ tới đây.
+- **Một hành vi đáng ghi nhận, CHƯA sửa và cố tình không sửa:** thủ môn **ghi được bàn** (trận kiểm tay có Sông Hàn FC 1 ghi phút 11). `chonCauThuTheoSuc` rút người kết thúc tình huống trong **cả** đội hình, kể cả thủ môn, và nó như vậy từ Giai đoạn 3 — T102 chỉ siết vùng cho ba vai mới (kiến tạo, cướp bóng, phạm lỗi), không chạm người kết thúc. Sửa chỗ này là đổi lại dãy số và kéo theo cả bốn test so sánh của P5, nên nó cần một task riêng. Không AC nào của Giai đoạn 4 đòi.
+
+- [ ] **T130** — Thủ môn không nên ghi bàn như cầu thủ sân
+  - File: sửa `src/engine/tran.ts`, sửa `src/engine/ganHanhDong.test.ts`
+  - Xong khi: người kết thúc tình huống được rút theo vùng như ba vai của D34c, nên thủ môn chỉ còn kết thúc tình huống khi bóng ở ngay khu vực của họ; test xanh — qua 40 trận, số bàn của thủ môn **ít hơn hẳn** số bàn của một tiền đạo, và bốn test so sánh của P5 được chạy lại kèm ghi số đo mới.
+  - AC: AC-8.2 *(tình huống gắn với cầu thủ hợp lý)*
+  - Phụ thuộc: T108
+  - **Task phát hiện lúc kiểm tay T111.** Đây là việc cần **người dùng đồng ý** trước khi làm, vì nó đổi lại mọi mã trận một lần nữa.
 
 ## Phase 17 — Lát 15: Sân 2D
 
