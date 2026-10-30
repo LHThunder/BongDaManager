@@ -68,6 +68,41 @@ describe('ai làm gì thì đúng người đó được ghi (AC-11.3)', () => {
     expect(trungVe).toBeGreaterThan(tienDao)
   })
 
+  /*
+    Thủ môn không được ghi bàn như cầu thủ sân (T130, AC-8.2).
+
+    Trước T130, người kết thúc tình huống được rút trong CẢ đội và chỉ cân
+    theo sức mạnh, nên thủ môn dứt điểm ngang một tiền đạo — kiểm tay còn bắt
+    được một khung hình có CẢ HAI thủ môn cùng sáng lên ở dải 3, một người
+    sút và một người cứu. Rút theo vùng thì thủ môn chỉ còn kết thúc tình
+    huống khi bóng ở ngay khu vực của mình, mà bóng ở đó thì gần như không
+    bao giờ thành bàn cho đội anh ta.
+
+    Ngưỡng đặt ở "ít hơn một phần mười" chứ không phải "bằng 0": thủ môn vẫn
+    có quyền chạm bóng, và một engine bóng đá cấm tiệt điều gì đó thường là
+    một engine đang nói dối.
+  */
+  it('thủ môn ghi bàn ít hơn hẳn tiền đạo', () => {
+    const thuMon = tongCuaNhom('banThang', [1])
+    const tienDao = tongCuaNhom('banThang', [10, 11])
+
+    console.log(
+      `bàn thắng qua ${CAC_MA.length} trận — thủ môn ${thuMon}, hai tiền đạo ${tienDao}`,
+    )
+    expect(tienDao).toBeGreaterThan(0)
+    expect(thuMon).toBeLessThan(tienDao / 10)
+  })
+
+  it('thủ môn cũng không dứt điểm như cầu thủ sân', () => {
+    const thuMon = tongCuaNhom('cuSut', [1])
+    const tienDao = tongCuaNhom('cuSut', [10, 11])
+
+    console.log(
+      `cú sút qua ${CAC_MA.length} trận — thủ môn ${thuMon}, hai tiền đạo ${tienDao}`,
+    )
+    expect(thuMon).toBeLessThan(tienDao / 10)
+  })
+
   it('tổng kiến tạo không bao giờ vượt tổng số bàn thắng', () => {
     for (const ma of CAC_MA) {
       const tt = chayHetTran(taoTran(cauHinhMau(ma)))

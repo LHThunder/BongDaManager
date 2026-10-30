@@ -21,8 +21,26 @@ import { chayHetTran, taoTran } from './tran'
 
   Bản đầu của test dùng 10 mã cố định và xanh nhờ may. Ngưỡng "giảm dần
   nghiêm ngặt" KHÔNG đổi — chỉ mẫu rộng ra, nên test mạnh lên chứ không nhẹ đi.
+
+  **T130 làm tín hiệu yếu đi thật, nên mẫu phải rộng thêm.** Từ khi người kết
+  thúc tình huống được rút theo VÙNG, ô tiền đạo chỉ còn tranh với vài người ở
+  gần thay vì với cả đội, nên phần của anh ta vừa lớn hơn vừa nhiễu hơn. Đo
+  lại ngày 2026-10-30, vẫn đúng ngưỡng cũ:
+
+    40 mã:  61.4 / 65.1 / 36.6 / 30.6  ← "nhẹ" VƯỢT "đúng", test đỏ
+    120 mã: 54.5 / 52.7 / 39.8 / 32.9  ← đúng thứ tự, nhưng chỉ cách nhau 3,3%
+    200 mã: 53.2 / 49.0 / 39.3 / 31.0  ← cách nhau 8%, khoảng cách GIÃN ra
+
+  Chọn 200. Khoảng cách giãn ra khi mẫu rộng thêm là dấu hiệu của tín hiệu
+  thật; nếu chỉ là nhiễu thì nó phải co lại.
 */
-const SO_MA = 40
+const SO_MA = 200
+
+/*
+  Phép kiểm thứ hai có biên 15% nên không cần mẫu rộng như vậy — tách ra để
+  không trả giá 200 mã cho một câu hỏi dễ hơn hẳn.
+*/
+const SO_MA_BIEN_RONG = 60
 
 function maDo(i: number): string {
   return `S${String(i).padStart(4, '0')}XQ4B`
@@ -32,9 +50,9 @@ function maDo(i: number): string {
 const SO_AO = 10
 const ID = `A-${SO_AO}`
 
-function dongGopKhiSoTruong(viTri: PositionId): number {
+function dongGopKhiSoTruong(viTri: PositionId, soMa: number = SO_MA): number {
   let tong = 0
-  for (let i = 0; i < SO_MA; i += 1) {
+  for (let i = 0; i < soMa; i += 1) {
     const ma = maDo(i)
     const tt = chayHetTran(
       taoTran({
@@ -46,7 +64,7 @@ function dongGopKhiSoTruong(viTri: PositionId): number {
     )
     tong += tt.ben.nha.thongKe.dongGopTheoCauThu[ID] ?? 0
   }
-  return tong / SO_MA
+  return tong / soMa
 }
 
 describe('xếp sai vị trí làm giảm đóng góp (AC-8.5)', () => {
@@ -67,8 +85,8 @@ describe('xếp sai vị trí làm giảm đóng góp (AC-8.5)', () => {
   })
 
   it('người xếp sai nặng đóng góp ít hơn hẳn, không chỉ nhỉnh hơn nhiễu', () => {
-    const dung = dongGopKhiSoTruong('ST')
-    const nang = dongGopKhiSoTruong('DC')
+    const dung = dongGopKhiSoTruong('ST', SO_MA_BIEN_RONG)
+    const nang = dongGopKhiSoTruong('DC', SO_MA_BIEN_RONG)
     expect(nang).toBeLessThan(dung * 0.85)
   })
 })

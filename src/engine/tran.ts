@@ -477,20 +477,6 @@ function tinhSucManh(
   }
 }
 
-/** Chọn người kết thúc tình huống, cân theo sức mạnh — người yếu ít được bóng hơn. */
-function chonCauThuTheoSuc(sm: SucManhBen, rng: RngCoTrangThai): string | null {
-  if (sm.theoCauThu.length === 0) return null
-
-  let tong = 0
-  for (const x of sm.theoCauThu) tong += x.suc + 0.05
-  let moc = rng.next() * tong
-  for (const x of sm.theoCauThu) {
-    moc -= x.suc + 0.05
-    if (moc <= 0) return x.id
-  }
-  return sm.theoCauThu[sm.theoCauThu.length - 1].id
-}
-
 // ---------------------------------------------------------------------------
 // Gán hành động cho cầu thủ (AC-11.3, quyết định D34 và D34c)
 // ---------------------------------------------------------------------------
@@ -1165,8 +1151,14 @@ function apHangDoi(
  * **Lên 4 ở T135**, cùng một lý do và cũng không phải vì `Rng`: hai kết cục
  * `pham-loi` và `bong-ra-ngoai` nay có LOẠI sự kiện riêng thay vì mượn
  * `mat-bong`, nên `loai` của vài dòng đổi.
+ *
+ * **Lên 5 ở T130.** Vẫn không phải vì `Rng` — người kết thúc tình huống đổi
+ * từ "rút trong cả đội" sang "rút theo vùng", mà cả hai cách đều tiêu đúng
+ * một lần rút, nên tỉ số, chuỗi tình huống và vùng bóng của mọi mã trận cũ
+ * giữ nguyên từng cái một. Thứ đổi là TÊN người trong mỗi dòng, và AC-8.11
+ * đo phát lại bằng cách đối chiếu từng dòng.
  */
-export const PHIEN_BAN_ENGINE = 4
+export const PHIEN_BAN_ENGINE = 5
 
 /**
  * Dựng lại đăng ký ban đầu của một bên TỪ trạng thái trận.
@@ -1277,7 +1269,28 @@ export function buocTiep(ttVao: TrangThaiTran): TrangThaiTran {
       sucManhThu: smThu.trungBinh,
     })
 
-    const nguoi = chonCauThuTheoSuc(smCong, rng)
+    /*
+      Người kết thúc tình huống được rút THEO VÙNG, đúng như ba vai kia của
+      D34c (T130).
+
+      Trước đó nó rút trong cả đội, chỉ cân theo sức mạnh — nên thủ môn dứt
+      điểm và ghi bàn ngang một tiền đạo, và sân 2D kéo anh ta lên tận dải 3
+      để đứng cạnh thủ môn đối phương. Rút theo vùng thì thủ môn chỉ còn kết
+      thúc tình huống khi bóng ở ngay khu vực của mình.
+
+      Số lần rút `Rng` KHÔNG đổi: cả hai hàm đều tiêu đúng một lần khi còn
+      người trên sân, nên tỉ số, chuỗi tình huống và vùng bóng của mọi mã
+      trận cũ giữ nguyên — chỉ TÊN người đổi.
+    */
+    const doiHinhCong = doiHinhTrenSan(benCong)
+    const doiHinhThu = doiHinhTrenSan(benThu)
+    const nguoi = nguoiTaiVung(
+      doiHinhCong,
+      smCong,
+      kq.vungKetThuc,
+      false,
+      rng,
+    )
 
     const coBan =
       kq.ketCuc === 'dut-diem' &&
@@ -1322,9 +1335,6 @@ export function buocTiep(ttVao: TrangThaiTran): TrangThaiTran {
       `kienTao` chỉ rút khi CÓ BÀN, đúng nghĩa bóng đá, nên tổng kiến tạo của
       một trận không bao giờ vượt tổng số bàn — một bất biến kiểm được.
     */
-    const doiHinhCong = doiHinhTrenSan(benCong)
-    const doiHinhThu = doiHinhTrenSan(benThu)
-
     const nguoiKienTao = coBan
       ? nguoiTaiVung(doiHinhCong, smCong, kq.vungKetThuc, false, rng, nguoi)
       : null
