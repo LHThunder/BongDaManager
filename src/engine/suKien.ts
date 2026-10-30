@@ -18,6 +18,17 @@ export type LoaiSuKien =
   | 'cuop-bong-cao'
   | 'thoat-xuong'
   | 'mat-bong'
+  /*
+    Chuỗi kết thúc bằng phạm lỗi từng KHÔNG có loại riêng nên nó mượn
+    `mat-bong`, và bị kể thành "để mất bóng trong chân" về một cầu thủ mà
+    bảng thống kê ghi `matBong` bằng 0 — engine chỉ ghi `matBong` cho kết cục
+    `mat-bong` (T135).
+
+    Kết cục `bong-ra-ngoai` CỐ TÌNH không có loại riêng: `diemCuaChuoi` cho nó
+    1 điểm, dưới `NGUONG_DANG_KE`, nên nó không bao giờ lọt vào dòng tường
+    thuật. Thêm loại cho nó là thêm code chết — xem T136.
+  */
+  | 'pham-loi'
   | 'the-vang'
   | 'the-do'
   | 'thay-nguoi'

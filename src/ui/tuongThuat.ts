@@ -112,6 +112,32 @@ const MAU: Readonly<Record<LoaiSuKien, readonly MauCau[]>> = {
         : `${c.ten} chuyền hỏng, bóng thuộc về đối phương.`,
     (c) => `${c.tenDoi} đánh rơi nhịp tấn công sau pha mất bóng của ${c.ten}.`,
   ],
+  /*
+    Pha phạm lỗi (T135). Người phạm lỗi thuộc đội KIA — `cacCauThu` của dòng
+    là `[người bị phạm lỗi, người phạm lỗi]` — nên câu dùng `ten2` cho người
+    phạm lỗi, đúng cách pha cướp bóng dùng `ten2` cho người đoạt bóng.
+
+    Dòng này KHÔNG nói gì về thẻ: thẻ có dòng riêng của nó, và không phải pha
+    phạm lỗi nào cũng bị rút thẻ.
+  */
+  'pham-loi': [
+    (c) =>
+      c.ten2
+        ? `${c.ten2} phạm lỗi, trọng tài cắt còi.`
+        : `Trọng tài cắt còi vì một pha phạm lỗi của ${c.tenDoiKia}.`,
+    (c) =>
+      c.ten2 && c.ten
+        ? `${c.ten} bị ${c.ten2} phạm lỗi, ${c.tenDoi} được hưởng quả đá phạt.`
+        : `${c.tenDoi} được hưởng quả đá phạt.`,
+    (c) =>
+      c.ten2
+        ? `Pha vào bóng của ${c.ten2} buộc trận đấu phải dừng lại.`
+        : `Một pha vào bóng của ${c.tenDoiKia} buộc trận đấu phải dừng lại.`,
+    (c) =>
+      c.ten
+        ? `Nhịp lên bóng của ${c.tenDoi} bị chặn lại bằng một pha phạm lỗi với ${c.ten}.`
+        : `Nhịp lên bóng của ${c.tenDoi} bị chặn lại bằng một pha phạm lỗi.`,
+  ],
   'the-vang': [
     (c) => `${c.ten} nhận thẻ vàng sau pha vào bóng muộn.`,
     (c) => `Trọng tài rút thẻ vàng cảnh cáo ${c.ten}.`,

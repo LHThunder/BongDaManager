@@ -13,6 +13,7 @@ const MOI_LOAI: LoaiSuKien[] = [
   'cuop-bong-cao',
   'thoat-xuong',
   'mat-bong',
+  'pham-loi',
   'the-vang',
   'the-do',
   'thay-nguoi',
@@ -96,17 +97,15 @@ describe('câu chữ khớp với bảng thống kê (T134)', () => {
   /*
     Mỗi người được gọi tên phải có CĂN CỨ trong bảng thống kê của chính mình.
 
-    Hai hình dạng hợp lệ, vì loại `mat-bong` đang gánh hai thứ khác nhau:
-      - pha mất bóng thật: người của đội trong dòng có `matBong`, người của
-        đội kia có `cuopBong`;
-      - pha phạm lỗi: engine chưa có loại sự kiện riêng cho nó nên nó cũng ra
-        dòng `mat-bong`, và lúc đó người của đội kia có `phamLoi` còn người
-        của đội trong dòng KHÔNG có `matBong` — câu "để mất bóng trong chân"
-        khi ấy kể sai chuyện. Xem T135.
+    Phép kiểm này từng phải chừa một ngoại lệ cho pha phạm lỗi, vì khi ấy
+    `pham-loi` chưa có loại sự kiện riêng nên nó mượn dòng `mat-bong` và nói
+    về một người có `matBong` bằng 0. T135 cho `pham-loi` loại riêng, nên
+    ngoại lệ đó biến mất và phép kiểm siết lại đúng câu chữ đơn giản: người
+    của đội trong dòng ĐỂ MẤT bóng, người của đội kia ĐOẠT được bóng. Không
+    còn hình dạng thứ ba nào.
   */
   it('mỗi người được gọi tên trong pha mất bóng đều có căn cứ thống kê', () => {
-    let soMatBongThat = 0
-    let soPhamLoi = 0
+    let soLanKiem = 0
 
     for (const ma of MA_TRAN_CO_DINH) {
       const tt = chayHetTran(taoTran(cauHinhMau(ma)))
@@ -116,38 +115,92 @@ describe('câu chữ khớp với bảng thống kê (T134)', () => {
         const cau = dungCauTuongThuat(sk, the, tenDoi)
         const benKia = sk.doi === 'nha' ? 'khach' : 'nha'
 
-        const laPhamLoi = sk.cacCauThu.some(
-          (id) => (tt.ben[benKia].thongKe.theoCauThu[id]?.phamLoi ?? 0) > 0,
-        )
-
         for (const id of sk.cacCauThu) {
           if (!cau.includes(the(id))) continue
+          soLanKiem += 1
 
           const cuaDoiDong = tt.ben[sk.doi].thongKe.theoCauThu[id]
           if (cuaDoiDong) {
-            if (laPhamLoi) {
-              soPhamLoi += 1
-              continue
-            }
-            soMatBongThat += 1
             expect(cuaDoiDong.matBong, `${ma}: ${cau}`).toBeGreaterThan(0)
             continue
           }
 
-          const tk = tt.ben[benKia].thongKe.theoCauThu[id]
-          const cuopBong = tk?.cuopBong ?? 0
-          const phamLoi = tk?.phamLoi ?? 0
-          if (phamLoi > 0 && cuopBong === 0) soPhamLoi += 1
-          else soMatBongThat += 1
-
-          expect(cuopBong + phamLoi, `${ma}: ${cau}`).toBeGreaterThan(0)
+          expect(
+            tt.ben[benKia].thongKe.theoCauThu[id]?.cuopBong ?? 0,
+            `${ma}: ${cau}`,
+          ).toBeGreaterThan(0)
         }
       }
     }
 
-    expect(soMatBongThat).toBeGreaterThan(0)
-    // Chốt để T135 không bị quên: đường phạm lỗi CÓ thật và đang đi nhầm chỗ.
-    expect(soPhamLoi).toBeGreaterThan(0)
+    expect(soLanKiem).toBeGreaterThan(0)
+  })
+
+  it('pha phạm lỗi gọi đúng người phạm lỗi, của đội kia', () => {
+    let soDongPhamLoi = 0
+    let soLanGoiTen = 0
+
+    for (const ma of MA_TRAN_CO_DINH) {
+      const tt = chayHetTran(taoTran(cauHinhMau(ma)))
+
+      for (const sk of dongSuKien(tt)) {
+        if (sk.loai !== 'pham-loi') continue
+        soDongPhamLoi += 1
+
+        const cau = dungCauTuongThuat(sk, the, tenDoi)
+        const benKia = sk.doi === 'nha' ? 'khach' : 'nha'
+
+        for (const id of sk.cacCauThu) {
+          if (!cau.includes(the(id))) continue
+          soLanGoiTen += 1
+
+          // Người của đội trong dòng là người BỊ phạm lỗi: không đổ lỗi cho họ.
+          if (tt.ben[sk.doi].thongKe.theoCauThu[id]) {
+            expect(cau, `${ma}: ${cau}`).not.toMatch(
+              new RegExp(`${the(id)} phạm lỗi`),
+            )
+            continue
+          }
+
+          expect(
+            tt.ben[benKia].thongKe.theoCauThu[id]?.phamLoi ?? 0,
+            `${ma}: ${cau}`,
+          ).toBeGreaterThan(0)
+        }
+      }
+    }
+
+    expect(soDongPhamLoi).toBeGreaterThan(0)
+    expect(soLanGoiTen).toBeGreaterThan(0)
+  })
+
+  /*
+    Hai loại dòng CÓ mẫu câu nhưng không bao giờ ra tới màn hình, và phép kiểm
+    này canh đúng con số đó để lần sau không ai tưởng là mình đọc nhầm:
+
+      - `bong-ra-ngoai` là một kết cục chuỗi bóng thật, nhưng `diemCuaChuoi`
+        cho nó 1 điểm — dưới `NGUONG_DANG_KE` — nên `gomUngVienCuaPhut` cắt
+        sạch. Vì vậy T135 KHÔNG thêm loại sự kiện cho nó: thêm là thêm code
+        chết. Xem T136.
+      - `mat-bong` cũng vậy sau T135: mất bóng ở dải cao đã thành
+        `cuop-bong-cao`, còn mất bóng ở dải thấp chỉ được 1 điểm. Những dòng
+        "để mất bóng trong chân" mà người dùng từng đọc THẬT RA là pha phạm
+        lỗi — chính chỗ T135 vừa chữa.
+  */
+  it('dòng mất bóng ở dải thấp không bao giờ lọt vào tường thuật', () => {
+    let soMatBong = 0
+    let soCuopBongCao = 0
+
+    for (const ma of MA_TRAN_CO_DINH) {
+      const tt = chayHetTran(taoTran(cauHinhMau(ma)))
+      for (const sk of dongSuKien(tt)) {
+        if (sk.loai === 'mat-bong') soMatBong += 1
+        if (sk.loai === 'cuop-bong-cao') soCuopBongCao += 1
+      }
+    }
+
+    expect(soMatBong).toBe(0)
+    expect(soCuopBongCao).toBeGreaterThan(0)
   })
 
   it('pha ghi bàn gọi đúng người ghi bàn', () => {

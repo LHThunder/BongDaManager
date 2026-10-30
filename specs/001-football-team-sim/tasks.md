@@ -5,8 +5,8 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | Giai đoạn 1 (36 AC), Giai đoạn 2 (22 AC), Giai đoạn 3 (26 AC) và Giai đoạn 4 (13 AC + 3 AC vắt lại) |
-| **Tiến độ** | 132/136 — Giai đoạn 1 xong (38/39, còn T035); Giai đoạn 2 và 3 xong trọn; **Giai đoạn 4 xong, spec 001 đóng** (T126, T128, T129, T131, T132, T134 đã kiểm tay và tick). Còn 4 task KHÔNG chặn spec: T035, T130, T133, T135 |
-| **Sửa đổi** | 2026-10-30 — T134 xong: câu tường thuật và bảng thống kê giờ nói về cùng một người; `PHIEN_BAN_ENGINE` lên **3**, nên trận đã lưu mất nút đấu lại. Cùng ngày, T132 xong: một tình huống giờ sáng lên đủ người tham gia, kèm T134 là lỗi tường thuật phát hiện lúc làm. Cùng ngày, T131 xong: nâng `DB_VERSION` bị chặn giờ báo ra thay vì treo im lặng, kiểm tay bằng hai tab trên bản build. Trước đó, 2026-10-29 — Phase 19 xong trọn: 13 AC của US-10/US-11 cộng AC-4.2 và AC-1.5 đã kiểm tay trên ứng dụng đang chạy, `spec.md` đổi `Status` thành **Done** (98/99 AC), hiến pháp lên 1.0.1 vì mục 7 đã hết điểm mở. T132 là task mới phát hiện lúc kiểm tay |
+| **Tiến độ** | 133/137 — Giai đoạn 1 xong (38/39, còn T035); Giai đoạn 2 và 3 xong trọn; **Giai đoạn 4 xong, spec 001 đóng** (T126, T128, T129, T131, T132, T134, T135 đã kiểm tay và tick). Còn 4 task KHÔNG chặn spec: T035, T130, T133, T136 |
+| **Sửa đổi** | 2026-10-30 — T135 xong: pha phạm lỗi có loại sự kiện và mẫu câu riêng, `PHIEN_BAN_ENGINE` lên **4**. Cùng ngày, T134 xong: câu tường thuật và bảng thống kê giờ nói về cùng một người; `PHIEN_BAN_ENGINE` lên **3**, nên trận đã lưu mất nút đấu lại. Cùng ngày, T132 xong: một tình huống giờ sáng lên đủ người tham gia, kèm T134 là lỗi tường thuật phát hiện lúc làm. Cùng ngày, T131 xong: nâng `DB_VERSION` bị chặn giờ báo ra thay vì treo im lặng, kiểm tay bằng hai tab trên bản build. Trước đó, 2026-10-29 — Phase 19 xong trọn: 13 AC của US-10/US-11 cộng AC-4.2 và AC-1.5 đã kiểm tay trên ứng dụng đang chạy, `spec.md` đổi `Status` thành **Done** (98/99 AC), hiến pháp lên 1.0.1 vì mục 7 đã hết điểm mở. T132 là task mới phát hiện lúc kiểm tay |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
 > Mỗi task phải: chạm file cụ thể + có cách kiểm chứng + đủ nhỏ để làm trong một lần.
@@ -1103,13 +1103,26 @@ lại đọc được báo cáo cũ; xuất tệp sao lưu rồi nhập lại th
   - **Phép kiểm mới đối chiếu CÂU với BẢNG THỐNG KÊ**, thứ trước đây không ai kiểm vì mỗi bên được kiểm riêng: mỗi người được gọi tên phải có căn cứ trong bảng của chính mình. Nó bắt được ngay một chuyện chưa biết — xem T135.
   - **Lưu ý khi sửa:** KHÔNG lật `sk.doi` để chữa lỗi 1. `San2D` lật vùng theo `doi` (`vungTrenSan`), nên đổi `doi` là đẩy cả tình huống sang nửa sân bên kia. Chỗ phải sửa là tầng câu chữ: cho mẫu câu nhận hai tên và hai đội, như dòng thay người vốn đã mang hai id.
 
-- [ ] **T135** — Pha phạm lỗi bị kể thành pha mất bóng
+- [x] **T135** — Pha phạm lỗi bị kể thành pha mất bóng
   - File: sửa `src/engine/suKien.ts`, sửa `src/engine/tran.ts`, sửa `src/ui/tuongThuat.ts`, sửa `src/ui/tuongThuat.test.ts`
   - Xong khi: chuỗi kết thúc bằng `pham-loi` ra một loại sự kiện riêng với bộ mẫu câu của nó, gọi tên người phạm lỗi; không còn dòng nào nói "để mất bóng trong chân" về một cầu thủ mà bảng thống kê ghi `matBong` bằng 0; test xanh — bộ đếm `soPhamLoi` trong `tuongThuat.test.ts` về 0 và phép kiểm đổi thành "mọi người được gọi tên đều có `matBong` hoặc `cuopBong`".
   - AC: AC-8.2 *(dòng sự kiện gắn với cầu thủ hợp lý)*, AC-8.16
   - Phụ thuộc: T134
   - **Phát hiện lúc làm T134, bằng chính phép kiểm mới.** `loaiCuaChuoi` không có nhánh nào cho `ketCuc === 'pham-loi'`, nên chuỗi phạm lỗi rơi xuống `mat-bong` và được kể bằng mẫu câu mất bóng. Bằng chứng: mã `W5H4J2YD9F` có dòng "để mất bóng trong chân" về **A-10**, trong khi `matBong` của A-10 bằng 0 — vì `congThongKeCong` chỉ ghi `matBong` khi `ketCuc === 'mat-bong'`. Phần thẻ phạt đã đúng rồi (`the-vang`/`the-do` rút riêng từ `nguoiPhamLoi`); chỗ thiếu là bản thân pha phạm lỗi không có tiếng nói.
   - **Sẽ lại phải tăng `PHIEN_BAN_ENGINE`**, vì thêm một loại sự kiện là đổi dòng sự kiện. Nên gộp làm một lượt với T130 nếu T130 cũng được làm.
+  - **Làm xong ngày 2026-10-30.** `pham-loi` thành một loại sự kiện thật với bốn mẫu câu riêng, dùng `ten2`/`tenDoiKia` cho người phạm lỗi bên kia đúng cách T134 đã mở đường. `PHIEN_BAN_ENGINE` lên **4**.
+  - **THỨ TỰ nhánh trong `loaiCuaChuoi` là một quyết định đo rồi mới chốt, không phải chọn bừa.** Bản đầu đặt `pham-loi` TRƯỚC `tat-canh` cho "kết cục thắng heuristic". Đo lại trên 10 mã trận cố định: `tat-canh` **tụt về 0 dòng**. Lý do: đường sống duy nhất còn lại của nó là chuỗi tạt kết thúc bằng mất bóng ở dải thấp, mà kết cục ấy chỉ được 1 điểm nên `NGUONG_DANG_KE = 2` cắt sạch. Mất dòng tạt cánh là mất bằng chứng nhìn thấy được của chỉ thị hướng tấn công (AC-8.3). Đổi lại thành `tat-canh` trước thì số đo là **tat-canh 25 / pham-loi 197**, và không còn dòng nào kể sai.
+  - **Một phát hiện lớn hơn chính task, đo được chứ không suy đoán:** trước T135, **mọi dòng "để mất bóng trong chân" mà người dùng từng đọc đều là pha PHẠM LỖI**, không phải pha mất bóng. Mất bóng thật ở dải cao đã thành `cuop-bong-cao` từ lâu, còn mất bóng ở dải thấp chỉ được 1 điểm nên không bao giờ lọt qua `NGUONG_DANG_KE`. Sau T135, bộ mẫu câu `mat-bong` thành **code chết** — có phép kiểm canh đúng điều đó (`soMatBong` phải bằng 0) để lần sau không ai tưởng mình đọc nhầm.
+  - **Một thứ CỐ TÌNH không thêm:** loại sự kiện cho kết cục `bong-ra-ngoai`. Bản đầu có thêm, rồi đo ra 0 dòng — cùng lý do 1 điểm. Đã gỡ bỏ thay vì để lại code chết; xem T136.
+  - **Kiểm tay trên trận thật 2026-10-30**: "Đội đo 10 2 **bị** Đội đo 11 10 phạm lỗi, Đội đo 10 được hưởng quả đá phạt.", "Pha vào bóng của Đội đo 10 4 buộc trận đấu phải dừng lại." Dòng tạt cánh vẫn còn: "Đội đo 11 khai thác hành lang biên, Đội đo 11 4 treo bóng vào." Và **0 dòng** nào còn nói "để mất bóng trong chân".
+
+- [ ] **T136** — Hai kết cục chuỗi bóng không bao giờ được kể
+  - File: sửa `src/engine/tran.ts` *(`diemCuaChuoi`)*, có thể sửa `src/engine/suKien.ts` và `src/ui/tuongThuat.ts`
+  - Xong khi: người dùng **quyết** một trong hai hướng, rồi làm theo — (a) nâng điểm đáng kể của `bong-ra-ngoai` và của mất bóng dải thấp lên ít nhất `NGUONG_DANG_KE`, cho chúng loại sự kiện và mẫu câu riêng, chấp nhận dòng tường thuật dày thêm và nhạt đi; hay (b) ghi nhận rằng hai kết cục này cố ý không được kể, rồi **xoá bộ mẫu câu `mat-bong`** vì nó đã thành code chết. Test xanh theo hướng đã chọn.
+  - AC: AC-8.15 *(chỉ ghi những tình huống có ý nghĩa)*, AC-8.16
+  - Phụ thuộc: T135
+  - **Số đo, trên 10 mã trận cố định (2026-10-30):** `bong-ra-ngoai` xảy ra thật ở tầng chuỗi bóng — đo riêng 5000 chuỗi cho ra `mat-bong` 2536, `dut-diem` 1132, `bong-ra-ngoai` 740, `pham-loi` 592 — nhưng **0 dòng** nào của hai kết cục `bong-ra-ngoai` và mất-bóng-dải-thấp lọt vào tường thuật, vì `diemCuaChuoi` cho chúng 1 điểm còn `gomUngVienCuaPhut` đòi tối thiểu `NGUONG_DANG_KE = 2`.
+  - **Đây là lựa chọn về SẢN PHẨM, không phải lỗi:** D27 nói rõ dòng tường thuật chỉ giữ 60–100 dòng đáng kể, và "bóng ra ngoài biên" đúng là loại tình huống nhạt nhất. Chỗ sai duy nhất là để lại bộ mẫu câu cho một loại không bao giờ dùng — đúng cái bẫy mà `cuu-thua` và `thoat-xuong` từng giăng ra ở Giai đoạn 3.
 
 - [ ] **T133** — Tab cũ tự nhường đường khi tab mới đòi nâng cấp
   - File: sửa `src/storage/db.ts`, sửa `src/ui/strings.ts`, sửa `src/App.tsx`, sửa `src/storage/db.test.ts`

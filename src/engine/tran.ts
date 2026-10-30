@@ -694,6 +694,17 @@ function loaiCuaChuoi(
     return 'cuop-bong-cao'
   }
   if (kq.cacHanhDong.some((h) => h.loai === 'tat-canh')) return 'tat-canh'
+  /*
+    `pham-loi` đứng SAU `tat-canh`, và thứ tự này được chọn sau khi đo (T135).
+
+    Đặt nó trước thì mọi chuỗi có quả tạt mà kết thúc bằng phạm lỗi đều thành
+    dòng phạm lỗi — và `tat-canh` **tắt hẳn**, vì đường sống duy nhất còn lại
+    của nó là chuỗi tạt kết thúc bằng mất bóng ở dải thấp, mà kết cục ấy chỉ
+    được 1 điểm nên `NGUONG_DANG_KE` cắt sạch. Mất dòng tạt cánh là mất bằng
+    chứng nhìn thấy được của chỉ thị hướng tấn công (AC-8.3), đắt hơn nhiều
+    so với việc một pha phạm lỗi sau quả tạt được kể theo quả tạt.
+  */
+  if (kq.ketCuc === 'pham-loi') return 'pham-loi'
   return 'mat-bong'
 }
 
@@ -1133,8 +1144,12 @@ function apHangDoi(
  * trận cũ" cho một bản ghi phiên bản 2 là hứa sai, nên số này phải tăng — cái
  * giá là những trận đã lưu mất nút đấu lại, kèm câu nói rõ lý do; xem lại thì
  * vẫn nguyên vẹn.
+ *
+ * **Lên 4 ở T135**, cùng một lý do và cũng không phải vì `Rng`: hai kết cục
+ * `pham-loi` và `bong-ra-ngoai` nay có LOẠI sự kiện riêng thay vì mượn
+ * `mat-bong`, nên `loai` của vài dòng đổi.
  */
-export const PHIEN_BAN_ENGINE = 3
+export const PHIEN_BAN_ENGINE = 4
 
 /**
  * Dựng lại đăng ký ban đầu của một bên TỪ trạng thái trận.
