@@ -162,6 +162,21 @@ export function San2D({ nha, khach, suKien, tenCauThu, soAo }: Props) {
     ? vungTrenSan(suKien.vung, suKien.doi)
     : null
 
+  /*
+    Người tham gia dồn về CÙNG một vùng, nên phải giãn họ ra y như đã giãn
+    những người đứng chung một ô (T132). Không giãn thì hai điểm nằm khít
+    lên nhau và người xem chỉ thấy MỘT — pha tranh chấp hay bàn thắng có
+    kiến tạo lại trông y hệt một mình một người.
+
+    Giãn theo đúng thứ tự `cacCauThu`: người mà câu tường thuật nói tới đứng
+    đầu danh sách, nên chỗ của anh ta không nhảy lung tung giữa các phút.
+  */
+  const dsThamGia = suKien?.cacCauThu ?? []
+  const dauThamGia = -((dsThamGia.length - 1) * BUOC_GIAN) / 2
+  const lechThamGia = new Map(
+    dsThamGia.map((id, i) => [id, dauThamGia + i * BUOC_GIAN]),
+  )
+
   const cacDiem: DiemCauThu[] = []
 
   for (const [doi, doiTren] of [
@@ -185,7 +200,9 @@ export function San2D({ nha, khach, suKien, tenCauThu, soAo }: Props) {
         diChuyen && vungSuKien ? vungSuKien : x.vung,
         diChuyen ? 0 : dichX,
       )
-      const lechY = diChuyen ? 0 : (lech.get(x.playerId) ?? 0)
+      const lechY = diChuyen
+        ? (lechThamGia.get(x.playerId) ?? 0)
+        : (lech.get(x.playerId) ?? 0)
       const so = soAo(x.playerId)
 
       cacDiem.push({

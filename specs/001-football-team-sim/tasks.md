@@ -5,8 +5,8 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | Giai đoạn 1 (36 AC), Giai đoạn 2 (22 AC), Giai đoạn 3 (26 AC) và Giai đoạn 4 (13 AC + 3 AC vắt lại) |
-| **Tiến độ** | 130/134 — Giai đoạn 1 xong (38/39, còn T035); Giai đoạn 2 và 3 xong trọn; **Giai đoạn 4 xong, spec 001 đóng** (T126, T128, T129, T131 đã kiểm tay và tick). Còn 4 task KHÔNG chặn spec: T035, T130, T132, T133 |
-| **Sửa đổi** | 2026-10-30 — T131 xong: nâng `DB_VERSION` bị chặn giờ báo ra thay vì treo im lặng, kiểm tay bằng hai tab trên bản build. Trước đó, 2026-10-29 — Phase 19 xong trọn: 13 AC của US-10/US-11 cộng AC-4.2 và AC-1.5 đã kiểm tay trên ứng dụng đang chạy, `spec.md` đổi `Status` thành **Done** (98/99 AC), hiến pháp lên 1.0.1 vì mục 7 đã hết điểm mở. T132 là task mới phát hiện lúc kiểm tay |
+| **Tiến độ** | 131/135 — Giai đoạn 1 xong (38/39, còn T035); Giai đoạn 2 và 3 xong trọn; **Giai đoạn 4 xong, spec 001 đóng** (T126, T128, T129, T131, T132 đã kiểm tay và tick). Còn 4 task KHÔNG chặn spec: T035, T130, T133, T134 |
+| **Sửa đổi** | 2026-10-30 — T132 xong: một tình huống giờ sáng lên đủ người tham gia, kèm T134 là lỗi tường thuật phát hiện lúc làm. Cùng ngày, T131 xong: nâng `DB_VERSION` bị chặn giờ báo ra thay vì treo im lặng, kiểm tay bằng hai tab trên bản build. Trước đó, 2026-10-29 — Phase 19 xong trọn: 13 AC của US-10/US-11 cộng AC-4.2 và AC-1.5 đã kiểm tay trên ứng dụng đang chạy, `spec.md` đổi `Status` thành **Done** (98/99 AC), hiến pháp lên 1.0.1 vì mục 7 đã hết điểm mở. T132 là task mới phát hiện lúc kiểm tay |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
 > Mỗi task phải: chạm file cụ thể + có cách kiểm chứng + đủ nhỏ để làm trong một lần.
@@ -922,6 +922,7 @@ kèm phút, sáu chỉ tiêu mỗi bên, điểm từng cầu thủ kèm bảng 
   - AC: AC-8.2 *(tình huống gắn với cầu thủ hợp lý)*
   - Phụ thuộc: T108
   - **Task phát hiện lúc kiểm tay T111.** Đây là việc cần **người dùng đồng ý** trước khi làm, vì nó đổi lại mọi mã trận một lần nữa.
+  - **T132 làm lỗi này lộ rõ hơn trên sân (2026-10-30):** một mẫu chụp lúc kiểm tay có **cả hai thủ môn** cùng sáng lên ở dải 3 — thủ môn đội nhà là người dứt điểm, thủ môn đội khách là người cứu thua. Trước T132 chỉ một trong hai hiện ra nên ít ai để ý.
 
 ## Phase 17 — Lát 15: Sân 2D
 
@@ -1085,6 +1086,17 @@ lại đọc được báo cáo cũ; xuất tệp sao lưu rồi nhập lại th
     2. **Hai điểm `[CẦN XÁC NHẬN]` của hiến pháp mục 7** — chốt xong, hiến pháp lên **1.0.1** (PATCH, vì chỉ làm rõ chứ không đổi nguyên tắc nào). Thư mục lâu dài là `C:\Users\tungh\source\BongDaManager` — lo ngại ban đầu về thư mục tạm không còn đúng. Trình duyệt đích: **chỉ trình duyệt Chromium người dùng đang dùng**, nên code được phép dựa thẳng vào `crypto.randomUUID`, `navigator.storage.persist`, `createImageBitmap`, `OffscreenCanvas` mà không rào trước — đây là việc hợp thức hoá thứ code đã làm từ Giai đoạn 1.
     3. **AC-4.7** — ghi rõ lý do ngay tại AC đó trong `spec.md` thay vì tick bừa.
 
+- [ ] **T134** — Câu tường thuật gọi sai người và sai đội ở những pha mất bóng
+  - File: sửa `src/ui/tuongThuat.ts`, sửa `src/engine/tran.ts`, sửa `src/ui/tuongThuat.test.ts`
+  - Xong khi: câu của một pha cướp bóng gọi đúng **đội đoạt được bóng** và đúng người đoạt bóng; câu của một pha mất bóng gọi đúng người mà bảng thống kê ghi là `matBong`; câu thay người phân biệt được người vào và người ra; test xanh — với mỗi dòng, người được gọi tên trong câu khớp với số liệu tương ứng của chính người đó trong bảng thống kê.
+  - AC: AC-8.2 *(dòng sự kiện gắn với cầu thủ hợp lý)*
+  - Phụ thuộc: T132
+  - **Ba lỗi cụ thể, phát hiện lúc làm T132:**
+    1. `cuop-bong-cao`: `doi` của dòng là đội ĐANG TẤN CÔNG (nơi `const doi` được tung đồng xu ở đầu mỗi chuỗi), còn mẫu câu lại viết "${tenDoi} vây ráp ngay phần sân đối phương, ${ten} đoạt lại bóng" — tức gán công đoạt bóng cho chính đội vừa ĐỂ MẤT bóng, và cho người vừa để mất nó.
+    2. `mat-bong`: câu gọi tên `nguoiKetThuc`, trong khi `congThongKeCong` ghi `matBong` cho `nguoiChuyen[cuối]` (quyết định D34d) — hai người này thường khác nhau, nên dòng tường thuật và bảng điểm cuối trận nói về hai người khác nhau cho cùng một pha.
+    3. `thay-nguoi`: mẫu câu thứ ba "${ten} rời sân nhường chỗ cho người mới" đọc `cacCauThu[0]`, mà phần tử đó là người **VÀO** sân.
+  - **Lưu ý khi sửa:** KHÔNG lật `sk.doi` để chữa lỗi 1. `San2D` lật vùng theo `doi` (`vungTrenSan`), nên đổi `doi` là đẩy cả tình huống sang nửa sân bên kia. Chỗ phải sửa là tầng câu chữ: cho mẫu câu nhận hai tên và hai đội, như dòng thay người vốn đã mang hai id.
+
 - [ ] **T133** — Tab cũ tự nhường đường khi tab mới đòi nâng cấp
   - File: sửa `src/storage/db.ts`, sửa `src/ui/strings.ts`, sửa `src/App.tsx`, sửa `src/storage/db.test.ts`
   - Xong khi: `moDb` bắt `blocking` và đóng kết nối của tab cũ, đồng thời tab cũ hiện một câu nói rõ nó vừa nhường đường và cần tải lại; test xanh — hai kết nối, kết nối cũ tự đóng khi kết nối mới đòi nâng cấp, và tab mới không bao giờ bị chặn.
@@ -1101,11 +1113,16 @@ lại đọc được báo cáo cũ; xuất tệp sao lưu rồi nhập lại th
 - **Hai lỗi engine của Phase 15 nhìn thấy được trên màn hình**: báo cáo ghi 8 cú sút / 3 cơ hội rõ ràng (trước D37 thì hai số này luôn bằng nhau), và dòng tường thuật phút 87 đọc được câu "tưởng đã ghi bàn, nhưng thủ môn kịp đẩy bóng ra" — loại sự kiện `cuu-thua` trước D38 chưa bao giờ xuất hiện.
 - **Một thứ trông như lỗi mà không phải**: ô "Tệp sẽ khoảng NaN MB" ở khung sao lưu. Nguyên nhân là **một bản ghi ảnh trong database thiếu `byteSize`** (và cả `width`, `height`) — bản ghi đó do script tạo dữ liệu thử ghi thẳng vào IndexedDB, không đi qua `luuAnh`. Mọi đường ghi ảnh trong code đều đặt `byteSize = blob.size`, nên đây là dữ liệu thử hỏng chứ không phải lỗi ứng dụng. Có thể bàn thêm việc `coTep` nên chặn `NaN`, nhưng đó là việc ngoài phạm vi spec 001.
 
-- [ ] **T132** — Mỗi tình huống chỉ sáng lên một cầu thủ
+- [x] **T132** — Mỗi tình huống chỉ sáng lên một cầu thủ
   - File: sửa `src/engine/tran.ts`, sửa `src/engine/tran.test.ts`
   - Xong khi: sự kiện của một chuỗi bóng mang theo **mọi cầu thủ trực tiếp tham gia** chứ không chỉ người kết thúc — ít nhất là người kiến tạo ở bàn thắng có kiến tạo; test xanh — trong một trận có bàn thắng kèm kiến tạo, sự kiện `ban-thang` có đủ hai id, và sân 2D làm nổi bật cả hai.
   - AC: AC-10.3 *(phần "những cầu thủ", số nhiều)*
   - Phụ thuộc: T102b, T116
+  - **Làm xong ngày 2026-10-30.** `nguoiThamGiaTinhHuong` gom người từ `GanHanhDong` đã có sẵn, KHÔNG rút `Rng` lần nào — nên mọi mã trận cũ vẫn ra đúng tỉ số và đúng dòng sự kiện như trước. Bàn thắng mang thêm người kiến tạo; pha cứu thua mang thêm **thủ môn đã cứu**; pha tranh chấp mang thêm người đoạt bóng hoặc người phạm lỗi. KHÔNG gồm `nguoiChuyen`: đó là cả chuỗi lên bóng, bốn năm người, và họ không cùng có mặt ở vùng kết thúc.
+  - **Một dòng sự kiện giờ mang người của CẢ HAI đội** — trước đây mọi id trong một dòng đều thuộc `sk.doi`. Ba phép kiểm cũ dựa vào điều đó nên đỏ ngay, và chúng được sửa theo **đúng ý định thật** chứ không nới lỏng: id phải thuộc một trong hai đội và phải đang trên sân ở đúng phút đó, cộng một điều kiện CHẶT HƠN trước — `cacCauThu[0]`, tức người mà câu tường thuật gọi tên, phải thuộc đúng đội của dòng.
+  - **Bốn phép kiểm mới đối chiếu với BẢNG THỐNG KÊ**, nên bắt được cả việc gắn nhầm người chứ không chỉ việc thiếu người: người thứ hai của dòng bàn thắng phải có `kienTao > 0`, của pha cứu thua phải có `canCuu > 0` **ở bảng của đội bên kia**, của pha tranh chấp phải có `cuopBong` hoặc `phamLoi`. Mỗi phép kiểm có một chốt `toBeGreaterThan(0)` để không bao giờ xanh rỗng.
+  - **Một file ngoài danh sách đã chạm: `src/ui/components/San2D.tsx`.** Bắt buộc, vì dòng "Xong khi" đòi *sân 2D làm nổi bật cả hai*: người tham gia đều dịch tới cùng một vùng với `lechY = 0`, nên hai người sẽ nằm **đè khít** lên nhau và người xem vẫn chỉ thấy một điểm. Giãn họ ra theo đúng cách `lechTrongVung` đã giãn người đứng chung ô.
+  - **Kiểm tay 2026-10-30**: chạy một trận rồi lấy 45 mẫu liên tiếp — **42 mẫu có đúng 2 điểm sáng**, mỗi điểm một đội, cùng toạ độ ngang và lệch nhau 8 đơn vị theo trục dọc. Chụp màn hình thấy rõ hai vòng vàng kèm hai dấu ▲ và đường bóng nối giữa.
   - **Task phát hiện lúc kiểm tay T126.** `themUngVien` ở `tran.ts` truyền `nguoi ? [nguoi] : []` — chỉ người kết thúc. `GanHanhDong` đã có sẵn `nguoiKienTao`, `nguoiCuopBong`, `nguoiChuyen` cho phần thống kê, nên dữ liệu đã nằm sẵn đó. Đếm trên một trận đã lưu: 78/81 sự kiện có đúng 1 cầu thủ, 3 sự kiện có 0 (khai cuộc, hết hiệp, kết thúc), **không sự kiện nào có 2**. Sửa chỗ này **đổi dòng sự kiện** chứ không đổi `Rng`, nên mã trận cũ vẫn phát lại đúng tỉ số — nhưng `taiLap.test.ts` so từng dòng nên vẫn phải chạy lại.
 
 ---

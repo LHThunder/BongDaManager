@@ -168,10 +168,27 @@ describe('dòng sự kiện (AC-8.2, AC-8.15)', () => {
         tt = buocTiep(tt)
 
         for (const uv of tt.ungVien.slice(soUngVienCu)) {
+          /*
+            Từ T132 một dòng mang được người của CẢ HAI đội: pha tranh chấp
+            có người để mất bóng và người đoạt được bóng. Nên phải hỏi id
+            thuộc đội nào trước, rồi mới hỏi người ấy có đang trên sân không
+            — chứ không mặc định mọi id thuộc đội của dòng.
+          */
           for (const id of uv.suKien.cacCauThu) {
+            const trenSan =
+              truocKhiChay.nha.has(id) || truocKhiChay.khach.has(id)
             expect(
-              truocKhiChay[uv.suKien.doi].has(id),
+              trenSan,
               `${ma} phút ${tt.phut} / ${uv.suKien.loai} / ${id}`,
+            ).toBe(true)
+          }
+
+          // Người mà CÂU TƯỜNG THUẬT nói tới vẫn phải thuộc đúng đội của dòng.
+          const nguoiDau = uv.suKien.cacCauThu[0]
+          if (nguoiDau !== undefined) {
+            expect(
+              truocKhiChay[uv.suKien.doi].has(nguoiDau),
+              `${ma} phút ${tt.phut} / ${uv.suKien.loai} / đầu danh sách ${nguoiDau}`,
             ).toBe(true)
           }
         }
@@ -179,7 +196,7 @@ describe('dòng sự kiện (AC-8.2, AC-8.15)', () => {
     }
   })
 
-  it('không sự kiện nào nhắc tới cầu thủ ngoài danh sách 18 của đội đó', () => {
+  it('không sự kiện nào nhắc tới cầu thủ ngoài 18 người của hai đội', () => {
     for (const ma of MA_TRAN_CO_DINH) {
       const tt = chayHetTran(taoTran(cauHinhMau(ma)))
       const doiHinh = {
@@ -189,12 +206,126 @@ describe('dòng sự kiện (AC-8.2, AC-8.15)', () => {
 
       for (const sk of dongSuKien(tt)) {
         for (const id of sk.cacCauThu) {
-          expect(doiHinh[sk.doi].has(id), `${ma} / ${sk.loai} / ${id}`).toBe(
-            true,
-          )
+          const daDangKy = doiHinh.nha.has(id) || doiHinh.khach.has(id)
+          expect(daDangKy, `${ma} / ${sk.loai} / ${id}`).toBe(true)
+        }
+
+        // AC-9.9 chặt hơn ở đầu danh sách: người được gọi tên là của đội đó.
+        const nguoiDau = sk.cacCauThu[0]
+        if (nguoiDau !== undefined) {
+          expect(
+            doiHinh[sk.doi].has(nguoiDau),
+            `${ma} / ${sk.loai} / đầu danh sách ${nguoiDau}`,
+          ).toBe(true)
         }
       }
     }
+  })
+
+  /*
+    Người tham gia một tình huống (AC-10.3, T132).
+
+    Trước T132 mỗi dòng chỉ mang một id — người kết thúc — nên bàn thắng có
+    kiến tạo thì người chuyền quả cuối KHÔNG sáng lên trên sân 2D, dù phần
+    thống kê đã ghi công anh ta. Những phép kiểm dưới đây đối chiếu danh sách
+    người tham gia với chính bảng thống kê, nên chúng bắt được cả trường hợp
+    engine gắn NHẦM người chứ không chỉ trường hợp thiếu người.
+  */
+  describe('người tham gia tình huống (AC-10.3)', () => {
+    it('bàn thắng có kiến tạo thì mang cả người ghi lẫn người kiến tạo', () => {
+      let soBanCoKienTao = 0
+
+      for (const ma of MA_TRAN_CO_DINH) {
+        const tt = chayHetTran(taoTran(cauHinhMau(ma)))
+
+        for (const sk of dongSuKien(tt)) {
+          if (sk.loai !== 'ban-thang') continue
+          const theoCauThu = tt.ben[sk.doi].thongKe.theoCauThu
+
+          // Người ghi bàn luôn đứng đầu — câu tường thuật đọc id này.
+          const nguoiGhi = sk.cacCauThu[0]
+          expect(nguoiGhi, `${ma}: bàn thắng phải có người ghi`).toBeDefined()
+          if (nguoiGhi === undefined) continue
+          expect(theoCauThu[nguoiGhi]?.banThang ?? 0).toBeGreaterThan(0)
+
+          const nguoiKienTao = sk.cacCauThu[1]
+          if (nguoiKienTao === undefined) continue
+
+          soBanCoKienTao += 1
+          expect(
+            theoCauThu[nguoiKienTao]?.kienTao ?? 0,
+            `${ma}: người thứ hai của dòng bàn thắng phải là người kiến tạo`,
+          ).toBeGreaterThan(0)
+          expect(nguoiKienTao).not.toBe(nguoiGhi)
+        }
+      }
+
+      // Nếu con số này về 0 thì phép kiểm trên chẳng khẳng định được gì.
+      expect(soBanCoKienTao).toBeGreaterThan(0)
+    })
+
+    it('pha cứu thua mang cả người sút lẫn thủ môn cứu bóng', () => {
+      let soPhaCuuThua = 0
+
+      for (const ma of MA_TRAN_CO_DINH) {
+        const tt = chayHetTran(taoTran(cauHinhMau(ma)))
+
+        for (const sk of dongSuKien(tt)) {
+          if (sk.loai !== 'cuu-thua') continue
+          soPhaCuuThua += 1
+
+          expect(sk.cacCauThu.length, `${ma}: ${sk.phut}'`).toBe(2)
+
+          // Thủ môn thuộc đội KIA, nên tra bảng thống kê của bên phòng ngự.
+          const benThu = sk.doi === 'nha' ? 'khach' : 'nha'
+          const thuMon = sk.cacCauThu[1]
+          if (thuMon === undefined) continue
+          expect(
+            tt.ben[benThu].thongKe.theoCauThu[thuMon]?.canCuu ?? 0,
+            `${ma}: người thứ hai của pha cứu thua phải là thủ môn đã cứu`,
+          ).toBeGreaterThan(0)
+        }
+      }
+
+      expect(soPhaCuuThua).toBeGreaterThan(0)
+    })
+
+    it('pha mất bóng mang cả người để mất lẫn người đoạt được', () => {
+      let soPhaTranhChap = 0
+
+      for (const ma of MA_TRAN_CO_DINH) {
+        const tt = chayHetTran(taoTran(cauHinhMau(ma)))
+
+        for (const sk of dongSuKien(tt)) {
+          if (sk.loai !== 'mat-bong' && sk.loai !== 'cuop-bong-cao') continue
+          if (sk.cacCauThu.length < 2) continue
+
+          soPhaTranhChap += 1
+          const benThu = sk.doi === 'nha' ? 'khach' : 'nha'
+          const nguoiCuop = sk.cacCauThu[1]
+          if (nguoiCuop === undefined) continue
+
+          const tk = tt.ben[benThu].thongKe.theoCauThu[nguoiCuop]
+          expect(
+            (tk?.cuopBong ?? 0) + (tk?.phamLoi ?? 0),
+            `${ma}: người thứ hai của pha tranh chấp phải là người đoạt bóng hoặc phạm lỗi`,
+          ).toBeGreaterThan(0)
+        }
+      }
+
+      expect(soPhaTranhChap).toBeGreaterThan(0)
+    })
+
+    it('không dòng nào lặp lại cùng một người', () => {
+      for (const ma of MA_TRAN_CO_DINH) {
+        const tt = chayHetTran(taoTran(cauHinhMau(ma)))
+        for (const sk of dongSuKien(tt)) {
+          expect(new Set(sk.cacCauThu).size, `${ma} / ${sk.loai}`).toBe(
+            sk.cacCauThu.length,
+          )
+        }
+      }
+    })
   })
 
   it('dòng sự kiện có mốc hết hiệp và mốc kết thúc', () => {

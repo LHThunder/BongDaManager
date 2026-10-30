@@ -523,6 +523,41 @@ const GAN_RONG: GanHanhDong = {
 }
 
 /**
+ * Những người TRỰC TIẾP tham gia một tình huống, để sân 2D làm nổi bật
+ * (AC-10.3) — người đầu danh sách luôn là người mà câu tường thuật nói tới.
+ *
+ * Trước T132 danh sách này chỉ có đúng một người, nên bàn thắng có kiến tạo
+ * thì người chuyền quả cuối không sáng lên dù `GanHanhDong` đã giữ sẵn tên
+ * anh ta cho phần thống kê.
+ *
+ * KHÔNG gồm `nguoiChuyen`: đó là cả chuỗi lên bóng, có thể bốn năm người, và
+ * họ không cùng có mặt ở vùng kết thúc. Chỉ gồm những người mà tình huống
+ * NÓI VỀ, tức những người đang tranh chấp ngay tại chỗ bóng dừng.
+ *
+ * Hàm này không rút `Rng` lần nào: mọi id đã được rút ở trên, nên thứ tự tiêu
+ * thụ `Rng` không đổi và mã trận cũ vẫn phát lại đúng y nguyên (P1).
+ */
+function nguoiThamGiaTinhHuong(
+  loai: LoaiSuKien,
+  gan: GanHanhDong,
+  thuMonCuu: string | null,
+): readonly string[] {
+  const them: (string | null)[] = []
+
+  if (loai === 'ban-thang') them.push(gan.nguoiKienTao)
+  // Cú sút bị cứu là tình huống của HAI người: người sút và người cứu.
+  if (loai === 'cuu-thua') them.push(thuMonCuu)
+  // Mất bóng là một pha tranh chấp: người để mất và người đoạt được.
+  them.push(gan.nguoiCuopBong, gan.nguoiPhamLoi)
+
+  const ra: string[] = []
+  for (const id of [gan.nguoiKetThuc, ...them]) {
+    if (id && !ra.includes(id)) ra.push(id)
+  }
+  return ra
+}
+
+/**
  * Rút một người đang có mặt **tại hoặc kề** `vung`, cân theo sức mạnh.
  *
  * `vung` được tính theo hướng tấn công của bên đang giữ bóng, nên với bên
@@ -1265,10 +1300,11 @@ export function buocTiep(ttVao: TrangThaiTran): TrangThaiTran {
     )
     let benThuMoi = congThongKeThu(benThu, kq, gan, biCuu ? thuMonThu : null)
 
+    const loaiSuKien = loaiCuaChuoi(kq, coBan, biCuu)
     themUngVien(
-      loaiCuaChuoi(kq, coBan, biCuu),
+      loaiSuKien,
       doi,
-      nguoi ? [nguoi] : [],
+      nguoiThamGiaTinhHuong(loaiSuKien, gan, biCuu ? thuMonThu : null),
       kq.vungKetThuc,
       duongBongCuaChuoi(kq),
       diemCuaChuoi(kq, coBan),

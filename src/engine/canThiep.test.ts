@@ -341,9 +341,16 @@ describe('không dòng nào nhắc tên người đã rời sân (AC-8.2)', () =
 
         for (const uv of tt.ungVien.slice(soCu)) {
           for (const id of uv.suKien.cacCauThu) {
-            // Người ĐÃ RỜI SÂN thì không được xuất hiện ở bất cứ dòng nào.
+            /*
+              Người ĐÃ RỜI SÂN thì không được xuất hiện ở bất cứ dòng nào.
+
+              Hỏi cả hai đội chứ không riêng đội của dòng: từ T132 một pha
+              tranh chấp mang theo cả người đoạt bóng bên kia. Dòng thay
+              người là ngoại lệ vì nó nhắc đúng người vừa rời sân.
+            */
             const hopLe =
-              truocKhiChay[uv.suKien.doi].has(id) ||
+              truocKhiChay.nha.has(id) ||
+              truocKhiChay.khach.has(id) ||
               uv.suKien.loai === 'thay-nguoi'
             expect(
               hopLe,
