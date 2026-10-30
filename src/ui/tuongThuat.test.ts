@@ -51,9 +51,25 @@ function dongCuaNhieuTran(soTran: number) {
 }
 
 describe('bảng mẫu câu (AC-8.16)', () => {
-  it('mỗi loại sự kiện có ít nhất 4 mẫu câu', () => {
+  /*
+    `mat-bong` được miễn trừ, và sự miễn trừ ấy là một KHẲNG ĐỊNH chứ không
+    phải một lỗ hổng (T136): loại này không bao giờ ra tới màn hình, nên bắt
+    nó có bốn câu chỉ tạo ra code chết. Phép kiểm dưới đây đòi nó có đúng 0
+    mẫu — nếu ai đó viết thêm câu cho nó mà không nâng `diemCuaChuoi`, test
+    đỏ ngay.
+  */
+  const MIEN_TRU: ReadonlySet<LoaiSuKien> = new Set<LoaiSuKien>(['mat-bong'])
+
+  it('mỗi loại sự kiện NGƯỜI DÙNG ĐỌC ĐƯỢC có ít nhất 4 mẫu câu', () => {
     for (const loai of MOI_LOAI) {
+      if (MIEN_TRU.has(loai)) continue
       expect(soMauCau(loai), loai).toBeGreaterThanOrEqual(4)
+    }
+  })
+
+  it('loại không bao giờ hiện ra thì không giữ mẫu câu nào', () => {
+    for (const loai of MIEN_TRU) {
+      expect(soMauCau(loai), loai).toBe(0)
     }
   })
 
@@ -201,6 +217,31 @@ describe('câu chữ khớp với bảng thống kê (T134)', () => {
 
     expect(soMatBong).toBe(0)
     expect(soCuopBongCao).toBeGreaterThan(0)
+  })
+
+  it('loại không có mẫu câu vẫn dựng ra được một câu đọc được', () => {
+    /*
+      Lưới an toàn của T136: ngày nào đó `diemCuaChuoi` đổi và `mat-bong` lọt
+      ra màn hình thì người dùng phải đọc được một câu đúng, chứ không gặp
+      trang trắng. Dựng tay vì chính engine không sinh ra dòng này nữa.
+    */
+    const dong: SuKien = {
+      phut: 30,
+      buGio: false,
+      loai: 'mat-bong',
+      doi: 'nha',
+      cacCauThu: ['NGUOI-MAT-BONG'],
+      vung: null,
+      duongBong: [],
+      mauCau: 7,
+      tiSoSauDo: { nha: 0, khach: 0 },
+    }
+
+    const cau = dungCauTuongThuat(dong, the, tenDoi)
+    expect(cau.trim()).toMatch(/[.!?]$/)
+    expect(cau).toContain(the('NGUOI-MAT-BONG'))
+    // Và không phụ thuộc `mauCau`: chỉ có một câu lùi duy nhất.
+    expect(dungCauTuongThuat({ ...dong, mauCau: 0 }, the, tenDoi)).toBe(cau)
   })
 
   it('pha ghi bàn gọi đúng người ghi bàn', () => {

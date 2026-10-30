@@ -35,7 +35,20 @@ export interface BoiCanhCau {
 
 type MauCau = (c: BoiCanhCau) => string
 
-const MAU: Readonly<Record<LoaiSuKien, readonly MauCau[]>> = {
+/*
+  Bảng mẫu câu KHÔNG phủ hết `LoaiSuKien`, và đó là chủ ý (T136).
+
+  `mat-bong` không có mẫu câu nào: mất bóng ở dải cao đã thành
+  `cuop-bong-cao`, còn mất bóng ở dải thấp chỉ được 1 điểm trong
+  `diemCuaChuoi` nên `NGUONG_DANG_KE` cắt sạch trước khi nó kịp thành dòng.
+  Giữ bốn câu cho một loại không bao giờ hiện ra chính là cái bẫy mà
+  `cuu-thua` và `thoat-xuong` từng giăng suốt Giai đoạn 3 — ai đọc code cũng
+  tưởng người dùng đang đọc những câu ấy.
+
+  `CAU_LUI` ở dưới là lưới an toàn: nếu một ngày ngưỡng đổi và loại này lọt
+  ra màn hình thật, người dùng đọc được một câu đúng thay vì gặp trang trắng.
+*/
+const MAU: Readonly<Partial<Record<LoaiSuKien, readonly MauCau[]>>> = {
   'bat-dau': [
     () => 'Trọng tài nổi còi khai cuộc.',
     () => 'Bóng lăn, trận đấu bắt đầu.',
@@ -96,21 +109,6 @@ const MAU: Readonly<Record<LoaiSuKien, readonly MauCau[]>> = {
     (c) => `Hàng thủ dâng cao để lộ khoảng trống, ${c.ten} băng vào.`,
     (c) => `${c.ten} chọn đúng thời điểm, vượt qua bẫy của đối phương.`,
     (c) => `Một đường chọc khe tìm thấy ${c.ten} phía sau hàng thủ.`,
-  ],
-  /*
-    `ten` ở đây là người ĐỂ MẤT bóng — cùng người mà bảng thống kê ghi
-    `matBong` và `chuyenHong` (T134, quyết định D34d). Trước đó engine đưa
-    người kết thúc chuỗi lên đầu dòng, nên dòng tường thuật và bảng điểm cuối
-    trận nói về hai người khác nhau cho cùng một pha.
-  */
-  'mat-bong': [
-    (c) => `${c.ten} để mất bóng trong chân.`,
-    (c) => `Pha xử lý hỏng của ${c.ten}, ${c.tenDoi} mất quyền kiểm soát.`,
-    (c) =>
-      c.ten2
-        ? `${c.ten} chuyền hỏng, ${c.ten2} đoạt được bóng.`
-        : `${c.ten} chuyền hỏng, bóng thuộc về đối phương.`,
-    (c) => `${c.tenDoi} đánh rơi nhịp tấn công sau pha mất bóng của ${c.ten}.`,
   ],
   /*
     Pha phạm lỗi (T135). Người phạm lỗi thuộc đội KIA — `cacCauThu` của dòng
@@ -187,9 +185,24 @@ const MAU: Readonly<Record<LoaiSuKien, readonly MauCau[]>> = {
   ],
 }
 
-/** Số mẫu câu của một loại sự kiện — dùng cho test và cho việc rà soát. */
+/**
+ * Câu dùng khi một loại sự kiện không có mẫu nào.
+ *
+ * Hôm nay chỉ `mat-bong` rơi vào đây, và nó không bao giờ ra tới màn hình —
+ * có phép kiểm canh đúng điều đó. Câu này tồn tại để một lần đổi ngưỡng
+ * trong tương lai không biến trang tường thuật thành lỗi.
+ */
+const CAU_LUI: MauCau = (c) =>
+  c.ten
+    ? `${c.ten} để mất bóng, ${c.tenDoiKia} có bóng.`
+    : `${c.tenDoi} để mất bóng.`
+
+/**
+ * Số mẫu câu của một loại sự kiện — dùng cho test và cho việc rà soát.
+ * Bằng 0 nghĩa là loại ấy CỐ Ý không có câu nào (xem chú thích ở `MAU`).
+ */
 export function soMauCau(loai: LoaiSuKien): number {
-  return MAU[loai].length
+  return MAU[loai]?.length ?? 0
 }
 
 /**
@@ -203,7 +216,10 @@ export function dungCauTuongThuat(
   tenDoi: (ben: SuKien['doi']) => string,
 ): string {
   const cacMau = MAU[suKien.loai]
-  const mau = cacMau[suKien.mauCau % cacMau.length]
+  const mau =
+    cacMau && cacMau.length > 0
+      ? cacMau[suKien.mauCau % cacMau.length]
+      : CAU_LUI
 
   const doiKia = suKien.doi === 'nha' ? 'khach' : 'nha'
 

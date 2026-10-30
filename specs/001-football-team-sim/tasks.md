@@ -5,8 +5,8 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | Giai đoạn 1 (36 AC), Giai đoạn 2 (22 AC), Giai đoạn 3 (26 AC) và Giai đoạn 4 (13 AC + 3 AC vắt lại) |
-| **Tiến độ** | 133/137 — Giai đoạn 1 xong (38/39, còn T035); Giai đoạn 2 và 3 xong trọn; **Giai đoạn 4 xong, spec 001 đóng** (T126, T128, T129, T131, T132, T134, T135 đã kiểm tay và tick). Còn 4 task KHÔNG chặn spec: T035, T130, T133, T136 |
-| **Sửa đổi** | 2026-10-30 — T135 xong: pha phạm lỗi có loại sự kiện và mẫu câu riêng, `PHIEN_BAN_ENGINE` lên **4**. Cùng ngày, T134 xong: câu tường thuật và bảng thống kê giờ nói về cùng một người; `PHIEN_BAN_ENGINE` lên **3**, nên trận đã lưu mất nút đấu lại. Cùng ngày, T132 xong: một tình huống giờ sáng lên đủ người tham gia, kèm T134 là lỗi tường thuật phát hiện lúc làm. Cùng ngày, T131 xong: nâng `DB_VERSION` bị chặn giờ báo ra thay vì treo im lặng, kiểm tay bằng hai tab trên bản build. Trước đó, 2026-10-29 — Phase 19 xong trọn: 13 AC của US-10/US-11 cộng AC-4.2 và AC-1.5 đã kiểm tay trên ứng dụng đang chạy, `spec.md` đổi `Status` thành **Done** (98/99 AC), hiến pháp lên 1.0.1 vì mục 7 đã hết điểm mở. T132 là task mới phát hiện lúc kiểm tay |
+| **Tiến độ** | 134/137 — Giai đoạn 1 xong (38/39, còn T035); Giai đoạn 2 và 3 xong trọn; **Giai đoạn 4 xong, spec 001 đóng** (T126, T128, T129, T131, T132, T134, T135, T136 đã kiểm tay và tick). Còn 3 task KHÔNG chặn spec: T035, T130, T133 |
+| **Sửa đổi** | 2026-10-30 — T136 xong theo hướng (b): xoá bộ mẫu câu `mat-bong` đã chết, ghi nhận hai kết cục cố ý không được kể. Cùng ngày, T135 xong: pha phạm lỗi có loại sự kiện và mẫu câu riêng, `PHIEN_BAN_ENGINE` lên **4**. Cùng ngày, T134 xong: câu tường thuật và bảng thống kê giờ nói về cùng một người; `PHIEN_BAN_ENGINE` lên **3**, nên trận đã lưu mất nút đấu lại. Cùng ngày, T132 xong: một tình huống giờ sáng lên đủ người tham gia, kèm T134 là lỗi tường thuật phát hiện lúc làm. Cùng ngày, T131 xong: nâng `DB_VERSION` bị chặn giờ báo ra thay vì treo im lặng, kiểm tay bằng hai tab trên bản build. Trước đó, 2026-10-29 — Phase 19 xong trọn: 13 AC của US-10/US-11 cộng AC-4.2 và AC-1.5 đã kiểm tay trên ứng dụng đang chạy, `spec.md` đổi `Status` thành **Done** (98/99 AC), hiến pháp lên 1.0.1 vì mục 7 đã hết điểm mở. T132 là task mới phát hiện lúc kiểm tay |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
 > Mỗi task phải: chạm file cụ thể + có cách kiểm chứng + đủ nhỏ để làm trong một lần.
@@ -1116,13 +1116,19 @@ lại đọc được báo cáo cũ; xuất tệp sao lưu rồi nhập lại th
   - **Một thứ CỐ TÌNH không thêm:** loại sự kiện cho kết cục `bong-ra-ngoai`. Bản đầu có thêm, rồi đo ra 0 dòng — cùng lý do 1 điểm. Đã gỡ bỏ thay vì để lại code chết; xem T136.
   - **Kiểm tay trên trận thật 2026-10-30**: "Đội đo 10 2 **bị** Đội đo 11 10 phạm lỗi, Đội đo 10 được hưởng quả đá phạt.", "Pha vào bóng của Đội đo 10 4 buộc trận đấu phải dừng lại." Dòng tạt cánh vẫn còn: "Đội đo 11 khai thác hành lang biên, Đội đo 11 4 treo bóng vào." Và **0 dòng** nào còn nói "để mất bóng trong chân".
 
-- [ ] **T136** — Hai kết cục chuỗi bóng không bao giờ được kể
+- [x] **T136** — Hai kết cục chuỗi bóng không bao giờ được kể
   - File: sửa `src/engine/tran.ts` *(`diemCuaChuoi`)*, có thể sửa `src/engine/suKien.ts` và `src/ui/tuongThuat.ts`
   - Xong khi: người dùng **quyết** một trong hai hướng, rồi làm theo — (a) nâng điểm đáng kể của `bong-ra-ngoai` và của mất bóng dải thấp lên ít nhất `NGUONG_DANG_KE`, cho chúng loại sự kiện và mẫu câu riêng, chấp nhận dòng tường thuật dày thêm và nhạt đi; hay (b) ghi nhận rằng hai kết cục này cố ý không được kể, rồi **xoá bộ mẫu câu `mat-bong`** vì nó đã thành code chết. Test xanh theo hướng đã chọn.
   - AC: AC-8.15 *(chỉ ghi những tình huống có ý nghĩa)*, AC-8.16
   - Phụ thuộc: T135
   - **Số đo, trên 10 mã trận cố định (2026-10-30):** `bong-ra-ngoai` xảy ra thật ở tầng chuỗi bóng — đo riêng 5000 chuỗi cho ra `mat-bong` 2536, `dut-diem` 1132, `bong-ra-ngoai` 740, `pham-loi` 592 — nhưng **0 dòng** nào của hai kết cục `bong-ra-ngoai` và mất-bóng-dải-thấp lọt vào tường thuật, vì `diemCuaChuoi` cho chúng 1 điểm còn `gomUngVienCuaPhut` đòi tối thiểu `NGUONG_DANG_KE = 2`.
   - **Đây là lựa chọn về SẢN PHẨM, không phải lỗi:** D27 nói rõ dòng tường thuật chỉ giữ 60–100 dòng đáng kể, và "bóng ra ngoài biên" đúng là loại tình huống nhạt nhất. Chỗ sai duy nhất là để lại bộ mẫu câu cho một loại không bao giờ dùng — đúng cái bẫy mà `cuu-thua` và `thoat-xuong` từng giăng ra ở Giai đoạn 3.
+  - **Người dùng chốt hướng (b) ngày 2026-10-30, và đã làm xong hôm đó.**
+    - Bộ bốn mẫu câu `mat-bong` bị **xoá**. `MAU` đổi thành `Partial<Record<...>>`, nên "loại này không có câu nào" là điều nói được bằng KIỂU chứ không phải bằng chú thích suông.
+    - Quyết định được ghi ngay tại `diemCuaChuoi` — **chỗ sinh ra nó** — kèm số đo và một câu dặn thứ tự: muốn cho hai kết cục ấy được kể thì nâng điểm ở đó TRƯỚC, rồi mới viết mẫu câu; làm ngược lại là viết code chết.
+    - `CAU_LUI` là lưới an toàn: nếu ngày nào đó ngưỡng đổi và loại này lọt ra màn hình, người dùng đọc được một câu đúng thay vì gặp trang trắng. Có test dựng tay một dòng `mat-bong` để chính câu lùi cũng không thành code chết.
+  - **Phép kiểm đổi từ "ít nhất 4 mẫu" thành hai phép kiểm**: loại người dùng đọc được phải có ≥ 4 mẫu, còn loại miễn trừ phải có **đúng 0** mẫu. Nghĩa là viết thêm câu cho `mat-bong` mà quên nâng `diemCuaChuoi` sẽ làm test đỏ — sự miễn trừ này là một khẳng định, không phải một lỗ hổng.
+  - **KHÔNG tăng `PHIEN_BAN_ENGINE`**: engine không đổi gì cả, dòng sự kiện vẫn y nguyên. Chỉ tầng câu chữ bớt đi thứ không ai đọc.
 
 - [ ] **T133** — Tab cũ tự nhường đường khi tab mới đòi nâng cấp
   - File: sửa `src/storage/db.ts`, sửa `src/ui/strings.ts`, sửa `src/App.tsx`, sửa `src/storage/db.test.ts`

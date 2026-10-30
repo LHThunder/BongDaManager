@@ -668,6 +668,23 @@ function duongBongCuaChuoi(kq: KetQuaChuoi): readonly VungSan[] {
   return cuoi?.id === kq.vungKetThuc.id ? duong : [...duong, kq.vungKetThuc]
 }
 
+/*
+  Điểm đáng kể của một chuỗi, và HAI KẾT CỤC CỐ Ý KHÔNG ĐƯỢC KỂ (T136).
+
+  `bong-ra-ngoai` và mất bóng ở dải thấp đều được 1 điểm, dưới
+  `NGUONG_DANG_KE = 2`, nên `gomUngVienCuaPhut` cắt chúng trước khi chúng kịp
+  thành dòng tường thuật. Đây là lựa chọn, không phải sót: AC-8.15 nói dòng
+  tường thuật chỉ ghi những tình huống CÓ Ý NGHĨA, mà "bóng ra ngoài biên" là
+  loại nhạt nhất trong trận.
+
+  Số đo ngày 2026-10-30 trên 10 mã trận cố định: 0 dòng cho cả hai, trong khi
+  đo riêng 5000 chuỗi bóng cho thấy chúng xảy ra thật — `mat-bong` 2536,
+  `dut-diem` 1132, `bong-ra-ngoai` 740, `pham-loi` 592.
+
+  Hệ quả phải biết: loại `mat-bong` KHÔNG còn mẫu câu nào trong
+  `ui/tuongThuat.ts`. Muốn cho chúng được kể thì phải nâng điểm ở đây TRƯỚC,
+  rồi mới viết mẫu câu — làm ngược lại là viết code chết.
+*/
 function diemCuaChuoi(kq: KetQuaChuoi, coBan: boolean): number {
   if (coBan) return 100
   switch (kq.ketCuc) {
