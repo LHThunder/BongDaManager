@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { cauHinhMau, MA_TRAN_CO_DINH } from '../engine/__fixtures__/doiMau'
-import type { LoaiSuKien } from '../engine/suKien'
+import type { LoaiSuKien, SuKien } from '../engine/suKien'
 import { chayHetTran, dongSuKien, taoTran } from '../engine/tran'
 import { dungCauTuongThuat, soMauCau } from './tuongThuat'
 
@@ -22,6 +22,17 @@ const MOI_LOAI: LoaiSuKien[] = [
 ]
 
 const tenCauThu = (id: string) => `Cầu thủ ${id}`
+
+/**
+ * Tên có dấu ngoặc để so khớp an toàn: id `A-1` là tiền tố của `A-18`, nên
+ * `cau.includes('A-1')` trần sẽ khớp nhầm sang người khác.
+ */
+const the = (id: string) => `«${id}»`
+
+/** Đếm số tên đã được chèn vào câu, để bắt việc gọi tên người ngoài dòng. */
+function soLanCoDau(cau: string): number {
+  return (cau.match(/«/g) ?? []).length
+}
 const tenDoi = (ben: 'nha' | 'khach') => (ben === 'nha' ? 'Đội Nhà' : 'Đội Khách')
 
 /** Dòng tường thuật của n trận liên tiếp, kèm loại sự kiện của từng dòng. */
@@ -58,9 +69,136 @@ describe('bảng mẫu câu (AC-8.16)', () => {
 
     expect(coTen.length).toBeGreaterThan(0)
     for (const sk of coTen) {
-      const cau = dungCauTuongThuat(sk, tenCauThu, tenDoi)
-      expect(cau, sk.loai).toContain(tenCauThu(sk.cacCauThu[0]))
+      const cau = dungCauTuongThuat(sk, the, tenDoi)
+      /*
+        Không đòi câu phải gọi tên `cacCauThu[0]` nữa: pha cướp bóng gọi tên
+        người ĐOẠT được bóng, tức người thứ hai, của đội kia (T134). Điều
+        phải luôn đúng là câu gọi tên MỘT NGƯỜI CÓ TRONG DÒNG — không bỏ
+        trống, và không gọi tên ai ngoài dòng.
+      */
+      const nhacToi = sk.cacCauThu.filter((id) => cau.includes(the(id)))
+      expect(nhacToi.length, `${sk.loai}: ${cau}`).toBeGreaterThan(0)
+      expect(soLanCoDau(cau), `${sk.loai}: ${cau}`).toBe(nhacToi.length)
     }
+  })
+})
+
+/*
+  Phép kiểm cốt lõi của T134: câu chữ và bảng thống kê phải nói về CÙNG một
+  người cho cùng một pha.
+
+  Trước T134 chúng nói về hai người khác nhau ở những pha mất bóng, và không
+  phép kiểm nào thấy — vì mỗi bên được kiểm riêng. Dùng tên có dấu ngoặc kép
+  để so khớp an toàn: id `A-1` là tiền tố của `A-18`, nên `includes('A-1')`
+  trần sẽ khớp nhầm.
+*/
+describe('câu chữ khớp với bảng thống kê (T134)', () => {
+  /*
+    Mỗi người được gọi tên phải có CĂN CỨ trong bảng thống kê của chính mình.
+
+    Hai hình dạng hợp lệ, vì loại `mat-bong` đang gánh hai thứ khác nhau:
+      - pha mất bóng thật: người của đội trong dòng có `matBong`, người của
+        đội kia có `cuopBong`;
+      - pha phạm lỗi: engine chưa có loại sự kiện riêng cho nó nên nó cũng ra
+        dòng `mat-bong`, và lúc đó người của đội kia có `phamLoi` còn người
+        của đội trong dòng KHÔNG có `matBong` — câu "để mất bóng trong chân"
+        khi ấy kể sai chuyện. Xem T135.
+  */
+  it('mỗi người được gọi tên trong pha mất bóng đều có căn cứ thống kê', () => {
+    let soMatBongThat = 0
+    let soPhamLoi = 0
+
+    for (const ma of MA_TRAN_CO_DINH) {
+      const tt = chayHetTran(taoTran(cauHinhMau(ma)))
+
+      for (const sk of dongSuKien(tt)) {
+        if (sk.loai !== 'mat-bong' && sk.loai !== 'cuop-bong-cao') continue
+        const cau = dungCauTuongThuat(sk, the, tenDoi)
+        const benKia = sk.doi === 'nha' ? 'khach' : 'nha'
+
+        const laPhamLoi = sk.cacCauThu.some(
+          (id) => (tt.ben[benKia].thongKe.theoCauThu[id]?.phamLoi ?? 0) > 0,
+        )
+
+        for (const id of sk.cacCauThu) {
+          if (!cau.includes(the(id))) continue
+
+          const cuaDoiDong = tt.ben[sk.doi].thongKe.theoCauThu[id]
+          if (cuaDoiDong) {
+            if (laPhamLoi) {
+              soPhamLoi += 1
+              continue
+            }
+            soMatBongThat += 1
+            expect(cuaDoiDong.matBong, `${ma}: ${cau}`).toBeGreaterThan(0)
+            continue
+          }
+
+          const tk = tt.ben[benKia].thongKe.theoCauThu[id]
+          const cuopBong = tk?.cuopBong ?? 0
+          const phamLoi = tk?.phamLoi ?? 0
+          if (phamLoi > 0 && cuopBong === 0) soPhamLoi += 1
+          else soMatBongThat += 1
+
+          expect(cuopBong + phamLoi, `${ma}: ${cau}`).toBeGreaterThan(0)
+        }
+      }
+    }
+
+    expect(soMatBongThat).toBeGreaterThan(0)
+    // Chốt để T135 không bị quên: đường phạm lỗi CÓ thật và đang đi nhầm chỗ.
+    expect(soPhamLoi).toBeGreaterThan(0)
+  })
+
+  it('pha ghi bàn gọi đúng người ghi bàn', () => {
+    let soBan = 0
+
+    for (const ma of MA_TRAN_CO_DINH) {
+      const tt = chayHetTran(taoTran(cauHinhMau(ma)))
+
+      for (const sk of dongSuKien(tt)) {
+        if (sk.loai !== 'ban-thang') continue
+        soBan += 1
+        const cau = dungCauTuongThuat(sk, the, tenDoi)
+
+        for (const id of sk.cacCauThu) {
+          if (!cau.includes(the(id))) continue
+          const tk = tt.ben[sk.doi].thongKe.theoCauThu[id]
+          expect(tk?.banThang ?? 0, `${ma}: ${cau}`).toBeGreaterThan(0)
+        }
+      }
+    }
+
+    expect(soBan).toBeGreaterThan(0)
+  })
+
+  it('câu thay người phân biệt được người vào và người ra', () => {
+    const dong: SuKien = {
+      phut: 60,
+      buGio: false,
+      loai: 'thay-nguoi',
+      doi: 'nha',
+      cacCauThu: ['NGUOI-VAO', 'NGUOI-RA'],
+      vung: null,
+      duongBong: [],
+      mauCau: 0,
+      tiSoSauDo: { nha: 0, khach: 0 },
+    }
+
+    const cacCau = [0, 1, 2, 3].map((mauCau) =>
+      dungCauTuongThuat({ ...dong, mauCau }, the, tenDoi),
+    )
+
+    // Không mẫu nào được nói người VÀO là người rời sân.
+    for (const cau of cacCau) {
+      expect(cau).not.toMatch(/«NGUOI-VAO» rời sân/)
+    }
+
+    const cauCoCaHai = cacCau.filter(
+      (c) => c.includes(the('NGUOI-VAO')) && c.includes(the('NGUOI-RA')),
+    )
+    expect(cauCoCaHai.length).toBeGreaterThanOrEqual(2)
+    expect(cacCau[2]).toContain('«NGUOI-RA» rời sân')
   })
 })
 

@@ -5,8 +5,8 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | Giai đoạn 1 (36 AC), Giai đoạn 2 (22 AC), Giai đoạn 3 (26 AC) và Giai đoạn 4 (13 AC + 3 AC vắt lại) |
-| **Tiến độ** | 131/135 — Giai đoạn 1 xong (38/39, còn T035); Giai đoạn 2 và 3 xong trọn; **Giai đoạn 4 xong, spec 001 đóng** (T126, T128, T129, T131, T132 đã kiểm tay và tick). Còn 4 task KHÔNG chặn spec: T035, T130, T133, T134 |
-| **Sửa đổi** | 2026-10-30 — T132 xong: một tình huống giờ sáng lên đủ người tham gia, kèm T134 là lỗi tường thuật phát hiện lúc làm. Cùng ngày, T131 xong: nâng `DB_VERSION` bị chặn giờ báo ra thay vì treo im lặng, kiểm tay bằng hai tab trên bản build. Trước đó, 2026-10-29 — Phase 19 xong trọn: 13 AC của US-10/US-11 cộng AC-4.2 và AC-1.5 đã kiểm tay trên ứng dụng đang chạy, `spec.md` đổi `Status` thành **Done** (98/99 AC), hiến pháp lên 1.0.1 vì mục 7 đã hết điểm mở. T132 là task mới phát hiện lúc kiểm tay |
+| **Tiến độ** | 132/136 — Giai đoạn 1 xong (38/39, còn T035); Giai đoạn 2 và 3 xong trọn; **Giai đoạn 4 xong, spec 001 đóng** (T126, T128, T129, T131, T132, T134 đã kiểm tay và tick). Còn 4 task KHÔNG chặn spec: T035, T130, T133, T135 |
+| **Sửa đổi** | 2026-10-30 — T134 xong: câu tường thuật và bảng thống kê giờ nói về cùng một người; `PHIEN_BAN_ENGINE` lên **3**, nên trận đã lưu mất nút đấu lại. Cùng ngày, T132 xong: một tình huống giờ sáng lên đủ người tham gia, kèm T134 là lỗi tường thuật phát hiện lúc làm. Cùng ngày, T131 xong: nâng `DB_VERSION` bị chặn giờ báo ra thay vì treo im lặng, kiểm tay bằng hai tab trên bản build. Trước đó, 2026-10-29 — Phase 19 xong trọn: 13 AC của US-10/US-11 cộng AC-4.2 và AC-1.5 đã kiểm tay trên ứng dụng đang chạy, `spec.md` đổi `Status` thành **Done** (98/99 AC), hiến pháp lên 1.0.1 vì mục 7 đã hết điểm mở. T132 là task mới phát hiện lúc kiểm tay |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
 > Mỗi task phải: chạm file cụ thể + có cách kiểm chứng + đủ nhỏ để làm trong một lần.
@@ -1086,7 +1086,7 @@ lại đọc được báo cáo cũ; xuất tệp sao lưu rồi nhập lại th
     2. **Hai điểm `[CẦN XÁC NHẬN]` của hiến pháp mục 7** — chốt xong, hiến pháp lên **1.0.1** (PATCH, vì chỉ làm rõ chứ không đổi nguyên tắc nào). Thư mục lâu dài là `C:\Users\tungh\source\BongDaManager` — lo ngại ban đầu về thư mục tạm không còn đúng. Trình duyệt đích: **chỉ trình duyệt Chromium người dùng đang dùng**, nên code được phép dựa thẳng vào `crypto.randomUUID`, `navigator.storage.persist`, `createImageBitmap`, `OffscreenCanvas` mà không rào trước — đây là việc hợp thức hoá thứ code đã làm từ Giai đoạn 1.
     3. **AC-4.7** — ghi rõ lý do ngay tại AC đó trong `spec.md` thay vì tick bừa.
 
-- [ ] **T134** — Câu tường thuật gọi sai người và sai đội ở những pha mất bóng
+- [x] **T134** — Câu tường thuật gọi sai người và sai đội ở những pha mất bóng
   - File: sửa `src/ui/tuongThuat.ts`, sửa `src/engine/tran.ts`, sửa `src/ui/tuongThuat.test.ts`
   - Xong khi: câu của một pha cướp bóng gọi đúng **đội đoạt được bóng** và đúng người đoạt bóng; câu của một pha mất bóng gọi đúng người mà bảng thống kê ghi là `matBong`; câu thay người phân biệt được người vào và người ra; test xanh — với mỗi dòng, người được gọi tên trong câu khớp với số liệu tương ứng của chính người đó trong bảng thống kê.
   - AC: AC-8.2 *(dòng sự kiện gắn với cầu thủ hợp lý)*
@@ -1095,7 +1095,21 @@ lại đọc được báo cáo cũ; xuất tệp sao lưu rồi nhập lại th
     1. `cuop-bong-cao`: `doi` của dòng là đội ĐANG TẤN CÔNG (nơi `const doi` được tung đồng xu ở đầu mỗi chuỗi), còn mẫu câu lại viết "${tenDoi} vây ráp ngay phần sân đối phương, ${ten} đoạt lại bóng" — tức gán công đoạt bóng cho chính đội vừa ĐỂ MẤT bóng, và cho người vừa để mất nó.
     2. `mat-bong`: câu gọi tên `nguoiKetThuc`, trong khi `congThongKeCong` ghi `matBong` cho `nguoiChuyen[cuối]` (quyết định D34d) — hai người này thường khác nhau, nên dòng tường thuật và bảng điểm cuối trận nói về hai người khác nhau cho cùng một pha.
     3. `thay-nguoi`: mẫu câu thứ ba "${ten} rời sân nhường chỗ cho người mới" đọc `cacCauThu[0]`, mà phần tử đó là người **VÀO** sân.
+  - **Làm xong ngày 2026-10-30.** Hai tầng, đúng như ghi chú đã dặn:
+    - *Tầng engine*: tách `nguoiDeMatBong(kq, gan)` thành một hàm dùng chung cho CẢ bảng thống kê lẫn dòng sự kiện, rồi đưa người ấy lên đầu `cacCauThu` của pha mất bóng. Trước đó mỗi bên tự tính một kiểu nên hai bên nói về hai người.
+    - *Tầng câu chữ*: `BoiCanhCau` nhận thêm `ten2` và `tenDoiKia`. Pha cướp bóng giờ khen `tenDoiKia` + `ten2`; `sk.doi` giữ nguyên là bên tấn công nên sân 2D vẫn lật vùng đúng. Mỗi mẫu câu dùng `ten2` đều có nhánh lùi khi không có người thứ hai, nên không bao giờ sinh ra câu cụt.
+  - **`PHIEN_BAN_ENGINE` lên 3, và đây là cái giá phải nói rõ.** Lần tăng này KHÔNG vì `Rng`: tỉ số, chuỗi tình huống, vùng bóng và thứ tự rút đều y hệt. Thứ đổi là *tên người* đứng đầu dòng ở những pha mất bóng, mà AC-8.11 đo phát lại bằng cách đối chiếu TỪNG DÒNG — nên hứa "đấu lại ra đúng trận cũ" cho một bản ghi phiên bản 2 là hứa sai. Kiểm tay 2026-10-30: mở một trận cũ trong lịch sử thì nút đấu lại **bị chặn** kèm đúng câu "trận này chạy bằng phiên bản engine cũ hơn", còn xem lại thì vẫn nguyên vẹn.
+  - **Kiểm tay trên trận thật**: "Đội đo 11 8 chuyền hỏng, **Đội đo 10 4** đoạt được bóng." và "Đội đo 10 5 chặn đứng đường lên bóng **của Đội đo 11** ngay từ sân đối thủ." — hai đội trong cùng một câu, đúng vai.
+  - **Phép kiểm mới đối chiếu CÂU với BẢNG THỐNG KÊ**, thứ trước đây không ai kiểm vì mỗi bên được kiểm riêng: mỗi người được gọi tên phải có căn cứ trong bảng của chính mình. Nó bắt được ngay một chuyện chưa biết — xem T135.
   - **Lưu ý khi sửa:** KHÔNG lật `sk.doi` để chữa lỗi 1. `San2D` lật vùng theo `doi` (`vungTrenSan`), nên đổi `doi` là đẩy cả tình huống sang nửa sân bên kia. Chỗ phải sửa là tầng câu chữ: cho mẫu câu nhận hai tên và hai đội, như dòng thay người vốn đã mang hai id.
+
+- [ ] **T135** — Pha phạm lỗi bị kể thành pha mất bóng
+  - File: sửa `src/engine/suKien.ts`, sửa `src/engine/tran.ts`, sửa `src/ui/tuongThuat.ts`, sửa `src/ui/tuongThuat.test.ts`
+  - Xong khi: chuỗi kết thúc bằng `pham-loi` ra một loại sự kiện riêng với bộ mẫu câu của nó, gọi tên người phạm lỗi; không còn dòng nào nói "để mất bóng trong chân" về một cầu thủ mà bảng thống kê ghi `matBong` bằng 0; test xanh — bộ đếm `soPhamLoi` trong `tuongThuat.test.ts` về 0 và phép kiểm đổi thành "mọi người được gọi tên đều có `matBong` hoặc `cuopBong`".
+  - AC: AC-8.2 *(dòng sự kiện gắn với cầu thủ hợp lý)*, AC-8.16
+  - Phụ thuộc: T134
+  - **Phát hiện lúc làm T134, bằng chính phép kiểm mới.** `loaiCuaChuoi` không có nhánh nào cho `ketCuc === 'pham-loi'`, nên chuỗi phạm lỗi rơi xuống `mat-bong` và được kể bằng mẫu câu mất bóng. Bằng chứng: mã `W5H4J2YD9F` có dòng "để mất bóng trong chân" về **A-10**, trong khi `matBong` của A-10 bằng 0 — vì `congThongKeCong` chỉ ghi `matBong` khi `ketCuc === 'mat-bong'`. Phần thẻ phạt đã đúng rồi (`the-vang`/`the-do` rút riêng từ `nguoiPhamLoi`); chỗ thiếu là bản thân pha phạm lỗi không có tiếng nói.
+  - **Sẽ lại phải tăng `PHIEN_BAN_ENGINE`**, vì thêm một loại sự kiện là đổi dòng sự kiện. Nên gộp làm một lượt với T130 nếu T130 cũng được làm.
 
 - [ ] **T133** — Tab cũ tự nhường đường khi tab mới đòi nâng cấp
   - File: sửa `src/storage/db.ts`, sửa `src/ui/strings.ts`, sửa `src/App.tsx`, sửa `src/storage/db.test.ts`

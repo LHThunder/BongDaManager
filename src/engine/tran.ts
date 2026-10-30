@@ -523,8 +523,29 @@ const GAN_RONG: GanHanhDong = {
 }
 
 /**
+ * Người ĐỂ MẤT bóng của một chuỗi, hay `null` nếu chuỗi không mất bóng.
+ *
+ * Là người giữ **bước cuối cùng** chứ không phải người kết thúc tình huống:
+ * quả chuyền hỏng không nằm trong `cacHanhDong` vì `chuoiBong.ts` return ngay
+ * khi mất bóng, trước khi push (quyết định D34d).
+ *
+ * Một hàm dùng chung cho CẢ bảng thống kê lẫn dòng sự kiện. Trước T134 mỗi
+ * bên tự tính một kiểu: bảng thống kê ghi `matBong` cho người này, còn câu
+ * tường thuật lại gọi tên người kết thúc — hai người thường khác nhau, nên
+ * dòng tường thuật và bảng điểm cuối trận nói về hai người khác nhau cho
+ * cùng một pha.
+ */
+export function nguoiDeMatBong(
+  kq: KetQuaChuoi,
+  gan: GanHanhDong,
+): string | null {
+  if (kq.ketCuc !== 'mat-bong') return null
+  return gan.nguoiChuyen[gan.nguoiChuyen.length - 1] ?? gan.nguoiKetThuc
+}
+
+/**
  * Những người TRỰC TIẾP tham gia một tình huống, để sân 2D làm nổi bật
- * (AC-10.3) — người đầu danh sách luôn là người mà câu tường thuật nói tới.
+ * (AC-10.3) — người đầu danh sách luôn thuộc đội của dòng sự kiện.
  *
  * Trước T132 danh sách này chỉ có đúng một người, nên bàn thắng có kiến tạo
  * thì người chuyền quả cuối không sáng lên dù `GanHanhDong` đã giữ sẵn tên
@@ -541,7 +562,18 @@ function nguoiThamGiaTinhHuong(
   loai: LoaiSuKien,
   gan: GanHanhDong,
   thuMonCuu: string | null,
+  nguoiDeMat: string | null,
 ): readonly string[] {
+  /*
+    Người đứng đầu là người của ĐỘI CỦA DÒNG. Với pha mất bóng thì đó là
+    người ĐỂ MẤT — chính người mà bảng thống kê ghi `matBong` — chứ không
+    phải người kết thúc chuỗi (T134).
+  */
+  const dau =
+    loai === 'mat-bong' || loai === 'cuop-bong-cao'
+      ? (nguoiDeMat ?? gan.nguoiKetThuc)
+      : gan.nguoiKetThuc
+
   const them: (string | null)[] = []
 
   if (loai === 'ban-thang') them.push(gan.nguoiKienTao)
@@ -551,7 +583,7 @@ function nguoiThamGiaTinhHuong(
   them.push(gan.nguoiCuopBong, gan.nguoiPhamLoi)
 
   const ra: string[] = []
-  for (const id of [gan.nguoiKetThuc, ...them]) {
+  for (const id of [dau, ...them]) {
     if (id && !ra.includes(id)) ra.push(id)
   }
   return ra
@@ -731,10 +763,7 @@ function congThongKeCong(
   for (const id of gan.nguoiChuyen) {
     congCauThu(theoCauThu, id, { chuyenThanhCong: 1 })
   }
-  const matBong = kq.ketCuc === 'mat-bong'
-  const nguoiHong = matBong
-    ? (gan.nguoiChuyen[gan.nguoiChuyen.length - 1] ?? nguoiKetThuc)
-    : null
+  const nguoiHong = nguoiDeMatBong(kq, gan)
   congCauThu(theoCauThu, nguoiHong, { chuyenHong: 1, matBong: 1 })
 
   return {
@@ -1095,8 +1124,17 @@ function apHangDoi(
  * hứa qua mọi phiên bản — nhưng đó là thứ phải nói thẳng, nên nó được đóng
  * vào trận và vào mỗi bản ghi lịch sử để giao diện biết khi nào hai phiên
  * bản lệch nhau.
+ *
+ * **Lên 3 ở T134.** Lần tăng này KHÔNG phải vì `Rng`: tỉ số, chuỗi tình huống,
+ * vùng bóng và thứ tự rút đều y hệt. Thứ đổi là *tên người* đứng đầu dòng ở
+ * những pha mất bóng — giờ là người mà bảng thống kê ghi `matBong`, không còn
+ * là người kết thúc chuỗi. Dòng sự kiện vì thế khác bản ghi cũ ở vài dòng, mà
+ * AC-8.11 đo phát lại bằng cách đối chiếu TỪNG DÒNG. Hứa "đấu lại ra đúng
+ * trận cũ" cho một bản ghi phiên bản 2 là hứa sai, nên số này phải tăng — cái
+ * giá là những trận đã lưu mất nút đấu lại, kèm câu nói rõ lý do; xem lại thì
+ * vẫn nguyên vẹn.
  */
-export const PHIEN_BAN_ENGINE = 2
+export const PHIEN_BAN_ENGINE = 3
 
 /**
  * Dựng lại đăng ký ban đầu của một bên TỪ trạng thái trận.
@@ -1304,7 +1342,12 @@ export function buocTiep(ttVao: TrangThaiTran): TrangThaiTran {
     themUngVien(
       loaiSuKien,
       doi,
-      nguoiThamGiaTinhHuong(loaiSuKien, gan, biCuu ? thuMonThu : null),
+      nguoiThamGiaTinhHuong(
+        loaiSuKien,
+        gan,
+        biCuu ? thuMonThu : null,
+        nguoiDeMatBong(kq, gan),
+      ),
       kq.vungKetThuc,
       duongBongCuaChuoi(kq),
       diemCuaChuoi(kq, coBan),

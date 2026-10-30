@@ -14,9 +14,22 @@ import type { LoaiSuKien, SuKien } from '../engine/suKien'
   mỗi loại có nhiều mẫu và test đếm số mẫu khác nhau được dùng.
 */
 
+/*
+  Một dòng sự kiện mang tới HAI người và dính tới HAI đội (T132, T134).
+
+  Ví dụ rõ nhất là pha cướp bóng: vùng của dòng được tính theo hướng tấn công
+  của bên đang cầm bóng, nên `doi` của dòng BẮT BUỘC là bên tấn công — sân 2D
+  lật vùng theo trường đó. Nhưng câu chữ lại phải khen bên kia, vì chính họ
+  mới là người đoạt được bóng. Hai nhu cầu đó chỉ sống chung được khi mẫu câu
+  nhận đủ cả hai tên và cả hai đội.
+*/
 export interface BoiCanhCau {
+  /** Người của đội trong `doi` — người mà phần lớn mẫu câu nói tới. */
   readonly ten: string
+  /** Người thứ hai của dòng, thường là người của đội kia; `''` nếu không có. */
+  readonly ten2: string
   readonly tenDoi: string
+  readonly tenDoiKia: string
   readonly phut: number
 }
 
@@ -55,11 +68,28 @@ const MAU: Readonly<Record<LoaiSuKien, readonly MauCau[]>> = {
     (c) => `${c.tenDoi} khai thác hành lang biên, ${c.ten} treo bóng vào.`,
     (c) => `${c.ten} đưa bóng vào vòng cấm nhưng chưa ai kịp băng tới.`,
   ],
+  /*
+    Người ĐOẠT được bóng thuộc đội KIA, nên mọi mẫu câu ở đây dùng `ten2` và
+    `tenDoiKia` (T134). Trước đó chúng dùng `ten` và `tenDoi`, tức khen công
+    đoạt bóng cho chính đội vừa để mất bóng, và cho đúng người vừa để mất nó.
+  */
   'cuop-bong-cao': [
-    (c) => `${c.tenDoi} vây ráp ngay phần sân đối phương, ${c.ten} đoạt lại bóng.`,
-    (c) => `${c.ten} gây áp lực và cướp được bóng ở vị trí cao.`,
-    (c) => `Một pha pressing hiệu quả của ${c.tenDoi}, công đầu thuộc về ${c.ten}.`,
-    (c) => `${c.ten} chặn đứng đường lên bóng ngay từ sân đối thủ.`,
+    (c) =>
+      c.ten2
+        ? `${c.tenDoiKia} vây ráp ngay phần sân đối phương, ${c.ten2} đoạt lại bóng.`
+        : `${c.tenDoiKia} vây ráp ngay phần sân đối phương và đoạt lại bóng.`,
+    (c) =>
+      c.ten2
+        ? `${c.ten2} gây áp lực và cướp được bóng ở vị trí cao.`
+        : `${c.tenDoiKia} gây áp lực và cướp được bóng ở vị trí cao.`,
+    (c) =>
+      c.ten2
+        ? `Một pha pressing hiệu quả của ${c.tenDoiKia}, công đầu thuộc về ${c.ten2}.`
+        : `Một pha pressing hiệu quả của ${c.tenDoiKia}.`,
+    (c) =>
+      c.ten2
+        ? `${c.ten2} chặn đứng đường lên bóng của ${c.tenDoi} ngay từ sân đối thủ.`
+        : `${c.tenDoiKia} chặn đứng đường lên bóng ngay từ sân đối thủ.`,
   ],
   'thoat-xuong': [
     (c) => `${c.ten} thoát xuống sau lưng hàng phòng ngự.`,
@@ -67,10 +97,19 @@ const MAU: Readonly<Record<LoaiSuKien, readonly MauCau[]>> = {
     (c) => `${c.ten} chọn đúng thời điểm, vượt qua bẫy của đối phương.`,
     (c) => `Một đường chọc khe tìm thấy ${c.ten} phía sau hàng thủ.`,
   ],
+  /*
+    `ten` ở đây là người ĐỂ MẤT bóng — cùng người mà bảng thống kê ghi
+    `matBong` và `chuyenHong` (T134, quyết định D34d). Trước đó engine đưa
+    người kết thúc chuỗi lên đầu dòng, nên dòng tường thuật và bảng điểm cuối
+    trận nói về hai người khác nhau cho cùng một pha.
+  */
   'mat-bong': [
     (c) => `${c.ten} để mất bóng trong chân.`,
     (c) => `Pha xử lý hỏng của ${c.ten}, ${c.tenDoi} mất quyền kiểm soát.`,
-    (c) => `${c.ten} chuyền hỏng, bóng thuộc về đối phương.`,
+    (c) =>
+      c.ten2
+        ? `${c.ten} chuyền hỏng, ${c.ten2} đoạt được bóng.`
+        : `${c.ten} chuyền hỏng, bóng thuộc về đối phương.`,
     (c) => `${c.tenDoi} đánh rơi nhịp tấn công sau pha mất bóng của ${c.ten}.`,
   ],
   'the-vang': [
@@ -85,11 +124,22 @@ const MAU: Readonly<Record<LoaiSuKien, readonly MauCau[]>> = {
     (c) => `Trọng tài không do dự rút thẻ đỏ với ${c.ten}.`,
     (c) => `${c.tenDoi} mất người: ${c.ten} bị truất quyền thi đấu.`,
   ],
+  /*
+    Dòng thay người mang `[vào, ra]`, nên `ten` là người VÀO và `ten2` là
+    người RA. Hai mẫu cuối trước đây đọc `ten` cho vế "rời sân" và vế "thay",
+    tức gọi tên người vừa vào sân cho việc của người vừa rời sân (T134).
+  */
   'thay-nguoi': [
     (c) => `${c.tenDoi} thay người: ${c.ten} vào sân.`,
     (c) => `Một sự điều chỉnh từ băng ghế ${c.tenDoi}, ${c.ten} được tung vào.`,
-    (c) => `${c.ten} rời sân nhường chỗ cho người mới bên phía ${c.tenDoi}.`,
-    (c) => `Bảng điện tử được giơ lên, ${c.tenDoi} thay ${c.ten}.`,
+    (c) =>
+      c.ten2
+        ? `${c.ten2} rời sân nhường chỗ cho ${c.ten} bên phía ${c.tenDoi}.`
+        : `${c.tenDoi} có người mới: ${c.ten} vào sân.`,
+    (c) =>
+      c.ten2
+        ? `Bảng điện tử được giơ lên, ${c.tenDoi} thay ${c.ten2} bằng ${c.ten}.`
+        : `Bảng điện tử được giơ lên, ${c.tenDoi} thay người.`,
   ],
   'kiet-suc': [
     (c) => `${c.ten} đã xuống sức thấy rõ.`,
@@ -129,9 +179,13 @@ export function dungCauTuongThuat(
   const cacMau = MAU[suKien.loai]
   const mau = cacMau[suKien.mauCau % cacMau.length]
 
+  const doiKia = suKien.doi === 'nha' ? 'khach' : 'nha'
+
   return mau({
     ten: suKien.cacCauThu[0] ? tenCauThu(suKien.cacCauThu[0]) : '',
+    ten2: suKien.cacCauThu[1] ? tenCauThu(suKien.cacCauThu[1]) : '',
     tenDoi: tenDoi(suKien.doi),
+    tenDoiKia: tenDoi(doiKia),
     phut: suKien.phut,
   })
 }
