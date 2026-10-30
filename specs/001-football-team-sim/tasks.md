@@ -286,11 +286,18 @@ Kết thúc phase: xuất ra tệp, nhập lại trên máy khác ra đúng dữ
     duyệt không vẽ. Đây là lần xác nhận thứ hai, trên một khung trình duyệt mới
     tinh: **thời điểm VẼ là thứ môi trường này không có**, không phải vấn đề kỹ
     thuật đo.
-  - **Hai đoạn lệnh dán thẳng vào console** đã đưa cho người dùng ngày 2026-10-30
-    (một đoạn đọc `navigation` + FCP + LCP; một đoạn bấm "Mở đội" rồi chờ qua hai
-    `requestAnimationFrame` lồng nhau để bắt đúng khung hình có lần vẽ). Chúng
-    chạy được trong trình duyệt thật; chỉ cần dựng một đội **30 cầu thủ** trước,
-    vì dữ liệu thử hiện có mỗi đội 18 người nên số đo là cận dưới.
+  - **Cách đo nằm trong repo, không nằm trong trí nhớ ai cả:**
+    [`do-ngan-sach-hien-thi.md`](./do-ngan-sach-hien-thi.md) — hai đoạn lệnh dán
+    thẳng vào console, ba cái bẫy đã làm hỏng số đo, và chỗ ghi kết quả. Viết ra
+    thành file ngày 2026-10-30 sau khi phiên làm việc đứt hai lần và hai đoạn
+    lệnh ấy chỉ còn sống trong khung chat.
+  - **Phần CÒN THIẾU nhỏ tới mức nào, nói cho rõ để lần sau khỏi đoán:** mọi
+    khâu trừ lần vẽ cuối đều đã đo. Mở ứng dụng: tải bản build 87ms + mở
+    database và đọc 20 đội 8ms + đọc lịch sử 2ms. Danh sách cầu thủ: bấm "Mở
+    đội" tới lúc DOM có đủ hàng mất **12ms với 18 cầu thủ**, so với ngân sách
+    300ms. Nghĩa là riêng lần vẽ phải tốn gần 290ms mới làm vỡ ngân sách số 2 —
+    khó xảy ra với một bảng vài chục hàng. **Nhưng đó là suy luận, không phải
+    phép đo**, nên task vẫn mở và vẫn không được tick.
   - Xong khi: dựng được bộ dữ liệu đúng mốc spec mục 6 — **20 đội, mỗi đội 30 cầu thủ, mỗi cầu thủ có ảnh** (dùng chức năng nhập tệp sao lưu với dữ liệu sinh sẵn, không nhập tay 600 cầu thủ) — rồi đo và ghi lại: danh sách 30 cầu thủ của một đội hiện đầy đủ dưới 300ms; mở ứng dụng với toàn bộ bộ dữ liệu đó dưới 2 giây; xuất tệp xong và nhập lại được, kèm kích thước tệp thực tế để đối chiếu rủi ro R1; đi hết form cầu thủ và bảng chỉ số chỉ bằng bàn phím; mở tab mạng của trình duyệt, dùng hết mọi chức năng và xác nhận **không có request nào đi ra** (hiến pháp P4).
   - Phụ thuộc: T034
 
