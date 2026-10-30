@@ -275,6 +275,22 @@ Kết thúc phase: xuất ra tệp, nhập lại trên máy khác ra đúng dữ
   - **Cần làm để đóng task:** mở `npm run dev` trong trình duyệt thật của bạn và đọc
     thời gian trong tab Performance, hoặc thêm `performance.mark` vào `main.tsx` rồi
     đọc lại — cả hai đều không phụ thuộc vào độ trễ tiêm script.
+  - **Thử lại lần nữa ngày 2026-10-30, trên BẢN BUILD, và vẫn không đóng được.**
+    Đo trên bản build thay vì bản dev là một cải thiện thật: `loadEventEnd` còn
+    **87ms**, so với **381ms** của bản dev — tức con số dev từng ghi ở trên bị
+    thổi lên khoảng **4 lần** vì Vite biên dịch từng module lúc chạy. Ngân sách
+    của spec nói về thứ người dùng thật sự mở, nên 87ms mới là con số đúng loại.
+    Nhưng nó đo trên **database RỖNG**, không phải mốc 20 đội × 30 cầu thủ, nên
+    không dùng để tick được. Và `first-contentful-paint` lẫn `largest-contentful-paint`
+    đều trả về **rỗng** (không có mục `paint` nào) vì khung Browser ẩn thì trình
+    duyệt không vẽ. Đây là lần xác nhận thứ hai, trên một khung trình duyệt mới
+    tinh: **thời điểm VẼ là thứ môi trường này không có**, không phải vấn đề kỹ
+    thuật đo.
+  - **Hai đoạn lệnh dán thẳng vào console** đã đưa cho người dùng ngày 2026-10-30
+    (một đoạn đọc `navigation` + FCP + LCP; một đoạn bấm "Mở đội" rồi chờ qua hai
+    `requestAnimationFrame` lồng nhau để bắt đúng khung hình có lần vẽ). Chúng
+    chạy được trong trình duyệt thật; chỉ cần dựng một đội **30 cầu thủ** trước,
+    vì dữ liệu thử hiện có mỗi đội 18 người nên số đo là cận dưới.
   - Xong khi: dựng được bộ dữ liệu đúng mốc spec mục 6 — **20 đội, mỗi đội 30 cầu thủ, mỗi cầu thủ có ảnh** (dùng chức năng nhập tệp sao lưu với dữ liệu sinh sẵn, không nhập tay 600 cầu thủ) — rồi đo và ghi lại: danh sách 30 cầu thủ của một đội hiện đầy đủ dưới 300ms; mở ứng dụng với toàn bộ bộ dữ liệu đó dưới 2 giây; xuất tệp xong và nhập lại được, kèm kích thước tệp thực tế để đối chiếu rủi ro R1; đi hết form cầu thủ và bảng chỉ số chỉ bằng bàn phím; mở tab mạng của trình duyệt, dùng hết mọi chức năng và xác nhận **không có request nào đi ra** (hiến pháp P4).
   - Phụ thuộc: T034
 
