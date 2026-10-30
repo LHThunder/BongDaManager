@@ -33,6 +33,14 @@ export const CHUNG = {
   */
   chanNangCapDuLieu:
     'Ứng dụng cần nâng cấp kho dữ liệu, nhưng một tab khác của ứng dụng đang mở và giữ phiên bản cũ. Hãy đóng những tab đó rồi tải lại trang này. Dữ liệu của bạn vẫn nguyên vẹn.',
+  /*
+    Mặt kia của câu trên (T133): tab NÀY vừa nhường đường. Phải nói đủ ba
+    điều — tab này đã ngừng ghi, dữ liệu đã lưu vẫn còn, và việc cần làm là
+    tải lại — vì người dùng không có cách nào tự đoán ra chuyện vừa xảy ra ở
+    một tab khác.
+  */
+  daNhuongKetNoi:
+    'Một tab khác vừa nâng cấp kho dữ liệu, nên tab này đã ngừng ghi để nhường đường. Những gì đã lưu vẫn nguyên vẹn, nhưng thao tác mới ở đây sẽ không lưu được. Hãy tải lại trang để dùng tiếp.',
 } as const
 
 export const DANH_SACH_DOI = {

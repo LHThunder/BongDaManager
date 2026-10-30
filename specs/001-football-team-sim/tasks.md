@@ -5,8 +5,8 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | Giai đoạn 1 (36 AC), Giai đoạn 2 (22 AC), Giai đoạn 3 (26 AC) và Giai đoạn 4 (13 AC + 3 AC vắt lại) |
-| **Tiến độ** | 134/137 — Giai đoạn 1 xong (38/39, còn T035); Giai đoạn 2 và 3 xong trọn; **Giai đoạn 4 xong, spec 001 đóng** (T126, T128, T129, T131, T132, T134, T135, T136 đã kiểm tay và tick). Còn 3 task KHÔNG chặn spec: T035, T130, T133 |
-| **Sửa đổi** | 2026-10-30 — T136 xong theo hướng (b): xoá bộ mẫu câu `mat-bong` đã chết, ghi nhận hai kết cục cố ý không được kể. Cùng ngày, T135 xong: pha phạm lỗi có loại sự kiện và mẫu câu riêng, `PHIEN_BAN_ENGINE` lên **4**. Cùng ngày, T134 xong: câu tường thuật và bảng thống kê giờ nói về cùng một người; `PHIEN_BAN_ENGINE` lên **3**, nên trận đã lưu mất nút đấu lại. Cùng ngày, T132 xong: một tình huống giờ sáng lên đủ người tham gia, kèm T134 là lỗi tường thuật phát hiện lúc làm. Cùng ngày, T131 xong: nâng `DB_VERSION` bị chặn giờ báo ra thay vì treo im lặng, kiểm tay bằng hai tab trên bản build. Trước đó, 2026-10-29 — Phase 19 xong trọn: 13 AC của US-10/US-11 cộng AC-4.2 và AC-1.5 đã kiểm tay trên ứng dụng đang chạy, `spec.md` đổi `Status` thành **Done** (98/99 AC), hiến pháp lên 1.0.1 vì mục 7 đã hết điểm mở. T132 là task mới phát hiện lúc kiểm tay |
+| **Tiến độ** | 135/137 — Giai đoạn 1 xong (38/39, còn T035); Giai đoạn 2 và 3 xong trọn; **Giai đoạn 4 xong, spec 001 đóng** (T126, T128, T129, T131, T132, T133, T134, T135, T136 đã kiểm tay và tick). Còn 2 task KHÔNG chặn spec: T035 và T130 |
+| **Sửa đổi** | 2026-10-30 — T133 xong: tab cũ tự đóng kết nối nhường đường, tab mới không còn phải chờ ai. Cùng ngày, T136 xong theo hướng (b): xoá bộ mẫu câu `mat-bong` đã chết, ghi nhận hai kết cục cố ý không được kể. Cùng ngày, T135 xong: pha phạm lỗi có loại sự kiện và mẫu câu riêng, `PHIEN_BAN_ENGINE` lên **4**. Cùng ngày, T134 xong: câu tường thuật và bảng thống kê giờ nói về cùng một người; `PHIEN_BAN_ENGINE` lên **3**, nên trận đã lưu mất nút đấu lại. Cùng ngày, T132 xong: một tình huống giờ sáng lên đủ người tham gia, kèm T134 là lỗi tường thuật phát hiện lúc làm. Cùng ngày, T131 xong: nâng `DB_VERSION` bị chặn giờ báo ra thay vì treo im lặng, kiểm tay bằng hai tab trên bản build. Trước đó, 2026-10-29 — Phase 19 xong trọn: 13 AC của US-10/US-11 cộng AC-4.2 và AC-1.5 đã kiểm tay trên ứng dụng đang chạy, `spec.md` đổi `Status` thành **Done** (98/99 AC), hiến pháp lên 1.0.1 vì mục 7 đã hết điểm mở. T132 là task mới phát hiện lúc kiểm tay |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
 > Mỗi task phải: chạm file cụ thể + có cách kiểm chứng + đủ nhỏ để làm trong một lần.
@@ -1130,12 +1130,18 @@ lại đọc được báo cáo cũ; xuất tệp sao lưu rồi nhập lại th
   - **Phép kiểm đổi từ "ít nhất 4 mẫu" thành hai phép kiểm**: loại người dùng đọc được phải có ≥ 4 mẫu, còn loại miễn trừ phải có **đúng 0** mẫu. Nghĩa là viết thêm câu cho `mat-bong` mà quên nâng `diemCuaChuoi` sẽ làm test đỏ — sự miễn trừ này là một khẳng định, không phải một lỗ hổng.
   - **KHÔNG tăng `PHIEN_BAN_ENGINE`**: engine không đổi gì cả, dòng sự kiện vẫn y nguyên. Chỉ tầng câu chữ bớt đi thứ không ai đọc.
 
-- [ ] **T133** — Tab cũ tự nhường đường khi tab mới đòi nâng cấp
+- [x] **T133** — Tab cũ tự nhường đường khi tab mới đòi nâng cấp
   - File: sửa `src/storage/db.ts`, sửa `src/ui/strings.ts`, sửa `src/App.tsx`, sửa `src/storage/db.test.ts`
   - Xong khi: `moDb` bắt `blocking` và đóng kết nối của tab cũ, đồng thời tab cũ hiện một câu nói rõ nó vừa nhường đường và cần tải lại; test xanh — hai kết nối, kết nối cũ tự đóng khi kết nối mới đòi nâng cấp, và tab mới không bao giờ bị chặn.
   - AC: — *(không AC nào đòi; đây là bước tiếp của T131)*
   - Phụ thuộc: T131
   - **Việc cần cân nhắc trước khi làm:** đóng kết nối của tab cũ nghĩa là **mọi thao tác đang dở ở tab đó hỏng ngay** — đang xem trận, đang sửa cầu thủ, đang nhập tệp. Phải quyết định tab cũ xử lý thế nào trước khi viết code, nếu không thì đổi một đường chết lặng lấy một đường mất dữ liệu.
+  - **Làm xong ngày 2026-10-30. Quyết định trước, code sau:** tab cũ đóng kết nối NGAY, nhưng phải **nói to**. Chấp nhận được vì ứng dụng ghi thẳng từng hành động chứ không có nút Lưu (AC-4.1), nên thứ duy nhất mất được là một lần ghi đang bay và những gì người dùng vừa gõ mà chưa bấm. Dải báo màu đỏ ở `App` nói đủ ba điều: tab này đã ngừng ghi, dữ liệu đã lưu vẫn còn, và việc cần làm là tải lại.
+  - **Chỗ dễ làm sai nhất, và nó làm đỏ ngay phép kiểm đầu tiên:** phải đóng **ĐỒNG BỘ** trong handler `blocking`. IndexedDB bắn `versionchange` sang mọi kết nối rồi NGAY SAU KHI các handler trả về, nếu còn kết nối nào chưa đóng thì bắn `blocked` sang tab mới. Bản đầu đóng trong một `.then()` — muộn một microtask, và tab mới vẫn đứng chờ, tức không nhường được gì. Phải giữ thêm `dbHienTai` vì `dbDangMo` là Promise, không dùng đồng bộ được.
+  - **Đã nhường rồi thì `moDb()` KHÔNG mở lại**, mà ném lỗi để `chuanHoaLoiLuuTru` quy về `StorageUnavailable` — câu tiếng Việt của mã đó vốn đã bảo người dùng tải lại trang, nên không phải thêm mã lỗi mới. Mở lại ở phiên bản cũ sẽ chặn đúng tab vừa được nhường, thành một vòng luẩn quẩn.
+  - **Kiểm tay hai tab trên bản build, 2026-10-30** (cùng cách T131: `vite preview` để tab cũ không bị HMR đẩy bản mới sang): tab mới **vào thẳng ứng dụng**, không còn thấy dải vàng "đang chờ" của T131 lần nào; tab cũ hiện dải đỏ kèm nút tải lại. Thử tạo một đội ở tab cũ: đội **không** được tạo, và ngoài dải đỏ còn hiện đúng câu "Không mở được bộ lưu trữ của trình duyệt. Hãy thử tải lại trang." — hỏng có tiếng nói, không im lặng nuốt mất dữ liệu.
+  - **Hai dải cùng lúc là hơi nhiều chữ**, nhưng mỗi dải nói một chuyện khác nhau và dải thứ hai là đường báo lỗi lưu trữ vốn đã có từ Giai đoạn 1. Để nguyên còn hơn im lặng một nửa.
+  - **KHÔNG đụng tới `PHIEN_BAN_ENGINE` hay `DB_VERSION`**: đây là chuyện của tầng kết nối, không phải của dữ liệu.
 
 ### Ghi chú Phase 19
 

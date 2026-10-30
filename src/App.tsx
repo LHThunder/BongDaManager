@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { ngheBiChanNangCap } from './storage/db'
+import { ngheBiChanNangCap, ngheNhuongDuongNangCap } from './storage/db'
 import { useAppStore } from './store/appStore'
 import { CHON_CAP_DAU, CHUNG, LICH_SU, cauLoi } from './ui/strings'
 import { ChonCapDau } from './ui/pages/ChonCapDau'
@@ -32,6 +32,13 @@ export default function App() {
   */
   const [biChanNangCap, datBiChanNangCap] = useState(false)
   useEffect(() => ngheBiChanNangCap(datBiChanNangCap), [])
+
+  /*
+    Mặt kia: tab này vừa nhường kết nối cho một tab khác nâng cấp (T133).
+    Nặng hơn dải trên, vì từ lúc này mọi thao tác ghi ở đây đều hỏng.
+  */
+  const [daNhuongKetNoi, datDaNhuongKetNoi] = useState(false)
+  useEffect(() => ngheNhuongDuongNangCap(datDaNhuongKetNoi), [])
 
   const moDoi = useCallback((teamId: string) => {
     datKhung({ loai: 'trang-doi', teamId })
@@ -90,6 +97,29 @@ export default function App() {
           </h1>
         </div>
       </header>
+
+      {/*
+        Đã nhường đường thì tab này không ghi được gì nữa, nên dải báo phải
+        đứng trên cùng và nặng hơn mọi dải khác (T133). Không tự tải lại hộ
+        người dùng: họ có thể đang đọc dở một báo cáo sau trận, và tự ý tải
+        lại là lấy mất thứ đang xem mà không hỏi.
+      */}
+      {daNhuongKetNoi && (
+        <div role="alert" className="border-b border-red-300 bg-red-100">
+          <div className="mx-auto flex max-w-5xl items-start gap-4 px-4 py-3">
+            <p className="flex-1 text-sm font-medium text-red-900">
+              {CHUNG.daNhuongKetNoi}
+            </p>
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="shrink-0 rounded-md border border-red-700 px-3 py-1 text-sm font-medium text-red-900 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500"
+            >
+              {CHUNG.taiLaiTrang}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/*
         Nâng cấp bị chặn thì KHÔNG có kết nối database, nên mọi màn hình bên

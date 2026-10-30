@@ -9,10 +9,12 @@ import {
   DB_VERSION,
   TEN_CAC_STORE,
   biChanNangCap,
+  daNhuongDuongNangCap,
   docSchemaVersion,
   dongDb,
   moDb,
   ngheBiChanNangCap,
+  ngheNhuongDuongNangCap,
   taoChienThuatMacDinh,
   yeuCauLuuTruBen,
 } from './db'
@@ -387,6 +389,48 @@ describe('nâng cấp bị chặn khi còn kết nối cũ (T131)', () => {
     await dangMo
 
     expect(cacBao).toEqual([false])
+  })
+
+  /*
+    Mặt kia của T131: tab NÀY đang giữ phiên bản cũ và phải tự nhường đường
+    (T133). Cái giá là tab này không ghi được nữa, nên phép kiểm phải khẳng
+    định CẢ HAI nửa: tab mới đi tiếp được, và tab cũ hỏng một cách có tiếng
+    nói chứ không im lặng ghi vào một kết nối đã đóng.
+  */
+  it('tab khác đòi nâng cấp thì tab này nhường đường và ngừng ghi', async () => {
+    const cacBao: boolean[] = []
+    const boNghe = ngheNhuongDuongNangCap((x) => cacBao.push(x))
+
+    await moDb()
+    expect(daNhuongDuongNangCap()).toBe(false)
+
+    // Một "tab khác" đòi phiên bản cao hơn.
+    const tabMoi = await new Promise<IDBDatabase>((resolve, reject) => {
+      const yeuCau = indexedDB.open(DB_NAME, DB_VERSION + 1)
+      yeuCau.onupgradeneeded = () => {
+        yeuCau.result.createObjectStore('kho-moi')
+      }
+      yeuCau.onsuccess = () => resolve(yeuCau.result)
+      yeuCau.onerror = () => reject(yeuCau.error)
+      yeuCau.onblocked = () =>
+        reject(new Error('tab mới bị chặn: tab cũ đã không nhường đường'))
+      setTimeout(() => reject(new Error('chờ quá lâu')), 3000)
+    })
+
+    try {
+      // Nửa thứ nhất: tab mới nâng cấp xong, không bị kẹt.
+      expect(tabMoi.version).toBe(DB_VERSION + 1)
+
+      // Nửa thứ hai: tab cũ biết mình đã nhường, và từ chối mở lại.
+      expect(daNhuongDuongNangCap()).toBe(true)
+      expect(cacBao).toEqual([false, true])
+      await expect(moDb()).rejects.toThrow()
+    } finally {
+      // Phải đóng dù phép kiểm đỏ: để sót một kết nối ở phiên bản cao hơn
+      // thì mọi phép kiểm sau đều đỏ theo vì không xoá được database.
+      tabMoi.close()
+      boNghe()
+    }
   })
 
   it('không có tab cũ nào thì không báo chặn lần nào', async () => {

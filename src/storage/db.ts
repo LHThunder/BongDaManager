@@ -178,6 +178,9 @@ export function taoChienThuatMacDinh(
 
 let dbDangMo: Promise<IDBPDatabase<BongDaDB>> | null = null
 
+/** Kết nối đã mở xong, giữ riêng để `blocking` đóng được ĐỒNG BỘ (T133). */
+let dbHienTai: IDBPDatabase<BongDaDB> | null = null
+
 /*
   Nâng cấp database bị CHẶN khi còn tab khác đang giữ phiên bản cũ (T131).
 
@@ -196,6 +199,48 @@ function datBiChanNangCap(biChan: boolean): void {
   if (dangBiChanNangCap === biChan) return
   dangBiChanNangCap = biChan
   for (const nghe of nguoiNgheBiChan) nghe(biChan)
+}
+
+/*
+  Mặt kia của cùng câu chuyện: tab NÀY đang giữ phiên bản cũ, và một tab khác
+  vừa đòi nâng cấp (T133).
+
+  T131 đã lo cho tab mới — nó biết mình đang chờ và nói ra. Nhưng chừng nào
+  tab cũ còn mở, tab mới vẫn đứng im, và người dùng thường không nhớ mình còn
+  mở ứng dụng ở đâu. Nên tab cũ **tự đóng kết nối** để nhường đường.
+
+  Cái giá, và đây là chỗ phải cân nhắc trước khi viết dòng code nào: đóng kết
+  nối nghĩa là tab này KHÔNG GHI ĐƯỢC NỮA. Chấp nhận được vì ứng dụng ghi
+  thẳng từng hành động chứ không có nút Lưu (AC-4.1), nên thứ duy nhất có thể
+  mất là một lần ghi đang bay và những gì người dùng vừa gõ mà chưa bấm. Đổi
+  lại, tab mới hết đứng hình mà không cần người dùng đi tìm tab cũ.
+
+  Đổi một đường chết lặng lấy một đường mất dữ liệu thì không đáng, nên tab cũ
+  phải NÓI TO: dải báo ở `App` nói rõ tab này đã ngừng ghi và phải tải lại.
+*/
+let daNhuongKetNoi = false
+const nguoiNgheNhuong = new Set<(daNhuong: boolean) => void>()
+
+function datNhuongKetNoi(daNhuong: boolean): void {
+  if (daNhuongKetNoi === daNhuong) return
+  daNhuongKetNoi = daNhuong
+  for (const nghe of nguoiNgheNhuong) nghe(daNhuong)
+}
+
+/** Tab này đã nhường kết nối cho một tab khác nâng cấp chưa. */
+export function daNhuongDuongNangCap(): boolean {
+  return daNhuongKetNoi
+}
+
+/** Nghe việc nhường đường; báo trạng thái hiện tại ngay khi đăng ký. */
+export function ngheNhuongDuongNangCap(
+  nghe: (daNhuong: boolean) => void,
+): () => void {
+  nguoiNgheNhuong.add(nghe)
+  nghe(daNhuongKetNoi)
+  return () => {
+    nguoiNgheNhuong.delete(nghe)
+  }
 }
 
 /** Có đang chờ các tab cũ đóng để nâng cấp được không. */
@@ -225,10 +270,41 @@ export function ngheBiChanNangCap(
  * dựa vào transaction để việc ghi mang tính tất-cả-hoặc-không-gì.
  */
 export function moDb(): Promise<IDBPDatabase<BongDaDB>> {
+  /*
+    Đã nhường đường thì KHÔNG mở lại (T133). Mở lại ở phiên bản cũ sẽ chặn
+    đúng tab vừa được nhường — thành một vòng luẩn quẩn mà người dùng không
+    hiểu nổi. Ném lỗi để `chuanHoaLoiLuuTru` quy về `StorageUnavailable`, và
+    câu tiếng Việt của mã đó vốn đã bảo người dùng tải lại trang.
+  */
+  if (daNhuongKetNoi) {
+    return Promise.reject(
+      new Error('Kết nối đã nhường cho một tab khác nâng cấp kho dữ liệu'),
+    )
+  }
+
   if (!dbDangMo) {
     dbDangMo = openDB<BongDaDB>(DB_NAME, DB_VERSION, {
       blocked() {
         datBiChanNangCap(true)
+      },
+      /*
+        Tab khác đòi nâng cấp: đóng ngay để nó chạy tiếp được. `db.close()`
+        chỉ đánh dấu đóng và chờ các transaction đang chạy xong, nên một lần
+        ghi đang bay vẫn kết thúc tử tế thay vì bị cắt giữa chừng.
+      */
+      blocking() {
+        /*
+          Phải đóng ĐỒNG BỘ, ngay trong handler. IndexedDB bắn `versionchange`
+          sang mọi kết nối đang mở, rồi NGAY SAU KHI các handler trả về, nếu
+          còn kết nối nào chưa đóng thì nó bắn `blocked` sang tab mới. Đóng
+          trong một `.then()` là đóng muộn một microtask — tab mới vẫn đứng
+          chờ, tức là không nhường được gì cả. Đó cũng là lý do phải giữ
+          `dbHienTai`: `dbDangMo` là Promise, không dùng đồng bộ được.
+        */
+        dbHienTai?.close()
+        dbHienTai = null
+        dbDangMo = null
+        datNhuongKetNoi(true)
       },
       upgrade(db, phienBanCu, _phienBanMoi, tx) {
         if (phienBanCu < 1) {
@@ -283,6 +359,7 @@ export function moDb(): Promise<IDBPDatabase<BongDaDB>> {
     }).then(async (db) => {
       // Mở được rồi thì chuyện bị chặn đã qua, dù trước đó có chặn hay không.
       datBiChanNangCap(false)
+      dbHienTai = db
       await themChienThuatConThieu(db)
       return db
     })
@@ -331,6 +408,13 @@ export async function dongDb(): Promise<void> {
     db.close()
     dbDangMo = null
   }
+  dbHienTai = null
+  /*
+    Đóng CHỦ ĐỘNG cũng xoá luôn dấu "đã nhường đường" (T133): lần mở sau là
+    một khởi đầu sạch, không còn bị chặn bởi quyết định của lần trước. Test
+    dựa vào điều này để mỗi phép kiểm chạy độc lập.
+  */
+  datNhuongKetNoi(false)
 }
 
 /** Phiên bản hình dạng dữ liệu đang nằm trong database trên máy. */
