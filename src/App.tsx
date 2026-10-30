@@ -1,4 +1,5 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import { ngheBiChanNangCap } from './storage/db'
 import { useAppStore } from './store/appStore'
 import { CHON_CAP_DAU, CHUNG, LICH_SU, cauLoi } from './ui/strings'
 import { ChonCapDau } from './ui/pages/ChonCapDau'
@@ -22,6 +23,15 @@ export default function App() {
   const [khung, datKhung] = useState<Khung>({ loai: 'danh-sach-doi' })
   const loiLuuTru = useAppStore((s) => s.loiLuuTru)
   const datLoiLuuTru = useAppStore((s) => s.datLoiLuuTru)
+
+  /*
+    Nâng cấp kho dữ liệu đang chờ các tab cũ đóng (T131). Nghe thẳng từ
+    `storage` chứ không qua store: đây là trạng thái của chính kết nối
+    database, không phải dữ liệu của ứng dụng, và nó xảy ra TRƯỚC khi có
+    kết nối để nạp bất cứ thứ gì vào store.
+  */
+  const [biChanNangCap, datBiChanNangCap] = useState(false)
+  useEffect(() => ngheBiChanNangCap(datBiChanNangCap), [])
 
   const moDoi = useCallback((teamId: string) => {
     datKhung({ loai: 'trang-doi', teamId })
@@ -80,6 +90,28 @@ export default function App() {
           </h1>
         </div>
       </header>
+
+      {/*
+        Nâng cấp bị chặn thì KHÔNG có kết nối database, nên mọi màn hình bên
+        dưới chỉ hiện được "Đang tải…". Dải này nằm trên cùng và có nút tải
+        lại, để người dùng đóng tab cũ xong là xử lý được ngay tại chỗ.
+      */}
+      {biChanNangCap && (
+        <div role="alert" className="border-b border-amber-300 bg-amber-100">
+          <div className="mx-auto flex max-w-5xl items-start gap-4 px-4 py-3">
+            <p className="flex-1 text-sm font-medium text-amber-900">
+              {CHUNG.chanNangCapDuLieu}
+            </p>
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="shrink-0 rounded-md border border-amber-700 px-3 py-1 text-sm font-medium text-amber-900 hover:bg-amber-200 focus:outline-none focus:ring-2 focus:ring-amber-500"
+            >
+              {CHUNG.taiLaiTrang}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/*
         Cảnh báo lưu trữ hiện ở một chỗ duy nhất cho cả ứng dụng (AC-4.7).

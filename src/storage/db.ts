@@ -178,6 +178,47 @@ export function taoChienThuatMacDinh(
 
 let dbDangMo: Promise<IDBPDatabase<BongDaDB>> | null = null
 
+/*
+  Nâng cấp database bị CHẶN khi còn tab khác đang giữ phiên bản cũ (T131).
+
+  IndexedDB không báo lỗi trong tình huống đó: yêu cầu mở chỉ nằm im cho tới
+  khi những kết nối cũ đóng lại. Nếu không ai bắt sự kiện `blocked` thì
+  `moDb()` không bao giờ resolve và cả ứng dụng đứng ở "Đang tải…" mà không
+  nói gì — một đường chết lặng mà người dùng không có cách nào tự hiểu.
+
+  Trạng thái này KHÔNG phải lỗi, nên không đi qua `LoiUngDung`: nó tự hết
+  ngay khi các tab kia đóng, và lúc đó `moDb()` chạy tiếp như thường.
+*/
+let dangBiChanNangCap = false
+const nguoiNgheBiChan = new Set<(biChan: boolean) => void>()
+
+function datBiChanNangCap(biChan: boolean): void {
+  if (dangBiChanNangCap === biChan) return
+  dangBiChanNangCap = biChan
+  for (const nghe of nguoiNgheBiChan) nghe(biChan)
+}
+
+/** Có đang chờ các tab cũ đóng để nâng cấp được không. */
+export function biChanNangCap(): boolean {
+  return dangBiChanNangCap
+}
+
+/**
+ * Nghe trạng thái bị chặn, trả về hàm bỏ nghe.
+ *
+ * Báo trạng thái HIỆN TẠI ngay khi đăng ký: `blocked` thường xảy ra trước
+ * khi giao diện kịp gắn người nghe, nên người đăng ký muộn vẫn phải biết.
+ */
+export function ngheBiChanNangCap(
+  nghe: (biChan: boolean) => void,
+): () => void {
+  nguoiNgheBiChan.add(nghe)
+  nghe(dangBiChanNangCap)
+  return () => {
+    nguoiNgheBiChan.delete(nghe)
+  }
+}
+
 /**
  * Mở database, tạo cấu trúc ở lần đầu. Kết quả được giữ lại để mọi lớp trên
  * dùng chung một kết nối — transaction của IndexedDB gắn với kết nối, và P3
@@ -186,6 +227,9 @@ let dbDangMo: Promise<IDBPDatabase<BongDaDB>> | null = null
 export function moDb(): Promise<IDBPDatabase<BongDaDB>> {
   if (!dbDangMo) {
     dbDangMo = openDB<BongDaDB>(DB_NAME, DB_VERSION, {
+      blocked() {
+        datBiChanNangCap(true)
+      },
       upgrade(db, phienBanCu, _phienBanMoi, tx) {
         if (phienBanCu < 1) {
           db.createObjectStore('meta', { keyPath: 'key' })
@@ -237,6 +281,8 @@ export function moDb(): Promise<IDBPDatabase<BongDaDB>> {
         }
       },
     }).then(async (db) => {
+      // Mở được rồi thì chuyện bị chặn đã qua, dù trước đó có chặn hay không.
+      datBiChanNangCap(false)
       await themChienThuatConThieu(db)
       return db
     })

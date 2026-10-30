@@ -8,9 +8,11 @@ import {
   DB_NAME,
   DB_VERSION,
   TEN_CAC_STORE,
+  biChanNangCap,
   docSchemaVersion,
   dongDb,
   moDb,
+  ngheBiChanNangCap,
   taoChienThuatMacDinh,
   yeuCauLuuTruBen,
 } from './db'
@@ -319,6 +321,83 @@ describe('nâng cấp database v1 lên v2 (AC-5.10, AC-7.4)', () => {
 
     expect(lanHai).toEqual(lanDau)
     expect(lanHai).toHaveLength(DOI_V1.length)
+  })
+})
+
+/*
+  Nâng cấp bị chặn vì còn tab cũ đang mở (T131).
+
+  Đây là một đường CHẾT LẶNG chứ không phải lỗi: IndexedDB giữ yêu cầu mở nằm
+  im, không ném gì cả, nên trước khi có `blocked` thì `moDb()` không bao giờ
+  resolve và ứng dụng đứng ở "Đang tải…" vô hạn. Gặp thật lúc kiểm tay T125,
+  khi DB_VERSION lên 3 mà vẫn còn tab cũ giữ phiên bản 2.
+*/
+describe('nâng cấp bị chặn khi còn kết nối cũ (T131)', () => {
+  /**
+   * Dựng một database v1 đầy đủ rồi mở một kết nối thô lên nó và GIỮ NGUYÊN —
+   * đúng cảnh một tab cũ đang mở trong lúc tab mới đòi nâng cấp.
+   */
+  async function moKetNoiCu(): Promise<IDBDatabase> {
+    await dungDatabaseV1()
+    return new Promise((resolve, reject) => {
+      const yeuCau = indexedDB.open(DB_NAME, 1)
+      yeuCau.onsuccess = () => resolve(yeuCau.result)
+      yeuCau.onerror = () => reject(yeuCau.error)
+    })
+  }
+
+  async function doiToi(dieuKien: () => boolean): Promise<void> {
+    for (let i = 0; i < 200; i += 1) {
+      if (dieuKien()) return
+      await new Promise((r) => setTimeout(r, 5))
+    }
+    throw new Error('chờ quá lâu mà điều kiện vẫn chưa đúng')
+  }
+
+  it('báo bị chặn thay vì chờ im lặng, rồi tự hết khi tab cũ đóng', async () => {
+    const tabCu = await moKetNoiCu()
+    const cacBao: boolean[] = []
+    const boNghe = ngheBiChanNangCap((x) => cacBao.push(x))
+
+    // KHÔNG await ở đây: yêu cầu mở phải còn đang treo thì mới quan sát được.
+    const dangMo = moDb()
+    await doiToi(() => biChanNangCap())
+
+    expect(biChanNangCap()).toBe(true)
+
+    tabCu.close()
+    const db = await dangMo
+
+    expect(db.version).toBe(DB_VERSION)
+    expect(biChanNangCap()).toBe(false)
+    // Lần gọi đầu là trạng thái hiện tại lúc đăng ký, nên bắt đầu bằng false.
+    expect(cacBao).toEqual([false, true, false])
+    boNghe()
+  })
+
+  it('bỏ nghe rồi thì không nhận báo nữa', async () => {
+    const cacBao: boolean[] = []
+    const boNghe = ngheBiChanNangCap((x) => cacBao.push(x))
+    boNghe()
+
+    const tabCu = await moKetNoiCu()
+    const dangMo = moDb()
+    await doiToi(() => biChanNangCap())
+    tabCu.close()
+    await dangMo
+
+    expect(cacBao).toEqual([false])
+  })
+
+  it('không có tab cũ nào thì không báo chặn lần nào', async () => {
+    const cacBao: boolean[] = []
+    const boNghe = ngheBiChanNangCap((x) => cacBao.push(x))
+
+    await moDb()
+
+    expect(cacBao).toEqual([false])
+    expect(biChanNangCap()).toBe(false)
+    boNghe()
   })
 })
 

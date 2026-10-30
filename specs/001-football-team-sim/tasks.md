@@ -5,8 +5,8 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | Giai đoạn 1 (36 AC), Giai đoạn 2 (22 AC), Giai đoạn 3 (26 AC) và Giai đoạn 4 (13 AC + 3 AC vắt lại) |
-| **Tiến độ** | 129/133 — Giai đoạn 1 xong (38/39, còn T035); Giai đoạn 2 và 3 xong trọn; **Giai đoạn 4 xong, spec 001 đóng** (T126, T128, T129 đã kiểm tay và tick). Còn 4 task KHÔNG chặn spec: T035, T130, T131, T132 |
-| **Sửa đổi** | 2026-10-29 — Phase 19 xong trọn: 13 AC của US-10/US-11 cộng AC-4.2 và AC-1.5 đã kiểm tay trên ứng dụng đang chạy, `spec.md` đổi `Status` thành **Done** (98/99 AC), hiến pháp lên 1.0.1 vì mục 7 đã hết điểm mở. T132 là task mới phát hiện lúc kiểm tay |
+| **Tiến độ** | 130/134 — Giai đoạn 1 xong (38/39, còn T035); Giai đoạn 2 và 3 xong trọn; **Giai đoạn 4 xong, spec 001 đóng** (T126, T128, T129, T131 đã kiểm tay và tick). Còn 4 task KHÔNG chặn spec: T035, T130, T132, T133 |
+| **Sửa đổi** | 2026-10-30 — T131 xong: nâng `DB_VERSION` bị chặn giờ báo ra thay vì treo im lặng, kiểm tay bằng hai tab trên bản build. Trước đó, 2026-10-29 — Phase 19 xong trọn: 13 AC của US-10/US-11 cộng AC-4.2 và AC-1.5 đã kiểm tay trên ứng dụng đang chạy, `spec.md` đổi `Status` thành **Done** (98/99 AC), hiến pháp lên 1.0.1 vì mục 7 đã hết điểm mở. T132 là task mới phát hiện lúc kiểm tay |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
 > Mỗi task phải: chạm file cụ thể + có cách kiểm chứng + đủ nhỏ để làm trong một lần.
@@ -1047,12 +1047,16 @@ lại đọc được báo cáo cũ; xuất tệp sao lưu rồi nhập lại th
 - **Một chỗ người dùng chốt khác plan:** xem D48b — nhập **gộp** bỏ qua lịch sử của tệp và nói rõ, thay vì gộp rồi cắt còn 20.
 - **Ba file ngoài danh sách đã chạm:** `src/App.tsx` (thêm khung lịch sử và đường đấu lại), `src/ui/components/SaoLuu.tsx` + `src/ui/strings.ts` (câu báo số trận đã nhập và số trận bị bỏ qua khi gộp).
 
-- [ ] **T131** — Nâng `DB_VERSION` bị treo khi còn tab cũ đang mở
+- [x] **T131** — Nâng `DB_VERSION` bị treo khi còn tab cũ đang mở
   - File: sửa `src/storage/db.ts`, sửa `src/App.tsx`, sửa `src/ui/strings.ts`, sửa `src/storage/db.test.ts`
   - Xong khi: `moDb` bắt sự kiện `blocked` của IndexedDB và báo ra thay vì treo im lặng; ứng dụng hiện một câu tiếng Việt bảo người dùng đóng các tab khác của ứng dụng rồi tải lại; test xanh — mở database phiên bản cũ ở một kết nối rồi nâng cấp thì nhận được tín hiệu `blocked` chứ không chờ mãi.
   - AC: — *(không AC nào đòi; đây là một đường chết lặng mà người dùng không tự hiểu được)*
   - Phụ thuộc: T119
   - **Task phát hiện lúc kiểm tay T125.** Chỉ gặp khi nâng phiên bản database, tức một lần cho mỗi lần tăng `DB_VERSION` — nhưng lúc gặp thì ứng dụng đứng ở "Đang tải…" vô hạn và không nói gì.
+  - **Làm xong ngày 2026-10-30.** `moDb()` nhận `blocked` của `openDB` rồi đẩy ra ngoài qua `ngheBiChanNangCap`; `App` nghe THẲNG từ `storage` chứ không qua store, vì đây là trạng thái của chính kết nối database và nó xảy ra TRƯỚC khi có kết nối để nạp gì vào store. Người đăng ký nhận ngay trạng thái hiện tại lúc đăng ký — `blocked` thường xảy ra trước khi React kịp gắn người nghe.
+  - **Kiểm tay bằng hai tab thật, ngày 2026-10-30.** Không thể thử trên database thật vì tăng `DB_VERSION` là việc không lùi được. Cách làm: đổi tạm `DB_NAME` sang `bongda-thu-t131`, `npm run build`, chạy `vite preview` (bản build KHÔNG có HMR — đây là điểm mấu chốt, vì với `npm run dev` thì tab cũ cũng nhận bản mới và tự nó đòi nâng cấp trước). Tab A mở ở phiên bản 3 và giữ kết nối; đổi `DB_VERSION` thành 4, build lại; tab B mở lên: **hiện đúng dải vàng kèm câu tiếng Việt và nút "Tải lại trang"**, bên dưới vẫn "Đang tải…". Tab A không hiện gì — đúng, vì với nó không có gì hỏng. Đóng tab A thì tab B **tự khỏi**: nâng cấp chạy tiếp, dải vàng biến mất, ứng dụng vào thẳng màn hình chính mà không cần bấm nút. Dọn xong: `DB_NAME` và `DB_VERSION` trả về như cũ, database thử xoá ở cả hai origin, database thật `bongda@3` còn nguyên 19 đội.
+  - **Một chi tiết của IndexedDB, đo bằng thí nghiệm riêng:** khi có HAI yêu cầu nâng cấp xếp hàng, **chỉ yêu cầu ĐẦU TIÊN nhận `blocked`**; yêu cầu thứ hai chờ im rồi thành công. Nên mở ba tab thì chỉ một tab hiện dải cảnh báo, các tab còn lại đứng ở "Đang tải…" cho tới khi tab cũ đóng, rồi tự vào. Không sửa gì thêm: người dùng vẫn được báo ở một chỗ, và mọi tab đều tự khỏi.
+  - **Thứ CỐ TÌNH không làm:** `blocking` — sự kiện bắn vào chính tab CŨ khi tab khác đòi nâng cấp. Bắt nó rồi tự `db.close()` thì tab mới hết chờ mà không cần người dùng đóng tab nào, nhưng đổi lại tab cũ mất kết nối giữa chừng và phải xử lý mọi thao tác hỏng sau đó. Ngoài phạm vi T131 — xem T133.
 
 ## Phase 19 — Lát 17: Đóng spec 001
 
@@ -1080,6 +1084,13 @@ lại đọc được báo cáo cũ; xuất tệp sao lưu rồi nhập lại th
     1. **T035** — vẫn mở, nhưng lý do giờ chứng minh được chứ không còn là phỏng đoán: xem ghi chú đã cập nhật tại chính T035.
     2. **Hai điểm `[CẦN XÁC NHẬN]` của hiến pháp mục 7** — chốt xong, hiến pháp lên **1.0.1** (PATCH, vì chỉ làm rõ chứ không đổi nguyên tắc nào). Thư mục lâu dài là `C:\Users\tungh\source\BongDaManager` — lo ngại ban đầu về thư mục tạm không còn đúng. Trình duyệt đích: **chỉ trình duyệt Chromium người dùng đang dùng**, nên code được phép dựa thẳng vào `crypto.randomUUID`, `navigator.storage.persist`, `createImageBitmap`, `OffscreenCanvas` mà không rào trước — đây là việc hợp thức hoá thứ code đã làm từ Giai đoạn 1.
     3. **AC-4.7** — ghi rõ lý do ngay tại AC đó trong `spec.md` thay vì tick bừa.
+
+- [ ] **T133** — Tab cũ tự nhường đường khi tab mới đòi nâng cấp
+  - File: sửa `src/storage/db.ts`, sửa `src/ui/strings.ts`, sửa `src/App.tsx`, sửa `src/storage/db.test.ts`
+  - Xong khi: `moDb` bắt `blocking` và đóng kết nối của tab cũ, đồng thời tab cũ hiện một câu nói rõ nó vừa nhường đường và cần tải lại; test xanh — hai kết nối, kết nối cũ tự đóng khi kết nối mới đòi nâng cấp, và tab mới không bao giờ bị chặn.
+  - AC: — *(không AC nào đòi; đây là bước tiếp của T131)*
+  - Phụ thuộc: T131
+  - **Việc cần cân nhắc trước khi làm:** đóng kết nối của tab cũ nghĩa là **mọi thao tác đang dở ở tab đó hỏng ngay** — đang xem trận, đang sửa cầu thủ, đang nhập tệp. Phải quyết định tab cũ xử lý thế nào trước khi viết code, nếu không thì đổi một đường chết lặng lấy một đường mất dữ liệu.
 
 ### Ghi chú Phase 19
 

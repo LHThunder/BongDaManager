@@ -24,6 +24,15 @@ export const CHUNG = {
   quayLai: 'Quay lại',
   tiepTuc: 'Tiếp tục',
   dangTai: 'Đang tải…',
+  taiLaiTrang: 'Tải lại trang',
+  /*
+    Câu cho đường chết lặng ở T131: nâng cấp kho dữ liệu phải chờ các tab cũ
+    đóng. Phải nói rõ ba điều — vì sao đang đứng im, người dùng cần làm gì, và
+    rằng dữ liệu không việc gì — chứ "Đang tải…" thì người dùng chỉ biết ngồi
+    chờ một thứ không bao giờ tới.
+  */
+  chanNangCapDuLieu:
+    'Ứng dụng cần nâng cấp kho dữ liệu, nhưng một tab khác của ứng dụng đang mở và giữ phiên bản cũ. Hãy đóng những tab đó rồi tải lại trang này. Dữ liệu của bạn vẫn nguyên vẹn.',
 } as const
 
 export const DANH_SACH_DOI = {
