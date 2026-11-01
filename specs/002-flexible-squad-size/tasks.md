@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | 33 AC (US-12 → US-16) |
-| **Tiến độ** | 1/24 |
+| **Tiến độ** | 2/24 |
 | **Sửa đổi** | 2026-11-01 — chẻ lần đầu từ plan (D64 phát sinh lúc chẻ), rồi sửa theo cả 7 phát hiện của `/analyze` |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -29,11 +29,18 @@ dụng chạy được (hiến pháp P6), và là một commit.
   - AC: AC-12.1, AC-12.1b
   - Phụ thuộc: —
 
-- [ ] **T201** — Fixture đội hình theo quân số
-  - File: sửa `src/engine/__fixtures__/doiMau.ts`
-  - Xong khi: `benMauQuanSo(ma, n, soDuBi)` dựng được đăng ký n người chính kèm dự bị, vị trí hợp lý, cho mọi n từ 5 tới 11. **Không đọc bảng `FORMATIONS`** — sơ đồ 5–10 mãi lát 19 mới có, và phép đo R25 không được chờ chúng.
-  - AC: — *(hạ tầng cho T202–T205)*
+- [x] **T206** — Mô hình sơ đồ nhận nhiều quân số *(chuyển từ Phase 19 lên)*
+  - File: sửa `src/domain/formations.ts`, sửa `src/domain/formations.test.ts`, sửa `src/ui/pages/TrangChienThuat.tsx`
+  - Xong khi: `Formation.soNguoi` suy từ `oVien.length`; `soDoTheoQuanSo(n)` lọc đúng; test bất biến chạy cho **mọi** sơ đồ trong bảng thay vì đóng cứng 11 ô và tổng `cacDai` bằng 10 — đúng một ô thủ môn, tổng `cacDai` bằng `soNguoi - 1`, mọi `x`/`y` trong 0..100, `slotId` không trùng trong một sơ đồ, `id` không trùng trên toàn bảng. Danh sách sơ đồ ở trang chiến thuật **chỉ hiện sơ đồ cùng quân số với bộ đang mở**, để sơ đồ 5 ô không lọt vào giao diện 11 người.
+  - AC: AC-13.1
   - Phụ thuộc: T200
+
+- [ ] **T201** — Sơ đồ `2-2` và fixture đội hình theo quân số
+  - File: sửa `src/domain/formations.ts`, sửa `src/engine/__fixtures__/doiMau.ts`
+  - Xong khi: sơ đồ `2-2` có đủ 5 ô kèm toạ độ và vai trò; `benMauQuanSo(teamId, n)` dựng được đăng ký cho **n = 5 và n = 11**; test xanh — `chayHetTran` ở n=5 cho ra một trận có người trên sân và có dòng sự kiện, không phải sân trống.
+  - AC: — *(hạ tầng cho T202–T205)*
+  - Phụ thuộc: T206
+  - **Sửa sau khi /implement đụng code thật.** Bản đầu viết "fixture KHÔNG đọc bảng `FORMATIONS`" — không làm được: `doiHinhTrenSan` (`tran.ts:412`) lấy vị trí của từng ô **từ bảng sơ đồ**, còn bộ chiến thuật chỉ giữ `slotId → playerId`. Đăng ký trỏ tới một `formationId` không có trong bảng sẽ cho `doiHinhTrenSan` trả mảng **rỗng** — trận 5 người không có ai trên sân, mà không ném lỗi nào. Nên phải có đúng một sơ đồ 5 ô trước khi đo được R25; mười một sơ đồ còn lại vẫn ở lát 19.
 
 - [ ] **T202** — `batDau` kiểm theo quân số, dự bị 0 tới 7
   - File: sửa `src/engine/batDau.ts`, sửa `src/engine/batDau.test.ts`
@@ -64,15 +71,9 @@ dụng chạy được (hiến pháp P6), và là một commit.
 
 ## Phase 19 — Lát 19: Sơ đồ cho mọi quân số
 
-- [ ] **T206** — Mô hình sơ đồ nhận nhiều quân số
-  - File: sửa `src/domain/formations.ts`, sửa `src/domain/formations.test.ts`
-  - Xong khi: `Formation.soNguoi` suy từ `oVien.length`; `soDoTheoQuanSo(n)` lọc đúng; test bất biến chạy cho **mọi** sơ đồ trong bảng — đúng một ô thủ môn, tổng `cacDai` bằng `soNguoi - 1`, mọi `x`/`y` trong 0..100, `slotId` không trùng trong một sơ đồ, `id` không trùng trên toàn bảng.
-  - AC: AC-13.1
-  - Phụ thuộc: —
-
-- [ ] **T207** [P] — Sáu sơ đồ cho quân số 5, 6, 7
+- [ ] **T207** [P] — Năm sơ đồ còn lại cho quân số 5, 6, 7
   - File: sửa `src/domain/formations.ts`
-  - Xong khi: `2-2`, `1-2-1`, `2-3`, `3-2`, `2-3-1`, `3-2-1` có đủ toạ độ và vai trò từng ô; test bất biến của T206 xanh; mở trang chiến thuật nhìn thấy hình sơ đồ cân đối, không ô nào đè ô nào.
+  - Xong khi: `1-2-1`, `2-3`, `3-2`, `2-3-1`, `3-2-1` có đủ toạ độ và vai trò từng ô (`2-2` đã làm ở T201); test bất biến của T206 xanh; mở trang chiến thuật nhìn thấy hình sơ đồ cân đối, không ô nào đè ô nào.
   - AC: AC-13.2, AC-13.4, AC-13.5
   - Phụ thuộc: T206
 

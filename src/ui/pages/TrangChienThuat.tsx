@@ -10,7 +10,7 @@ import {
   type KeyboardCoordinateGetter,
 } from '@dnd-kit/core'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { FORMATIONS, type FormationId } from '../../domain/formations'
+import { FORMATIONS, soDoTheoQuanSo, type FormationId } from '../../domain/formations'
 import {
   tinhTrangDoiHinh,
   type LyDoChuaDuDieuKien,
@@ -389,7 +389,12 @@ export function TrangChienThuat({ teamId, onQuayLai }: Props) {
             }}
             className="rounded border border-slate-300 px-2 py-1 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300"
           >
-            {FORMATIONS.map((s) => (
+            {/*
+              Chỉ những sơ đồ CÙNG QUÂN SỐ với bộ đang mở (AC-13.1). Bảng sơ
+              đồ từ spec 002 chứa cả sơ đồ 5 tới 10 người, mà đổi sang một sơ
+              đồ khác số ô thì đội hình đang xếp không còn chỗ cho người.
+            */}
+            {soDoTheoQuanSo(soDo.oVien.length).map((s) => (
               <option key={s.id} value={s.id}>
                 {TEN_SO_DO[s.id]}
               </option>

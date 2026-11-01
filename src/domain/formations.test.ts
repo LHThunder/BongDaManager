@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import {
   FORMATIONS,
+  soDoTheoQuanSo,
+  soNguoiCuaSoDo,
   laySoDo,
   SO_DO_MAC_DINH,
   type FormationId,
@@ -20,10 +22,29 @@ const ID_MONG_DOI: FormationId[] = [
 
 const ID_VI_TRI = new Set(POSITIONS.map((p) => p.id))
 
-describe('bảng 8 sơ đồ (AC-5.2)', () => {
-  it('có đúng 8 sơ đồ, đúng những sơ đồ đã chốt', () => {
-    expect(FORMATIONS).toHaveLength(8)
-    expect(FORMATIONS.map((s) => s.id).sort()).toEqual([...ID_MONG_DOI].sort())
+describe('bảng sơ đồ (AC-5.2, AC-13.1)', () => {
+  it('đủ 8 sơ đồ 11 người đã chốt ở spec 001', () => {
+    const muoiMot = soDoTheoQuanSo(11).map((s) => s.id)
+    expect(muoiMot.sort()).toEqual([...ID_MONG_DOI].sort())
+  })
+
+  it('soNguoi của mỗi sơ đồ đúng bằng số ô', () => {
+    for (const soDo of FORMATIONS) {
+      expect(soNguoiCuaSoDo(soDo), soDo.id).toBe(soDo.oVien.length)
+    }
+  })
+
+  it('soDoTheoQuanSo chỉ trả về sơ đồ đúng quân số', () => {
+    for (let n = 5; n <= 11; n += 1) {
+      for (const soDo of soDoTheoQuanSo(n)) {
+        expect(soNguoiCuaSoDo(soDo), soDo.id).toBe(n)
+      }
+    }
+  })
+
+  it('id không trùng trên toàn bảng', () => {
+    const ids = FORMATIONS.map((s) => s.id)
+    expect(new Set(ids).size).toBe(ids.length)
   })
 
   it('tên hiển thị trùng với id', () => {
@@ -32,11 +53,10 @@ describe('bảng 8 sơ đồ (AC-5.2)', () => {
     }
   })
 
-  it('mỗi sơ đồ có đúng 11 ô và slotId không trùng', () => {
+  it('slotId không trùng trong một sơ đồ', () => {
     for (const soDo of FORMATIONS) {
-      expect(soDo.oVien, soDo.id).toHaveLength(11)
       const ids = soDo.oVien.map((o) => o.slotId)
-      expect(new Set(ids).size, soDo.id).toBe(11)
+      expect(new Set(ids).size, soDo.id).toBe(soDo.oVien.length)
     }
   })
 
@@ -80,7 +100,7 @@ describe('bảng 8 sơ đồ (AC-5.2)', () => {
   it('không có hai ô trùng hoàn toàn toạ độ', () => {
     for (const soDo of FORMATIONS) {
       const toaDo = soDo.oVien.map((o) => `${o.x},${o.y}`)
-      expect(new Set(toaDo).size, soDo.id).toBe(11)
+      expect(new Set(toaDo).size, soDo.id).toBe(soDo.oVien.length)
     }
   })
 })
@@ -97,10 +117,10 @@ describe('cacDai khớp tên sơ đồ (AC-5.2)', () => {
     }
   })
 
-  it('tổng cacDai bằng 10 — 11 người trừ thủ môn', () => {
+  it('tổng cacDai bằng số người trừ thủ môn', () => {
     for (const soDo of FORMATIONS) {
       const tong = soDo.cacDai.reduce((a, b) => a + b, 0)
-      expect(tong, soDo.id).toBe(10)
+      expect(tong, soDo.id).toBe(soNguoiCuaSoDo(soDo) - 1)
     }
   })
 

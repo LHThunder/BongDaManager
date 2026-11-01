@@ -42,9 +42,29 @@ export interface Formation {
   readonly id: FormationId
   /** Tên hiển thị trùng với id, vì tên sơ đồ bóng đá vốn là dãy số. */
   readonly ten: string
-  /** Các con số trong tên: '4-2-3-1' -> [4, 2, 3, 1]. Tổng luôn bằng 10. */
+  /**
+   * Các con số trong tên: '4-2-3-1' -> [4, 2, 3, 1].
+   *
+   * Tổng bằng `soNguoi - 1`, tức toàn bộ đội hình trừ thủ môn. Trước spec 002
+   * tổng luôn là 10 vì mọi sơ đồ đều 11 người.
+   */
   readonly cacDai: readonly number[]
   readonly oVien: readonly OViTriSoDo[]
+}
+
+/** Số người của một sơ đồ — đếm ô, không khai riêng để không lệch nhau. */
+export function soNguoiCuaSoDo(soDo: Formation): number {
+  return soDo.oVien.length
+}
+
+/**
+ * Những sơ đồ đá được với `n` người mỗi bên (AC-13.1, quyết định D53).
+ *
+ * Lọc theo số ô chứ không theo một trường khai tay: số ô là sự thật duy nhất,
+ * còn một trường khai thêm là một nguồn sự thật thứ hai có thể lệch.
+ */
+export function soDoTheoQuanSo(n: number): readonly Formation[] {
+  return FORMATIONS.filter((s) => soNguoiCuaSoDo(s) === n)
 }
 
 const TM: Omit<OViTriSoDo, 'slotId'> = { viTri: 'GK', dai: 0, x: 50, y: 6 }
