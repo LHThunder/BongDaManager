@@ -6,6 +6,10 @@
 | **Status** | Draft |
 | **Updated** | 2026-11-01 |
 
+> Sửa 2026-11-01 sau khi chẻ task: thêm **D64** cho chuyện một đội đá nhiều
+> quân số thì bộ chiến thuật lưu ở đâu — lỗ hổng mà `/specify`, `/clarify` và
+> bản đầu của plan đều không thấy.
+
 > Tài liệu này mô tả **HOW**. Không thêm yêu cầu mới — nếu cần thì quay lại sửa `spec.md`.
 
 Plan này đứng riêng trong thư mục của spec 002. `specs/001-football-team-sim/plan.md`
@@ -37,6 +41,8 @@ trừ chỗ plan này nói khác, và các quyết định mới đánh số ti�
 - **Vùng code bị chạm:**
   - `src/domain/formations.ts` — bộ sơ đồ mới cho quân số 5–10
   - `src/domain/lineup.ts` — xếp lại khi đổi sơ đồ, hiện giả định 11 ô
+  - `src/services/tacticRepo.ts` — lấy/sinh bộ chiến thuật theo quân số (D64)
+  - `src/ui/pages/TrangChienThuat.tsx` — ô chọn quân số
   - `src/engine/batDau.ts` — `SO_CAU_THU_CHINH`, `SO_CAU_THU_DU_BI`
   - `src/engine/tran.ts` — thời lượng hiệp, lượt thay, ngưỡng huỷ trận, phiên bản engine
   - `src/engine/suKien.ts` — mật độ dòng theo thời lượng
@@ -83,6 +89,7 @@ Người dùng chọn quân số n + thời lượng T  (ChonCapDau)
 | **D60** | Mật độ dòng khi thời lượng đổi | `SO_DONG_TOI_THIEU`/`SO_DONG_TOI_DA` thành hàm của thời lượng, nhân hệ số `T/90` rồi làm tròn | Giữ 60–100 cho mọi T | Spec chốt co theo tỉ lệ. Giữ nguyên thì trận 20 phút dày đặc sự kiện, đọc như bản highlight chứ không như một trận đấu |
 | **D61** | Trận đã lưu thiếu hai trường mới | Đọc ra **mặc định 11 người / 90 phút**, không sửa bản ghi cũ; `DB_VERSION` **không tăng** | Tăng `DB_VERSION` và ghi lại toàn bộ bản ghi cũ | Thêm trường vào bản ghi không đòi đổi store hay index, nên IndexedDB không cần lên phiên bản. Mỗi lần tăng `DB_VERSION` là một lần không lùi được bằng `git revert` — tránh được thì tránh |
 | **D62** | Tệp sao lưu | `SCHEMA_VERSION` lên **5**, bước nâng điền 11 người / 90 phút cho mọi trận trong tệp cũ | Không tăng, để trường khuyết | P7 đòi tệp cũ mở lại được **và** đúng nghĩa. Điền tường minh thì về sau không ai phải đoán trường khuyết nghĩa là gì |
+| **D64** | Bộ chiến thuật cho nhiều quân số | **Suy từ chính sơ đồ của bộ**: "bộ của quân số n" là bộ có `formationId` trỏ tới sơ đồ `soNguoi === n`. Không thêm trường nào; `activeTacticId` vẫn là bộ 11 người, giữ tương thích ngược | Thêm trường `quanSo` vào `Tactic`; thêm bảng "bộ đang dùng theo quân số" vào `Team` | Kho `tactics` đã có index `byTeam` và vốn chứa nhiều bộ mỗi đội, nên cấu trúc lưu trữ **không phải đổi gì**. Thêm trường là thêm một nguồn sự thật thứ hai có thể lệch với `formationId` |
 | **D63** | Bộ sơ đồ cần dựng | 12 sơ đồ mới cho quân số 5–10, cộng 8 sơ đồ 11 người đã có | Chỉ làm 5 và 7 rồi suy ra phần còn lại | Spec đòi ít nhất hai sơ đồ cho **mỗi** giá trị n từ 5 tới 11. Không có giá trị nào được bỏ trống, nếu không ô chọn quân số sẽ có những mức chọn vào là bế tắc |
 
 **Bộ sơ đồ dự kiến (D63)** — mỗi dòng là `tên (các dải ngoài sân)`:
@@ -151,6 +158,8 @@ mọi trận trong tệp cũ.
 | AC-13.3 | `xepLaiKhiDoiSoDo` hiện có, mở rộng để nhận số ô đích khác 11 |
 | AC-13.4 | Mỗi ô trong bảng sơ đồ khai `viTri` như 8 sơ đồ hiện có |
 | AC-13.5 | Trường `ten` của `Formation`, vốn đã là dãy số |
+| AC-13.6 | Ô chọn quân số ở `TrangChienThuat`; `tacticRepo` lấy bộ theo `(teamId, quanSo)` (D64) |
+| AC-13.7 | `tacticRepo.layHoacTao(teamId, n)` — sinh bộ mặc định với sơ đồ đầu tiên của quân số n |
 | AC-14.1 | `SO_CAU_THU_CHINH` → `cauHinh.quanSo`; dự bị kiểm theo khoảng 0..7 |
 | AC-14.1b | Bỏ điều kiện `duBi.length !== 7`, thay bằng `duBi.length > 7` |
 | AC-14.2 | `tinhTrangDoiHinh` của `domain/lineup.ts` — không đổi, đã kiểm thủ môn |
@@ -170,7 +179,7 @@ mọi trận trong tệp cũ.
 | AC-16.3 | `lyDoKhongDauLai` hiện có, so `phienBanEngine` — chỉ cần tăng lên 6 |
 | AC-16.4 | `nangV4LenV5` (D62) |
 
-**31/31 AC đều có chỗ hiện thực.**
+**32/32 AC đều có chỗ hiện thực.**
 
 ## 7. Chiến lược kiểm thử
 
