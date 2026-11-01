@@ -4,9 +4,9 @@
 |---|---|
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
-| **Phạm vi** | 32 AC (US-12 → US-16) |
-| **Tiến độ** | 0/23 |
-| **Sửa đổi** | 2026-11-01 — chẻ lần đầu từ plan, kèm D64 phát sinh lúc chẻ |
+| **Phạm vi** | 33 AC (US-12 → US-16) |
+| **Tiến độ** | 0/24 |
+| **Sửa đổi** | 2026-11-01 — chẻ lần đầu từ plan (D64 phát sinh lúc chẻ), rồi sửa theo cả 7 phát hiện của `/analyze` |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
 > Mỗi task phải: chạm file cụ thể + có cách kiểm chứng + đủ nhỏ để làm trong một lần.
@@ -82,15 +82,16 @@ dụng chạy được (hiến pháp P6), và là một commit.
   - AC: AC-13.2, AC-13.4, AC-13.5
   - Phụ thuộc: T206
 
-- [ ] **T209** — `xepLaiKhiDoiSoDo` nhận số ô đích
+- [ ] **T209** — Xếp lại đội hình khi số ô đổi
   - File: sửa `src/domain/lineup.ts`, sửa `src/domain/lineup.test.ts`
-  - Xong khi: số ô đích là tham số **bắt buộc**, không có giá trị mặc định — để trình biên dịch chỉ ra mọi chỗ gọi (R27); test xanh — đổi từ sơ đồ 11 ô sang 5 ô giữ lại 5 người khớp vị trí nhất và nêu đúng 6 người bị đẩy ra ngoài.
-  - AC: AC-13.3
+  - Xong khi: test xanh — đổi từ sơ đồ 11 ô sang 5 ô giữ lại 5 người khớp vị trí nhất và nêu đúng 6 người bị đẩy ra ngoài; chú thích sai "Đúng 11 ô" của `KetQuaXepLai` được sửa.
+  - AC: AC-13.3, AC-13.3b
   - Phụ thuộc: T206
+  - **`/analyze` soát ra: hàm này KHÔNG phải sửa logic.** `xepLaiKhiDoiSoDo` và `tinhTrangDoiHinh` đã lấy số ô từ `laySoDo(...).oVien`, chỉ chú thích là nói sai. Rủi ro R27 của plan đã bị gỡ.
 
 - [ ] **T210** — Bộ chiến thuật theo quân số
   - File: sửa `src/services/tacticRepo.ts`, sửa `src/services/tacticRepo.test.ts`
-  - Xong khi: `layHoacTao(teamId, quanSo)` trả bộ của đúng quân số đó, chưa có thì sinh bộ mặc định với sơ đồ đầu tiên của quân số; test xanh — gọi hai lần cùng `(đội, quân số)` ra cùng một bộ, còn bộ sân 5 và bộ sân 11 của cùng một đội là **hai bản ghi khác nhau và không đụng vào nhau**.
+  - Xong khi: `layHoacTao(teamId, quanSo)` trả bộ của đúng quân số đó; chưa có thì sinh bộ mặc định với sơ đồ đầu tiên của quân số **và khớp sẵn người từ đội hình đang có** (AC-13.3) thay vì để rỗng trơn; test xanh — gọi hai lần cùng `(đội, quân số)` ra cùng một bộ, bộ sân 5 và bộ sân 11 của cùng một đội là **hai bản ghi khác nhau và không đụng vào nhau**, và bộ sân 5 sinh lần đầu đã có sẵn 5 người hợp lý.
   - AC: AC-13.6, AC-13.7
   - Phụ thuộc: T206
   - Theo D64: quân số của một bộ **suy từ `formationId`**, không thêm trường nào, không đổi cấu trúc lưu trữ.
@@ -120,6 +121,7 @@ dụng chạy được (hiến pháp P6), và là một commit.
 - [ ] **T214** [P] — Khung sân 2D theo quân số
   - File: sửa `src/ui/components/San2D.tsx`
   - Xong khi: bảng tra `KHUNG_SAN[n]`; sân n=5 ngắn và hẹp hơn sân n=11; đếm đúng **2n** điểm, không điểm nào đè khít điểm khác; kiểm mắt trên một trận sân 5 thật.
+  - **`/analyze` soát ra:** phần đếm 2n điểm **không phải sửa code** — `San2D` đã vẽ theo `oVien` lọc bởi `trenSan`. AC-15.1 và AC-15.2 chỉ cần test chứng minh; việc thật chỉ là khung sân (AC-15.6).
   - AC: AC-15.1, AC-15.2, AC-15.6
   - Phụ thuộc: T200
 
@@ -143,7 +145,8 @@ dụng chạy được (hiến pháp P6), và là một commit.
   - File: sửa `src/storage/db.ts`, sửa `src/services/matchRepo.ts`, sửa `src/hooks/useMatch.ts`, sửa `src/services/matchRepo.test.ts`
   - Xong khi: `TomTatTran` mang `quanSo?` và `thoiLuong?`; bản ghi cũ thiếu hai trường thì **đọc ra 11 và 90**; `DB_VERSION` **giữ nguyên 3** (D61); test xanh — ghi một bản ghi thiếu hai trường rồi đọc ra đúng mặc định, và vòng tròn lưu/đọc một trận sân 5 không mất gì.
   - AC: AC-12.4, AC-12.6, AC-16.1, AC-16.2
-  - Phụ thuộc: T200
+  - Phụ thuộc: T200, **T219**
+  - **Phải đi sau T219** (soát ra ở `/analyze`): `TranDaLuuSchema` là `z.object` nên zod lặng lẽ cắt khoá lạ. Ghi hai trường mới khi schema còn ở v4 thì xuất tệp rồi nhập lại là **mất trắng hai trường mà không báo gì**.
 
 - [ ] **T218** [P] — Lịch sử hiển thị quân số và thời lượng
   - File: sửa `src/ui/pages/TrangLichSu.tsx`, sửa `src/ui/strings.ts`
@@ -155,7 +158,7 @@ dụng chạy được (hiến pháp P6), và là một commit.
   - File: sửa `src/services/backupSchema.ts`, sửa `src/storage/migrations.ts`, sửa `src/services/backupService.ts`, sửa `src/services/backupService.test.ts`
   - Xong khi: `SCHEMA_VERSION` lên 5 kèm `nangV4LenV5` điền 11 người / 90 phút cho mọi trận trong tệp cũ; test xanh — nhập một tệp v4 thật rồi đọc ra đúng hai giá trị mặc định, và vòng tròn xuất/nhập v5 không mất trường nào.
   - AC: AC-16.4
-  - Phụ thuộc: T217
+  - Phụ thuộc: T200
 
 - [ ] **T220** — Báo cáo sau trận ở quân số nhỏ
   - File: sửa `src/engine/baoCao.test.ts`
@@ -164,18 +167,25 @@ dụng chạy được (hiến pháp P6), và là một commit.
   - Phụ thuộc: T202
   - Plan nói `dungBaoCao` vốn dựng từ `theoCauThu` nên có thể **không phải sửa code** — task này tồn tại để chứng minh điều đó, chứ không phải để tin vào nó.
 
-- [ ] **T221** — `PHIEN_BAN_ENGINE` lên 6
+- [ ] **T223** — Đo xem dòng sự kiện ở n=11 có thật sự đổi không
+  - File: tạo `src/engine/tuongThichV5.test.ts`
+  - Xong khi: chạy một bộ mã trận cố định ở **n=11, 90 phút, không thẻ đỏ tới ngưỡng huỷ**, rồi đối chiếu **từng dòng** với kết quả đã chốt của engine v5 (lưu thành bảng hằng trong chính test). Test in ra số dòng khớp và số dòng lệch.
+  - AC: — *(cổng quyết định cho T221)*
+  - Phụ thuộc: T212, T213, T214
+  - **Phát sinh từ `/analyze`.** Bản đầu của plan mặc định là `Rng` đổi nên phải bump. Soát lại thì ở n=11 không chỗ nào đổi số lần hay thứ tự rút: lượt thay chỉ đổi trần can thiệp, huỷ trận cần từ 5 thẻ đỏ. Nếu giống hệt thì **không bump** — bump thừa là tự tay tước nút đấu lại của mọi trận sẽ lưu từ nay.
+
+- [ ] **T221** — `PHIEN_BAN_ENGINE`: bump hay không, theo số đo
   - File: sửa `src/engine/tran.ts`
-  - Xong khi: số phiên bản lên 6 kèm chú thích nói rõ vì sao; kiểm tay — mở một trận đã lưu từ trước thì nút đấu lại **bị chặn** kèm câu giải thích, còn xem lại thì vẫn nguyên vẹn.
+  - Xong khi: **T223 đỏ** → lên 6 kèm chú thích nói rõ dòng nào đã đổi; **T223 xanh** → giữ nguyên 5 và ghi vào plan rằng bump không cần thiết, kèm số đo. Dù theo nhánh nào cũng kiểm tay: mở một trận đã lưu, nút đấu lại hành xử đúng như lý do mà ứng dụng nói ra.
   - AC: AC-16.3
-  - Phụ thuộc: T205, T212, T213, T214
+  - Phụ thuộc: **T223**
   - Để **cuối cùng trong các thay đổi engine**: tăng sớm thì mỗi lần sửa engine tiếp theo lại phải tự hỏi có cần tăng nữa không.
 
 - [ ] **T222** — Kiểm tay từng quân số và đóng spec
   - File: `specs/002-flexible-squad-size/spec.md`
   - Xong khi: **mỗi quân số từ 5 tới 11 chạy trọn một trận trên ứng dụng đang chạy** (Definition of Done của spec đòi), cộng kiểm tay bốn việc chỉ kiểm tay mới thấy — xếp đội hình sân 5 rồi quay lại sân 11 thấy đội hình cũ còn nguyên; đá một trận 20 phút đếm số dòng tường thuật; ép một trận tới ngưỡng huỷ; mở một trận cũ trong lịch sử. Tick 32 AC và đổi `Status` thành **Done**.
   - AC: toàn bộ
-  - Phụ thuộc: T211, T215, T216, T218, T219, T220, T221
+  - Phụ thuộc: T211, T215, T216, T218, T219, T220, T221, T223
 
 ---
 
@@ -192,7 +202,8 @@ dụng chạy được (hiến pháp P6), và là một commit.
 | AC-12.6 | T217, T218 |
 | AC-13.1 | T206, T211 |
 | AC-13.2 | T207, T208 |
-| AC-13.3 | T209 |
+| AC-13.3 | T209, T210 |
+| AC-13.3b | T209 |
 | AC-13.4 | T207, T208 |
 | AC-13.5 | T207, T208 |
 | AC-13.6 | T210, T211 |
@@ -216,7 +227,7 @@ dụng chạy được (hiến pháp P6), và là một commit.
 | AC-16.3 | T221 |
 | AC-16.4 | T219 |
 
-**32/32 AC đều có task.** AC-15.4 in đậm vì nó là AC dạng so sánh duy nhất của
+**33/33 AC đều có task.** AC-15.4 in đậm vì nó là AC dạng so sánh duy nhất của
 spec này — theo P5 nó phải có một test riêng in ra số đo, và test ấy là T205.
 
 ## Ghi chú thực thi

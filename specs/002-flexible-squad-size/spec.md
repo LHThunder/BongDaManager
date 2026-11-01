@@ -69,7 +69,8 @@ Là một **HLV**, tôi muốn **những sơ đồ phù hợp với số ngườ
 **Acceptance criteria:**
 - [ ] AC-13.1 — KHI người dùng mở trang chiến thuật với quân số **n** THÌ hệ thống PHẢI chỉ đưa ra những sơ đồ **dựng sẵn** có **đúng n ô**, và mỗi sơ đồ PHẢI có đúng một ô thủ môn.
 - [ ] AC-13.2 — KHI quân số là **n** THÌ hệ thống PHẢI có **ít nhất hai** sơ đồ dựng sẵn khác nhau cho mỗi giá trị n từ 5 tới 11 — tức tối thiểu 14 sơ đồ — để việc chọn sơ đồ còn là một lựa chọn thật.
-- [ ] AC-13.3 — KHI người dùng đổi quân số sau khi đã xếp đội hình THÌ hệ thống PHẢI giữ lại những người xếp được, tự khớp vị trí sở trường nhiều nhất có thể, và nêu rõ ai bị đẩy ra ngoài — đúng cách đổi sơ đồ ở AC-5.5 đang làm.
+- [ ] AC-13.3 — KHI người dùng mở một quân số **lần đầu** THÌ bộ chiến thuật mặc định sinh ra PHẢI được khớp sẵn từ đội hình đang có — giữ lại những người xếp được, tự khớp vị trí sở trường nhiều nhất có thể, và nêu rõ ai bị đẩy ra ngoài.
+- [ ] AC-13.3b — KHI người dùng đổi **sơ đồ trong cùng một quân số** THÌ hành vi PHẢI giữ nguyên như AC-5.8 của spec 001. KHI người dùng đổi **quân số** THÌ hai bộ là độc lập, không bộ nào bị ghi đè.
 - [ ] AC-13.4 — KHI xem một sơ đồ của quân số nhỏ THÌ mỗi ô PHẢI vẫn có vị trí và vai trò như sơ đồ 11 người, không có ô nào "không rõ vị trí".
 - [ ] AC-13.5 — KHI hiển thị một sơ đồ THÌ sơ đồ đó PHẢI có **tên gọi** theo cách người chơi bóng quen đọc, ví dụ "2-2" hay "1-2-1" cho sân 5, "2-3-1" cho sân 7.
 - [ ] AC-13.6 — KHI người dùng mở trang chiến thuật THÌ hệ thống PHẢI cho chọn quân số, và mỗi quân số PHẢI có **bộ chiến thuật riêng** của đội đó — xếp đội hình sân 5 không được đụng tới đội hình sân 11 đã xếp.
@@ -207,3 +208,4 @@ Toàn bộ quyết định dưới đây được chốt ngày **2026-11-01** qu
 | 12 | Hình sân 2D có đổi tỉ lệ? | **Có.** Quân số nhỏ dùng khung sân ngắn và hẹp hơn; lưới vùng không đổi nên chi phí thấp | AC-15.6 |
 | 13 | Mấy sơ đồ mỗi quân số? | **Ít nhất hai**, tức tối thiểu 14 sơ đồ cho dải 5–11 | AC-13.2 |
 | 14 | Một đội đá nhiều quân số thì bộ chiến thuật lưu thế nào? *(phát hiện lúc chẻ task)* | **Mỗi quân số một bộ riêng.** Đá sân 5 không làm mất đội hình sân 11 đã xếp công phu; chưa có bộ cho quân số nào thì sinh mặc định | AC-13.6, AC-13.7, mục 5 |
+| 15 | Đổi quân số thì có mang người sang không? *(phát hiện lúc `/analyze`)* | **Chỉ mang sang lần ĐẦU mở một quân số**, tức lúc sinh bộ mặc định. Sau đó hai bộ độc lập, không bộ nào ghi đè bộ nào. Bản đầu của AC-13.3 nói ngược chính quyết định 14 | AC-13.3, AC-13.3b |

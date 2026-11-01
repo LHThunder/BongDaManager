@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` |
 | **Status** | Draft |
-| **Updated** | 2026-11-01 |
+| **Updated** | 2026-11-01 (sửa sau `/analyze`) |
 
 > Sửa 2026-11-01 sau khi chẻ task: thêm **D64** cho chuyện một đội đá nhiều
 > quân số thì bộ chiến thuật lưu ở đâu — lỗ hổng mà `/specify`, `/clarify` và
@@ -20,7 +20,7 @@ trừ chỗ plan này nói khác, và các quyết định mới đánh số ti�
 
 | Nguyên tắc | Tuân thủ? | Ghi chú |
 |---|---|---|
-| P1. Giả lập phải tái lập được | ⚠️ | Quân số thành tham số của trận nên **thứ tự và số lần tiêu thụ `Rng` đổi** — mã trận lưu từ trước không còn phát lại ra đúng trận cũ. Đây là ngoại lệ đã khai báo, bù bằng `PHIEN_BAN_ENGINE` lên 6 và giao diện chặn nút đấu lại kèm lý do (AC-16.3), đúng cách D35 đã xử hai lần trong spec 001. Tính tái lập **trong cùng một phiên bản** vẫn tuyệt đối. |
+| P1. Giả lập phải tái lập được | ⚠️ | **Cần ĐO trước khi kết luận** (sửa sau `/analyze`): ở n=11 không thay đổi nào trong D52/D56/D59/D60 đụng tới số lần hay thứ tự rút `Rng`; lượt thay chỉ đổi *trần* can thiệp của người dùng; huỷ trận chỉ kích hoạt từ 5 thẻ đỏ trở lên. Rất có thể dòng sự kiện ở n=11 **giống hệt** engine v5, và khi đó **không được** bump. Giả định cũ là thứ tự tiêu thụ `Rng` đổi — mã trận lưu từ trước không còn phát lại ra đúng trận cũ. Đây là ngoại lệ đã khai báo, bù bằng `PHIEN_BAN_ENGINE` lên 6 và giao diện chặn nút đấu lại kèm lý do (AC-16.3), đúng cách D35 đã xử hai lần trong spec 001. Tính tái lập **trong cùng một phiên bản** vẫn tuyệt đối. |
 | P2. Luật bóng đá tách khỏi giao diện | ✅ | Quân số, thời lượng, ngưỡng huỷ trận, số lượt thay đều là luật → nằm trong `engine/` và `domain/`. Giao diện chỉ chọn và hiển thị. Bộ sơ đồ mới nằm ở `domain/formations.ts` như 8 sơ đồ hiện có. |
 | P3. Dữ liệu người dùng là bất khả xâm phạm | ✅ | Không xoá, không ghi đè bản ghi nào. Đội và cầu thủ không đổi hình dạng. Trận đã lưu thiếu hai trường mới thì **đọc ra mặc định 11 người / 90 phút**, không sửa bản ghi cũ. |
 | P4. Chạy offline, dữ liệu không ra khỏi máy | ✅ | Không thêm phụ thuộc mạng nào. |
@@ -40,7 +40,7 @@ trừ chỗ plan này nói khác, và các quyết định mới đánh số ti�
 - **Phụ thuộc mới:** **Không.** Mọi thứ dựng được từ thư viện đang có.
 - **Vùng code bị chạm:**
   - `src/domain/formations.ts` — bộ sơ đồ mới cho quân số 5–10
-  - `src/domain/lineup.ts` — xếp lại khi đổi sơ đồ, hiện giả định 11 ô
+  - `src/domain/lineup.ts` — **chỉ sửa chú thích sai và thêm test**: `xepLaiKhiDoiSoDo` và `tinhTrangDoiHinh` đã lấy số ô từ `laySoDo(...).oVien` chứ không đóng cứng 11 (soát lại sau `/analyze`)
   - `src/services/tacticRepo.ts` — lấy/sinh bộ chiến thuật theo quân số (D64)
   - `src/ui/pages/TrangChienThuat.tsx` — ô chọn quân số
   - `src/engine/batDau.ts` — `SO_CAU_THU_CHINH`, `SO_CAU_THU_DU_BI`
@@ -86,9 +86,9 @@ Người dùng chọn quân số n + thời lượng T  (ChonCapDau)
 | **D57** | Dự bị và lượt thay | `SO_CAU_THU_DU_BI` thành **khoảng 0..7**; `SO_LAN_THAY_TOI_DA` bỏ hẳn, thay bằng `duBi.length` | Giữ hằng số 5 lượt; thêm một hằng số lượt thay theo quân số | Spec chốt lượt thay bằng đúng số dự bị. Bỏ hằng số đi thì không bao giờ còn cảnh báo "còn 5 lượt" khi ghế chỉ có 2 người |
 | **D58** | Ngưỡng huỷ trận | Điều kiện `trenSan.length < 0.6 * quanSo` | Bảng tra ngưỡng theo từng quân số; một con số cố định | Một bất đẳng thức duy nhất cho ra đúng luật thật ở cả hai đầu dải: n=11 → dừng khi còn dưới 6,6 tức ≤ 6 (luật FIFA: dưới 7); n=5 → dừng khi còn dưới 3 (luật futsal). Không cần bảng tra nào |
 | **D59** | Thời lượng vào engine thế nào | `PHUT_MOI_HIEP` từ hằng số thành trường `phutMoiHiep` của trạng thái trận; bù giờ giữ nguyên 1–5 phút mỗi hiệp | Giữ 90 phút rồi nhân tỉ lệ lúc hiển thị | Nhân lúc hiển thị là nói dối: dòng sự kiện vẫn sinh ra cho 90 phút, thể lực vẫn tụt theo 90 phút. Thời lượng phải thật từ trong engine |
-| **D60** | Mật độ dòng khi thời lượng đổi | `SO_DONG_TOI_THIEU`/`SO_DONG_TOI_DA` thành hàm của thời lượng, nhân hệ số `T/90` rồi làm tròn | Giữ 60–100 cho mọi T | Spec chốt co theo tỉ lệ. Giữ nguyên thì trận 20 phút dày đặc sự kiện, đọc như bản highlight chứ không như một trận đấu |
+| **D60** | Mật độ dòng khi thời lượng đổi | `SO_DONG_TOI_THIEU`/`SO_DONG_TOI_DA` thành hàm của thời lượng, nhân hệ số `T/90` rồi làm tròn. **Lưu ý**: chỉ `SO_DONG_TOI_DA` là luật trong `chonSuKien`; sàn chỉ là khẳng định của test, đừng đi tìm chỗ ép sàn trong code sản phẩm | Giữ 60–100 cho mọi T | Spec chốt co theo tỉ lệ. Giữ nguyên thì trận 20 phút dày đặc sự kiện, đọc như bản highlight chứ không như một trận đấu |
 | **D61** | Trận đã lưu thiếu hai trường mới | Đọc ra **mặc định 11 người / 90 phút**, không sửa bản ghi cũ; `DB_VERSION` **không tăng** | Tăng `DB_VERSION` và ghi lại toàn bộ bản ghi cũ | Thêm trường vào bản ghi không đòi đổi store hay index, nên IndexedDB không cần lên phiên bản. Mỗi lần tăng `DB_VERSION` là một lần không lùi được bằng `git revert` — tránh được thì tránh |
-| **D62** | Tệp sao lưu | `SCHEMA_VERSION` lên **5**, bước nâng điền 11 người / 90 phút cho mọi trận trong tệp cũ | Không tăng, để trường khuyết | P7 đòi tệp cũ mở lại được **và** đúng nghĩa. Điền tường minh thì về sau không ai phải đoán trường khuyết nghĩa là gì |
+| **D62** | Tệp sao lưu | `SCHEMA_VERSION` lên **5** **TRƯỚC hoặc cùng commit** với lúc ghi hai trường mới: `TranDaLuuSchema` là `z.object` nên zod **lặng lẽ cắt** khoá lạ, xuất rồi nhập giữa chừng là mất trắng hai trường mà không báo gì (soát ra ở `/analyze`). Bước nâng điền 11 người / 90 phút cho mọi trận trong tệp cũ | Không tăng, để trường khuyết | P7 đòi tệp cũ mở lại được **và** đúng nghĩa. Điền tường minh thì về sau không ai phải đoán trường khuyết nghĩa là gì |
 | **D64** | Bộ chiến thuật cho nhiều quân số | **Suy từ chính sơ đồ của bộ**: "bộ của quân số n" là bộ có `formationId` trỏ tới sơ đồ `soNguoi === n`. Không thêm trường nào; `activeTacticId` vẫn là bộ 11 người, giữ tương thích ngược | Thêm trường `quanSo` vào `Tactic`; thêm bảng "bộ đang dùng theo quân số" vào `Team` | Kho `tactics` đã có index `byTeam` và vốn chứa nhiều bộ mỗi đội, nên cấu trúc lưu trữ **không phải đổi gì**. Thêm trường là thêm một nguồn sự thật thứ hai có thể lệch với `formationId` |
 | **D63** | Bộ sơ đồ cần dựng | 12 sơ đồ mới cho quân số 5–10, cộng 8 sơ đồ 11 người đã có | Chỉ làm 5 và 7 rồi suy ra phần còn lại | Spec đòi ít nhất hai sơ đồ cho **mỗi** giá trị n từ 5 tới 11. Không có giá trị nào được bỏ trống, nếu không ô chọn quân số sẽ có những mức chọn vào là bế tắc |
 
@@ -155,7 +155,8 @@ mọi trận trong tệp cũ.
 | AC-12.6 | `TomTatTran.thoiLuong` + cột mới ở `TrangLichSu` |
 | AC-13.1 | `soDoTheoQuanSo(n)` lọc theo `Formation.soNguoi`; `TM` của mỗi sơ đồ đúng một ô |
 | AC-13.2 | D63 — bảng 12 sơ đồ mới, cộng test đếm ≥ 2 sơ đồ cho mỗi n |
-| AC-13.3 | `xepLaiKhiDoiSoDo` hiện có, mở rộng để nhận số ô đích khác 11 |
+| AC-13.3 | `tacticRepo.layHoacTao` khớp sẵn người khi sinh bộ mặc định cho quân số mới |
+| AC-13.3b | `xepLaiKhiDoiSoDo` hiện có — đã nhận số ô từ sơ đồ, chỉ cần test |
 | AC-13.4 | Mỗi ô trong bảng sơ đồ khai `viTri` như 8 sơ đồ hiện có |
 | AC-13.5 | Trường `ten` của `Formation`, vốn đã là dãy số |
 | AC-13.6 | Ô chọn quân số ở `TrangChienThuat`; `tacticRepo` lấy bộ theo `(teamId, quanSo)` (D64) |
@@ -168,7 +169,7 @@ mọi trận trong tệp cũ.
 | AC-14.4 | Luật thẻ đỏ hiện có, không đổi |
 | AC-14.5 | `nguongHuyTran` + kiểm trong `buocTiep` sau khi áp thẻ đỏ (D58) |
 | AC-14.6 | Loại sự kiện mới `huy-tran` + cờ trên `TrangThaiTran`, `matchRepo.luu` vẫn lưu như trận thường |
-| AC-15.1 | `San2D` vẽ theo `ben.trenSan` thay vì giả định 11 |
+| AC-15.1 | `San2D` **đã** vẽ theo `oVien` lọc bởi `trenSan` nên 2n điểm tự ra đúng — chỉ cần test chứng minh (soát lại sau `/analyze`) |
 | AC-15.2 | `lechTrongVung` hiện có đã giãn người cùng vùng; test đếm số điểm phân biệt được |
 | AC-15.3 | `dungBaoCao` dựng từ `theoCauThu`, vốn đã theo người thật |
 | AC-15.4 | **Test so sánh riêng** `sosanh.quanSo.test.ts` (P5) |
@@ -179,7 +180,7 @@ mọi trận trong tệp cũ.
 | AC-16.3 | `lyDoKhongDauLai` hiện có, so `phienBanEngine` — chỉ cần tăng lên 6 |
 | AC-16.4 | `nangV4LenV5` (D62) |
 
-**32/32 AC đều có chỗ hiện thực.**
+**33/33 AC đều có chỗ hiện thực.**
 
 ## 7. Chiến lược kiểm thử
 
@@ -200,7 +201,6 @@ mọi trận trong tệp cũ.
 | **R24** | Mã trận cũ hết phát lại đúng | Thấp | Đã chấp nhận; bù bằng `PHIEN_BAN_ENGINE` 6 và câu giải thích. Lịch sử vẫn xem lại được |
 | **R25** | **AC-15.4 có thể không tự nhiên đúng chiều** — engine chưa chắc cho ra nhiều cơ hội hơn khi ít người, vì lưới vùng không đổi và sức mạnh đội tính trung bình theo đầu người | **Cao** | Nếu đo ra sai chiều: thêm một hệ số "khoảng trống theo quân số" vào `chuoiBong.ts`, giảm xác suất mất bóng khi n nhỏ. Phải đo **trước** khi viết giao diện, ở ngay lát 1 |
 | **R26** | Trận 20 phút có thể không sinh đủ dòng cho sàn đã co | Trung bình | `SO_CHUOI_MOI_PHUT` nâng theo quân số nhỏ, hoặc hạ sàn cho các mức thời lượng ngắn — quyết sau khi đo |
-| **R27** | `xepLaiKhiDoiSoDo` đang giả định 11 ô ở nhiều chỗ, sửa sót một chỗ thì mất người lúc đổi sơ đồ | Trung bình | Đổi chữ ký hàm để số ô là **tham số bắt buộc**, không có giá trị mặc định — trình biên dịch sẽ chỉ ra mọi chỗ gọi |
 
 ## 9. Thứ tự triển khai (lát cắt dọc)
 
