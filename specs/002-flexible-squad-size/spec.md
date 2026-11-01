@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **ID** | `002-flexible-squad-size` |
-| **Status** | Draft |
+| **Status** | Clarified (2026-11-01) |
 | **Created** | 2026-11-01 |
 | **Branch** | `002-flexible-squad-size` |
 
@@ -32,6 +32,8 @@ cáo, lịch sử — hoạt động đúng với quân số đã chọn.
 - Kích thước sân thật khác nhau theo định dạng (sân futsal 40×20m, sân 7
   ~50×30m). Xem câu hỏi mở về cách thể hiện sân.
 - Đá sân 3 người, 4 người, hay nhiều hơn 11.
+- **Người dùng tự đặt vị trí từng ô trên sân.** Sơ đồ vẫn là chọn từ bộ dựng sẵn,
+  đúng như spec 001 đã chốt; quân số nhỏ không mở lại cánh cửa đó.
 - Giải đấu, mùa giải, chuyển nhượng — vẫn nằm ngoài phạm vi như spec 001.
 - Đổi số người **giữa trận** (bắt đầu 7 rồi chuyển sang 5).
 
@@ -52,30 +54,38 @@ Là một **người chơi sân 5 hoặc sân 7**, tôi muốn **chọn số ng�
 khi bắt đầu trận**, để **xem đúng thứ bóng đá mà tôi chơi ngoài đời**.
 
 **Acceptance criteria:**
-- [ ] AC-12.1 — KHI người dùng chuẩn bị một trận THÌ hệ thống PHẢI cho chọn số người mỗi bên trong khoảng **5 tới 11**, và nêu rõ con số đang chọn.
+- [ ] AC-12.1 — KHI người dùng chuẩn bị một trận THÌ hệ thống PHẢI cho chọn số người mỗi bên trong khoảng **5 tới 11**, áp cho **cả hai đội**, và nêu rõ con số đang chọn.
+- [ ] AC-12.1b — KHI một đội được dùng ở nhiều trận THÌ đội đó PHẢI đá được ở **mọi** quân số, vì quân số thuộc về **trận** chứ không gắn cứng vào đội.
 - [ ] AC-12.2 — KHI người dùng chưa chọn gì THÌ hệ thống PHẢI mặc định **11 người**, để người đã dùng ứng dụng từ trước không thấy gì thay đổi.
 - [ ] AC-12.3 — KHI một đội không đủ cầu thủ cho quân số đã chọn THÌ hệ thống PHẢI chặn bắt đầu trận và nêu rõ còn thiếu bao nhiêu người cho đội nào.
 - [ ] AC-12.4 — KHI trận đấu kết thúc và được lưu vào lịch sử THÌ bản ghi PHẢI mang theo quân số đã đá, VÀ lịch sử PHẢI hiển thị con số đó.
+- [ ] AC-12.5 — KHI người dùng chuẩn bị một trận THÌ hệ thống PHẢI cho chọn **thời lượng trận** trong các mức dựng sẵn **20, 30, 45, 60 và 90 phút**, độc lập với quân số, mặc định **90 phút** để người đã dùng ứng dụng từ trước không thấy gì thay đổi.
+- [ ] AC-12.6 — KHI trận đấu kết thúc THÌ bản ghi lịch sử PHẢI mang theo thời lượng đã đá, VÀ lịch sử PHẢI hiển thị con số đó bên cạnh quân số.
 
 ### US-13: Sơ đồ đúng với quân số
 Là một **HLV**, tôi muốn **những sơ đồ phù hợp với số người mình đá**, để
 **xếp người theo một hình hài có nghĩa chứ không phải 4-4-2 bị cắt bớt**.
 
 **Acceptance criteria:**
-- [ ] AC-13.1 — KHI người dùng mở trang chiến thuật với quân số **n** THÌ hệ thống PHẢI chỉ đưa ra những sơ đồ có **đúng n ô**, và mỗi sơ đồ PHẢI có đúng một ô thủ môn.
-- [ ] AC-13.2 — KHI quân số là **n** THÌ hệ thống PHẢI có **ít nhất hai** sơ đồ khác nhau cho mỗi giá trị n, để việc chọn sơ đồ còn là một lựa chọn.
+- [ ] AC-13.1 — KHI người dùng mở trang chiến thuật với quân số **n** THÌ hệ thống PHẢI chỉ đưa ra những sơ đồ **dựng sẵn** có **đúng n ô**, và mỗi sơ đồ PHẢI có đúng một ô thủ môn.
+- [ ] AC-13.2 — KHI quân số là **n** THÌ hệ thống PHẢI có **ít nhất hai** sơ đồ dựng sẵn khác nhau cho mỗi giá trị n từ 5 tới 11 — tức tối thiểu 14 sơ đồ — để việc chọn sơ đồ còn là một lựa chọn thật.
 - [ ] AC-13.3 — KHI người dùng đổi quân số sau khi đã xếp đội hình THÌ hệ thống PHẢI giữ lại những người xếp được, tự khớp vị trí sở trường nhiều nhất có thể, và nêu rõ ai bị đẩy ra ngoài — đúng cách đổi sơ đồ ở AC-5.5 đang làm.
 - [ ] AC-13.4 — KHI xem một sơ đồ của quân số nhỏ THÌ mỗi ô PHẢI vẫn có vị trí và vai trò như sơ đồ 11 người, không có ô nào "không rõ vị trí".
+- [ ] AC-13.5 — KHI hiển thị một sơ đồ THÌ sơ đồ đó PHẢI có **tên gọi** theo cách người chơi bóng quen đọc, ví dụ "2-2" hay "1-2-1" cho sân 5, "2-3-1" cho sân 7.
 
 ### US-14: Đăng ký và thay người theo quân số
 Là một **HLV**, tôi muốn **luật đăng ký và thay người tính theo quân số thật**,
 để **đá sân 5 không bị đòi 18 người như sân 11**.
 
 **Acceptance criteria:**
-- [ ] AC-14.1 — KHI bắt đầu một trận quân số **n** THÌ hệ thống PHẢI yêu cầu đúng **n** cầu thủ chính, và số dự bị theo quy tắc nêu ở câu hỏi mở.
+- [ ] AC-14.1 — KHI bắt đầu một trận quân số **n** THÌ hệ thống PHẢI yêu cầu đúng **n** cầu thủ chính, và cho đăng ký **từ 0 tới 7** cầu thủ dự bị — bao nhiêu cũng được, kể cả không có ai.
+- [ ] AC-14.1b — KHI một đội chỉ có đúng **n** cầu thủ đủ điều kiện THÌ hệ thống PHẢI vẫn cho bắt đầu trận, với băng ghế dự bị trống.
 - [ ] AC-14.2 — KHI một đội không có cầu thủ nào ở vị trí thủ môn THÌ hệ thống PHẢI chặn bắt đầu trận ở **mọi** quân số, nêu rõ thiếu thủ môn.
-- [ ] AC-14.3 — KHI người dùng thay người trong một trận quân số **n** THÌ số lượt thay PHẢI theo quy tắc nêu ở câu hỏi mở, và hệ thống PHẢI nêu rõ còn bao nhiêu lượt.
+- [ ] AC-14.3 — KHI người dùng thay người THÌ số lượt thay PHẢI **bằng đúng số dự bị đã đăng ký** — thay hết người trên ghế là hết lượt — và hệ thống PHẢI nêu rõ còn bao nhiêu lượt.
+- [ ] AC-14.3b — KHI một đội đăng ký **0 dự bị** THÌ chức năng thay người PHẢI bị vô hiệu hoá kèm lời giải thích, chứ không im lặng từ chối.
 - [ ] AC-14.4 — KHI một cầu thủ nhận thẻ đỏ THÌ đội đó PHẢI đá thiếu người tới hết trận ở mọi quân số, không được thay người bù.
+- [ ] AC-14.5 — KHI một đội còn **dưới 60% quân số** trên sân THÌ trọng tài PHẢI dừng trận ngay tại phút đó — sân 11 dừng khi còn dưới 7 người, sân 5 dừng khi còn dưới 3.
+- [ ] AC-14.6 — KHI một trận bị dừng vì thiếu người THÌ trận đó PHẢI vẫn vào lịch sử, mang tỉ số tại lúc dừng và một ghi chú nói rõ trận bị huỷ ở phút nào.
 
 ### US-15: Trận đấu và sân 2D đúng với quân số
 Là một **người xem**, tôi muốn **trận đấu và hình sân phản ánh đúng số người
@@ -85,7 +95,9 @@ trên sân**, để **những gì tôi đọc và nhìn thấy khớp với nhau
 - [ ] AC-15.1 — KHI trận đấu quân số **n** đang diễn ra THÌ sân 2D PHẢI hiển thị đúng **2n** điểm tròn, đặt theo sơ đồ của mỗi đội.
 - [ ] AC-15.2 — KHI hai đội đá quân số nhỏ THÌ không điểm nào được **chồng khít** lên điểm khác tới mức người xem đếm thiếu người.
 - [ ] AC-15.3 — KHI xem báo cáo sau trận của một trận quân số **n** THÌ bảng điểm cầu thủ PHẢI có đúng những người đã ra sân của trận đó, không thừa không thiếu.
-- [ ] AC-15.4 — KHI cùng một cặp đội đá ở hai quân số khác nhau THÌ ít nhất một chỉ tiêu của báo cáo sau trận PHẢI khác biệt **theo một chiều đã chốt trước** (xem câu hỏi mở), đo trên nhiều trận chứ không phải một trận — quân số phải thay đổi thế trận, không phải chỉ đổi số lượng tên người.
+- [ ] AC-15.5 — KHI trận có thời lượng **T** phút THÌ số dòng tường thuật PHẢI co theo tỉ lệ **T/90** so với khoảng 60–100 dòng của trận 90 phút — trận 45 phút cho 30–50 dòng — để nhịp đọc giữ nguyên ở mọi thời lượng.
+- [ ] AC-15.6 — KHI quân số nhỏ hơn 11 THÌ hình sân 2D PHẢI dùng khung sân **ngắn và hẹp hơn** khung của quân số lớn hơn, chứ không vẽ cùng một kích thước cho mọi định dạng.
+- [ ] AC-15.4 — KHI cùng một cặp đội đá ở quân số **thấp hơn** THÌ **số cú sút và số cơ hội rõ ràng trung bình mỗi trận PHẢI cao hơn** so với quân số cao hơn, đo trên nhiều trận chứ không phải một trận — ít người thì khoảng trống nhiều, và quân số phải thay đổi thế trận chứ không chỉ đổi số lượng tên người.
 
 ### US-16: Dữ liệu cũ không bị hỏng
 Là một **người đã dùng ứng dụng từ trước**, tôi muốn **đội, cầu thủ và lịch sử
@@ -114,12 +126,12 @@ phải nhập lại thứ đã bỏ công nhập**.
 |---|---|
 | Đội có ít hơn quân số đã chọn | Chặn bắt đầu trận, nêu rõ thiếu bao nhiêu người cho đội nào |
 | Đội đủ người nhưng không có thủ môn | Chặn bắt đầu trận, nêu rõ thiếu thủ môn |
-| Đội chỉ đủ người chính, không đủ dự bị | Xem câu hỏi mở về số dự bị tối thiểu |
+| Đội chỉ đủ người chính, không có dự bị | Cho bắt đầu trận bình thường; chức năng thay người bị vô hiệu hoá kèm lời giải thích |
 | Đổi quân số khi đã xếp xong đội hình | Giữ lại người xếp được, nêu rõ ai bị đẩy ra ngoài |
-| Thẻ đỏ làm một bên còn rất ít người | Xem câu hỏi mở về ngưỡng huỷ trận |
+| Thẻ đỏ làm một bên còn dưới 60% quân số | Dừng trận ngay tại phút đó; trận vẫn vào lịch sử với tỉ số lúc dừng và ghi chú bị huỷ |
 | Mở một trận cũ đá 11 người trong lịch sử | Xem lại được đầy đủ; nếu không đấu lại đúng được thì nói rõ lý do |
 | Nhập tệp sao lưu cũ chưa có khái niệm quân số | Nhận được, mọi trận cũ hiểu là 11 người |
-| Hai đội chọn quân số khác nhau | Xem câu hỏi mở |
+| Hai đội lệch quân số | Không xảy ra: quân số là của trận và áp cho cả hai bên. Không có đường nào trong giao diện dựng được trận lệch quân |
 | Người dùng gõ một số ngoài khoảng 5–11 | Từ chối giá trị, giữ nguyên giá trị hợp lệ cũ, nêu rõ khoảng cho phép |
 | Không có kết nối mạng | Mọi chức năng hoạt động bình thường, như spec 001 |
 
@@ -152,17 +164,9 @@ phải nhập lại thứ đã bỏ công nhập**.
 > Dùng đúng cú pháp `[NEEDS CLARIFICATION: câu hỏi]` để `/clarify` quét được.
 > Chỉ khi mục này rỗng mới được chạy `/plan`.
 
-- [NEEDS CLARIFICATION: Quân số là thuộc tính của TRẬN hay của ĐỘI? Tức một đội 18 người có đá được cả trận 5 người lẫn trận 11 người tuỳ lúc bắt đầu, hay mỗi đội khi tạo ra đã gắn với một định dạng cố định?]
-- [NEEDS CLARIFICATION: Hai đội có buộc phải cùng quân số không? Nếu cho phép lệch (7 đấu 5) thì đó là một tính năng hay là một lỗi cần chặn?]
-- [NEEDS CLARIFICATION: Số cầu thủ dự bị theo quân số tính thế nào? Hiện tại là 11 chính + 7 dự bị. Giữ nguyên 7 cho mọi quân số, hay theo tỉ lệ, hay một con số cố định nhỏ hơn cho sân 5 và sân 7?]
-- [NEEDS CLARIFICATION: Số lượt thay người theo quân số tính thế nào? Hiện tại là 5 lượt. Sân 5 ngoài đời thường cho thay không giới hạn — có theo luật đó không, hay giữ một con số cố định cho mọi định dạng?]
-- [NEEDS CLARIFICATION: Thẻ đỏ làm một bên còn quá ít người thì sao? Luật bóng đá thật huỷ trận khi một đội còn dưới 7 người ở sân 11. Với sân 5 thì ngưỡng là bao nhiêu, và trận bị huỷ được ghi vào lịch sử thế nào?]
-- [NEEDS CLARIFICATION: Người dùng chọn sơ đồ từ một danh sách có sẵn cho mỗi quân số, hay được tự đặt vị trí từng ô? Spec 001 đã loại "tự tạo sơ đồ riêng" khỏi phạm vi — điều đó còn đúng với quân số nhỏ không?]
-- [NEEDS CLARIFICATION: Thời lượng trận có đổi theo quân số không? Hiện tại là 90 phút + bù giờ. Futsal ngoài đời đá 2×20 phút. Giữ 90 phút cho mọi định dạng, hay mỗi định dạng một thời lượng?]
-- [NEEDS CLARIFICATION: Hình sân 2D có đổi tỉ lệ theo quân số không? Sân futsal ngắn và hẹp hơn hẳn sân 11. Vẽ cùng một hình sân cho mọi định dạng, hay đổi tỉ lệ cho đúng cảm giác?]
-- [NEEDS CLARIFICATION: Những trận đã lưu trong lịch sử trước khi có tính năng này — chỉ cần XEM LẠI được, hay phải ĐẤU LẠI đúng được? Nếu bắt buộc đấu lại đúng thì phạm vi sẽ lớn hơn nhiều.]
-- [NEEDS CLARIFICATION: Mỗi quân số cần ít nhất mấy sơ đồ? AC-13.2 đang đặt tối thiểu là hai, con số đó có đủ không?]
-- [NEEDS CLARIFICATION: Đá ít người hơn thì thế trận phải đổi theo CHIỀU nào, để AC-15.4 có thứ đo được? Ví dụ: sân 5 có nhiều cú sút mỗi trận hơn, hay tỉ lệ kiểm soát bóng lệch mạnh hơn, hay nhiều bàn hơn? Cần chốt một chiều cụ thể trước khi code, nếu không thì không có cách nào nói engine đã làm đúng.]
+Không còn câu hỏi mở. Toàn bộ 11 điểm ban đầu cộng 2 điểm phát sinh trong lúc
+làm rõ đã được chốt ngày **2026-11-01** — xem mục 10.
+
 
 ## 9. Giả định
 
@@ -172,7 +176,30 @@ phải nhập lại thứ đã bỏ công nhập**.
   ra đúng trận cũ** sau khi số người trên sân trở thành một tham số — ứng dụng
   phải nói rõ điều đó thay vì im lặng cho ra một trận khác (AC-16.3). Đây là
   thứ đã xảy ra hai lần trong spec 001 và lần nào cũng được xử lý như vậy.
+- Trận đã lưu từ trước **chỉ cần xem lại được**, không cần đấu lại đúng. Giữ
+  được khả năng phát lại y nguyên sẽ đòi chạy song song engine cũ, và đó là
+  một phạm vi khác hẳn — người dùng đã chốt không làm.
 - Khái niệm vị trí, vai trò và chỉ thị của spec 001 dùng lại được cho quân số
   nhỏ; không cần nghĩ ra bộ vị trí riêng cho sân 5.
 - Người dùng tự nhập cầu thủ như cũ. Việc sinh đội ngẫu nhiên để có đủ người
   nhanh thuộc spec 003, nên spec này không dựa vào nó.
+
+## 10. Nhật ký làm rõ
+
+Toàn bộ quyết định dưới đây được chốt ngày **2026-11-01** qua phiên `/clarify`.
+
+| # | Câu hỏi | Quyết định | Ghi vào |
+|---|---|---|---|
+| 1 | Quân số thuộc về trận hay đội? | **Của trận** — chọn lúc bắt đầu, một đội đá được mọi định dạng, không phải nhập lại dữ liệu | AC-12.1, AC-12.1b |
+| 2 | Hai đội có buộc cùng quân số? | **Buộc cùng.** Lệch quân làm mọi phép so sánh chiến thuật của spec 001 hết đo được | AC-12.1, mục 5 |
+| 3 | Sơ đồ lấy từ đâu? | **Bộ dựng sẵn**, có tên gọi quen thuộc. Tự đặt vị trí từng ô vẫn nằm ngoài phạm vi, đúng như spec 001 | AC-13.1, AC-13.5, Non-goals |
+| 4 | Đá ít người thì thế trận đổi chiều nào? | **Số cú sút và cơ hội rõ ràng mỗi trận tăng** khi quân số giảm. Đây là chiều để AC-15.4 đo được | AC-15.4 |
+| 5 | Số dự bị theo quân số? | **Tuỳ ý 0 tới 7.** Sửa luật 11+7 của spec 001 thành 11+0..7, để nhóm 8 người đá được sân 7 | AC-14.1, AC-14.1b |
+| 6 | Số lượt thay người? | **Bằng đúng số dự bị đã đăng ký.** Đăng ký 0 dự bị thì chức năng thay người bị vô hiệu hoá kèm giải thích | AC-14.3, AC-14.3b |
+| 7 | Thời lượng trận? | **Người dùng tự chọn** trong các mức 20, 30, 45, 60, 90 phút; mặc định 90 | AC-12.5, AC-12.6 |
+| 8 | Thẻ đỏ làm còn quá ít người? | **Dừng trận khi một bên còn dưới 60% quân số** — sân 11 dưới 7, sân 5 dưới 3, khớp luật thật cả hai định dạng. Trận dừng vẫn vào lịch sử kèm ghi chú | AC-14.5, AC-14.6, mục 5 |
+| 9 | Chọn thời lượng thế nào? *(phát sinh từ câu 7)* | **Vài mức dựng sẵn**, không gõ số tự do — mỗi mức chốt sẵn được mật độ dòng nên test phủ hết được | AC-12.5 |
+| 10 | Mật độ dòng khi thời lượng đổi? *(phát sinh từ câu 7)* | **Co theo tỉ lệ T/90.** Trận 45 phút cho 30–50 dòng; nhịp đọc giữ nguyên ở mọi thời lượng | AC-15.5 |
+| 11 | Trận cũ trong lịch sử? | **Chỉ cần xem lại được.** Đấu lại đúng sẽ đòi chạy song song engine cũ — một phạm vi khác hẳn | AC-16.3, mục 9 |
+| 12 | Hình sân 2D có đổi tỉ lệ? | **Có.** Quân số nhỏ dùng khung sân ngắn và hẹp hơn; lưới vùng không đổi nên chi phí thấp | AC-15.6 |
+| 13 | Mấy sơ đồ mỗi quân số? | **Ít nhất hai**, tức tối thiểu 14 sơ đồ cho dải 5–11 | AC-13.2 |
