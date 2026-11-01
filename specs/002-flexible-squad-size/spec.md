@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **ID** | `002-flexible-squad-size` |
-| **Status** | Clarified (2026-11-01) |
+| **Status** | Planned (2026-11-01) |
 | **Created** | 2026-11-01 |
 | **Branch** | `002-flexible-squad-size` |
 
@@ -95,9 +95,9 @@ trên sân**, để **những gì tôi đọc và nhìn thấy khớp với nhau
 - [ ] AC-15.1 — KHI trận đấu quân số **n** đang diễn ra THÌ sân 2D PHẢI hiển thị đúng **2n** điểm tròn, đặt theo sơ đồ của mỗi đội.
 - [ ] AC-15.2 — KHI hai đội đá quân số nhỏ THÌ không điểm nào được **chồng khít** lên điểm khác tới mức người xem đếm thiếu người.
 - [ ] AC-15.3 — KHI xem báo cáo sau trận của một trận quân số **n** THÌ bảng điểm cầu thủ PHẢI có đúng những người đã ra sân của trận đó, không thừa không thiếu.
+- [ ] AC-15.4 — KHI cùng một cặp đội đá ở quân số **thấp hơn** THÌ **số cú sút và số cơ hội rõ ràng trung bình mỗi trận PHẢI cao hơn** so với quân số cao hơn, đo trên nhiều trận chứ không phải một trận — ít người thì khoảng trống nhiều, và quân số phải thay đổi thế trận chứ không chỉ đổi số lượng tên người.
 - [ ] AC-15.5 — KHI trận có thời lượng **T** phút THÌ số dòng tường thuật PHẢI co theo tỉ lệ **T/90** so với khoảng 60–100 dòng của trận 90 phút — trận 45 phút cho 30–50 dòng — để nhịp đọc giữ nguyên ở mọi thời lượng.
 - [ ] AC-15.6 — KHI quân số nhỏ hơn 11 THÌ hình sân 2D PHẢI dùng khung sân **ngắn và hẹp hơn** khung của quân số lớn hơn, chứ không vẽ cùng một kích thước cho mọi định dạng.
-- [ ] AC-15.4 — KHI cùng một cặp đội đá ở quân số **thấp hơn** THÌ **số cú sút và số cơ hội rõ ràng trung bình mỗi trận PHẢI cao hơn** so với quân số cao hơn, đo trên nhiều trận chứ không phải một trận — ít người thì khoảng trống nhiều, và quân số phải thay đổi thế trận chứ không chỉ đổi số lượng tên người.
 
 ### US-16: Dữ liệu cũ không bị hỏng
 Là một **người đã dùng ứng dụng từ trước**, tôi muốn **đội, cầu thủ và lịch sử
