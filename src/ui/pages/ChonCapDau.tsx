@@ -3,7 +3,7 @@ import { xepLaiKhiDoiSoDo } from '../../domain/lineup'
 import type { Player, Tactic } from '../../domain/types'
 import {
   SO_CAU_THU_CHINH,
-  SO_CAU_THU_DU_BI,
+  SO_CAU_THU_DU_BI_TOI_DA,
   type LyDoKhongBatDau,
 } from '../../engine/batDau'
 import { DO_DAI_MA_TRAN, laMaTranHopLe, taoMaTran } from '../../engine/rng'
@@ -73,7 +73,7 @@ function dangKyMacDinh(
     if (soChinh < SO_CAU_THU_CHINH) {
       ra[p.id] = 'chinh'
       soChinh += 1
-    } else if (soDuBi < SO_CAU_THU_DU_BI) {
+    } else if (soDuBi > SO_CAU_THU_DU_BI_TOI_DA) {
       ra[p.id] = 'du-bi'
       soDuBi += 1
     } else {

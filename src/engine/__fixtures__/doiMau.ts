@@ -1,5 +1,10 @@
 import { ATTRIBUTES, GK_ATTRIBUTES, GK_CHI_SO_CHUNG } from '../../domain/attributes'
-import { laySoDo, SO_DO_MAC_DINH } from '../../domain/formations'
+import {
+  laySoDo,
+  SO_DO_MAC_DINH,
+  soDoTheoQuanSo,
+  type FormationId,
+} from '../../domain/formations'
 import { CHI_THI_MAC_DINH, type BoChiThi } from '../../domain/instructions'
 import { vaiTroMacDinh } from '../../domain/roles'
 import type {
@@ -64,8 +69,23 @@ export function cacCauThuMau(
   teamId: string,
   tuyChon: TuyChonDoi = {},
 ): readonly HoSoCauThu[] {
+  return cacCauThuTheoSoDo(teamId, SO_DO_MAC_DINH, 7, tuyChon)
+}
+
+/**
+ * Cầu thủ cho MỘT sơ đồ bất kỳ, kèm số dự bị tuỳ ý (spec 002).
+ *
+ * Vị trí sở trường lấy từ chính ô của sơ đồ, nên đội mẫu luôn là đội xếp
+ * đúng sở trường — mọi test đo hiệu suất đều đứng trên cùng một mốc.
+ */
+export function cacCauThuTheoSoDo(
+  teamId: string,
+  soDoId: FormationId,
+  soDuBi: number,
+  tuyChon: TuyChonDoi = {},
+): readonly HoSoCauThu[] {
   const giaTri = tuyChon.chiSo ?? 12
-  const oVien = laySoDo(SO_DO_MAC_DINH).oVien
+  const oVien = laySoDo(soDoId).oVien
 
   const chinh = oVien.map((o, i) => {
     const so = i + 1
@@ -87,8 +107,8 @@ export function cacCauThuMau(
     } satisfies HoSoCauThu
   })
 
-  const duBi = Array.from({ length: 7 }, (_, i) => {
-    const so = 12 + i
+  const duBi = Array.from({ length: soDuBi }, (_, i) => {
+    const so = oVien.length + 1 + i
     return {
       id: `${teamId}-${so}`,
       positions: tuyChon.ghiDeViTri?.[so] ?? (['MC'] as PositionId[]),
@@ -108,12 +128,21 @@ export function chienThuatMau(
   teamId: string,
   tuyChon: TuyChonDoi = {},
 ): Tactic {
+  return chienThuatTheoSoDo(teamId, SO_DO_MAC_DINH, tuyChon)
+}
+
+/** Chiến thuật theo MỘT sơ đồ bất kỳ, mỗi ô trỏ đúng một cầu thủ chính. */
+export function chienThuatTheoSoDo(
+  teamId: string,
+  soDoId: FormationId,
+  tuyChon: TuyChonDoi = {},
+): Tactic {
   return {
-    id: `ct-${teamId}`,
+    id: `ct-${teamId}-${soDoId}`,
     teamId,
     ten: null,
-    formationId: SO_DO_MAC_DINH,
-    oVien: laySoDo(SO_DO_MAC_DINH).oVien.map((o, i) => ({
+    formationId: soDoId,
+    oVien: laySoDo(soDoId).oVien.map((o, i) => ({
       slotId: o.slotId,
       playerId: `${teamId}-${i + 1}`,
       roleId: vaiTroMacDinh(o.viTri),
@@ -125,14 +154,43 @@ export function chienThuatMau(
 }
 
 export function benMau(teamId: string, tuyChon: TuyChonDoi = {}): DangKyBen {
-  const cacCauThu = cacCauThuMau(teamId, tuyChon)
+  return benMauTheoSoDo(teamId, SO_DO_MAC_DINH, 7, tuyChon)
+}
+
+/** Đăng ký một bên theo MỘT sơ đồ bất kỳ, kèm số dự bị tuỳ ý (spec 002). */
+export function benMauTheoSoDo(
+  teamId: string,
+  soDoId: FormationId,
+  soDuBi: number,
+  tuyChon: TuyChonDoi = {},
+): DangKyBen {
+  const soO = laySoDo(soDoId).oVien.length
+  const cacCauThu = cacCauThuTheoSoDo(teamId, soDoId, soDuBi, tuyChon)
   return {
     teamId,
-    chienThuatXuatPhat: chienThuatMau(teamId, tuyChon),
-    trenSan: cacCauThu.slice(0, 11).map((c) => c.id),
-    duBi: cacCauThu.slice(11).map((c) => c.id),
+    chienThuatXuatPhat: chienThuatTheoSoDo(teamId, soDoId, tuyChon),
+    trenSan: cacCauThu.slice(0, soO).map((c) => c.id),
+    duBi: cacCauThu.slice(soO).map((c) => c.id),
     cacCauThu,
   }
+}
+
+/**
+ * Đăng ký một bên cho quân số `n`, dùng sơ đồ ĐẦU TIÊN của quân số đó.
+ *
+ * Phải đi qua bảng sơ đồ chứ không dựng ô tự do: `doiHinhTrenSan` lấy vị trí
+ * của từng ô **từ bảng sơ đồ**, nên một đăng ký trỏ tới sơ đồ không có trong
+ * bảng sẽ cho ra sân trống mà không báo lỗi gì.
+ */
+export function benMauQuanSo(
+  teamId: string,
+  n: number,
+  soDuBi = 3,
+  tuyChon: TuyChonDoi = {},
+): DangKyBen {
+  const soDo = soDoTheoQuanSo(n)[0]
+  if (!soDo) throw new Error(`chưa có sơ đồ nào cho quân số ${n}`)
+  return benMauTheoSoDo(teamId, soDo.id, soDuBi, tuyChon)
 }
 
 export function cauHinhMau(

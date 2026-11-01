@@ -14,8 +14,18 @@ import type { CauHinhTran, DangKyBen } from './tran'
   việc cần sửa trong một lần.
 */
 
+/**
+ * Quân số mặc định khi cấu hình không khai — giữ nguyên hành vi spec 001.
+ * Số người chính thật sự của một trận nằm ở `CauHinhTran.quanSo` (D52).
+ */
 export const SO_CAU_THU_CHINH = 11
-export const SO_CAU_THU_DU_BI = 7
+
+/**
+ * Trần số dự bị. Spec 002 đổi luật từ "đúng 7" thành **0 tới 7** (AC-14.1):
+ * nhóm 8 người phải đá được sân 7 với một dự bị, mà luật cũ đòi đủ 7 ghế thì
+ * chính cái đau spec này sinh ra để chữa vẫn còn nguyên.
+ */
+export const SO_CAU_THU_DU_BI_TOI_DA = 7
 
 export type LyDoKhongBatDau =
   | { readonly loai: 'cung-mot-doi' }
@@ -44,24 +54,25 @@ export type KetQuaKiemTraBatDau =
 function kiemTraMotBen(
   ben: DangKyBen,
   doi: BenDoi,
+  quanSo: number,
 ): readonly LyDoKhongBatDau[] {
   const ra: LyDoKhongBatDau[] = []
 
-  if (ben.trenSan.length !== SO_CAU_THU_CHINH) {
+  if (ben.trenSan.length !== quanSo) {
     ra.push({
       loai: 'chua-du-chinh',
       doi,
       soCo: ben.trenSan.length,
-      soCan: SO_CAU_THU_CHINH,
+      soCan: quanSo,
     })
   }
 
-  if (ben.duBi.length !== SO_CAU_THU_DU_BI) {
+  if (ben.duBi.length > SO_CAU_THU_DU_BI_TOI_DA) {
     ra.push({
       loai: 'chua-dung-du-bi',
       doi,
       soCo: ben.duBi.length,
-      soCan: SO_CAU_THU_DU_BI,
+      soCan: SO_CAU_THU_DU_BI_TOI_DA,
     })
   }
 
@@ -86,12 +97,13 @@ function kiemTraMotBen(
 export function kiemTraBatDauDuoc(
   cauHinh: CauHinhTran,
 ): KetQuaKiemTraBatDau {
+  const quanSo = cauHinh.quanSo ?? SO_CAU_THU_CHINH
   const cacLyDo: LyDoKhongBatDau[] = [
     ...(cauHinh.nha.teamId === cauHinh.khach.teamId
       ? [{ loai: 'cung-mot-doi' } as const]
       : []),
-    ...kiemTraMotBen(cauHinh.nha, 'nha'),
-    ...kiemTraMotBen(cauHinh.khach, 'khach'),
+    ...kiemTraMotBen(cauHinh.nha, 'nha', quanSo),
+    ...kiemTraMotBen(cauHinh.khach, 'khach', quanSo),
   ]
 
   return cacLyDo.length === 0

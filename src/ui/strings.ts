@@ -247,6 +247,7 @@ export const LUU_TRU = {
   một chỗ.
 */
 export const TEN_SO_DO: Readonly<Record<FormationId, string>> = {
+  '2-2': '2-2',
   '4-4-2': '4-4-2',
   '4-4-1-1': '4-4-1-1',
   '4-3-3': '4-3-3',

@@ -1,6 +1,6 @@
 import { layViTri } from '../../domain/positions'
 import type { Player } from '../../domain/types'
-import { SO_CAU_THU_CHINH, SO_CAU_THU_DU_BI } from '../../engine/batDau'
+import { SO_CAU_THU_CHINH, SO_CAU_THU_DU_BI_TOI_DA } from '../../engine/batDau'
 import { DANG_KY_DOI_HINH, TRANG_CHIEN_THUAT } from '../strings'
 
 export type VaiTroDangKy = 'chinh' | 'du-bi' | 'ngoai'
@@ -40,10 +40,10 @@ export function DangKyDoiHinh({ tenDoi, cauThu, dangKy, onDoi }: Props) {
         </span>
         <span
           className={
-            soDuBi === SO_CAU_THU_DU_BI ? 'text-emerald-700' : 'text-amber-700'
+            soDuBi <= SO_CAU_THU_DU_BI_TOI_DA ? 'text-emerald-700' : 'text-amber-700'
           }
         >
-          {DANG_KY_DOI_HINH.demDuBi(soDuBi, SO_CAU_THU_DU_BI)}
+          {DANG_KY_DOI_HINH.demDuBi(soDuBi, SO_CAU_THU_DU_BI_TOI_DA)}
         </span>
       </p>
 

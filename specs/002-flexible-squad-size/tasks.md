@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | 33 AC (US-12 → US-16) |
-| **Tiến độ** | 2/24 |
+| **Tiến độ** | 4/24 |
 | **Sửa đổi** | 2026-11-01 — chẻ lần đầu từ plan (D64 phát sinh lúc chẻ), rồi sửa theo cả 7 phát hiện của `/analyze` |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -35,14 +35,14 @@ dụng chạy được (hiến pháp P6), và là một commit.
   - AC: AC-13.1
   - Phụ thuộc: T200
 
-- [ ] **T201** — Sơ đồ `2-2` và fixture đội hình theo quân số
+- [x] **T201** — Sơ đồ `2-2` và fixture đội hình theo quân số
   - File: sửa `src/domain/formations.ts`, sửa `src/engine/__fixtures__/doiMau.ts`
   - Xong khi: sơ đồ `2-2` có đủ 5 ô kèm toạ độ và vai trò; `benMauQuanSo(teamId, n)` dựng được đăng ký cho **n = 5 và n = 11**; test xanh — `chayHetTran` ở n=5 cho ra một trận có người trên sân và có dòng sự kiện, không phải sân trống.
   - AC: — *(hạ tầng cho T202–T205)*
   - Phụ thuộc: T206
   - **Sửa sau khi /implement đụng code thật.** Bản đầu viết "fixture KHÔNG đọc bảng `FORMATIONS`" — không làm được: `doiHinhTrenSan` (`tran.ts:412`) lấy vị trí của từng ô **từ bảng sơ đồ**, còn bộ chiến thuật chỉ giữ `slotId → playerId`. Đăng ký trỏ tới một `formationId` không có trong bảng sẽ cho `doiHinhTrenSan` trả mảng **rỗng** — trận 5 người không có ai trên sân, mà không ném lỗi nào. Nên phải có đúng một sơ đồ 5 ô trước khi đo được R25; mười một sơ đồ còn lại vẫn ở lát 19.
 
-- [ ] **T202** — `batDau` kiểm theo quân số, dự bị 0 tới 7
+- [x] **T202** — `batDau` kiểm theo quân số, dự bị 0 tới 7
   - File: sửa `src/engine/batDau.ts`, sửa `src/engine/batDau.test.ts`
   - Xong khi: `SO_CAU_THU_CHINH` nhường chỗ cho `cauHinh.quanSo`; dự bị chỉ bị chặn khi **nhiều hơn 7**; test xanh — n=5 với 5 chính + 0 dự bị bắt đầu được, 8 dự bị bị chặn, thiếu thủ môn vẫn bị chặn ở mọi n, và thiếu người chính thì báo đúng `soCo`/`soCan`.
   - AC: AC-12.3, AC-14.1, AC-14.1b, AC-14.2

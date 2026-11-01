@@ -19,6 +19,8 @@ import type { PositionId } from './types'
 */
 
 export type FormationId =
+  /** Sơ đồ 5 người, thêm ở spec 002. */
+  | '2-2'
   | '4-4-2'
   | '4-4-1-1'
   | '4-3-3'
@@ -80,6 +82,24 @@ function o(
 }
 
 export const FORMATIONS: readonly Formation[] = [
+  /*
+    Sơ đồ 5 người (AC-13.2). Hai hậu vệ, hai người trên — đúng cách gọi "2-2"
+    của sân 5 ngoài đời. Không có ô tiền vệ, nên bóng đi thẳng từ dải phòng
+    ngự lên dải tấn công; đó là đặc trưng của sân nhỏ chứ không phải thiếu sót
+    của bảng toạ độ.
+  */
+  {
+    id: '2-2',
+    ten: '2-2',
+    cacDai: [2, 2],
+    oVien: [
+      { slotId: 'o1', ...TM },
+      o('o2', 'DL', 1, 30, 26),
+      o('o3', 'DR', 1, 70, 26),
+      o('o4', 'ST', 2, 35, 74),
+      o('o5', 'ST', 2, 65, 74),
+    ],
+  },
   {
     id: '4-4-2',
     ten: '4-4-2',

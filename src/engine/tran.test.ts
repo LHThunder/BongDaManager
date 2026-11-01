@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { cauHinhMau, MA_TRAN_CO_DINH } from './__fixtures__/doiMau'
+import {
+  benMauQuanSo,
+  cauHinhMau,
+  MA_TRAN_CO_DINH,
+} from './__fixtures__/doiMau'
 import {
   BU_GIO_TOI_DA,
   BU_GIO_TOI_THIEU,
@@ -33,19 +37,78 @@ describe('quân số của trận (AC-12.1, AC-12.1b)', () => {
   })
 
   it('khai quân số thì trận mang đúng con số đó', () => {
-    const tt = taoTran({ ...cauHinhMau(MA), quanSo: 5 })
+    const tt = taoTran(
+      cauHinhMau(MA, {
+        quanSo: 5,
+        nha: benMauQuanSo('A', 5),
+        khach: benMauQuanSo('B', 5),
+      }),
+    )
     expect(tt.quanSo).toBe(5)
   })
 
   it('đấu lại giữ nguyên quân số của trận cũ', () => {
-    const tt = taoTran({ ...cauHinhMau(MA), quanSo: 7 })
-    expect(cauHinhDauLai(tt, 'MA-MOI-001').quanSo).toBe(7)
+    const tt = taoTran(
+      cauHinhMau(MA, {
+        quanSo: 5,
+        nha: benMauQuanSo('A', 5),
+        khach: benMauQuanSo('B', 5),
+      }),
+    )
+    expect(cauHinhDauLai(tt, 'MA-MOI-001').quanSo).toBe(5)
   })
 
-  it('cùng một đăng ký đá được nhiều quân số khác nhau', () => {
-    const dangKy = cauHinhMau(MA)
-    expect(taoTran({ ...dangKy, quanSo: 11 }).quanSo).toBe(11)
-    expect(taoTran({ ...dangKy, quanSo: 8 }).quanSo).toBe(8)
+  it('cùng một ĐỘI đá được nhiều quân số khác nhau (AC-12.1b)', () => {
+    // Cùng teamId, hai đăng ký khác quân số — quân số là của TRẬN (D52).
+    const muoiMot = taoTran(cauHinhMau(MA))
+    const nam = taoTran(
+      cauHinhMau(MA, {
+        quanSo: 5,
+        nha: benMauQuanSo('A', 5),
+        khach: benMauQuanSo('B', 5),
+      }),
+    )
+    expect(muoiMot.ben.nha.teamId).toBe(nam.ben.nha.teamId)
+    expect(muoiMot.quanSo).toBe(11)
+    expect(nam.quanSo).toBe(5)
+  })
+
+  /*
+    Trận 5 người phải có NGƯỜI TRÊN SÂN, không phải sân trống.
+
+    `doiHinhTrenSan` lấy vị trí của từng ô từ bảng sơ đồ, nên một đăng ký trỏ
+    tới sơ đồ không có trong bảng sẽ bỏ qua mọi ô và trả về mảng rỗng — trận
+    vẫn "chạy", vẫn ra tỉ số 0-0, mà không ai đá. Phép kiểm này canh đúng cái
+    bẫy đó.
+  */
+  it('trận 5 người chạy hết và có người thật trên sân', () => {
+    const tt = chayHetTran(
+      taoTran({
+        maTran: MA,
+        quanSo: 5,
+        nha: benMauQuanSo('A', 5),
+        khach: benMauQuanSo('B', 5),
+        sanTrungLap: true,
+      }),
+    )
+
+    expect(tt.ketThuc).toBe(true)
+    expect(tt.ben.nha.trenSan).toHaveLength(5)
+    expect(tt.ben.khach.trenSan).toHaveLength(5)
+
+    const dong = dongSuKien(tt)
+    expect(dong.length).toBeGreaterThan(10)
+
+    // Mọi cái tên trong dòng sự kiện phải là người của hai đội, không rỗng.
+    const coTen = dong.filter((s) => s.cacCauThu.length > 0)
+    expect(coTen.length).toBeGreaterThan(0)
+    const hopLe = new Set([
+      ...tt.ben.nha.cacCauThu.map((c) => c.id),
+      ...tt.ben.khach.cacCauThu.map((c) => c.id),
+    ])
+    for (const sk of coTen) {
+      for (const id of sk.cacCauThu) expect(hopLe.has(id), id).toBe(true)
+    }
   })
 })
 
