@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | 33 AC (US-12 → US-16) |
-| **Tiến độ** | 0/24 |
+| **Tiến độ** | 1/24 |
 | **Sửa đổi** | 2026-11-01 — chẻ lần đầu từ plan (D64 phát sinh lúc chẻ), rồi sửa theo cả 7 phát hiện của `/analyze` |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -23,7 +23,7 @@ dụng chạy được (hiến pháp P6), và là một commit.
 > R25; nếu nó đỏ thì dừng cả phase, vì mọi thứ sau đều dựa vào giả định mà nó
 > đang kiểm.
 
-- [ ] **T200** — Quân số thành tham số của trận
+- [x] **T200** — Quân số thành tham số của trận
   - File: sửa `src/engine/tran.ts`, sửa `src/engine/tran.test.ts`
   - Xong khi: `CauHinhTran` và `TrangThaiTran` mang `quanSo`; `taoTran` nhận và cất; `dangKyTuTrangThai` và `cauHinhDauLai` dựng lại đúng giá trị; `npx tsc --noEmit` sạch; test xanh — tạo trận `quanSo: 5` thì `tt.quanSo === 5`, và trận không khai quân số thì mặc định 11.
   - AC: AC-12.1, AC-12.1b

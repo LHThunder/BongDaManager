@@ -4,8 +4,10 @@ import {
   BU_GIO_TOI_DA,
   BU_GIO_TOI_THIEU,
   buocTiep,
+  cauHinhDauLai,
   chayHetTran,
   dongSuKien,
+  QUAN_SO_MAC_DINH,
   hiepCuaPhut,
   PHUT_MOI_HIEP,
   phutHienThi,
@@ -16,6 +18,36 @@ import {
 import { SO_DONG_TOI_DA, SO_DONG_TOI_THIEU } from './suKien'
 
 const MA = 'K7M2R9XQ4B'
+
+/*
+  Quân số là tham số của TRẬN, không phải của đội (AC-12.1, quyết định D52).
+
+  Mặc định phải là 11: mọi chỗ gọi có từ trước spec 002 không khai quân số,
+  và chúng không được đổi hành vi vì một trường mới xuất hiện.
+*/
+describe('quân số của trận (AC-12.1, AC-12.1b)', () => {
+  it('không khai quân số thì mặc định 11', () => {
+    const tt = taoTran(cauHinhMau(MA))
+    expect(tt.quanSo).toBe(QUAN_SO_MAC_DINH)
+    expect(tt.quanSo).toBe(11)
+  })
+
+  it('khai quân số thì trận mang đúng con số đó', () => {
+    const tt = taoTran({ ...cauHinhMau(MA), quanSo: 5 })
+    expect(tt.quanSo).toBe(5)
+  })
+
+  it('đấu lại giữ nguyên quân số của trận cũ', () => {
+    const tt = taoTran({ ...cauHinhMau(MA), quanSo: 7 })
+    expect(cauHinhDauLai(tt, 'MA-MOI-001').quanSo).toBe(7)
+  })
+
+  it('cùng một đăng ký đá được nhiều quân số khác nhau', () => {
+    const dangKy = cauHinhMau(MA)
+    expect(taoTran({ ...dangKy, quanSo: 11 }).quanSo).toBe(11)
+    expect(taoTran({ ...dangKy, quanSo: 8 }).quanSo).toBe(8)
+  })
+})
 
 describe('tạo trận và thời lượng (AC-8.1)', () => {
   it('trận mới ở phút 0, tỉ số 0-0, chưa kết thúc', () => {

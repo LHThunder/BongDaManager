@@ -63,6 +63,16 @@ export interface CauHinhTran {
   readonly maTran: string
   readonly nha: DangKyBen
   readonly khach: DangKyBen
+  /**
+   * Số người mỗi bên, từ 5 tới 11 (AC-12.1, quyết định D52).
+   *
+   * Thuộc về TRẬN chứ không về đội: cùng một đội đá được mọi định dạng mà
+   * không phải nhập lại dữ liệu, và hai bên luôn cùng quân số nên những phép
+   * so sánh chiến thuật của spec 001 giữ nguyên ý nghĩa.
+   *
+   * Không khai thì mặc định 11, để mọi chỗ gọi có từ trước không đổi hành vi.
+   */
+  readonly quanSo?: number
   /** true thì tắt hoàn toàn lợi thế sân nhà (AC-8.14). */
   readonly sanTrungLap: boolean
   /**
@@ -226,6 +236,8 @@ export interface TrangThaiTran {
   readonly phut: number
   readonly buGio: { readonly hiep1: number; readonly hiep2: number }
   readonly sanTrungLap: boolean
+  /** Số người mỗi bên của trận này, 5..11 (AC-12.1, quyết định D52). */
+  readonly quanSo: number
   /** Bên mà người dùng điều khiển; chỉ bên này can thiệp được (AC-9.8). */
   readonly doiCuaNguoiDung: BenDoi
   readonly tiSo: TiSo
@@ -236,6 +248,11 @@ export interface TrangThaiTran {
   readonly canThiepChoAp: readonly CanThiep[]
   readonly ketThuc: boolean
 }
+
+/** Quân số mặc định khi không khai — giữ nguyên hành vi trước spec 002. */
+export const QUAN_SO_MAC_DINH = 11
+export const QUAN_SO_TOI_THIEU = 5
+export const QUAN_SO_TOI_DA = 11
 
 export const PHUT_MOI_HIEP = 45
 export const BU_GIO_TOI_THIEU = 1
@@ -329,6 +346,7 @@ export function taoTran(cauHinh: CauHinhTran): TrangThaiTran {
     phut: 0,
     buGio: { hiep1, hiep2 },
     sanTrungLap: cauHinh.sanTrungLap,
+    quanSo: cauHinh.quanSo ?? QUAN_SO_MAC_DINH,
     doiCuaNguoiDung: cauHinh.doiCuaNguoiDung ?? 'nha',
     tiSo: { nha: 0, khach: 0 },
     ben: { nha: taoBen(cauHinh.nha), khach: taoBen(cauHinh.khach) },
@@ -1195,6 +1213,7 @@ export function cauHinhDauLai(
   return {
     maTran,
     sanTrungLap: tt.sanTrungLap,
+    quanSo: tt.quanSo,
     doiCuaNguoiDung: tt.doiCuaNguoiDung,
     nha: dangKyTuTrangThai(tt.ben.nha),
     khach: dangKyTuTrangThai(tt.ben.khach),
