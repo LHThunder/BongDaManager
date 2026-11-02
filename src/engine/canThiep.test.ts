@@ -1,12 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import { CHI_THI_MAC_DINH } from '../domain/instructions'
-import { cauHinhMau, MA_TRAN_CO_DINH } from './__fixtures__/doiMau'
+import { benMauQuanSo, cauHinhMau, MA_TRAN_CO_DINH } from './__fixtures__/doiMau'
 import {
   apDungCanThiep,
   buocTiep,
   chayHetTran,
   dongSuKien,
-  SO_LAN_THAY_TOI_DA,
   taoTran,
   type CanThiep,
   type TrangThaiTran,
@@ -100,17 +99,50 @@ describe('thay người (AC-9.5)', () => {
   })
 })
 
-describe('hết lượt thay người (AC-9.6)', () => {
-  it('lần thay thứ 6 bị từ chối', () => {
-    let tt = tranOPhut(10)
+/*
+  Hết lượt thay người (AC-9.6, AC-14.3).
 
-    for (let i = 0; i < SO_LAN_THAY_TOI_DA; i += 1) {
+  Spec 002 đổi luật: số lượt bằng đúng số dự bị đã đăng ký, không còn là con
+  số cố định 5. Bản cũ của phép kiểm này đếm tới `SO_LAN_THAY_TOI_DA` rồi
+  đòi lần thứ 6 bị chặn; nay nó đếm tới khi GHẾ TRỐNG.
+*/
+describe('hết lượt thay người (AC-9.6, AC-14.3)', () => {
+  it('thay hết người trên ghế thì lần kế tiếp bị từ chối', () => {
+    let tt = tranOPhut(10)
+    const soDuBi = tt.ben.nha.duBi.length
+    expect(soDuBi).toBeGreaterThan(0)
+
+    for (let i = 0; i < soDuBi; i += 1) {
       tt = buocTiep(ap(tt, thayNguoi(tt, i)))
     }
-    expect(tt.ben.nha.soLanThay).toBe(SO_LAN_THAY_TOI_DA)
 
-    const lanThu6 = apDungCanThiep(tt, thayNguoi(tt, 5))
-    expect(lanThu6).toEqual({ thanhCong: false, lyDo: 'het-luot-thay' })
+    expect(tt.ben.nha.soLanThay).toBe(soDuBi)
+    expect(tt.ben.nha.duBi).toHaveLength(0)
+
+    const lanKeTiep = apDungCanThiep(tt, thayNguoi(tt, soDuBi))
+    expect(lanKeTiep).toEqual({ thanhCong: false, lyDo: 'het-luot-thay' })
+  })
+
+  it('đăng ký 0 dự bị thì hết lượt ngay từ phút đầu (AC-14.3b)', () => {
+    const tt = taoTran(
+      cauHinhMau(MA_TRAN_CO_DINH[0], {
+        quanSo: 5,
+        nha: benMauQuanSo('A', 5, 0),
+        khach: benMauQuanSo('B', 5, 0),
+      }),
+    )
+
+    expect(tt.ben.nha.duBi).toHaveLength(0)
+    const kq = apDungCanThiep(tt, {
+      phut: 1,
+      doi: 'nha',
+      noiDung: {
+        loai: 'thay-nguoi',
+        ra: tt.ben.nha.trenSan[1],
+        vao: 'A-99',
+      },
+    })
+    expect(kq).toEqual({ thanhCong: false, lyDo: 'het-luot-thay' })
   })
 })
 

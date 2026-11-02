@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { SO_LAN_THAY_TOI_DA, type BenTran } from '../../engine/tran'
+import type { BenTran } from '../../engine/tran'
 import { THAY_NGUOI } from '../strings'
 
 interface Props {
@@ -20,7 +20,13 @@ export function ThayNguoi({ ben, tenCauThu, tamDung, onThay, loi }: Props) {
   const [ra, datRa] = useState('')
   const [vao, datVao] = useState('')
 
-  const conLuot = SO_LAN_THAY_TOI_DA - ben.soLanThay
+  /*
+    Lượt thay còn lại CHÍNH LÀ số người còn trên ghế (D57): mỗi lần thay lấy
+    một người khỏi ghế. Tổng lượt của cả trận là số dự bị lúc đăng ký, suy
+    lại bằng cách cộng số đã thay.
+  */
+  const conLuot = ben.duBi.length
+  const tongLuot = ben.soLanThay + ben.duBi.length
   const hetLuot = conLuot <= 0
 
   return (
@@ -29,7 +35,7 @@ export function ThayNguoi({ ben, tenCauThu, tamDung, onThay, loi }: Props) {
         {THAY_NGUOI.tieuDe}
       </h3>
       <p className="mt-0.5 text-sm text-slate-500">
-        {THAY_NGUOI.conLuot(conLuot, SO_LAN_THAY_TOI_DA)}
+        {THAY_NGUOI.conLuot(conLuot, tongLuot)}
       </p>
 
       {!tamDung && (

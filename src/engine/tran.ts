@@ -966,7 +966,14 @@ function kiemTraCanThiep(
   const nd = canThiep.noiDung
 
   if (nd.loai === 'thay-nguoi') {
-    if (ben.soLanThay >= SO_LAN_THAY_TOI_DA) return 'het-luot-thay'
+    /*
+      Lượt thay bằng đúng số dự bị đã đăng ký (AC-14.3, quyết định D57).
+
+      Không cần đếm riêng: mỗi lần thay lấy một người khỏi ghế, nên "còn lượt"
+      và "còn người trên ghế" là cùng một câu. Đăng ký 0 dự bị thì hết lượt
+      ngay từ phút đầu, và người dùng được nói lý do thay vì bị từ chối im.
+    */
+    if (ben.duBi.length === 0) return 'het-luot-thay'
     if (!ben.trenSan.includes(nd.ra)) return 'cau-thu-khong-tren-san'
     if (!ben.duBi.includes(nd.vao)) return 'cau-thu-khong-trong-du-bi'
     if (daRoiSanVivThe(ben.the[nd.vao])) return 'da-nhan-the-do'
@@ -1219,8 +1226,6 @@ export function cauHinhDauLai(
     khach: dangKyTuTrangThai(tt.ben.khach),
   }
 }
-
-export const SO_LAN_THAY_TOI_DA = 5
 
 export function buocTiep(ttVao: TrangThaiTran): TrangThaiTran {
   if (ttVao.ketThuc) return ttVao

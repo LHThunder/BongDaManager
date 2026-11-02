@@ -6,7 +6,6 @@ import {
   khungThanhCoThuMon,
   nguoiTrongKhung,
   phutHienThi,
-  SO_LAN_THAY_TOI_DA,
   type NoiDungCanThiep,
 } from '../../engine/tran'
 import { useMatch } from '../../hooks/useMatch'
@@ -200,7 +199,7 @@ export function TrangTran({ onRoiTran }: Props) {
   */
   const mauAo = doiNha && doiKhach ? aoDangDung(doiNha, doiKhach) : null
   const suKienDangXem = cacSuKien[cacSuKien.length - 1] ?? null
-  const conLuotThay = SO_LAN_THAY_TOI_DA - benCuaNguoiDung.soLanThay
+  const conLuotThay = benCuaNguoiDung.duBi.length
 
   /*
     So hai lần chạy CÙNG một mã trận (AC-8.12). Kết quả cũ được giữ trong

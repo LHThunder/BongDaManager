@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | 33 AC (US-12 → US-16) |
-| **Tiến độ** | 4/24 |
+| **Tiến độ** | 5/24 |
 | **Sửa đổi** | 2026-11-01 — chẻ lần đầu từ plan (D64 phát sinh lúc chẻ), rồi sửa theo cả 7 phát hiện của `/analyze` |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -48,7 +48,7 @@ dụng chạy được (hiến pháp P6), và là một commit.
   - AC: AC-12.3, AC-14.1, AC-14.1b, AC-14.2
   - Phụ thuộc: T201
 
-- [ ] **T203** [P] — Lượt thay người bằng số dự bị
+- [x] **T203** [P] — Lượt thay người bằng số dự bị
   - File: sửa `src/engine/tran.ts`, sửa `src/engine/canThiep.test.ts`
   - Xong khi: `SO_LAN_THAY_TOI_DA` bị **xoá hẳn**, số lượt còn lại suy từ `duBi.length`; test xanh — đăng ký 2 dự bị thì lượt thứ 3 bị từ chối, đăng ký 0 dự bị thì mọi yêu cầu thay người bị từ chối ngay với lý do rõ.
   - AC: AC-14.3, AC-14.3b *(phần engine)*
