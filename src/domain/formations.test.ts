@@ -47,6 +47,26 @@ describe('bảng sơ đồ (AC-5.2, AC-13.1)', () => {
     expect(new Set(ids).size).toBe(ids.length)
   })
 
+  /*
+    Mỗi quân số phải có ít nhất HAI sơ đồ (AC-13.2), nếu không thì việc "chọn
+    sơ đồ" ở quân số đó không còn là một lựa chọn. Phép kiểm chạy suốt dải
+    5..11 nên không quân số nào được để trống — một mức chọn vào là bế tắc
+    còn tệ hơn là không có mức ấy.
+  */
+  it('mỗi quân số từ 5 tới 11 có ít nhất hai sơ đồ', () => {
+    for (let n = 5; n <= 11; n += 1) {
+      expect(soDoTheoQuanSo(n).length, `quân số ${n}`).toBeGreaterThanOrEqual(2)
+    }
+  })
+
+  it('tên sơ đồ đọc ra đúng số người: tổng các số cộng thủ môn', () => {
+    for (const soDo of FORMATIONS) {
+      const tuTen = soDo.id.split('-').map(Number)
+      const tong = tuTen.reduce((a, b) => a + b, 0)
+      expect(tong + 1, soDo.id).toBe(soNguoiCuaSoDo(soDo))
+    }
+  })
+
   it('tên hiển thị trùng với id', () => {
     for (const soDo of FORMATIONS) {
       expect(soDo.ten).toBe(soDo.id)

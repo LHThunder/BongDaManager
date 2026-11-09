@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | 33 AC (US-12 → US-16) |
-| **Tiến độ** | 8/25 |
+| **Tiến độ** | 10/25 |
 | **Sửa đổi** | 2026-11-01 — chẻ lần đầu từ plan (D64 phát sinh lúc chẻ), rồi sửa theo cả 7 phát hiện của `/analyze` |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -79,13 +79,13 @@ dụng chạy được (hiến pháp P6), và là một commit.
 
 ## Phase 19 — Lát 19: Sơ đồ cho mọi quân số
 
-- [ ] **T207** [P] — Năm sơ đồ còn lại cho quân số 5, 6, 7
+- [x] **T207** [P] — Năm sơ đồ còn lại cho quân số 5, 6, 7
   - File: sửa `src/domain/formations.ts`
   - Xong khi: `1-2-1`, `2-3`, `3-2`, `2-3-1`, `3-2-1` có đủ toạ độ và vai trò từng ô (`2-2` đã làm ở T201); test bất biến của T206 xanh; mở trang chiến thuật nhìn thấy hình sơ đồ cân đối, không ô nào đè ô nào.
   - AC: AC-13.2, AC-13.4, AC-13.5
   - Phụ thuộc: T206
 
-- [ ] **T208** [P] — Sáu sơ đồ cho quân số 8, 9, 10
+- [x] **T208** [P] — Sáu sơ đồ cho quân số 8, 9, 10
   - File: sửa `src/domain/formations.ts`
   - Xong khi: `3-3-1`, `2-3-2`, `3-3-2`, `3-4-1`, `4-3-2`, `3-4-2` có đủ toạ độ và vai trò; test bất biến xanh; kiểm mắt như T207.
   - AC: AC-13.2, AC-13.4, AC-13.5
