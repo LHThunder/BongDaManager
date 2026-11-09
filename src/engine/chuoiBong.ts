@@ -48,7 +48,35 @@ export interface BoiCanhChuoi {
   readonly sucManhCong: number
   /** Sức mạnh trung bình bên phòng ngự, 0..~1. */
   readonly sucManhThu: number
+  /**
+   * Số người mỗi bên, 5..11 (AC-15.4, spec 002).
+   *
+   * Không khai thì hiểu là 11 — mọi chỗ gọi có từ trước spec 002 giữ nguyên
+   * hành vi tới từng con số.
+   */
+  readonly quanSo?: number
 }
+
+/**
+ * Càng ít người trên sân, càng nhiều khoảng trống, càng khó cướp được bóng.
+ *
+ * Trước spec 002, số người trên sân KHÔNG hề đi vào mô phỏng: `chayChuoiBong`
+ * chỉ nhận sức mạnh **trung bình theo đầu người**, nên 5 người cùng chỉ số và
+ * 11 người cùng chỉ số cho ra cùng một trận tới ba chữ số thập phân. Phép đo
+ * của T205 bắt được đúng điều đó, và đây là chỗ chữa.
+ *
+ * Trả về **đúng 1 ở n = 11**, nên mọi mã trận 11 người cũ vẫn phát lại y
+ * nguyên — chỉ quân số nhỏ mới có dòng sự kiện khác.
+ */
+export function heSoKhoangTrong(quanSo: number): number {
+  return 1 - (QUAN_SO_DAY_DU - quanSo) * BUOC_KHOANG_TRONG
+}
+
+/** Quân số mà hệ số khoảng trống bằng 1 — tức sân 11 là mốc. */
+const QUAN_SO_DAY_DU = 11
+
+/** Mỗi người bớt đi làm xác suất mất bóng giảm bấy nhiêu phần. */
+const BUOC_KHOANG_TRONG = 0.06
 
 /*
   Chặn cứng số bước. Không có nó thì một bộ xác suất chỉnh lệch có thể làm
@@ -111,6 +139,7 @@ export function chayChuoiBong(
   let vung = vungBatDau
 
   const tuongQuan = heSoTuongQuan(boiCanh.sucManhCong, boiCanh.sucManhThu)
+  const khoangTrong = heSoKhoangTrong(boiCanh.quanSo ?? QUAN_SO_DAY_DU)
 
   for (let buoc = 0; buoc < SO_BUOC_TOI_DA; buoc += 1) {
     /*
@@ -122,7 +151,7 @@ export function chayChuoiBong(
       ? boiCanh.heSoThu.cuopBongDaiCao
       : 1
     const pMatBong = kep(
-      (XAC_SUAT_NEN.matBong * tuongQuan * pressingDoiThu) /
+      (XAC_SUAT_NEN.matBong * tuongQuan * pressingDoiThu * khoangTrong) /
         boiCanh.heSoCong.giuBong,
     )
 

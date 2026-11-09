@@ -1291,6 +1291,7 @@ export function buocTiep(ttVao: TrangThaiTran): TrangThaiTran {
       heSoThu: smThu.heSo,
       sucManhCong: smCong.trungBinh,
       sucManhThu: smThu.trungBinh,
+      quanSo: tt.quanSo,
     })
 
     /*

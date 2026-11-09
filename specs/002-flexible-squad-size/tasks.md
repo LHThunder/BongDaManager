@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | 33 AC (US-12 → US-16) |
-| **Tiến độ** | 5/24 |
+| **Tiến độ** | 7/25 |
 | **Sửa đổi** | 2026-11-01 — chẻ lần đầu từ plan (D64 phát sinh lúc chẻ), rồi sửa theo cả 7 phát hiện của `/analyze` |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -60,12 +60,20 @@ dụng chạy được (hiến pháp P6), và là một commit.
   - AC: AC-14.4, AC-14.5, AC-14.6
   - Phụ thuộc: T201
 
-- [ ] **T205** — **Đo R25**: quân số thấp hơn có nhiều cơ hội hơn không
+- [x] **T205** — **Đo R25**: quân số thấp hơn có nhiều cơ hội hơn không
   - File: tạo `src/engine/sosanh.quanSo.test.ts`
   - Xong khi: cùng một bộ mã trận, chạy ở n=5 và n=11 trên sân trung lập, **in ra** số cú sút và số cơ hội rõ ràng trung bình mỗi trận ở từng quân số; test khẳng định n thấp hơn cho con số **cao hơn**. Mẫu bắt đầu 40 mã; chưa tách thì **rộng mẫu, không hạ ngưỡng**.
   - AC: AC-15.4
   - Phụ thuộc: T201, T202
+  - **ĐÃ ĐỎ ngày 2026-11-02, và đỏ theo cách tệ hơn dự liệu.** Không phải "sai chiều" mà là **không có tác dụng**: sân 5 và sân 11 cho số liệu giống hệt nhau tới ba chữ số (cú sút 15.8, cơ hội 9.8, bàn thắng 2.88 cả hai). Nguyên nhân: `chayChuoiBong` chỉ nhận sức mạnh **trung bình theo đầu người**, nên số người trên sân chưa bao giờ đi vào mô phỏng. Người dùng chốt thêm hệ số khoảng trống — xem T224; sau đó phép kiểm này xanh.
   - **Nếu test này đỏ thì DỪNG phase và báo người dùng.** Đó chính là R25 hiện ra: engine không tự nhiên cho ra chiều mà spec đã chốt, và cách chữa (thêm hệ số khoảng trống theo quân số vào `chuoiBong.ts`) là một thay đổi engine phải được đồng ý trước, không phải thứ tiện tay làm.
+
+- [x] **T224** — Hệ số khoảng trống theo quân số
+  - File: sửa `src/engine/chuoiBong.ts`, sửa `src/engine/tran.ts`, sửa `src/engine/sosanh.quanSo.test.ts`
+  - Xong khi: `heSoKhoangTrong(quanSo)` nhân vào xác suất mất bóng, **bằng đúng 1 ở n = 11** nên mọi mã trận 11 người cũ ra đúng từng con số như cũ; T205 xanh; và một phép kiểm thứ hai khẳng định đường cong đi một chiều suốt dải quân số đã có sơ đồ.
+  - AC: AC-15.4
+  - Phụ thuộc: T205
+  - **Phát sinh từ T205, người dùng đồng ý ngày 2026-11-09.** Đây đúng là phương án lùi mà plan đã ghi sẵn ở R25. Mức đang dùng: mỗi người bớt đi làm xác suất mất bóng giảm **6%**.
 
 ---
 

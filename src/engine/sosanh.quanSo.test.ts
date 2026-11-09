@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { soDoTheoQuanSo } from '../domain/formations'
 import { benMauQuanSo } from './__fixtures__/doiMau'
 import { chayHetTran, taoTran } from './tran'
 
@@ -73,5 +74,37 @@ describe('quân số nhỏ cho thế trận thoáng hơn (AC-15.4)', () => {
 
     expect(nam.cuSut).toBeGreaterThan(muoiMot.cuSut)
     expect(nam.coHoi).toBeGreaterThan(muoiMot.coHoi)
+  })
+
+  /*
+    Cả dải phải đi một chiều, không được nhấp nhô. Một hệ số đúng ở hai đầu mà
+    sai ở giữa thì người dùng đổi từ sân 7 sang sân 8 sẽ thấy trận đấu đổi
+    theo hướng không ai giải thích được.
+  */
+  it('cú sút tăng đều khi quân số giảm, suốt dải 5 tới 11', () => {
+    /*
+      Chỉ đo những quân số ĐÃ CÓ sơ đồ. Hôm nay là 5 và 11; khi lát 19 dựng
+      xong 11 sơ đồ còn lại thì phép kiểm này tự phủ cả dải mà không phải sửa
+      một dòng nào — và nó sẽ đỏ ngay nếu một quân số mới làm đường cong gãy.
+    */
+    const cacQuanSo = [11, 10, 9, 8, 7, 6, 5].filter(
+      (n) => soDoTheoQuanSo(n).length > 0,
+    )
+    expect(cacQuanSo.length).toBeGreaterThanOrEqual(2)
+
+    const soDo = cacQuanSo.map((n) => ({ n, ...doTheoQuanSo(n) }))
+
+    for (const d of soDo) {
+      console.log(
+        `  sân ${String(d.n).padStart(2)}: cú sút ${d.cuSut.toFixed(1)}, cơ hội ${d.coHoi.toFixed(1)}, bàn thắng ${d.banThang.toFixed(2)}`,
+      )
+    }
+
+    for (let i = 1; i < soDo.length; i += 1) {
+      expect(
+        soDo[i].cuSut,
+        `sân ${soDo[i].n} phải nhiều cú sút hơn sân ${soDo[i - 1].n}`,
+      ).toBeGreaterThan(soDo[i - 1].cuSut)
+    }
   })
 })

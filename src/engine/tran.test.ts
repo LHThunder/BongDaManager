@@ -82,19 +82,29 @@ describe('quân số của trận (AC-12.1, AC-12.1b)', () => {
     bẫy đó.
   */
   it('trận 5 người chạy hết và có người thật trên sân', () => {
-    const tt = chayHetTran(
-      taoTran({
-        maTran: MA,
-        quanSo: 5,
-        nha: benMauQuanSo('A', 5),
-        khach: benMauQuanSo('B', 5),
-        sanTrungLap: true,
-      }),
-    )
+    const batDau = taoTran({
+      maTran: MA,
+      quanSo: 5,
+      nha: benMauQuanSo('A', 5),
+      khach: benMauQuanSo('B', 5),
+      sanTrungLap: true,
+    })
+
+    // Vào trận đủ 5 người mỗi bên.
+    expect(batDau.ben.nha.trenSan).toHaveLength(5)
+    expect(batDau.ben.khach.trenSan).toHaveLength(5)
+
+    const tt = chayHetTran(batDau)
 
     expect(tt.ketThuc).toBe(true)
-    expect(tt.ben.nha.trenSan).toHaveLength(5)
-    expect(tt.ben.khach.trenSan).toHaveLength(5)
+    /*
+      Cuối trận có thể ÍT hơn 5: thẻ đỏ làm đá thiếu người (AC-14.4), và điều
+      đó đúng ở mọi quân số. Thứ phép kiểm này canh là sân không TRỐNG.
+    */
+    expect(tt.ben.nha.trenSan.length).toBeGreaterThan(0)
+    expect(tt.ben.khach.trenSan.length).toBeGreaterThan(0)
+    expect(tt.ben.nha.trenSan.length).toBeLessThanOrEqual(5)
+    expect(tt.ben.khach.trenSan.length).toBeLessThanOrEqual(5)
 
     const dong = dongSuKien(tt)
     expect(dong.length).toBeGreaterThan(10)
