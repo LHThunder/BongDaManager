@@ -272,6 +272,9 @@ export const QUAN_SO_MAC_DINH = 11
 export const QUAN_SO_TOI_THIEU = 5
 export const QUAN_SO_TOI_DA = 11
 
+/** Mọi quân số chơi được, từ nhiều người tới ít người. */
+export const CAC_QUAN_SO: readonly number[] = [11, 10, 9, 8, 7, 6, 5]
+
 export const PHUT_MOI_HIEP = 45
 export const BU_GIO_TOI_THIEU = 1
 export const BU_GIO_TOI_DA = 5

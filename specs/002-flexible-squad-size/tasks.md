@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | 33 AC (US-12 → US-16) |
-| **Tiến độ** | 12/25 |
+| **Tiến độ** | 13/25 |
 | **Sửa đổi** | 2026-11-01 — chẻ lần đầu từ plan (D64 phát sinh lúc chẻ), rồi sửa theo cả 7 phát hiện của `/analyze` |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -105,7 +105,7 @@ dụng chạy được (hiến pháp P6), và là một commit.
   - Phụ thuộc: T206
   - Theo D64: quân số của một bộ **suy từ `formationId`**, không thêm trường nào, không đổi cấu trúc lưu trữ.
 
-- [ ] **T211** — Trang chiến thuật chọn quân số
+- [x] **T211** — Trang chiến thuật chọn quân số
   - File: sửa `src/ui/pages/TrangChienThuat.tsx`, sửa `src/ui/strings.ts`
   - Xong khi: có ô chọn quân số; đổi quân số thì mở bộ của quân số đó; danh sách sơ đồ chỉ hiện sơ đồ đúng quân số; **xếp đội hình sân 5 rồi quay lại sân 11 thấy đội hình 11 người còn nguyên** — kiểm tay.
   - AC: AC-13.1, AC-13.6

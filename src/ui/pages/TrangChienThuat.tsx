@@ -12,6 +12,10 @@ import {
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { FORMATIONS, soDoTheoQuanSo, type FormationId } from '../../domain/formations'
 import {
+  CAC_QUAN_SO,
+  QUAN_SO_MAC_DINH,
+} from '../../engine/tran'
+import {
   tinhTrangDoiHinh,
   type LyDoChuaDuDieuKien,
 } from '../../domain/lineup'
@@ -158,6 +162,13 @@ export function TrangChienThuat({ teamId, onQuayLai }: Props) {
     (s) => s.teams.find((d) => d.id === teamId)?.logoImageId ?? null,
   )
 
+  /*
+    Quân số đang mở (AC-13.6). Mỗi quân số có bộ chiến thuật RIÊNG, nên đổi
+    con số này là mở sang một bộ khác chứ không phải sửa bộ đang có — đội
+    hình đã xếp ở quân số kia còn nguyên (quyết định D64).
+  */
+  const [quanSo, datQuanSo] = useState<number>(QUAN_SO_MAC_DINH)
+
   const { napDanhSachDoi } = useTeams()
   const { cauThu, napCauThu } = usePlayers(teamId)
   const {
@@ -172,7 +183,7 @@ export function TrangChienThuat({ teamId, onQuayLai }: Props) {
     napDanhSachBo,
     luuThanhBo,
     apDungBo,
-  } = useTactic(teamId)
+  } = useTactic(teamId, quanSo)
 
   /** Ô đang mở bảng chọn vai trò; `null` là không mở ô nào. */
   const [oDangChon, datODangChon] = useState<string | null>(null)
@@ -379,6 +390,24 @@ export function TrangChienThuat({ teamId, onQuayLai }: Props) {
             </h2>
           </div>
         </div>
+
+        <label className="flex items-center gap-2 text-sm text-slate-600">
+          {TRANG_CHIEN_THUAT.nhanChonQuanSo}
+          <select
+            value={quanSo}
+            onChange={(e) => {
+              datQuanSo(Number(e.target.value))
+              datBaoDoiSoDo([])
+            }}
+            className="rounded border border-slate-300 px-2 py-1 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300"
+          >
+            {CAC_QUAN_SO.map((n) => (
+              <option key={n} value={n}>
+                {TRANG_CHIEN_THUAT.nhanQuanSo(n)}
+              </option>
+            ))}
+          </select>
+        </label>
 
         <label className="flex items-center gap-2 text-sm text-slate-600">
           {TRANG_CHIEN_THUAT.nhanChonSoDo}

@@ -5,6 +5,7 @@ import { vaiTroMacDinh, type RoleId } from '../domain/roles'
 import { laySoDo } from '../domain/formations'
 import type { BoChiThi } from '../domain/instructions'
 import type { Tactic } from '../domain/types'
+import { QUAN_SO_MAC_DINH } from '../engine/tran'
 import * as tacticRepo from '../services/tacticRepo'
 import { useAppStore } from '../store/appStore'
 import { ghiNhanLoiLuuTru } from './useBackup'
@@ -18,7 +19,7 @@ import { ghiNhanLoiLuuTru } from './useBackup'
   `ghiNhanLoiLuuTru` đưa cảnh báo ra chỗ duy nhất của ứng dụng (AC-4.7).
 */
 
-export function useTactic(teamId: string) {
+export function useTactic(teamId: string, quanSo = QUAN_SO_MAC_DINH) {
   /*
     Selector trả `null` khi chiến thuật trong store thuộc đội khác. `null` là
     giá trị nguyên thuỷ nên zustand so sánh bằng Object.is thấy không đổi —
@@ -31,12 +32,12 @@ export function useTactic(teamId: string) {
 
   const napChienThuat = useCallback(async (): Promise<void> => {
     try {
-      const bo = await tacticRepo.layChienThuatDangDung(teamId)
+      const bo = await tacticRepo.layChienThuatTheoQuanSo(teamId, quanSo)
       useAppStore.getState().datChienThuat(teamId, bo)
     } catch (loi) {
       ghiNhanLoiLuuTru(loi)
     }
-  }, [teamId])
+  }, [teamId, quanSo])
 
   /** Ghi một bộ đã sửa: cập nhật store trước, rồi ghi xuống lưu trữ. */
   const ghi = useCallback(

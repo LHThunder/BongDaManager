@@ -273,6 +273,8 @@ export const TRANG_CHIEN_THUAT = {
   tieuDe: 'Chiến thuật',
   moChienThuat: 'Chiến thuật',
   nhanChonSoDo: 'Sơ đồ',
+  nhanChonQuanSo: 'Số người mỗi bên',
+  nhanQuanSo: (n: number) => `${n} người`,
   tieuDeNgoaiSan: 'Ngoài sân',
   ngoaiSanTrong: 'Mọi cầu thủ đều đã ở trên sân.',
   chuaCoCauThu: 'Đội này chưa có cầu thủ nào để xếp đội hình.',
