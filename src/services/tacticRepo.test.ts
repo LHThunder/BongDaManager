@@ -6,6 +6,7 @@ import { vaiTroMacDinh } from '../domain/roles'
 import type { Player, Tactic } from '../domain/types'
 import { DB_NAME, dongDb, moDb } from '../storage/db'
 import { laLoi, LoiUngDung } from './errors'
+import * as playerRepo from './playerRepo'
 import * as tacticRepo from './tacticRepo'
 import * as teamRepo from './teamRepo'
 
@@ -23,7 +24,11 @@ beforeEach(async () => {
   await xoaDatabase()
 })
 
-async function themCauThu(teamId: string, so: number): Promise<Player> {
+async function themCauThu(
+  teamId: string,
+  so: number,
+  positions: Player['positions'] = ['DC'],
+): Promise<Player> {
   const bayGio = Date.now()
   const cauThu: Player = {
     id: crypto.randomUUID(),
@@ -32,7 +37,7 @@ async function themCauThu(teamId: string, so: number): Promise<Player> {
     shirtNumber: so,
     age: 25,
     preferredFoot: 'phai',
-    positions: ['DC'],
+    positions,
     attributes: {},
     gkAttributes: null,
     portraitImageId: null,
@@ -323,5 +328,114 @@ describe('bộ chiến thuật có tên (AC-7.5, AC-7.6)', () => {
     await expect(
       tacticRepo.apDungBo(doi.id, 'khong-co-bo-nay'),
     ).rejects.toSatisfy((loi) => laLoi(loi, 'NotFound'))
+  })
+})
+
+/*
+  Bộ chiến thuật riêng cho mỗi quân số (AC-13.6, AC-13.7, quyết định D64).
+
+  Điều quan trọng nhất phải canh: xếp đội hình ở quân số này KHÔNG được đụng
+  tới đội hình đã xếp ở quân số kia. Đó là cả lý do D64 tồn tại.
+*/
+describe('bộ chiến thuật theo quân số (AC-13.6)', () => {
+  /*
+    Đội thử phải có vị trí TRẢI RỘNG, không phải 12 trung vệ: xếp lại đội
+    hình từ chối những chỗ sai vị trí quá nặng, nên một đội toàn trung vệ sẽ
+    không lấp nổi ô tiền đạo của sơ đồ 5 người — và khi ấy phép kiểm đo sai
+    thứ nó định đo.
+  */
+  const VI_TRI_RAI: Player['positions'][] = [
+    ['GK'],
+    ['DL'],
+    ['DC'],
+    ['DC'],
+    ['DR'],
+    ['ML'],
+    ['MC'],
+    ['MC'],
+    ['MR'],
+    ['ST'],
+    ['ST'],
+    ['AM'],
+  ]
+
+  async function doiCo(soCauThu: number): Promise<string> {
+    const doi = await teamRepo.create({ name: 'Đội thử quân số' })
+    for (let i = 1; i <= soCauThu; i += 1) {
+      await themCauThu(doi.id, i, VI_TRI_RAI[(i - 1) % VI_TRI_RAI.length])
+    }
+    return doi.id
+  }
+
+  it('gọi hai lần cùng quân số thì ra cùng một bộ', async () => {
+    const teamId = await doiCo(12)
+
+    const lan1 = await tacticRepo.layChienThuatTheoQuanSo(teamId, 5)
+    const lan2 = await tacticRepo.layChienThuatTheoQuanSo(teamId, 5)
+
+    expect(lan2.id).toBe(lan1.id)
+    expect(laySoDo(lan2.formationId).oVien).toHaveLength(5)
+  })
+
+  it('bộ sân 5 và bộ sân 11 là hai bản ghi khác nhau', async () => {
+    const teamId = await doiCo(12)
+
+    const nam = await tacticRepo.layChienThuatTheoQuanSo(teamId, 5)
+    const muoiMot = await tacticRepo.layChienThuatTheoQuanSo(teamId, 11)
+
+    expect(nam.id).not.toBe(muoiMot.id)
+    expect(laySoDo(nam.formationId).oVien).toHaveLength(5)
+    expect(laySoDo(muoiMot.formationId).oVien).toHaveLength(11)
+  })
+
+  it('sửa đội hình sân 5 KHÔNG đụng tới đội hình sân 11', async () => {
+    const teamId = await doiCo(12)
+
+    const muoiMot = await tacticRepo.layChienThuatTheoQuanSo(teamId, 11)
+    const truoc = muoiMot.oVien.map((o) => o.playerId)
+
+    const nam = await tacticRepo.layChienThuatTheoQuanSo(teamId, 5)
+    await tacticRepo.luu({
+      ...nam,
+      oVien: nam.oVien.map((o) => ({ ...o, playerId: null })),
+    })
+
+    const lai = await tacticRepo.layChienThuatTheoQuanSo(teamId, 11)
+    expect(lai.oVien.map((o) => o.playerId)).toEqual(truoc)
+  })
+
+  it('bộ sinh lần đầu khớp sẵn người từ đội hình đang có (AC-13.3)', async () => {
+    const teamId = await doiCo(12)
+    const cacCauThu = await playerRepo.listByTeam(teamId)
+
+    /*
+      Xếp đủ người vào bộ 11 trước. Bộ mặc định sinh ra vốn RỖNG, nên nếu
+      không xếp thì bộ sân 5 cũng rỗng — và đó mới là hành vi đúng, chứ
+      không phải lỗi. Phép kiểm này đo việc MANG NGƯỜI SANG, nên nó phải có
+      người để mang.
+    */
+    const muoiMot = await tacticRepo.layChienThuatTheoQuanSo(teamId, 11)
+    await tacticRepo.luu({
+      ...muoiMot,
+      oVien: muoiMot.oVien.map((o, i) => ({
+        ...o,
+        playerId: cacCauThu[i]?.id ?? null,
+      })),
+    })
+
+    const nam = await tacticRepo.layChienThuatTheoQuanSo(teamId, 5)
+    const coNguoi = nam.oVien.filter((o) => o.playerId !== null)
+    expect(coNguoi).toHaveLength(5)
+
+    // Và họ phải là người của chính đội đó, không phải id bịa ra.
+    const hopLe = new Set(cacCauThu.map((c) => c.id))
+    for (const o of coNguoi) expect(hopLe.has(o.playerId ?? '')).toBe(true)
+  })
+
+  it('quân số không có sơ đồ nào thì báo NotFound chứ không sinh bừa', async () => {
+    const teamId = await doiCo(12)
+    await expect(
+      tacticRepo.layChienThuatTheoQuanSo(teamId, 3),
+    ).rejects.toSatisfy((loi: unknown) => laLoi(loi, 'NotFound'))
   })
 })

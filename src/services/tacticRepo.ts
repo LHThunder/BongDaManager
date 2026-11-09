@@ -1,7 +1,9 @@
-import { laySoDo } from '../domain/formations'
+import { laySoDo, soDoTheoQuanSo } from '../domain/formations'
+import { xepLaiKhiDoiSoDo } from '../domain/lineup'
 import { THU_TU_CHI_THI } from '../domain/instructions'
-import { vaiTroApDungDuoc } from '../domain/roles'
+import { vaiTroApDungDuoc, vaiTroMacDinh } from '../domain/roles'
 import type { Tactic } from '../domain/types'
+import { QUAN_SO_MAC_DINH } from '../engine/tran'
 import { moDb, taoChienThuatMacDinh } from '../storage/db'
 import { LoiUngDung, chuanHoaLoiLuuTru } from './errors'
 
@@ -102,6 +104,87 @@ export async function layChienThuatDangDung(teamId: string): Promise<Tactic> {
     const moi = taoChienThuatMacDinh(teamId)
     await khoTactics.put(moi)
     await khoTeams.put({ ...doi, activeTacticId: moi.id })
+    await tx.done
+    return moi
+  } catch (loi) {
+    throw chuanHoaLoiLuuTru(loi)
+  }
+}
+
+
+/**
+ * Bộ chiến thuật của một đội ở MỘT quân số (AC-13.6, AC-13.7, quyết định D64).
+ *
+ * "Bộ của quân số n" suy từ chính sơ đồ của bộ — không thêm trường nào, không
+ * đổi cấu trúc lưu trữ: kho `tactics` vốn đã chứa nhiều bộ mỗi đội.
+ *
+ * Chưa có bộ nào cho quân số đó thì SINH một bộ mặc định, và bộ ấy được khớp
+ * sẵn người từ đội hình đang có (AC-13.3) thay vì để rỗng trơn — người dùng
+ * đổi sang sân 5 không phải xếp lại từ đầu.
+ *
+ * Quân số 11 đi đường cũ `layChienThuatDangDung` để `activeTacticId` giữ
+ * nguyên ý nghĩa, tức mọi dữ liệu có từ trước spec 002 không đổi gì.
+ */
+export async function layChienThuatTheoQuanSo(
+  teamId: string,
+  quanSo: number,
+): Promise<Tactic> {
+  if (quanSo === QUAN_SO_MAC_DINH) return layChienThuatDangDung(teamId)
+
+  const soDo = soDoTheoQuanSo(quanSo)[0]
+  if (!soDo) {
+    throw new LoiUngDung('NotFound', { truong: 'quanSo', giaTri: quanSo })
+  }
+
+  try {
+    const db = await moDb()
+    const tx = db.transaction(['teams', 'tactics', 'players'], 'readwrite')
+    const khoTactics = tx.objectStore('tactics')
+
+    const doi = await tx.objectStore('teams').get(teamId)
+    if (!doi) {
+      throw new LoiUngDung('NotFound', { truong: 'teamId', giaTri: teamId })
+    }
+
+    const cuaDoi = await khoTactics.index('byTeam').getAll(teamId)
+    const dangCo = cuaDoi.find(
+      (bo) => bo.ten === null && laySoDo(bo.formationId).oVien.length === quanSo,
+    )
+    if (dangCo) {
+      await tx.done
+      return dangCo
+    }
+
+    /*
+      Khớp sẵn người từ bộ 11 người đang dùng. Dùng `xepLaiKhiDoiSoDo` —
+      đúng hàm mà trang chiến thuật dùng khi đổi sơ đồ — nên luật "giữ ai,
+      đẩy ai ra" chỉ có MỘT chỗ định nghĩa.
+    */
+    const boCu = doi.activeTacticId
+      ? await khoTactics.get(doi.activeTacticId)
+      : undefined
+    const cacCauThu = await tx
+      .objectStore('players')
+      .index('byTeam')
+      .getAll(teamId)
+
+    const xepLai = xepLaiKhiDoiSoDo(
+      soDo.id,
+      boCu?.oVien.map((o) => ({ slotId: o.slotId, playerId: o.playerId })) ?? [],
+      cacCauThu.map((c) => ({ id: c.id, positions: c.positions })),
+    )
+
+    const moi: Tactic = {
+      ...taoChienThuatMacDinh(teamId),
+      formationId: soDo.id,
+      oVien: soDo.oVien.map((o, i) => ({
+        slotId: o.slotId,
+        playerId: xepLai.oVien[i]?.playerId ?? null,
+        roleId: vaiTroMacDinh(o.viTri),
+      })),
+    }
+
+    await khoTactics.put(moi)
     await tx.done
     return moi
   } catch (loi) {

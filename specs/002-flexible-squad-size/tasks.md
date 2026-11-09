@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | 33 AC (US-12 → US-16) |
-| **Tiến độ** | 10/25 |
+| **Tiến độ** | 12/25 |
 | **Sửa đổi** | 2026-11-01 — chẻ lần đầu từ plan (D64 phát sinh lúc chẻ), rồi sửa theo cả 7 phát hiện của `/analyze` |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -91,14 +91,14 @@ dụng chạy được (hiến pháp P6), và là một commit.
   - AC: AC-13.2, AC-13.4, AC-13.5
   - Phụ thuộc: T206
 
-- [ ] **T209** — Xếp lại đội hình khi số ô đổi
+- [x] **T209** — Xếp lại đội hình khi số ô đổi
   - File: sửa `src/domain/lineup.ts`, sửa `src/domain/lineup.test.ts`
   - Xong khi: test xanh — đổi từ sơ đồ 11 ô sang 5 ô giữ lại 5 người khớp vị trí nhất và nêu đúng 6 người bị đẩy ra ngoài; chú thích sai "Đúng 11 ô" của `KetQuaXepLai` được sửa.
   - AC: AC-13.3, AC-13.3b
   - Phụ thuộc: T206
   - **`/analyze` soát ra: hàm này KHÔNG phải sửa logic.** `xepLaiKhiDoiSoDo` và `tinhTrangDoiHinh` đã lấy số ô từ `laySoDo(...).oVien`, chỉ chú thích là nói sai. Rủi ro R27 của plan đã bị gỡ.
 
-- [ ] **T210** — Bộ chiến thuật theo quân số
+- [x] **T210** — Bộ chiến thuật theo quân số
   - File: sửa `src/services/tacticRepo.ts`, sửa `src/services/tacticRepo.test.ts`
   - Xong khi: `layHoacTao(teamId, quanSo)` trả bộ của đúng quân số đó; chưa có thì sinh bộ mặc định với sơ đồ đầu tiên của quân số **và khớp sẵn người từ đội hình đang có** (AC-13.3) thay vì để rỗng trơn; test xanh — gọi hai lần cùng `(đội, quân số)` ra cùng một bộ, bộ sân 5 và bộ sân 11 của cùng một đội là **hai bản ghi khác nhau và không đụng vào nhau**, và bộ sân 5 sinh lần đầu đã có sẵn 5 người hợp lý.
   - AC: AC-13.6, AC-13.7

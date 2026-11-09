@@ -47,7 +47,7 @@ export interface NguoiXepSai {
 }
 
 export interface KetQuaXepLai {
-  /** Đúng 11 ô, theo đúng thứ tự ô của sơ đồ mới. */
+  /** Đúng số ô của sơ đồ MỚI, theo đúng thứ tự ô của nó. */
   readonly oVien: readonly OTrongDoiHinh[]
   /** Cầu thủ không còn chỗ nào xếp được — nêu tên cho người dùng (AC-5.8). */
   readonly nguoiBiDayRa: readonly string[]
