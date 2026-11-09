@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | 33 AC (US-12 → US-16) |
-| **Tiến độ** | 7/25 |
+| **Tiến độ** | 8/25 |
 | **Sửa đổi** | 2026-11-01 — chẻ lần đầu từ plan (D64 phát sinh lúc chẻ), rồi sửa theo cả 7 phát hiện của `/analyze` |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -54,7 +54,7 @@ dụng chạy được (hiến pháp P6), và là một commit.
   - AC: AC-14.3, AC-14.3b *(phần engine)*
   - Phụ thuộc: T201
 
-- [ ] **T204** [P] — Huỷ trận khi một bên còn dưới 60% quân số
+- [x] **T204** [P] — Huỷ trận khi một bên còn dưới 60% quân số
   - File: sửa `src/engine/tran.ts`, sửa `src/engine/suKien.ts`, sửa `src/engine/the.test.ts`
   - Xong khi: `nguongHuyTran(quanSo)` và điều kiện `trenSan.length < 0.6 * quanSo`; loại sự kiện `huy-tran` kèm mẫu câu; cờ trên trạng thái để giao diện biết; test xanh — n=11 dừng khi còn 6 người và **không** dừng ở 7, n=5 dừng khi còn 2 và **không** dừng ở 3; thẻ đỏ ở mọi quân số vẫn là đá thiếu người chứ không được thay bù.
   - AC: AC-14.4, AC-14.5, AC-14.6

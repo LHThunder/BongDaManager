@@ -35,6 +35,8 @@ export type LoaiSuKien =
   | 'kiet-suc'
   | 'het-hiep'
   | 'ket-thuc'
+  /** Trận dừng giữa chừng vì một bên còn quá ít người (AC-14.6). */
+  | 'huy-tran'
 
 export type BenDoi = 'nha' | 'khach'
 
@@ -89,6 +91,7 @@ export const LOAI_BAT_BUOC: ReadonlySet<LoaiSuKien> = new Set<LoaiSuKien>([
   'thay-nguoi',
   'het-hiep',
   'ket-thuc',
+  'huy-tran',
 ])
 
 /**

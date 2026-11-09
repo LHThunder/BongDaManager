@@ -7,6 +7,8 @@ import {
   type TheDaNhan,
 } from './the'
 import type { MucPressing } from './theLuc'
+import { benMauQuanSo, cauHinhMau, MA_TRAN_CO_DINH } from './__fixtures__/doiMau'
+import { buocTiep, nguongHuyTran, taoTran } from './tran'
 
 const CAC_MUC: MucPressing[] = ['thap', 'trung-binh', 'cao']
 
@@ -88,5 +90,78 @@ describe('rút thẻ và rời sân (AC-8.13)', () => {
     const tiLe = soNghiemTrong / soMau
     expect(tiLe).toBeGreaterThan(0)
     expect(tiLe).toBeLessThan(0.15)
+  })
+})
+
+/*
+  Huỷ trận khi một bên còn quá ít người (AC-14.5, AC-14.6, quyết định D58).
+
+  Dựng tay số người trên sân thay vì chờ engine rút đủ thẻ đỏ: cần kiểm ĐÚNG
+  hai bên của ngưỡng, mà rút ngẫu nhiên thì không đặt được trận vào đúng chỗ
+  muốn kiểm.
+*/
+describe('huỷ trận vì thiếu người (AC-14.5)', () => {
+  function tranVoi(quanSo: number, soNguoiConLai: number) {
+    const tt = taoTran(
+      cauHinhMau(MA_TRAN_CO_DINH[0], {
+        quanSo,
+        nha: benMauQuanSo('A', quanSo),
+        khach: benMauQuanSo('B', quanSo),
+        sanTrungLap: true,
+      }),
+    )
+    const nha = {
+      ...tt.ben.nha,
+      trenSan: tt.ben.nha.trenSan.slice(0, soNguoiConLai),
+    }
+    return { ...tt, ben: { ...tt.ben, nha } }
+  }
+
+  it('ngưỡng là 60% quân số, khớp luật thật ở cả hai đầu dải', () => {
+    // Sân 11: luật FIFA dừng khi còn dưới 7 người.
+    expect(nguongHuyTran(11)).toBeCloseTo(6.6)
+    expect(6 < nguongHuyTran(11)).toBe(true)
+    expect(7 < nguongHuyTran(11)).toBe(false)
+
+    // Sân 5: luật futsal dừng khi còn dưới 3 người.
+    expect(nguongHuyTran(5)).toBeCloseTo(3)
+    expect(2 < nguongHuyTran(5)).toBe(true)
+    expect(3 < nguongHuyTran(5)).toBe(false)
+  })
+
+  it('sân 11 dừng khi còn 6 người, KHÔNG dừng khi còn 7', () => {
+    const conBay = buocTiep(tranVoi(11, 7))
+    expect(conBay.biHuy).toBe(false)
+    expect(conBay.ketThuc).toBe(false)
+
+    const conSau = buocTiep(tranVoi(11, 6))
+    expect(conSau.biHuy).toBe(true)
+    expect(conSau.ketThuc).toBe(true)
+  })
+
+  it('sân 5 dừng khi còn 2 người, KHÔNG dừng khi còn 3', () => {
+    const conBa = buocTiep(tranVoi(5, 3))
+    expect(conBa.biHuy).toBe(false)
+    expect(conBa.ketThuc).toBe(false)
+
+    const conHai = buocTiep(tranVoi(5, 2))
+    expect(conHai.biHuy).toBe(true)
+    expect(conHai.ketThuc).toBe(true)
+  })
+
+  it('trận bị huỷ có dòng riêng nói rõ đội nào thiếu người', () => {
+    const tt = buocTiep(tranVoi(5, 2))
+    const cuoi = tt.ungVien[tt.ungVien.length - 1].suKien
+
+    expect(cuoi.loai).toBe('huy-tran')
+    expect(cuoi.doi).toBe('nha')
+    expect(cuoi.phut).toBe(tt.phut)
+  })
+
+  it('trận chạy bình thường thì không bao giờ mang cờ huỷ', () => {
+    const tt = buocTiep(
+      taoTran(cauHinhMau(MA_TRAN_CO_DINH[0], { sanTrungLap: true })),
+    )
+    expect(tt.biHuy).toBe(false)
   })
 })

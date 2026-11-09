@@ -247,6 +247,24 @@ export interface TrangThaiTran {
   /** Hàng đợi, áp vào đầu phút kế tiếp (D30b). */
   readonly canThiepChoAp: readonly CanThiep[]
   readonly ketThuc: boolean
+  /**
+   * Trận dừng giữa chừng vì một bên còn quá ít người (AC-14.5, AC-14.6).
+   *
+   * Khác `ketThuc` ở chỗ: `ketThuc` chỉ nói trận đã dừng, còn cờ này nói
+   * dừng VÌ SAO — lịch sử và báo cáo cần phân biệt hai chuyện đó.
+   */
+  readonly biHuy: boolean
+}
+
+/**
+ * Dưới ngưỡng này thì trận phải dừng (AC-14.5, quyết định D58).
+ *
+ * Một bất đẳng thức duy nhất cho ra đúng luật thật ở cả hai đầu dải: sân 11
+ * dừng khi còn dưới 6,6 người tức từ 6 trở xuống (luật FIFA: dưới 7), sân 5
+ * dừng khi còn dưới 3 (luật futsal). Không cần bảng tra theo từng quân số.
+ */
+export function nguongHuyTran(quanSo: number): number {
+  return 0.6 * quanSo
 }
 
 /** Quân số mặc định khi không khai — giữ nguyên hành vi trước spec 002. */
@@ -354,6 +372,7 @@ export function taoTran(cauHinh: CauHinhTran): TrangThaiTran {
     canThiep: [],
     canThiepChoAp: [],
     ketThuc: false,
+    biHuy: false,
   }
 
   return {
@@ -1467,9 +1486,23 @@ export function buocTiep(ttVao: TrangThaiTran): TrangThaiTran {
     else benKhach = capNhat
   }
 
+  /*
+    Huỷ trận khi một bên còn quá ít người (AC-14.5, quyết định D58).
+
+    Kiểm SAU khi thẻ đỏ của phút này đã áp, nên trận dừng ngay tại phút mà
+    người thứ n bị đuổi chứ không chờ thêm một phút nữa.
+  */
+  const benThieuNguoi: BenDoi | null =
+    benNha.trenSan.length < nguongHuyTran(tt.quanSo)
+      ? 'nha'
+      : benKhach.trenSan.length < nguongHuyTran(tt.quanSo)
+        ? 'khach'
+        : null
+  const biHuy = benThieuNguoi !== null
+
   // Rút mẫu câu cho các mốc TRƯỚC khi cất hạt giống, cùng lý do như ở
   // `taoTran`: hạt giống phải phản ánh mọi lần đã rút.
-  const ketThuc = phut >= tong
+  const ketThuc = phut >= tong || biHuy
   const laMocHetHiep = phut === tongPhutHiep1(tt)
   const mauCauHetHiep = laMocHetHiep ? Math.floor(rng.next() * 1000) : 0
   const mauCauKetThuc = ketThuc ? Math.floor(rng.next() * 1000) : 0
@@ -1482,6 +1515,7 @@ export function buocTiep(ttVao: TrangThaiTran): TrangThaiTran {
     ben: { nha: benNha, khach: benKhach },
     ungVien: [...tt.ungVien, ...gomUngVienCuaPhut(ungVienMoi)],
     ketThuc,
+    biHuy,
   }
 
   const mocHiep: UngVienSuKien[] = []
@@ -1490,7 +1524,25 @@ export function buocTiep(ttVao: TrangThaiTran): TrangThaiTran {
       taoUngVien(sauTt, phut, 'het-hiep', 'nha', [], null, [], mauCauHetHiep, 100),
     )
   }
-  if (ketThuc) {
+  /*
+    Trận bị huỷ kể bằng dòng RIÊNG, không mượn dòng "hết giờ": người xem phải
+    biết trận dừng vì thiếu người chứ không phải vì hết thời gian (AC-14.6).
+  */
+  if (biHuy && benThieuNguoi) {
+    mocHiep.push(
+      taoUngVien(
+        sauTt,
+        phut,
+        'huy-tran',
+        benThieuNguoi,
+        [],
+        null,
+        [],
+        mauCauKetThuc,
+        100,
+      ),
+    )
+  } else if (ketThuc) {
     mocHiep.push(
       taoUngVien(sauTt, phut, 'ket-thuc', 'nha', [], null, [], mauCauKetThuc, 100),
     )

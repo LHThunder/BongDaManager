@@ -177,6 +177,20 @@ const MAU: Readonly<Partial<Record<LoaiSuKien, readonly MauCau[]>>> = {
     () => 'Hiệp một khép lại.',
     () => 'Trọng tài cho hai đội nghỉ giải lao.',
   ],
+  /*
+    Trận bị huỷ vì thiếu người (AC-14.6). `tenDoi` là đội KHÔNG còn đủ quân.
+    Câu phải nói rõ hai điều: trận dừng, và dừng vì sao — nếu không người xem
+    sẽ tưởng mình vừa đọc một trận kết thúc bình thường.
+  */
+  'huy-tran': [
+    (c) => `Trọng tài dừng trận: ${c.tenDoi} không còn đủ người thi đấu.`,
+    (c) =>
+      `Trận đấu không thể tiếp tục — ${c.tenDoi} đã mất quá nhiều người vì thẻ đỏ.`,
+    (c) =>
+      `Còi vang lên sớm: ${c.tenDoi} xuống dưới số người tối thiểu, trận bị huỷ.`,
+    (c) =>
+      `${c.tenDoi} không còn đủ quân, trọng tài buộc phải cho dừng trận tại đây.`,
+  ],
   'ket-thuc': [
     () => 'Hết giờ! Trận đấu khép lại.',
     () => 'Tiếng còi mãn cuộc vang lên.',
