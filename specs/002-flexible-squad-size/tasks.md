@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | 33 AC (US-12 → US-16) |
-| **Tiến độ** | 13/25 |
+| **Tiến độ** | 18/25 |
 | **Sửa đổi** | 2026-11-01 — chẻ lần đầu từ plan (D64 phát sinh lúc chẻ), rồi sửa theo cả 7 phát hiện của `/analyze` |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -115,32 +115,32 @@ dụng chạy được (hiến pháp P6), và là một commit.
 
 ## Phase 20 — Lát 20: Giao diện trận, thời lượng, sân 2D
 
-- [ ] **T212** — Thời lượng trận vào engine
+- [x] **T212** — Thời lượng trận vào engine
   - File: sửa `src/engine/tran.ts`, sửa `src/engine/tran.test.ts`
   - Xong khi: `phutMoiHiep` là trường của trạng thái thay cho hằng số; tổng thời lượng bằng mức đã chọn, hiệp hai gánh phần lẻ; test xanh — mức 45 cho hiệp 1 dài 22 và hiệp 2 dài 23, mức 90 giữ **nguyên vẹn** mọi số đo cũ.
   - AC: AC-12.5 *(phần engine)*
   - Phụ thuộc: T200
 
-- [ ] **T213** — Mật độ dòng tường thuật co theo thời lượng
+- [x] **T213** — Mật độ dòng tường thuật co theo thời lượng
   - File: sửa `src/engine/suKien.ts`, sửa `src/engine/suKien.test.ts`
   - Xong khi: `khoangSoDong(thoiLuong)` thay hai hằng số; test xanh — 90 phút cho 60–100 dòng, 45 phút cho 30–50, và một trận 20 phút chạy thật sinh ra số dòng nằm trong khoảng của chính nó.
   - AC: AC-15.5
   - Phụ thuộc: T212
 
-- [ ] **T214** [P] — Khung sân 2D theo quân số
+- [x] **T214** [P] — Khung sân 2D theo quân số
   - File: sửa `src/ui/components/San2D.tsx`
   - Xong khi: bảng tra `KHUNG_SAN[n]`; sân n=5 ngắn và hẹp hơn sân n=11; đếm đúng **2n** điểm, không điểm nào đè khít điểm khác; kiểm mắt trên một trận sân 5 thật.
   - **`/analyze` soát ra:** phần đếm 2n điểm **không phải sửa code** — `San2D` đã vẽ theo `oVien` lọc bởi `trenSan`. AC-15.1 và AC-15.2 chỉ cần test chứng minh; việc thật chỉ là khung sân (AC-15.6).
   - AC: AC-15.1, AC-15.2, AC-15.6
   - Phụ thuộc: T200
 
-- [ ] **T215** — Màn chọn cặp đấu: quân số và thời lượng
+- [x] **T215** — Màn chọn cặp đấu: quân số và thời lượng
   - File: sửa `src/ui/pages/ChonCapDau.tsx`, sửa `src/ui/strings.ts`
   - Xong khi: hai ô chọn với mặc định **11 người** và **90 phút**; chọn quân số thì lấy đúng bộ chiến thuật của quân số đó cho cả hai đội; đội thiếu người thì báo rõ đội nào thiếu bao nhiêu và chặn bắt đầu.
   - AC: AC-12.1, AC-12.2, AC-12.3, AC-12.5
   - Phụ thuộc: T202, T210, T212
 
-- [ ] **T216** [P] — Vô hiệu hoá thay người khi ghế trống
+- [x] **T216** [P] — Vô hiệu hoá thay người khi ghế trống
   - File: sửa `src/ui/components/ThayNguoi.tsx`, sửa `src/ui/strings.ts`
   - Xong khi: đăng ký 0 dự bị thì khối thay người hiện câu giải thích và nút bị vô hiệu hoá, chứ không im lặng từ chối; còn lượt thì vẫn báo đúng số lượt còn lại.
   - AC: AC-14.3b

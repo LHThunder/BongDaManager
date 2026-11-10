@@ -440,6 +440,14 @@ export const CHON_CAP_DAU = {
   nhanDoiNha: 'Đội chủ nhà',
   nhanDoiKhach: 'Đội khách',
   chonDoi: '— Chọn đội —',
+  nhanQuanSo: 'Số người mỗi bên',
+  moTaQuanSo:
+    'Mỗi quân số dùng bộ chiến thuật riêng của đội, chọn ở trang chiến thuật.',
+  nhanNguoi: (n: number) => `${n} người`,
+  nhanThoiLuong: 'Thời lượng trận',
+  moTaThoiLuong:
+    'Trận ngắn thì số dòng tường thuật cũng ít đi theo, nhịp đọc giữ nguyên.',
+  nhanPhut: (n: number) => `${n} phút`,
   sanTrungLap: 'Đá trên sân trung lập',
   moTaSanTrungLap:
     'Tắt hoàn toàn lợi thế sân nhà, để so hai chiến thuật cho công bằng.',
@@ -513,6 +521,8 @@ export const THAY_NGUOI = {
   chonCauThu: '— Chọn cầu thủ —',
   thucHien: 'Thay',
   hetLuot: 'Đã hết lượt thay người.',
+  khongCoDuBi:
+    'Đội này không đăng ký cầu thủ dự bị nào, nên trận này không thay người được.',
 } as const
 
 export const CAN_THIEP_GIUA_TRAN = {

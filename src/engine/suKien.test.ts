@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import {
   chonSuKien,
+  khoangSoDong,
   LOAI_BAT_BUOC,
   SO_DONG_TOI_DA,
+  SO_DONG_TOI_THIEU,
   type LoaiSuKien,
   type SuKien,
   type UngVienSuKien,
@@ -202,6 +204,63 @@ describe('đường bóng trong sự kiện (AC-10.2)', () => {
         s.duongBong.map((v) => v.id),
       )
       expect(b, ma).toEqual(a)
+    }
+  })
+})
+
+/*
+  Khoảng số dòng co theo thời lượng (AC-15.5, quyết định D60).
+
+  Hai con số 60–100 của spec 001 được chốt cho trận 90 phút. Một trận 20 phút
+  mà vẫn nhồi tới 100 dòng thì thành bản highlight dày đặc, không còn là một
+  trận đấu — nên khoảng co theo tỉ lệ `thoiLuong / 90`, nhịp đọc giữ nguyên.
+*/
+describe('khoảng số dòng theo thời lượng (AC-15.5)', () => {
+  it('trận 90 phút giữ đúng hai con số của spec 001', () => {
+    expect(khoangSoDong(90)).toEqual({
+      toiThieu: SO_DONG_TOI_THIEU,
+      toiDa: SO_DONG_TOI_DA,
+    })
+  })
+
+  it('trận 45 phút cho 30 tới 50 dòng', () => {
+    expect(khoangSoDong(45)).toEqual({ toiThieu: 30, toiDa: 50 })
+  })
+
+  it('trận 20 phút cho 13 tới 22 dòng', () => {
+    expect(khoangSoDong(20)).toEqual({ toiThieu: 13, toiDa: 22 })
+  })
+
+  it('trần của chonSuKien đi theo thời lượng được truyền vào', () => {
+    expect(chonSuKien(nhieuUngVien(300), 45)).toHaveLength(50)
+    expect(chonSuKien(nhieuUngVien(300), 20)).toHaveLength(22)
+  })
+
+  /*
+    Không khai thời lượng thì vẫn là trận 90 phút. Mọi lời gọi có từ trước
+    spec 002 — và mọi mã trận đã lưu — phải ra đúng con số cũ.
+  */
+  it('không khai thời lượng thì vẫn là trần 100 dòng', () => {
+    expect(chonSuKien(nhieuUngVien(300))).toHaveLength(SO_DONG_TOI_DA)
+  })
+
+  /*
+    Phép quan trọng nhất của khối: một trận NGẮN chạy thật phải rơi vào khoảng
+    của CHÍNH NÓ. Ba phép trên chỉ kiểm số học; phép này kiểm rằng engine thật
+    sự sinh đủ tình huống đáng kể trong 20 phút để lấp được cái sàn 13 dòng.
+  */
+  it('trận 20 phút chạy thật cho số dòng nằm trong khoảng của chính nó', () => {
+    const khoang = khoangSoDong(20)
+    const soDong: number[] = []
+    for (const ma of MA_TRAN_CO_DINH.slice(0, 10)) {
+      const tt = chayHetTran(taoTran(cauHinhMau(ma, { thoiLuong: 20 })))
+      soDong.push(dongSuKien(tt).length)
+    }
+
+    for (const n of soDong) {
+      const bao = `số dòng: ${JSON.stringify(soDong)}`
+      expect(n, bao).toBeGreaterThanOrEqual(khoang.toiThieu)
+      expect(n, bao).toBeLessThanOrEqual(khoang.toiDa)
     }
   })
 })

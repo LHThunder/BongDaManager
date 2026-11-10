@@ -2,12 +2,18 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { xepLaiKhiDoiSoDo } from '../../domain/lineup'
 import type { Player, Tactic } from '../../domain/types'
 import {
-  SO_CAU_THU_CHINH,
   SO_CAU_THU_DU_BI_TOI_DA,
   type LyDoKhongBatDau,
 } from '../../engine/batDau'
 import { DO_DAI_MA_TRAN, laMaTranHopLe, taoMaTran } from '../../engine/rng'
-import type { CauHinhTran, DangKyBen } from '../../engine/tran'
+import {
+  CAC_QUAN_SO,
+  CAC_THOI_LUONG,
+  QUAN_SO_MAC_DINH,
+  THOI_LUONG_MAC_DINH,
+  type CauHinhTran,
+  type DangKyBen,
+} from '../../engine/tran'
 import { useMatch } from '../../hooks/useMatch'
 import { aoDangDung } from '../mauAo'
 import { useTeams } from '../../hooks/useTeams'
@@ -41,15 +47,16 @@ const RNG_THAT = { next: () => Math.random() }
 
 /**
  * Đăng ký mặc định: lấy trước những người đã được xếp trong chiến thuật, rồi
- * bù cho đủ 11 từ danh sách đội, rồi 7 dự bị.
+ * bù cho đủ `quanSo` từ danh sách đội, rồi tới dự bị.
  *
  * Phần bù là bắt buộc chứ không phải cho đẹp: đội vừa tạo có bộ chiến thuật
- * mặc định với 11 ô TRỐNG, nên nếu chỉ lấy theo chiến thuật thì màn này mở ra
- * với 0/11 chính và người dùng phải tự bấm đủ 11 lần.
+ * mặc định với toàn ô TRỐNG, nên nếu chỉ lấy theo chiến thuật thì màn này mở
+ * ra với 0 người chính và người dùng phải tự bấm đủ từng ấy lần.
  */
 function dangKyMacDinh(
   cauThu: readonly Player[],
   chienThuat: Tactic,
+  quanSo: number,
 ): Record<string, VaiTroDangKy> {
   const trongSoDo = new Set(
     chienThuat.oVien
@@ -61,7 +68,7 @@ function dangKyMacDinh(
   let soChinh = 0
 
   for (const p of cauThu) {
-    if (trongSoDo.has(p.id) && soChinh < SO_CAU_THU_CHINH) {
+    if (trongSoDo.has(p.id) && soChinh < quanSo) {
       ra[p.id] = 'chinh'
       soChinh += 1
     }
@@ -70,7 +77,7 @@ function dangKyMacDinh(
   let soDuBi = 0
   for (const p of cauThu) {
     if (ra[p.id]) continue
-    if (soChinh < SO_CAU_THU_CHINH) {
+    if (soChinh < quanSo) {
       ra[p.id] = 'chinh'
       soChinh += 1
     } else if (soDuBi > SO_CAU_THU_DU_BI_TOI_DA) {
@@ -94,6 +101,13 @@ export function ChonCapDau({ onQuayLai, onDaBatDau }: Props) {
   const [idKhach, datIdKhach] = useState('')
   const [sanTrungLap, datSanTrungLap] = useState(false)
   /*
+    Quân số và thời lượng thuộc về TRẬN, không thuộc về đội (D52, D59), nên
+    chúng sống ở màn này chứ không phải ở hồ sơ đội. Mặc định 11 người và 90
+    phút: mở màn ra mà không chạm gì thì vẫn đúng một trận như spec 001.
+  */
+  const [quanSo, datQuanSo] = useState(QUAN_SO_MAC_DINH)
+  const [thoiLuong, datThoiLuong] = useState(THOI_LUONG_MAC_DINH)
+  /*
     Mã trận SỬA ĐƯỢC, và mở ra với mã của lần chạy trước nếu phiên này đã chạy
     một trận (AC-8.11, AC-8.12).
 
@@ -115,21 +129,31 @@ export function ChonCapDau({ onQuayLai, onDaBatDau }: Props) {
     void napDanhSachDoi()
   }, [napDanhSachDoi])
 
-  // Nạp cầu thủ và chiến thuật của đội vừa được chọn.
+  /*
+    Đổi quân số là đổi sang một bộ chiến thuật KHÁC của cùng đội (D64), nên
+    phải quên những gì đã nạp — giữ lại thì màn này đăng ký 5 người vào một
+    sơ đồ 11 ô.
+  */
+  useEffect(() => {
+    datDuLieu({})
+    datDangKy({})
+  }, [quanSo])
+
+  // Nạp cầu thủ và chiến thuật của đội vừa được chọn, đúng quân số đang chọn.
   const napDoi = useCallback(
     async (teamId: string) => {
       if (teamId === '' || duLieu[teamId]) return
       const [cauThu, chienThuat] = await Promise.all([
         playerRepo.listByTeam(teamId),
-        tacticRepo.layChienThuatDangDung(teamId),
+        tacticRepo.layChienThuatTheoQuanSo(teamId, quanSo),
       ])
       datDuLieu((cu) => ({ ...cu, [teamId]: { cauThu, chienThuat } }))
       datDangKy((cu) => ({
         ...cu,
-        [teamId]: dangKyMacDinh(cauThu, chienThuat),
+        [teamId]: dangKyMacDinh(cauThu, chienThuat, quanSo),
       }))
     },
-    [duLieu],
+    [duLieu, quanSo],
   )
 
   useEffect(() => {
@@ -223,7 +247,14 @@ export function ChonCapDau({ onQuayLai, onDaBatDau }: Props) {
     const khach = dungBen(idKhach)
     if (!nha || !khach) return
 
-    const cauHinh: CauHinhTran = { maTran, nha, khach, sanTrungLap }
+    const cauHinh: CauHinhTran = {
+      maTran,
+      nha,
+      khach,
+      quanSo,
+      thoiLuong,
+      sanTrungLap,
+    }
     if (batDauTran(cauHinh)) onDaBatDau()
   }
 
@@ -298,6 +329,46 @@ export function ChonCapDau({ onQuayLai, onDaBatDau }: Props) {
           )}
 
           <div className="mt-4 flex flex-wrap items-end gap-4">
+            <label className="text-sm text-slate-700">
+              <span className="block font-medium">
+                {CHON_CAP_DAU.nhanQuanSo}
+              </span>
+              <select
+                value={quanSo}
+                onChange={(e) => datQuanSo(Number(e.target.value))}
+                className="mt-1 rounded border border-slate-300 px-2 py-1 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300"
+              >
+                {CAC_QUAN_SO.map((n) => (
+                  <option key={n} value={n}>
+                    {CHON_CAP_DAU.nhanNguoi(n)}
+                  </option>
+                ))}
+              </select>
+              <span className="mt-1 block text-xs text-slate-500">
+                {CHON_CAP_DAU.moTaQuanSo}
+              </span>
+            </label>
+
+            <label className="text-sm text-slate-700">
+              <span className="block font-medium">
+                {CHON_CAP_DAU.nhanThoiLuong}
+              </span>
+              <select
+                value={thoiLuong}
+                onChange={(e) => datThoiLuong(Number(e.target.value))}
+                className="mt-1 rounded border border-slate-300 px-2 py-1 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300"
+              >
+                {CAC_THOI_LUONG.map((t) => (
+                  <option key={t} value={t}>
+                    {CHON_CAP_DAU.nhanPhut(t)}
+                  </option>
+                ))}
+              </select>
+              <span className="mt-1 block text-xs text-slate-500">
+                {CHON_CAP_DAU.moTaThoiLuong}
+              </span>
+            </label>
+
             <label className="flex items-center gap-2 text-sm text-slate-700">
               <input
                 type="checkbox"
@@ -390,7 +461,9 @@ export function ChonCapDau({ onQuayLai, onDaBatDau }: Props) {
               </p>
               <ul className="mt-1 space-y-0.5 text-sm text-amber-900">
                 {lyDoKhongBatDau.map((ly, i) => (
-                  <li key={`${ly.loai}-${i}`}>{cauLyDo(ly, tenDoi)}</li>
+                  <li key={`${ly.loai}-${i}`}>
+                    {cauLyDo(ly, tenDoi, quanSo)}
+                  </li>
                 ))}
               </ul>
             </div>
@@ -414,6 +487,7 @@ export function ChonCapDau({ onQuayLai, onDaBatDau }: Props) {
 function cauLyDo(
   ly: LyDoKhongBatDau,
   tenDoi: (ben: 'nha' | 'khach') => string,
+  quanSo: number,
 ): string {
   switch (ly.loai) {
     case 'cung-mot-doi':
@@ -437,7 +511,7 @@ function cauLyDo(
             case 'thieu-thu-mon':
               return LY_DO_KHONG_BAT_DAU.thieuThuMon(tenDoi(ly.doi))
             case 'thieu-nguoi':
-              return TINH_TRANG_DOI_HINH.thieuNguoi(l.soONhanNguoi, 11)
+              return TINH_TRANG_DOI_HINH.thieuNguoi(l.soONhanNguoi, quanSo)
             case 'ho-so-chua-hoan-tat':
               return LY_DO_KHONG_BAT_DAU.hoSoChuaHoanTat(
                 tenDoi(ly.doi),

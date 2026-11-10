@@ -1,5 +1,5 @@
 import { mauChuTuongPhan } from '../../domain/colors'
-import { laySoDo } from '../../domain/formations'
+import { laySoDo, soNguoiCuaSoDo } from '../../domain/formations'
 import { layViTri } from '../../domain/positions'
 import type { PositionId } from '../../domain/types'
 import type { BenDoi, SuKien } from '../../engine/suKien'
@@ -24,17 +24,59 @@ import { SAN_2D } from '../strings'
   sự kiện của họ — phải `latVung` trước khi vẽ, đúng cách engine làm.
 */
 
+/*
+  Hệ toạ độ của ảnh SVG. KHÔNG đổi theo quân số: giữ nó cố định thì bán kính
+  điểm, khoảng giãn và cỡ chữ đều là số pixel như nhau ở mọi định dạng —
+  cầu thủ sân 5 không phình to ra chỉ vì sân của họ nhỏ.
+*/
 const RONG = 100
 const CAO = 64
 
-/** Tâm theo trục dọc sân cho từng dải, trong khung của đội nhà. */
-const X_THEO_DAI: readonly number[] = [9, 32, 56, 79]
+/** Khung sân vẽ bên trong hệ toạ độ trên. */
+export interface KhungSan {
+  readonly rong: number
+  readonly cao: number
+}
 
-/** Tâm theo trục ngang sân cho từng cột. */
-const Y_THEO_COT: Readonly<Record<VungSan['cot'], number>> = {
-  trai: 13,
-  giua: 32,
-  phai: 51,
+/*
+  Khung sân theo quân số (AC-15.6, quyết định D56).
+
+  Bảng tra, không công thức: công thức cho ra những con số không ai kiểm được
+  bằng mắt, còn bảng thì chỉnh tay được từng định dạng. Sân 11 giữ đúng
+  100×64 của spec 001 nên mọi trận 11 người vẽ y như trước.
+
+  Co cả hai chiều, và co ÍT hơn tỉ lệ sân thật (futsal chỉ rộng ~40×20 so với
+  105×68): co đúng thật thì sân 5 bé tới mức mười cái điểm chen nhau không
+  đọc nổi số áo, mà AC-15.1 lại đếm điểm.
+*/
+export const KHUNG_SAN: Readonly<Record<number, KhungSan>> = {
+  11: { rong: 100, cao: 64 },
+  10: { rong: 96, cao: 62 },
+  9: { rong: 92, cao: 59 },
+  8: { rong: 87, cao: 56 },
+  7: { rong: 82, cao: 53 },
+  6: { rong: 76, cao: 50 },
+  5: { rong: 70, cao: 46 },
+}
+
+export function khungSan(quanSo: number): KhungSan {
+  return KHUNG_SAN[quanSo] ?? KHUNG_SAN[11]
+}
+
+/**
+ * Tâm theo trục dọc sân cho từng dải, tính theo TỈ LỆ chiều dài khung.
+ *
+ * Toạ độ ô vốn đã là phần trăm sân (D15), nên đổi khung là đủ — không cần
+ * một bảng toạ độ riêng cho mỗi quân số. Nhân với 100 ra lại đúng bộ số
+ * 9/32/56/79 của spec 001.
+ */
+const TI_LE_DAI: readonly number[] = [0.09, 0.32, 0.56, 0.79]
+
+/** Tâm theo trục ngang sân cho từng cột, theo tỉ lệ chiều rộng khung. */
+const TI_LE_COT: Readonly<Record<VungSan['cot'], number>> = {
+  trai: 13 / 64,
+  giua: 0.5,
+  phai: 51 / 64,
 }
 
 /** Độ cao đội hình đẩy cả đội lên hay xuống theo hướng tấn công của họ. */
@@ -57,8 +99,29 @@ const BUOC_GIAN = 8
  * khung thành đội nhà — đúng bóng đá. Nhưng vẽ đúng một toạ độ thì hai điểm
  * nằm đè lên nhau và sân chỉ hiện 13 điểm thay vì 22. Lệch 4 đơn vị mỗi bên
  * cho khoảng cách 8, lớn hơn đường kính 6,8 của một điểm.
+ *
  */
 const LECH_DOI = 4
+
+/** Lề tối thiểu từ tâm điểm tới mép khung, đủ cho bán kính 3,4. */
+const LE_TOI_THIEU = 5
+
+/**
+ * Tỉ lệ của khung sân so với khung sân 11 (AC-15.2).
+ *
+ * MỌI số đo tuyệt đối ở trên — bán kính, khoảng giãn, độ lệch hai đội, cỡ
+ * chữ — đều nhân với số này, nên sân quân số nhỏ là một **mô hình thu nhỏ**
+ * đúng tỉ lệ của sân 11, không phải sân 11 bị bóp lại quanh những cái điểm
+ * vẫn to như cũ.
+ *
+ * Bản đầu của T214 chỉ co khung mà để nguyên các số đo ấy. Đo ra: khoảng
+ * cách gần nhất giữa hai điểm tụt từ 4,00 (sân 11) xuống 1,30 ở sân 5 — nhỏ
+ * hơn một nửa bán kính, tức hai người chỉ còn là một vệt. Chính là thứ
+ * AC-15.2 cấm, và nó chỉ xuất hiện ở quân số nhỏ nên sân 11 không hề báo.
+ */
+function tiLeKhung(khung: KhungSan): number {
+  return khung.rong / RONG
+}
 
 interface NguoiTrenSan {
   readonly playerId: string
@@ -100,9 +163,24 @@ export function vungTrenSan(vung: VungSan, doi: BenDoi): VungSan {
   return doi === 'nha' ? vung : latVung(vung)
 }
 
-function toaDo(vung: VungSan, dichX: number): { x: number; y: number } {
-  const x = X_THEO_DAI[vung.dai] + dichX
-  return { x: Math.min(Math.max(x, 5), RONG - 5), y: Y_THEO_COT[vung.cot] }
+function kep(v: number, tu: number, den: number): number {
+  return Math.min(Math.max(v, tu), den)
+}
+
+function toaDo(
+  vung: VungSan,
+  dichX: number,
+  khung: KhungSan,
+): { x: number; y: number } {
+  const tiLe = tiLeKhung(khung)
+  const le = LE_TOI_THIEU * tiLe
+  const leX = (RONG - khung.rong) / 2
+  const leY = (CAO - khung.cao) / 2
+  const x = leX + TI_LE_DAI[vung.dai] * khung.rong + dichX
+  return {
+    x: kep(x, leX + le, leX + khung.rong - le),
+    y: leY + TI_LE_COT[vung.cot] * khung.cao,
+  }
 }
 
 /**
@@ -114,6 +192,7 @@ function toaDo(vung: VungSan, dichX: number): { x: number; y: number } {
  */
 function lechTrongVung(
   cac: readonly NguoiTrenSan[],
+  buocGian: number,
 ): ReadonlyMap<string, number> {
   const theoVung = new Map<string, NguoiTrenSan[]>()
   for (const x of cac) {
@@ -124,13 +203,13 @@ function lechTrongVung(
 
   const ra = new Map<string, number>()
   for (const danh of theoVung.values()) {
-    const dau = -((danh.length - 1) * BUOC_GIAN) / 2
-    danh.forEach((x, i) => ra.set(x.playerId, dau + i * BUOC_GIAN))
+    const dau = -((danh.length - 1) * buocGian) / 2
+    danh.forEach((x, i) => ra.set(x.playerId, dau + i * buocGian))
   }
   return ra
 }
 
-interface DiemCauThu {
+export interface DiemCauThu {
   readonly playerId: string
   readonly x: number
   readonly y: number
@@ -156,11 +235,38 @@ interface Props {
   readonly soAo: (playerId: string) => number | null
 }
 
-export function San2D({ nha, khach, suKien, tenCauThu, soAo }: Props) {
+export interface HinhSan {
+  readonly khung: KhungSan
+  /** Bán kính một điểm trong khung này — đã co theo tỉ lệ. */
+  readonly banKinh: number
+  readonly cacDiem: readonly DiemCauThu[]
+  readonly duongBong: readonly { readonly x: number; readonly y: number }[]
+}
+
+/**
+ * Toàn bộ hình học của sân — tách khỏi phần vẽ để kiểm được bằng test.
+ *
+ * Bộ test của repo chạy ở `environment: 'node'` và chỉ nhận `*.test.ts`, nên
+ * không có đường nào render một component React. AC-15.1 (đếm đúng 2n điểm)
+ * và AC-15.2 (không điểm nào đè khít điểm khác) đều là phát biểu về toạ độ,
+ * nên hàm này là chỗ chứng minh chúng.
+ */
+export function hinhSan({ nha, khach, suKien, tenCauThu, soAo }: Props): HinhSan {
+  /*
+    Quân số suy từ SƠ ĐỒ đang dùng, không từ `trenSan`: thẻ đỏ làm số người
+    trên sân tụt xuống, mà khung sân thì không được co lại giữa trận.
+  */
+  const quanSo = soNguoiCuaSoDo(
+    laySoDo(nha.ben.chienThuatHienTai.formationId),
+  )
+  const khung = khungSan(quanSo)
+  const tiLe = tiLeKhung(khung)
+  const buocGian = BUOC_GIAN * tiLe
+  const le = LE_TOI_THIEU * tiLe
+  const leY = (CAO - khung.cao) / 2
+
   const thamGia = new Set(suKien?.cacCauThu ?? [])
-  const vungSuKien = suKien?.vung
-    ? vungTrenSan(suKien.vung, suKien.doi)
-    : null
+  const vungSuKien = suKien?.vung ? vungTrenSan(suKien.vung, suKien.doi) : null
 
   /*
     Người tham gia dồn về CÙNG một vùng, nên phải giãn họ ra y như đã giãn
@@ -172,9 +278,9 @@ export function San2D({ nha, khach, suKien, tenCauThu, soAo }: Props) {
     đầu danh sách, nên chỗ của anh ta không nhảy lung tung giữa các phút.
   */
   const dsThamGia = suKien?.cacCauThu ?? []
-  const dauThamGia = -((dsThamGia.length - 1) * BUOC_GIAN) / 2
+  const dauThamGia = -((dsThamGia.length - 1) * buocGian) / 2
   const lechThamGia = new Map(
-    dsThamGia.map((id, i) => [id, dauThamGia + i * BUOC_GIAN]),
+    dsThamGia.map((id, i) => [id, dauThamGia + i * buocGian]),
   )
 
   const cacDiem: DiemCauThu[] = []
@@ -186,10 +292,11 @@ export function San2D({ nha, khach, suKien, tenCauThu, soAo }: Props) {
     const laDoiNha = doi === 'nha'
     const huong = laDoiNha ? 1 : -1
     const doCao = doiTren.ben.chienThuatHienTai.chiThi['do-cao-doi-hinh']
-    const dichX = (DICH_THEO_DO_CAO[doCao] ?? 0) * huong - LECH_DOI * huong
+    const dichX =
+      ((DICH_THEO_DO_CAO[doCao] ?? 0) * huong - LECH_DOI * huong) * tiLe
 
     const tren = cacNguoiTrenSan(doiTren.ben, laDoiNha)
-    const lech = lechTrongVung(tren)
+    const lech = lechTrongVung(tren, buocGian)
     const mauChu = mauChuTuongPhan(doiTren.mauAo)
 
     for (const x of tren) {
@@ -199,6 +306,7 @@ export function San2D({ nha, khach, suKien, tenCauThu, soAo }: Props) {
       const { x: cx, y: cy } = toaDo(
         diChuyen && vungSuKien ? vungSuKien : x.vung,
         diChuyen ? 0 : dichX,
+        khung,
       )
       const lechY = diChuyen
         ? (lechThamGia.get(x.playerId) ?? 0)
@@ -208,7 +316,7 @@ export function San2D({ nha, khach, suKien, tenCauThu, soAo }: Props) {
       cacDiem.push({
         playerId: x.playerId,
         x: cx,
-        y: Math.min(Math.max(cy + lechY, 5), CAO - 5),
+        y: kep(cy + lechY, leY + le, leY + khung.cao - le),
         mauNen: doiTren.mauAo,
         mauChu,
         nhan: so === null ? '' : String(so),
@@ -225,30 +333,75 @@ export function San2D({ nha, khach, suKien, tenCauThu, soAo }: Props) {
   }
 
   const duongBong = (suKien?.duongBong ?? []).map((v) =>
-    toaDo(vungTrenSan(v, suKien?.doi ?? 'nha'), 0),
+    toaDo(vungTrenSan(v, suKien?.doi ?? 'nha'), 0, khung),
   )
+
+  return { khung, banKinh: BAN_KINH * tiLe, cacDiem, duongBong }
+}
+
+export function San2D(props: Props) {
+  const { nha, khach } = props
+  const { khung, banKinh, cacDiem, duongBong } = hinhSan(props)
   const bong = duongBong[duongBong.length - 1]
+  const tiLe = tiLeKhung(khung)
+
+  const leX = (RONG - khung.rong) / 2
+  const leY = (CAO - khung.cao) / 2
+  const giuaX = leX + khung.rong / 2
+  const giuaY = leY + khung.cao / 2
+  const sauVongTron = khung.cao / 8
+  const sauVongCam = khung.rong * 0.12
+  const caoVongCam = khung.cao * 0.4375
 
   return (
     <figure className="m-0">
       <svg
         viewBox={`0 0 ${RONG} ${CAO}`}
-        className="w-full rounded-lg border border-slate-300 bg-emerald-800"
+        className="w-full rounded-lg border border-slate-300 bg-slate-200"
         role="img"
         aria-label={SAN_2D.moTaSan(nha.ten, khach.ten)}
       >
+        {/*
+          Mặt sân là một hình riêng, không phải màu nền của cả ảnh: khung co
+          lại theo quân số (AC-15.6) thì phải THẤY nó co — nền phủ kín ảnh
+          làm sân 5 trông y hệt sân 11.
+        */}
+        <rect
+          x={leX}
+          y={leY}
+          width={khung.rong}
+          height={khung.cao}
+          fill="#065f46"
+          aria-hidden="true"
+        />
+
         {/* Vạch sân: chỉ những vạch giúp định hướng, không vẽ cho đẹp. */}
         <g
           fill="none"
           stroke="rgba(255,255,255,0.45)"
-          strokeWidth={0.4}
+          strokeWidth={0.4 * tiLe}
           aria-hidden="true"
         >
-          <rect x={2} y={2} width={RONG - 4} height={CAO - 4} />
-          <line x1={RONG / 2} y1={2} x2={RONG / 2} y2={CAO - 2} />
-          <circle cx={RONG / 2} cy={CAO / 2} r={8} />
-          <rect x={2} y={CAO / 2 - 14} width={12} height={28} />
-          <rect x={RONG - 14} y={CAO / 2 - 14} width={12} height={28} />
+          <rect
+            x={leX + 2}
+            y={leY + 2}
+            width={khung.rong - 4}
+            height={khung.cao - 4}
+          />
+          <line x1={giuaX} y1={leY + 2} x2={giuaX} y2={leY + khung.cao - 2} />
+          <circle cx={giuaX} cy={giuaY} r={sauVongTron} />
+          <rect
+            x={leX + 2}
+            y={giuaY - caoVongCam / 2}
+            width={sauVongCam}
+            height={caoVongCam}
+          />
+          <rect
+            x={leX + khung.rong - 2 - sauVongCam}
+            y={giuaY - caoVongCam / 2}
+            width={sauVongCam}
+            height={caoVongCam}
+          />
         </g>
 
         {/* Đường đi của bóng (AC-10.2, quyết định D40). */}
@@ -257,8 +410,8 @@ export function San2D({ nha, khach, suKien, tenCauThu, soAo }: Props) {
             points={duongBong.map((p) => `${p.x},${p.y}`).join(' ')}
             fill="none"
             stroke="#fde047"
-            strokeWidth={0.8}
-            strokeDasharray="2 1.5"
+            strokeWidth={0.8 * tiLe}
+            strokeDasharray={`${2 * tiLe} ${1.5 * tiLe}`}
             aria-hidden="true"
           />
         )}
@@ -266,10 +419,10 @@ export function San2D({ nha, khach, suKien, tenCauThu, soAo }: Props) {
           <circle
             cx={bong.x}
             cy={bong.y}
-            r={1.5}
+            r={1.5 * tiLe}
             fill="#fde047"
             stroke="#111827"
-            strokeWidth={0.3}
+            strokeWidth={0.3 * tiLe}
             aria-hidden="true"
           />
         )}
@@ -282,16 +435,16 @@ export function San2D({ nha, khach, suKien, tenCauThu, soAo }: Props) {
           >
             <title>{d.moTa}</title>
             <circle
-              r={BAN_KINH}
+              r={banKinh}
               fill={d.mauNen}
               stroke={d.noiBat ? '#fde047' : 'rgba(17,24,39,0.7)'}
-              strokeWidth={d.noiBat ? 1.4 : 0.5}
+              strokeWidth={(d.noiBat ? 1.4 : 0.5) * tiLe}
             />
             <text
               x={0}
-              y={1.3}
+              y={1.3 * tiLe}
               textAnchor="middle"
-              fontSize={3.4}
+              fontSize={3.4 * tiLe}
               fontWeight={d.noiBat ? 800 : 500}
               fill={d.mauChu}
             >
@@ -306,13 +459,13 @@ export function San2D({ nha, khach, suKien, tenCauThu, soAo }: Props) {
             {d.noiBat && (
               <text
                 x={0}
-                y={-BAN_KINH - 1.2}
+                y={-banKinh - 1.2 * tiLe}
                 textAnchor="middle"
-                fontSize={3.6}
+                fontSize={3.6 * tiLe}
                 fontWeight={800}
                 fill="#fde047"
                 stroke="#111827"
-                strokeWidth={0.25}
+                strokeWidth={0.25 * tiLe}
               >
                 {SAN_2D.dauThamGia}
               </text>

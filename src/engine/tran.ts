@@ -10,6 +10,7 @@ import { hatGiongTuMaTran, taoRngTuHatGiong, type RngCoTrangThai } from './rng'
 import { sucManhCauThu, type HoSoCauThu } from './sucManh'
 import {
   chonSuKien,
+  khoangSoDong,
   SO_DONG_TOI_DA,
   SO_DONG_TOI_THIEU,
   type BenDoi,
@@ -73,6 +74,12 @@ export interface CauHinhTran {
    * Không khai thì mặc định 11, để mọi chỗ gọi có từ trước không đổi hành vi.
    */
   readonly quanSo?: number
+  /**
+   * Tổng thời lượng trận, tính bằng phút chơi (AC-12.5, quyết định D59).
+   *
+   * Không khai thì 90 — y như mọi trận trước spec 002.
+   */
+  readonly thoiLuong?: number
   /** true thì tắt hoàn toàn lợi thế sân nhà (AC-8.14). */
   readonly sanTrungLap: boolean
   /**
@@ -238,6 +245,8 @@ export interface TrangThaiTran {
   readonly sanTrungLap: boolean
   /** Số người mỗi bên của trận này, 5..11 (AC-12.1, quyết định D52). */
   readonly quanSo: number
+  /** Tổng thời lượng trận bằng phút chơi, chưa kể bù giờ (AC-12.5). */
+  readonly thoiLuong: number
   /** Bên mà người dùng điều khiển; chỉ bên này can thiệp được (AC-9.8). */
   readonly doiCuaNguoiDung: BenDoi
   readonly tiSo: TiSo
@@ -274,6 +283,28 @@ export const QUAN_SO_TOI_DA = 11
 
 /** Mọi quân số chơi được, từ nhiều người tới ít người. */
 export const CAC_QUAN_SO: readonly number[] = [11, 10, 9, 8, 7, 6, 5]
+
+/** Thời lượng mặc định, giữ nguyên hành vi trước spec 002. */
+export const THOI_LUONG_MAC_DINH = 90
+
+/** Các mức thời lượng người dùng chọn được (AC-12.5). */
+export const CAC_THOI_LUONG: readonly number[] = [20, 30, 45, 60, 90]
+
+/**
+ * Nửa đầu của một trận dài `thoiLuong` phút.
+ *
+ * Chia đôi thì mức 45 ra 22,5 — số lẻ. Hiệp một lấy phần nguyên, hiệp hai
+ * gánh phần dư, nên 45 phút thành 22 + 23. Phút chơi phải là số nguyên: cả
+ * đồng hồ lẫn dòng sự kiện đều đánh số theo phút.
+ */
+export function phutHiep1(thoiLuong: number): number {
+  return Math.floor(thoiLuong / 2)
+}
+
+/** Nửa sau — gánh phần lẻ khi thời lượng là số lẻ. */
+export function phutHiep2(thoiLuong: number): number {
+  return thoiLuong - phutHiep1(thoiLuong)
+}
 
 export const PHUT_MOI_HIEP = 45
 export const BU_GIO_TOI_THIEU = 1
@@ -319,11 +350,11 @@ function taoBen(dangKy: DangKyBen): BenTran {
 }
 
 export function tongPhutHiep1(tt: TrangThaiTran): number {
-  return PHUT_MOI_HIEP + tt.buGio.hiep1
+  return phutHiep1(tt.thoiLuong) + tt.buGio.hiep1
 }
 
 export function tongPhutTran(tt: TrangThaiTran): number {
-  return PHUT_MOI_HIEP * 2 + tt.buGio.hiep1 + tt.buGio.hiep2
+  return tt.thoiLuong + tt.buGio.hiep1 + tt.buGio.hiep2
 }
 
 export function hiepCuaPhut(tt: TrangThaiTran, phut: number): 1 | 2 {
@@ -335,10 +366,10 @@ export function phutHienThi(
   phut: number,
 ): { readonly phut: number; readonly buGio: boolean } {
   if (hiepCuaPhut(tt, phut) === 1) {
-    return { phut, buGio: phut > PHUT_MOI_HIEP }
+    return { phut, buGio: phut > phutHiep1(tt.thoiLuong) }
   }
   const p = phut - tt.buGio.hiep1
-  return { phut: p, buGio: p > PHUT_MOI_HIEP * 2 }
+  return { phut: p, buGio: p > tt.thoiLuong }
 }
 
 function buGioNgauNhien(rng: RngCoTrangThai): number {
@@ -368,6 +399,7 @@ export function taoTran(cauHinh: CauHinhTran): TrangThaiTran {
     buGio: { hiep1, hiep2 },
     sanTrungLap: cauHinh.sanTrungLap,
     quanSo: cauHinh.quanSo ?? QUAN_SO_MAC_DINH,
+    thoiLuong: cauHinh.thoiLuong ?? THOI_LUONG_MAC_DINH,
     doiCuaNguoiDung: cauHinh.doiCuaNguoiDung ?? 'nha',
     tiSo: { nha: 0, khach: 0 },
     ben: { nha: taoBen(cauHinh.nha), khach: taoBen(cauHinh.khach) },
@@ -1243,6 +1275,7 @@ export function cauHinhDauLai(
     maTran,
     sanTrungLap: tt.sanTrungLap,
     quanSo: tt.quanSo,
+    thoiLuong: tt.thoiLuong,
     doiCuaNguoiDung: tt.doiCuaNguoiDung,
     nha: dangKyTuTrangThai(tt.ben.nha),
     khach: dangKyTuTrangThai(tt.ben.khach),
@@ -1583,7 +1616,7 @@ export function chayHetTran(tt: TrangThaiTran): TrangThaiTran {
 
 /** Dòng sự kiện để hiển thị — đã qua bước chọn mật độ (AC-8.15). */
 export function dongSuKien(tt: TrangThaiTran): readonly SuKien[] {
-  return chonSuKien(tt.ungVien)
+  return chonSuKien(tt.ungVien, tt.thoiLuong)
 }
 
-export { SO_DONG_TOI_DA, SO_DONG_TOI_THIEU }
+export { khoangSoDong, SO_DONG_TOI_DA, SO_DONG_TOI_THIEU }

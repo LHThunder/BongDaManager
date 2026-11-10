@@ -13,7 +13,11 @@ import {
   dongSuKien,
   QUAN_SO_MAC_DINH,
   hiepCuaPhut,
+  CAC_THOI_LUONG,
+  phutHiep1,
+  phutHiep2,
   PHUT_MOI_HIEP,
+  THOI_LUONG_MAC_DINH,
   phutHienThi,
   taoTran,
   tongPhutHiep1,
@@ -539,5 +543,47 @@ describe('chiến thuật xuất phát giữ nguyên, tách khỏi bản hiện 
     expect(tt.ben.khach.chienThuatXuatPhat).toEqual(
       cauHinh.khach.chienThuatXuatPhat,
     )
+  })
+})
+
+/*
+  Thời lượng trận là tham số (AC-12.5, quyết định D59).
+
+  Mức 90 phải giữ NGUYÊN VẸN mọi con số cũ — đó là điều kiện để mã trận 11
+  người từ spec 001 vẫn phát lại đúng.
+*/
+describe('thời lượng trận (AC-12.5)', () => {
+  it('không khai thì mặc định 90 phút', () => {
+    const tt = taoTran(cauHinhMau(MA))
+    expect(tt.thoiLuong).toBe(THOI_LUONG_MAC_DINH)
+    expect(phutHiep1(tt.thoiLuong)).toBe(45)
+    expect(phutHiep2(tt.thoiLuong)).toBe(45)
+  })
+
+  it('mức 45 chia thành hiệp 1 dài 22 và hiệp 2 dài 23', () => {
+    expect(phutHiep1(45)).toBe(22)
+    expect(phutHiep2(45)).toBe(23)
+    expect(phutHiep1(45) + phutHiep2(45)).toBe(45)
+  })
+
+  it('mọi mức chọn được đều cộng lại đúng tổng', () => {
+    for (const T of CAC_THOI_LUONG) {
+      expect(phutHiep1(T) + phutHiep2(T), String(T)).toBe(T)
+    }
+  })
+
+  it('trận 20 phút kết thúc sớm hơn hẳn trận 90 phút', () => {
+    const ngan = chayHetTran(taoTran(cauHinhMau(MA, { thoiLuong: 20 })))
+    const dai = chayHetTran(taoTran(cauHinhMau(MA)))
+
+    expect(ngan.ketThuc).toBe(true)
+    expect(ngan.phut).toBeLessThan(dai.phut)
+    expect(ngan.phut).toBeGreaterThanOrEqual(20)
+    expect(ngan.phut).toBeLessThanOrEqual(20 + BU_GIO_TOI_DA * 2)
+  })
+
+  it('đấu lại giữ nguyên thời lượng', () => {
+    const tt = taoTran(cauHinhMau(MA, { thoiLuong: 30 }))
+    expect(cauHinhDauLai(tt, 'MA-MOI-002').thoiLuong).toBe(30)
   })
 })

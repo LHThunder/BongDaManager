@@ -28,17 +28,30 @@ export function ThayNguoi({ ben, tenCauThu, tamDung, onThay, loi }: Props) {
   const conLuot = ben.duBi.length
   const tongLuot = ben.soLanThay + ben.duBi.length
   const hetLuot = conLuot <= 0
+  /*
+    Đăng ký 0 dự bị là HỢP LỆ từ spec 002 (AC-14.1) — nhóm vừa đủ người đá
+    sân 7 thì không còn ai ngồi ghế. Phải phân biệt với "đã dùng hết lượt":
+    câu "Đã hết lượt thay người" nói sai sự thật với đội chưa từng có lượt
+    nào, và người dùng sẽ đi tìm xem mình đã thay ai (AC-14.3b).
+  */
+  const khongCoGhe = tongLuot === 0
 
   return (
     <section className="rounded-lg border border-slate-200 bg-white p-4">
       <h3 className="text-base font-semibold text-slate-900">
         {THAY_NGUOI.tieuDe}
       </h3>
-      <p className="mt-0.5 text-sm text-slate-500">
-        {THAY_NGUOI.conLuot(conLuot, tongLuot)}
-      </p>
+      {khongCoGhe ? (
+        <p role="status" className="mt-0.5 text-sm text-slate-700">
+          {THAY_NGUOI.khongCoDuBi}
+        </p>
+      ) : (
+        <p className="mt-0.5 text-sm text-slate-500">
+          {THAY_NGUOI.conLuot(conLuot, tongLuot)}
+        </p>
+      )}
 
-      {!tamDung && (
+      {!tamDung && !khongCoGhe && (
         <p className="mt-2 text-sm text-amber-800">{THAY_NGUOI.canTamDung}</p>
       )}
 
@@ -91,7 +104,7 @@ export function ThayNguoi({ ben, tenCauThu, tamDung, onThay, loi }: Props) {
         </button>
       </div>
 
-      {hetLuot && (
+      {hetLuot && !khongCoGhe && (
         <p role="status" className="mt-2 text-sm font-medium text-amber-900">
           {THAY_NGUOI.hetLuot}
         </p>

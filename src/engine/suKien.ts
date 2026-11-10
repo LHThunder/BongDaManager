@@ -78,6 +78,31 @@ export interface UngVienSuKien {
 export const SO_DONG_TOI_THIEU = 60
 export const SO_DONG_TOI_DA = 100
 
+/** Thời lượng mà hai con số trên được chốt cho (AC-8.15 của spec 001). */
+export const THOI_LUONG_GOC = 90
+
+/**
+ * Khoảng số dòng cho một trận dài `thoiLuong` phút (AC-15.5, quyết định D60).
+ *
+ * Co theo tỉ lệ `thoiLuong / 90` để **nhịp đọc giữ nguyên**: trận 45 phút
+ * cho 30–50 dòng, trận 20 phút cho 13–22. Giữ nguyên 60–100 cho mọi thời
+ * lượng thì trận 20 phút sẽ dày đặc sự kiện, đọc như một bản highlight chứ
+ * không như một trận đấu.
+ *
+ * Lưu ý: chỉ **trần** là luật thật trong `chonSuKien`; sàn là một khẳng
+ * định của test, không có chỗ nào trong code sản phẩm ép nó.
+ */
+export function khoangSoDong(thoiLuong: number): {
+  readonly toiThieu: number
+  readonly toiDa: number
+} {
+  const tiLe = thoiLuong / THOI_LUONG_GOC
+  return {
+    toiThieu: Math.round(SO_DONG_TOI_THIEU * tiLe),
+    toiDa: Math.round(SO_DONG_TOI_DA * tiLe),
+  }
+}
+
 /*
   Những loại KHÔNG BAO GIỜ bị cắt. Một dòng tường thuật thiếu bàn thắng thì
   vô dụng, nên khi cần chọn giữa "đúng trần 100 dòng" và "giữ đủ bàn thắng",
@@ -107,6 +132,7 @@ export const LOAI_BAT_BUOC: ReadonlySet<LoaiSuKien> = new Set<LoaiSuKien>([
  */
 export function chonSuKien(
   cacUngVien: readonly UngVienSuKien[],
+  thoiLuong: number = THOI_LUONG_GOC,
 ): readonly SuKien[] {
   const batBuoc: number[] = []
   const tuyChon: number[] = []
@@ -119,7 +145,7 @@ export function chonSuKien(
     }
   })
 
-  const conTrong = SO_DONG_TOI_DA - batBuoc.length
+  const conTrong = khoangSoDong(thoiLuong).toiDa - batBuoc.length
 
   const themVao =
     conTrong <= 0
