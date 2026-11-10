@@ -557,6 +557,14 @@ export const LICH_SU = {
   cotCapDau: 'Cặp đấu',
   cotTiSo: 'Tỉ số',
   cotMaTran: 'Mã trận',
+  /*
+    Định dạng trận, hiện cả ở dòng danh sách lẫn ở đầu trận đang mở
+    (AC-12.4, AC-12.6). Trận lưu trước spec 002 cũng hiện "11 người · 90
+    phút" chứ không để trống: nó LÀ một trận 11 người 90 phút, chỉ là bản
+    ghi của nó chưa kịp nói ra.
+  */
+  dinhDangTran: (quanSo: number, thoiLuong: number) =>
+    `${quanSo} người · ${thoiLuong} phút`,
   doiDaXoa: 'đội đã xoá',
   khongDauLaiDuoc:
     'Một trong hai đội đã bị xoá, nên trận này chỉ xem lại được chứ không đấu lại được.',

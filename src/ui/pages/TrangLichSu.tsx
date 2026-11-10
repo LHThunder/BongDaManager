@@ -132,6 +132,12 @@ export function TrangLichSu({ onQuayLai, onDauLai }: Props) {
                     </span>
                   )}
                 </span>
+                <span className="shrink-0 text-xs text-slate-500">
+                  {LICH_SU.dinhDangTran(
+                    matchRepo.quanSoCua(t),
+                    matchRepo.thoiLuongCua(t),
+                  )}
+                </span>
                 <code className="font-mono text-xs text-slate-500">
                   {t.maTran}
                 </code>
@@ -154,6 +160,12 @@ export function TrangLichSu({ onQuayLai, onDauLai }: Props) {
             <h3 className="text-lg font-semibold text-slate-900">
               {tenDoiCua(dangMo.doiChuNha).ten} {dangMo.tiSo.nha} –{' '}
               {dangMo.tiSo.khach} {tenDoiCua(dangMo.doiKhach).ten}
+              <span className="ml-2 text-sm font-normal text-slate-500">
+                {LICH_SU.dinhDangTran(
+                  matchRepo.quanSoCua(dangMo),
+                  matchRepo.thoiLuongCua(dangMo),
+                )}
+              </span>
             </h3>
             <button
               type="button"

@@ -66,6 +66,8 @@ function tranDaLuu(
     canThiep: tt.canThiep,
     cacSuKien: dongSuKien(tt),
     baoCao: dungBaoCao(tt),
+    quanSo: tt.quanSo,
+    thoiLuong: tt.thoiLuong,
   }
 }
 
@@ -288,5 +290,93 @@ describe('chặn đấu lại khi không còn đấu lại đúng được', () 
     const daDoc = await matchRepo.doc('tran-cu')
     expect(daDoc?.cacSuKien).toEqual(cu.cacSuKien)
     expect(daDoc?.baoCao).toEqual(cu.baoCao)
+  })
+})
+
+/*
+  Quân số và thời lượng trong bản ghi trận (AC-12.4, AC-12.6, AC-16.1,
+  AC-16.2).
+
+  `DB_VERSION` giữ nguyên 3 (quyết định D61), nên bản ghi lưu trước spec 002
+  nằm nguyên trong IndexedDB mà thiếu hai trường. Phép kiểm then chốt của
+  khối này là bản ghi THIẾU: nó phải đọc ra 11 người 90 phút, chứ không phải
+  `undefined` rồi để giao diện tự xoay xở.
+*/
+describe('quân số và thời lượng của trận đã lưu', () => {
+  /** Ghi thẳng vào hai store một bản ghi KHÔNG có hai trường mới. */
+  async function ghiBanGhiCu(id: string): Promise<void> {
+    const day = tranThu(0)
+    const { quanSo: _bo1, thoiLuong: _bo2, ...cu } = { ...day, id }
+
+    const db = await (await import('../storage/db')).moDb()
+    const tx = db.transaction(['matches', 'matchSummaries'], 'readwrite')
+    await tx.objectStore('matches').put(cu as typeof day)
+    await tx.objectStore('matchSummaries').put(matchRepo.tomTatCua(cu as typeof day))
+    await tx.done
+  }
+
+  it('bản ghi cũ thiếu hai trường thì doc() đọc ra 11 người, 90 phút', async () => {
+    await ghiBanGhiCu('tran-truoc-spec-002')
+
+    const daDoc = await matchRepo.doc('tran-truoc-spec-002')
+    expect(daDoc?.quanSo).toBe(11)
+    expect(daDoc?.thoiLuong).toBe(90)
+  })
+
+  it('bản ghi cũ trong danh sách cũng đọc ra 11 người, 90 phút', async () => {
+    await ghiBanGhiCu('tran-truoc-spec-002')
+
+    const cac = await matchRepo.danhSach()
+    expect(cac).toHaveLength(1)
+    expect(cac[0].quanSo).toBe(11)
+    expect(cac[0].thoiLuong).toBe(90)
+  })
+
+  it('hai hàm đọc trả đúng mặc định cho bản ghi thiếu trường', () => {
+    const { quanSo: _bo1, thoiLuong: _bo2, ...cu } = tranThu(0)
+    expect(matchRepo.quanSoCua(cu)).toBe(11)
+    expect(matchRepo.thoiLuongCua(cu)).toBe(90)
+  })
+
+  /*
+    Điền mặc định là phép ĐỌC, không phải phép ghi: bản ghi trên đĩa phải
+    nguyên như cũ (P3). Sửa thầm dữ liệu người dùng lúc đọc thì một lỗi ở
+    phép điền sẽ ăn luôn vào bản gốc.
+  */
+  it('điền mặc định KHÔNG sửa bản ghi nằm trên đĩa', async () => {
+    await ghiBanGhiCu('tran-truoc-spec-002')
+    await matchRepo.doc('tran-truoc-spec-002')
+
+    const db = await (await import('../storage/db')).moDb()
+    const tho = await db.get('matches', 'tran-truoc-spec-002')
+    expect(tho?.quanSo).toBeUndefined()
+    expect(tho?.thoiLuong).toBeUndefined()
+  })
+
+  it('vòng tròn lưu rồi đọc một trận sân 5 không mất gì', async () => {
+    const { benMauQuanSo } = await import('../engine/__fixtures__/doiMau')
+    const tt = chayHetTran(
+      taoTran(
+        cauHinhMau(MA_TRAN_CO_DINH[0], {
+          quanSo: 5,
+          thoiLuong: 20,
+          nha: benMauQuanSo('A', 5),
+          khach: benMauQuanSo('B', 5),
+        }),
+      ),
+    )
+    const ban = tranDaLuu(tt, 'tran-san-5', 5_000)
+    await matchRepo.luu(ban)
+
+    const daDoc = await matchRepo.doc('tran-san-5')
+    expect(daDoc?.quanSo).toBe(5)
+    expect(daDoc?.thoiLuong).toBe(20)
+    expect(daDoc?.cacSuKien).toEqual(ban.cacSuKien)
+    expect(daDoc?.baoCao).toEqual(ban.baoCao)
+
+    // Store nhẹ — thứ trang lịch sử đọc — phải mang theo cả hai (AC-12.4).
+    const cac = await matchRepo.danhSach()
+    expect(cac[0].quanSo).toBe(5)
+    expect(cac[0].thoiLuong).toBe(20)
   })
 })

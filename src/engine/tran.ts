@@ -1236,6 +1236,26 @@ function apHangDoi(
  * một lần rút, nên tỉ số, chuỗi tình huống và vùng bóng của mọi mã trận cũ
  * giữ nguyên từng cái một. Thứ đổi là TÊN người trong mỗi dòng, và AC-8.11
  * đo phát lại bằng cách đối chiếu từng dòng.
+ *
+ * **Spec 002 GIỮ NGUYÊN 5, và đó là một quyết định có số đo** (T221, AC-16.3).
+ *
+ * Spec 002 sửa engine ở bốn chỗ: hệ số khoảng trống theo quân số, thời lượng
+ * trận thành trường của trạng thái, huỷ trận khi một bên xuống dưới 60% quân
+ * số, và trần số dòng tường thuật co theo thời lượng. Bản đầu của kế hoạch
+ * mặc định rằng chừng ấy thì phải tăng.
+ *
+ * Soát lại thì ở **quân số 11, 90 phút** không chỗ nào trong bốn chỗ ấy đổi
+ * số lần hay thứ tự rút `Rng`: hệ số khoảng trống bằng đúng 1 khi quân số là
+ * 11, hai hàm thời lượng trả lại đúng 45 và 90, ngưỡng huỷ cần tới 5 thẻ đỏ
+ * một bên, và trần số dòng ở 90 phút vẫn là 100.
+ *
+ * `tuongThichV5.test.ts` đo thay vì tin: 5 mã trận cố định, **409/409 dòng
+ * khớp từng ký tự** với engine tại commit cuối của spec 001 — phút, bù giờ,
+ * loại, đội, danh sách cầu thủ, mẫu câu và tỉ số sau đó, cả bảy trường.
+ *
+ * Tăng thừa không phải là "cẩn thận": nó tước nút đấu lại của mọi trận đã
+ * lưu và bắt ứng dụng nói với người dùng rằng trận cũ chạy bằng engine khác,
+ * trong khi nó chạy bằng đúng engine này.
  */
 export const PHIEN_BAN_ENGINE = 5
 

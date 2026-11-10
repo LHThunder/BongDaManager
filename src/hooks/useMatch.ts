@@ -78,6 +78,8 @@ function dungBanGhi(
     phienBanEngine: tt.phienBanEngine,
     ketThucLuc: Date.now(),
     tiSo: tt.tiSo,
+    quanSo: tt.quanSo,
+    thoiLuong: tt.thoiLuong,
     doiChuNha: anhChupDoi(tt.ben.nha.teamId, teams),
     doiKhach: anhChupDoi(tt.ben.khach.teamId, teams),
     sanTrungLap: tt.sanTrungLap,

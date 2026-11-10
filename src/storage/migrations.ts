@@ -1,3 +1,5 @@
+import { QUAN_SO_MAC_DINH, THOI_LUONG_MAC_DINH } from '../engine/tran'
+
 /*
   Phiên bản hình dạng dữ liệu, và chuỗi migration để nâng dữ liệu cũ lên.
 
@@ -12,8 +14,12 @@
     3. Thêm schema zod cho v2 cạnh schema v1 (không sửa schema v1).
 */
 
+/** Quân số và thời lượng của mọi trận lưu trước spec 002. */
+export const QUAN_SO_TRAN_CU = QUAN_SO_MAC_DINH
+export const THOI_LUONG_TRAN_CU = THOI_LUONG_MAC_DINH
+
 /** Phiên bản hình dạng dữ liệu mà bản ứng dụng này phát hành. */
-export const SCHEMA_VERSION = 4
+export const SCHEMA_VERSION = 5
 
 /**
  * Một bước nâng phiên bản. `MIGRATIONS[i]` nâng dữ liệu từ phiên bản `i + 1`
@@ -78,6 +84,30 @@ function nangV3LenV4(data: unknown): unknown {
   return { ...(data as object), schemaVersion: 4, matches: [] }
 }
 
+/**
+ * v4 -> v5: trận mang thêm quân số và thời lượng (AC-16.4).
+ *
+ * Mọi trận trong một tệp v4 đều là trận 11 người 90 phút — đó là định dạng
+ * DUY NHẤT ứng dụng đá được khi tệp ấy được xuất ra. Nên điền thẳng hai con
+ * số, không để trống: trận cũ xem lại phải nói rõ nó là trận gì, chứ không
+ * bắt người đọc suy từ việc trường bị thiếu.
+ *
+ * Chỉ chạm `matches`; mọi thứ khác đi qua nguyên vẹn.
+ */
+function nangV4LenV5(data: unknown): unknown {
+  const tep = data as { matches?: object[] }
+
+  return {
+    ...(data as object),
+    schemaVersion: 5,
+    matches: (tep.matches ?? []).map((t) => ({
+      quanSo: QUAN_SO_TRAN_CU,
+      thoiLuong: THOI_LUONG_TRAN_CU,
+      ...t,
+    })),
+  }
+}
+
 /** Phần mở rộng theo kiểu ảnh, để tệp ZIP mở ra xem được bằng mắt. */
 export function duoiAnh(mime: string): string {
   switch (mime) {
@@ -101,6 +131,7 @@ export const MIGRATIONS: readonly Migration[] = [
   nangV1LenV2,
   nangV2LenV3,
   nangV3LenV4,
+  nangV4LenV5,
 ]
 
 export type LoiMigration =

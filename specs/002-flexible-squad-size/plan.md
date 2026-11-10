@@ -20,7 +20,7 @@ trừ chỗ plan này nói khác, và các quyết định mới đánh số ti�
 
 | Nguyên tắc | Tuân thủ? | Ghi chú |
 |---|---|---|
-| P1. Giả lập phải tái lập được | ⚠️ | **Cần ĐO trước khi kết luận** (sửa sau `/analyze`): ở n=11 không thay đổi nào trong D52/D56/D59/D60 đụng tới số lần hay thứ tự rút `Rng`; lượt thay chỉ đổi *trần* can thiệp của người dùng; huỷ trận chỉ kích hoạt từ 5 thẻ đỏ trở lên. Rất có thể dòng sự kiện ở n=11 **giống hệt** engine v5, và khi đó **không được** bump. Giả định cũ là thứ tự tiêu thụ `Rng` đổi — mã trận lưu từ trước không còn phát lại ra đúng trận cũ. Đây là ngoại lệ đã khai báo, bù bằng `PHIEN_BAN_ENGINE` lên 6 và giao diện chặn nút đấu lại kèm lý do (AC-16.3), đúng cách D35 đã xử hai lần trong spec 001. Tính tái lập **trong cùng một phiên bản** vẫn tuyệt đối. |
+| P1. Giả lập phải tái lập được | ✅ | **Cần ĐO trước khi kết luận** (sửa sau `/analyze`): ở n=11 không thay đổi nào trong D52/D56/D59/D60 đụng tới số lần hay thứ tự rút `Rng`; lượt thay chỉ đổi *trần* can thiệp của người dùng; huỷ trận chỉ kích hoạt từ 5 thẻ đỏ trở lên. Rất có thể dòng sự kiện ở n=11 **giống hệt** engine v5, và khi đó **không được** bump. Giả định cũ là thứ tự tiêu thụ `Rng` đổi — mã trận lưu từ trước không còn phát lại ra đúng trận cũ. Đây là ngoại lệ đã khai báo, bù bằng `PHIEN_BAN_ENGINE` lên 6 và giao diện chặn nút đấu lại kèm lý do (AC-16.3), đúng cách D35 đã xử hai lần trong spec 001. Tính tái lập **trong cùng một phiên bản** vẫn tuyệt đối. **ĐÃ ĐO (T223, xem mục "Kết luận đo" cuối plan): 409/409 dòng khớp, nên KHÔNG bump — ngoại lệ này không cần dùng tới.** |
 | P2. Luật bóng đá tách khỏi giao diện | ✅ | Quân số, thời lượng, ngưỡng huỷ trận, số lượt thay đều là luật → nằm trong `engine/` và `domain/`. Giao diện chỉ chọn và hiển thị. Bộ sơ đồ mới nằm ở `domain/formations.ts` như 8 sơ đồ hiện có. |
 | P3. Dữ liệu người dùng là bất khả xâm phạm | ✅ | Không xoá, không ghi đè bản ghi nào. Đội và cầu thủ không đổi hình dạng. Trận đã lưu thiếu hai trường mới thì **đọc ra mặc định 11 người / 90 phút**, không sửa bản ghi cũ. |
 | P4. Chạy offline, dữ liệu không ra khỏi máy | ✅ | Không thêm phụ thuộc mạng nào. |
@@ -177,7 +177,7 @@ mọi trận trong tệp cũ.
 | AC-15.6 | `khungSan(quanSo)` (D56) |
 | AC-16.1 | Không đụng store nào; `DB_VERSION` giữ nguyên (D61) |
 | AC-16.2 | Bản ghi cũ đọc ra với mặc định 11/90, dòng sự kiện giữ nguyên |
-| AC-16.3 | `lyDoKhongDauLai` hiện có, so `phienBanEngine` — chỉ cần tăng lên 6 |
+| AC-16.3 | `lyDoKhongDauLai` hiện có, so `phienBanEngine` — **đo ra là không phải tăng**, giữ nguyên 5 (T223 → T221) |
 | AC-16.4 | `nangV4LenV5` (D62) |
 
 **33/33 AC đều có chỗ hiện thực.**
@@ -198,7 +198,7 @@ mọi trận trong tệp cũ.
 | # | Rủi ro | Mức | Phương án lùi |
 |---|---|---|---|
 | **R23** | 12 bộ toạ độ dựng tay — sai một ô thì sơ đồ méo mà test thường không thấy | Trung bình | Test đối chiếu `cacDai` với tên sơ đồ và khoảng toạ độ; kiểm tay bằng mắt trên trang chiến thuật cho từng sơ đồ mới |
-| **R24** | Mã trận cũ hết phát lại đúng | Thấp | Đã chấp nhận; bù bằng `PHIEN_BAN_ENGINE` 6 và câu giải thích. Lịch sử vẫn xem lại được |
+| **R24** | Mã trận cũ hết phát lại đúng | ~~Thấp~~ **Không xảy ra** | Đo ở T223: dòng sự kiện ở n=11 khớp từng ký tự với engine v5, nên không bump và không trận nào mất nút đấu lại |
 | **R25** | **AC-15.4 có thể không tự nhiên đúng chiều** — engine chưa chắc cho ra nhiều cơ hội hơn khi ít người, vì lưới vùng không đổi và sức mạnh đội tính trung bình theo đầu người | **Cao** | Nếu đo ra sai chiều: thêm một hệ số "khoảng trống theo quân số" vào `chuoiBong.ts`, giảm xác suất mất bóng khi n nhỏ. Phải đo **trước** khi viết giao diện, ở ngay lát 1 |
 | **R26** | Trận 20 phút có thể không sinh đủ dòng cho sàn đã co | Trung bình | `SO_CHUOI_MOI_PHUT` nâng theo quân số nhỏ, hoặc hạ sàn cho các mức thời lượng ngắn — quyết sau khi đo |
 
@@ -209,8 +209,48 @@ mọi trận trong tệp cũ.
 | **Lát 18** | Quân số vào engine: `CauHinhTran.quanSo`, `batDau` theo quân số, dự bị 0..7, lượt thay theo ghế, ngưỡng huỷ trận. **Kèm `sosanh.quanSo.test.ts` để đo R25 ngay** | Engine chạy được trận 5–11 người qua test; giao diện chưa đổi |
 | **Lát 19** | 12 sơ đồ mới + lọc sơ đồ theo quân số + `xepLaiKhiDoiSoDo` nhận số ô | Trang chiến thuật xếp được đội hình mọi quân số |
 | **Lát 20** | Giao diện trận: ô chọn quân số và thời lượng, thời lượng vào engine, mật độ dòng co theo tỉ lệ, sân 2D theo khung | Chơi trọn một trận sân 5 từ giao diện |
-| **Lát 21** | Lưu trữ và lịch sử: hai trường mới, hiển thị, migration tệp v5, `PHIEN_BAN_ENGINE` lên 6, kiểm tay từng quân số | Đóng spec 002 |
+| **Lát 21** | Lưu trữ và lịch sử: hai trường mới, hiển thị, migration tệp v5, quyết định `PHIEN_BAN_ENGINE` theo số đo, kiểm tay từng quân số | Đóng spec 002 |
 
 Rủi ro cao nhất (R25) được đo ở **lát đầu tiên**, trước khi bất cứ thứ gì phụ
 thuộc vào nó được xây — nếu engine không cho ra đúng chiều thì phải chỉnh hệ số
 ngay, lúc chưa có giao diện nào phải sửa theo.
+
+---
+
+## Kết luận đo: `PHIEN_BAN_ENGINE` giữ nguyên 5 (T223 → T221)
+
+Plan vào spec 002 với giả định **phải bump lên 6**, và ghi ⚠️ ở P1 vì thế.
+`/analyze` soát lại và nghi ngờ giả định ấy; T223 được thêm vào để **đo thay
+vì đoán**. Kết quả: **không bump**.
+
+**Cách đo.** `src/engine/tuongThichV5.test.ts` chạy 5 mã trận cố định ở quân
+số 11, 90 phút, rồi đối chiếu **từng dòng tường thuật** với bảng mốc sinh từ
+engine tại commit cuối của spec 001 (nhánh `main`, `PHIEN_BAN_ENGINE = 5`).
+Mỗi dòng rút gọn thành bảy trường — phút, bù giờ, loại, đội, danh sách cầu
+thủ, mẫu câu, tỉ số sau đó — tức toàn bộ thứ người dùng đọc được.
+
+**Số đo.**
+
+| Mã trận | Số dòng | Khớp | Lệch |
+|---|---|---|---|
+| K7M2R9XQ4B | 82 | 82 | 0 |
+| P3V8N1TZ6C | 84 | 84 | 0 |
+| W5H4J2YD9F | 87 | 87 | 0 |
+| R8K3M7QX2N | 74 | 74 | 0 |
+| T6B9V4CZ1P | 82 | 82 | 0 |
+| **Tổng** | **409** | **409** | **0** |
+
+**Vì sao giống hệt.** Bốn thay đổi engine của spec 002 đều **tắt** ở n=11, 90
+phút: `heSoKhoangTrong(11)` bằng đúng 1; `phutHiep1(90)`/`phutHiep2(90)` trả
+lại đúng 45 và 45; `nguongHuyTran(11)` là 6,6 nên cần 5 thẻ đỏ một bên mới
+chạm tới; `khoangSoDong(90)` vẫn là 60–100. Không chỗ nào đổi **số lần** hay
+**thứ tự** rút `Rng`.
+
+**Vì sao không bump thừa.** Tăng số này là tự tay tước nút "đấu lại" của mọi
+trận đã lưu, và bắt ứng dụng nói với người dùng rằng trận cũ chạy bằng một
+engine khác — trong khi nó chạy bằng đúng engine này. Cẩn thận quá mức ở đây
+không miễn phí: nó mất dữ liệu dùng được của người dùng (P3).
+
+**Ràng buộc để lại.** Phép đo nằm trong bộ test, nên lần sau ai sửa engine mà
+làm đổi một dòng ở n=11 sẽ thấy nó đỏ ngay, cạnh một phép khẳng định
+`PHIEN_BAN_ENGINE === 5` — hai thứ phải đi cùng nhau.

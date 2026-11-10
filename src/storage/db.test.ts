@@ -62,7 +62,18 @@ describe('mở database', () => {
   it('ghi sẵn schemaVersion hiện tại vào meta', async () => {
     await moDb()
     expect(await docSchemaVersion()).toBe(SCHEMA_VERSION)
-    expect(SCHEMA_VERSION).toBe(4)
+    expect(SCHEMA_VERSION).toBe(5)
+  })
+
+  /*
+    DB_VERSION và SCHEMA_VERSION là HAI con số khác nhau, và spec 002 là ví
+    dụ rõ nhất: sơ đồ tệp lên 5 để trận mang thêm quân số và thời lượng,
+    còn phiên bản IndexedDB giữ nguyên 3 vì hai trường ấy không bắt buộc
+    (quyết định D61). Buộc chúng đi cùng nhau là tự rước một đường nâng cấp
+    database cộng rủi ro tab cũ chặn, mà chẳng đổi lại được gì.
+  */
+  it('DB_VERSION giữ nguyên 3 dù SCHEMA_VERSION đã lên 5', () => {
+    expect(DB_VERSION).toBe(3)
   })
 
   it('mở lại nhiều lần thì dùng chung một kết nối', async () => {

@@ -70,6 +70,20 @@ export interface TomTatTran {
   readonly tiSo: TiSo
   readonly doiChuNha: AnhChupDoi
   readonly doiKhach: AnhChupDoi
+  /**
+   * Số người mỗi bên của trận (AC-12.4, AC-16.1).
+   *
+   * KHÔNG bắt buộc, và `DB_VERSION` **giữ nguyên 3** vì thế (quyết định
+   * D61): thêm một trường không bắt buộc thì bản ghi cũ vẫn đọc được nguyên
+   * vẹn, mà nâng phiên bản IndexedDB là cả một đường migration cộng rủi ro
+   * tab cũ chặn — trả giá đó để lấy một trường tuỳ chọn là không đáng.
+   *
+   * Thiếu nghĩa là trận lưu TRƯỚC spec 002, tức 11 người. `matchRepo` điền
+   * mặc định khi đọc nên phần còn lại của ứng dụng không phải tự đoán.
+   */
+  readonly quanSo?: number
+  /** Thời lượng trận bằng phút chơi. Thiếu nghĩa là 90 (AC-12.6). */
+  readonly thoiLuong?: number
 }
 
 /** Đăng ký của một bên, đủ để dựng lại trận theo AC-8.11. */

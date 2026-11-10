@@ -4,7 +4,11 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { ATTRIBUTES } from '../domain/attributes'
 import type { AttributeValues } from '../domain/types'
 import { DB_NAME, dongDb, moDb } from '../storage/db'
-import { duongDanAnh, SCHEMA_VERSION } from '../storage/migrations'
+import {
+  duongDanAnh,
+  nangLenPhienBanHienTai,
+  SCHEMA_VERSION,
+} from '../storage/migrations'
 import { laySoDo, SO_DO_MAC_DINH } from '../domain/formations'
 import { vaiTroMacDinh } from '../domain/roles'
 import { cacXungDot } from '../domain/instructions'
@@ -640,13 +644,14 @@ async function taoTepV2(): Promise<Blob> {
 }
 
 describe('tệp sao lưu v3 mang theo chiến thuật (AC-4.4, AC-5.10)', () => {
-  it('SCHEMA_VERSION là 4 và có đủ schema cho cả bốn phiên bản (P7)', () => {
-    expect(SCHEMA_VERSION).toBe(4)
+  it('SCHEMA_VERSION là 5 và có đủ schema cho cả năm phiên bản (P7)', () => {
+    expect(SCHEMA_VERSION).toBe(5)
     expect(Object.keys(SCHEMA_THEO_PHIEN_BAN).sort()).toEqual([
       '1',
       '2',
       '3',
       '4',
+      '5',
     ])
   })
 
@@ -943,5 +948,193 @@ describe('tệp sao lưu v4 mang theo lịch sử trận đấu', () => {
 
     await expect(backup.importAll(tepHong, 'thay-the')).rejects.toBeTruthy()
     expect(await matchRepo.danhSach()).toEqual(truoc)
+  })
+})
+
+/*
+  Tệp sao lưu v5: quân số và thời lượng của trận (AC-16.4, quyết định D61).
+
+  P7 nói tệp xuất ở bản trước phải nhập lại được sau khi bản sau thêm trường.
+  Ở đây "nhập lại được" chưa đủ: trận trong một tệp v4 phải đọc ra ĐÚNG 11
+  người 90 phút, vì đó là định dạng duy nhất ứng dụng đá được lúc tệp ấy
+  được xuất. Để trống là biến một dữ kiện chắc chắn thành chỗ người dùng
+  phải tự đoán.
+*/
+describe('tệp sao lưu v5 mang quân số và thời lượng của trận', () => {
+  /** Lưu một trận với quân số và thời lượng tuỳ ý, qua đúng đường ứng dụng dùng. */
+  async function luuMotTran(
+    id: string,
+    tuyChon: { quanSo?: number; thoiLuong?: number } = {},
+  ) {
+    const { benMauQuanSo, cauHinhMau, MA_TRAN_CO_DINH } = await import(
+      '../engine/__fixtures__/doiMau'
+    )
+    const { chayHetTran, dangKyTuTrangThai, dongSuKien, taoTran } =
+      await import('../engine/tran')
+    const { dungBaoCao } = await import('../engine/baoCao')
+    const matchRepo = await import('./matchRepo')
+
+    const n = tuyChon.quanSo ?? 11
+    const tt = chayHetTran(
+      taoTran(
+        cauHinhMau(MA_TRAN_CO_DINH[0], {
+          ...tuyChon,
+          nha: benMauQuanSo('A', n),
+          khach: benMauQuanSo('B', n),
+        }),
+      ),
+    )
+    const anh = (teamId: string) => ({
+      teamId,
+      ten: `Đội ${teamId}`,
+      mauChinh: '#1d4ed8',
+      mauPhu: '#f8fafc',
+      logoImageId: null,
+    })
+    const ban = {
+      id,
+      maTran: tt.maTran,
+      phienBanEngine: tt.phienBanEngine,
+      ketThucLuc: 2_000,
+      tiSo: tt.tiSo,
+      doiChuNha: anh(tt.ben.nha.teamId),
+      doiKhach: anh(tt.ben.khach.teamId),
+      sanTrungLap: tt.sanTrungLap,
+      doiCuaNguoiDung: tt.doiCuaNguoiDung,
+      nha: dangKyTuTrangThai(tt.ben.nha),
+      khach: dangKyTuTrangThai(tt.ben.khach),
+      canThiep: tt.canThiep,
+      cacSuKien: dongSuKien(tt),
+      baoCao: dungBaoCao(tt),
+      quanSo: tt.quanSo,
+      thoiLuong: tt.thoiLuong,
+    }
+    await matchRepo.luu(ban)
+    return ban
+  }
+
+  /**
+   * Dựng một tệp v4 THẬT từ dữ liệu đang có: xuất tệp hiện tại rồi hạ
+   * manifest về đúng hình dạng v4 — khai phiên bản 4 và bỏ hai trường mới
+   * khỏi từng trận.
+   */
+  async function taoTepV4(): Promise<Blob> {
+    const tepV5 = await backup.exportAll()
+    const cac = unzipSync(new Uint8Array(await tepV5.arrayBuffer()))
+    const manifest = JSON.parse(strFromU8(cac[backup.TEN_MANIFEST])) as {
+      matches: Record<string, unknown>[]
+    }
+
+    const noiDung: Record<string, Uint8Array> = { ...cac }
+    noiDung[backup.TEN_MANIFEST] = strToU8(
+      JSON.stringify({
+        ...manifest,
+        schemaVersion: 4,
+        matches: manifest.matches.map(
+          ({ quanSo: _bo1, thoiLuong: _bo2, ...t }) => t,
+        ),
+      }),
+    )
+
+    return new Blob([zipSync(noiDung)], { type: 'application/zip' })
+  }
+
+  it('nâng một tệp v4 lên v5 thì mọi trận được điền 11 người và 90 phút', () => {
+    const sau = nangLenPhienBanHienTai(
+      {
+        schemaVersion: 4,
+        exportedAt: 'x',
+        teams: [],
+        players: [],
+        images: [],
+        tactics: [],
+        matches: [{ id: 'a' }, { id: 'b' }],
+      },
+      4,
+    ) as {
+      schemaVersion: number
+      matches: { id: string; quanSo: number; thoiLuong: number }[]
+    }
+
+    expect(sau.schemaVersion).toBe(5)
+    for (const t of sau.matches) {
+      expect(t.quanSo, t.id).toBe(11)
+      expect(t.thoiLuong, t.id).toBe(90)
+    }
+  })
+
+  /*
+    Bước nâng KHÔNG được đè lên trận đã khai sẵn. Tệp v4 không bao giờ có hai
+    trường ấy, nhưng một migration ghi đè là loại lỗi chỉ lộ ra khi dữ liệu
+    đã mất — chặn ở đây rẻ hơn nhiều.
+  */
+  it('bước nâng không đè lên trận đã khai sẵn quân số', () => {
+    const sau = nangLenPhienBanHienTai(
+      { schemaVersion: 4, matches: [{ id: 'a', quanSo: 7, thoiLuong: 45 }] },
+      4,
+    ) as { matches: { quanSo: number; thoiLuong: number }[] }
+
+    expect(sau.matches[0].quanSo).toBe(7)
+    expect(sau.matches[0].thoiLuong).toBe(45)
+  })
+
+  it('tệp v1 cũ vẫn nhập được sau khi lên v5 (P7)', async () => {
+    await dungDuLieuMau()
+    const baoCao = await backup.importAll(await taoTepV1(), 'thay-the')
+    expect(baoCao.soTran).toBe(0)
+  })
+
+  it('nhập một tệp v4 thật thì trận cũ đọc ra 11 người, 90 phút', async () => {
+    await dungDuLieuMau()
+    const goc = await luuMotTran('tran-cu')
+    const tepV4 = await taoTepV4()
+
+    const baoCao = await backup.importAll(tepV4, 'thay-the')
+    expect(baoCao.soTran).toBe(1)
+
+    /*
+      Đọc thẳng BẢN GHI TRÊN ĐĨA, không qua `matchRepo.doc`.
+
+      `doc` cũng điền mặc định, nên đi qua nó thì phép này vẫn xanh kể cả
+      khi bước nâng v4→v5 không làm gì — tức là nó sẽ kiểm hộ chính nó. Hai
+      con số ở đây phải do bước nâng ghi vào.
+    */
+    const db = await moDb()
+    const tho = await db.get('matches', 'tran-cu')
+    expect(tho?.quanSo).toBe(11)
+    expect(tho?.thoiLuong).toBe(90)
+
+    const matchRepo = await import('./matchRepo')
+    const daDoc = await matchRepo.doc('tran-cu')
+    expect(daDoc?.cacSuKien).toEqual(goc.cacSuKien)
+  })
+
+  it('vòng tròn xuất/nhập v5 giữ nguyên quân số và thời lượng trận sân 5', async () => {
+    await dungDuLieuMau()
+    const goc = await luuMotTran('tran-san-5', { quanSo: 5, thoiLuong: 20 })
+
+    const tep = await backup.exportAll()
+    await backup.importAll(tep, 'thay-the')
+
+    const matchRepo = await import('./matchRepo')
+    const daDoc = await matchRepo.doc('tran-san-5')
+    expect(daDoc?.quanSo).toBe(5)
+    expect(daDoc?.thoiLuong).toBe(20)
+    expect(daDoc?.cacSuKien).toEqual(goc.cacSuKien)
+    expect(daDoc?.baoCao).toEqual(goc.baoCao)
+  })
+
+  it('manifest v5 khai đúng hai trường cho trận sân 5', async () => {
+    await dungDuLieuMau()
+    await luuMotTran('tran-san-5', { quanSo: 5, thoiLuong: 20 })
+
+    const m = (await docManifest(await backup.exportAll())) as unknown as {
+      schemaVersion: number
+      matches: { quanSo: number; thoiLuong: number }[]
+    }
+
+    expect(m.schemaVersion).toBe(5)
+    expect(m.matches[0].quanSo).toBe(5)
+    expect(m.matches[0].thoiLuong).toBe(20)
   })
 })

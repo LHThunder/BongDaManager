@@ -8,6 +8,7 @@ import {
   type ChiThiId,
 } from '../domain/instructions'
 import { kiemTraToHopViTri, POSITIONS } from '../domain/positions'
+import { QUAN_SO_TOI_DA, QUAN_SO_TOI_THIEU } from '../engine/tran'
 import { ROLES, vaiTroApDungDuoc, type RoleId } from '../domain/roles'
 import type { PositionId } from '../domain/types'
 import { CHI_SO_MAX, CHI_SO_MIN } from '../domain/types'
@@ -241,6 +242,27 @@ const TranDaLuuSchema = z
   })
   .passthrough()
 
+/*
+  v5: trận mang thêm quân số và thời lượng (AC-16.4, quyết định D61).
+
+  Cả hai đều **không bắt buộc**, có chủ đích. Chuỗi migration điền 11 và 90
+  cho mọi trận trong tệp v4, nhưng một tệp v5 do chính bản này xuất ra vẫn có
+  thể chứa trận đã lưu TRƯỚC spec 002 — bản ghi trong IndexedDB không được
+  sửa lại (P3), nên nó ra tệp đúng như nó đang có. Bắt buộc hai trường ở đây
+  là tự tay làm cho tệp của chính mình không nhập lại được.
+
+  Chỗ đọc chịu trách nhiệm điền mặc định, đúng một chỗ: `matchRepo`.
+*/
+const TranDaLuuSchemaV5 = TranDaLuuSchema.extend({
+  quanSo: z
+    .number()
+    .int()
+    .min(QUAN_SO_TOI_THIEU)
+    .max(QUAN_SO_TOI_DA)
+    .optional(),
+  thoiLuong: z.number().int().positive().optional(),
+})
+
 const ThanTepV4 = z.object({
   schemaVersion: z.literal(4),
   exportedAt: z.string().min(1),
@@ -251,10 +273,21 @@ const ThanTepV4 = z.object({
   matches: z.array(TranDaLuuSchema),
 })
 
+const ThanTepV5 = z.object({
+  schemaVersion: z.literal(5),
+  exportedAt: z.string().min(1),
+  teams: z.array(DoiV3),
+  players: z.array(CauThu),
+  images: z.array(AnhV2),
+  tactics: z.array(ChienThuat),
+  matches: z.array(TranDaLuuSchemaV5),
+})
+
 export type TepSaoLuuV1 = z.infer<typeof ThanTepV1>
 export type TepSaoLuuV2 = z.infer<typeof ThanTepV2>
 export type TepSaoLuuV3 = z.infer<typeof ThanTepV3>
 export type TepSaoLuuV4 = z.infer<typeof ThanTepV4>
+export type TepSaoLuuV5 = z.infer<typeof ThanTepV5>
 /**
  * Hình dạng hiện tại mà phần còn lại của ứng dụng làm việc với.
  *
@@ -263,7 +296,7 @@ export type TepSaoLuuV4 = z.infer<typeof ThanTepV4>
  * kiểm tới mức giao diện cần, nên kiểu nó suy ra lỏng hơn kiểu thật. Phần
  * còn lại của ứng dụng phải làm việc với kiểu thật.
  */
-export type ManifestHienTai = Omit<TepSaoLuuV4, 'matches'> & {
+export type ManifestHienTai = Omit<TepSaoLuuV5, 'matches'> & {
   readonly matches: readonly TranDaLuu[]
 }
 
@@ -527,6 +560,10 @@ export const SchemaSaoLuuV4 = ThanTepV4.superRefine((tep, ctx) => {
   kiemToanVen(tep, ctx)
   kiemChienThuat(tep, ctx)
 })
+export const SchemaSaoLuuV5 = ThanTepV5.superRefine((tep, ctx) => {
+  kiemToanVen(tep, ctx)
+  kiemChienThuat(tep, ctx)
+})
 
 /**
  * Schema theo từng phiên bản. P7: thêm bản mới CẠNH bản cũ, không sửa bản cũ —
@@ -537,6 +574,7 @@ export const SCHEMA_THEO_PHIEN_BAN = {
   2: SchemaSaoLuuV2,
   3: SchemaSaoLuuV3,
   4: SchemaSaoLuuV4,
+  5: SchemaSaoLuuV5,
 } as const
 
 export type PhienBanTep = keyof typeof SCHEMA_THEO_PHIEN_BAN

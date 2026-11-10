@@ -1,10 +1,16 @@
 import { describe, expect, it } from 'vitest'
-import { cauHinhMau, MA_TRAN_CO_DINH } from './__fixtures__/doiMau'
+import {
+  benMauQuanSo,
+  cauHinhMau,
+  MA_TRAN_CO_DINH,
+} from './__fixtures__/doiMau'
+import { soDoTheoQuanSo } from '../domain/formations'
 import { dungBaoCao } from './baoCao'
 import { DIEM_TOI_DA, DIEM_TOI_THIEU } from './diemCauThu'
 import {
   apDungCanThiep,
   buocTiep,
+  CAC_QUAN_SO,
   chayHetTran,
   taoTran,
   type TrangThaiTran,
@@ -225,5 +231,120 @@ describe('phút vào và phút ra trong báo cáo (AC-11.5)', () => {
     expect(nguoiRa?.phutRa).toBe(61)
     expect(nguoiVao?.phutVao).toBe(61)
     expect(nguoiVao?.phutRa).toBeNull()
+  })
+})
+
+/*
+  Báo cáo sau trận ở quân số nhỏ (AC-15.3).
+
+  `dungBaoCao` vốn dựng bảng điểm từ `theoCauThu` chứ không từ một con số 11
+  cứng ở đâu đó, nên về lý thì nó đúng sẵn cho mọi quân số. Khối này tồn tại
+  để CHỨNG MINH điều đó, không phải để tin vào nó: một con số 11 lẩn trong
+  đường dựng báo cáo sẽ không lộ ra ở bất kỳ phép kiểm nào khác, vì mọi phép
+  kiểm khác đều chạy trận 11 người.
+*/
+describe('báo cáo sau trận ở quân số nhỏ (AC-15.3)', () => {
+  const QUAN_SO_CHAY_DUOC = CAC_QUAN_SO.filter(
+    (n) => soDoTheoQuanSo(n).length > 0,
+  )
+
+  function chayQuanSo(n: number, ma: string): TrangThaiTran {
+    return chayHetTran(
+      taoTran(
+        cauHinhMau(ma, {
+          quanSo: n,
+          nha: benMauQuanSo('A', n),
+          khach: benMauQuanSo('B', n),
+        }),
+      ),
+    )
+  }
+
+  it('bảng điểm có ĐÚNG những người đã ra sân, không thừa không thiếu', () => {
+    for (const n of QUAN_SO_CHAY_DUOC) {
+      const tt = chayQuanSo(n, MA_TRAN_CO_DINH[0])
+      const bc = dungBaoCao(tt)
+
+      for (const doi of ['nha', 'khach'] as const) {
+        const cham = bc.diemCauThu.filter((x) => x.doi === doi)
+        // Không thay người, nên đúng n người đá chính được chấm.
+        expect(cham, `quân số ${n}/${doi}`).toHaveLength(n)
+
+        const daChinh = new Set(
+          tt.ben[doi].chienThuatXuatPhat.oVien.map((o) => o.playerId),
+        )
+        for (const x of cham) {
+          expect(daChinh.has(x.playerId), `${n}/${x.playerId}`).toBe(true)
+        }
+
+        // Không ai bị chấm hai lần.
+        const ids = new Set(cham.map((x) => x.playerId))
+        expect(ids.size, `quân số ${n}/${doi}`).toBe(n)
+      }
+    }
+  })
+
+  /*
+    Phép quan trọng nhất của khối: tổng theo TỪNG CẦU THỦ phải khớp tổng theo
+    BÊN. Hai con số ấy đi hai đường khác nhau trong `dungBaoCao` — một đường
+    qua `theoCauThu`, một đường qua `thongKe` của bên — nên nếu đường nào
+    còn một con số 11 cứng thì ở quân số 5 chúng sẽ lệch nhau.
+  */
+  it('tổng bàn thắng theo từng cầu thủ khớp tổng theo bên', () => {
+    for (const n of QUAN_SO_CHAY_DUOC) {
+      for (const ma of MA_TRAN_CO_DINH.slice(0, 3)) {
+        const bc = dungBaoCao(chayQuanSo(n, ma))
+
+        for (const doi of ['nha', 'khach'] as const) {
+          const banCuaNguoi = bc.nguoiGhiBan.filter((g) => g.doi === doi).length
+          expect(banCuaNguoi, `quân số ${n}/${doi}/${ma}`).toBe(bc.tiSo[doi])
+        }
+      }
+    }
+  })
+
+  it('mọi điểm vẫn nằm trong 1–10 ở quân số nhỏ', () => {
+    for (const n of QUAN_SO_CHAY_DUOC) {
+      for (const x of dungBaoCao(chayQuanSo(n, MA_TRAN_CO_DINH[1])).diemCauThu) {
+        expect(x.diem, `${n}/${x.playerId}`).toBeGreaterThanOrEqual(
+          DIEM_TOI_THIEU,
+        )
+        expect(x.diem, `${n}/${x.playerId}`).toBeLessThanOrEqual(DIEM_TOI_DA)
+      }
+    }
+  })
+
+  /*
+    Người vào sân từ ghế dự bị ở trận sân nhỏ cũng phải được chấm — đây là
+    chỗ một con số 11 cứng dễ lẩn nhất, vì nó chỉ lộ khi số người được chấm
+    vượt quá quân số xuất phát.
+  */
+  it('người được thay vào ở trận sân 5 vẫn có mặt trong bảng điểm', () => {
+    const n = 5
+    let tt: TrangThaiTran = taoTran(
+      cauHinhMau(MA_TRAN_CO_DINH[0], {
+        quanSo: n,
+        nha: benMauQuanSo('A', n, 2),
+        khach: benMauQuanSo('B', n, 2),
+      }),
+    )
+    while (tt.phut < 10) tt = buocTiep(tt)
+
+    const ra = tt.ben.nha.trenSan[2]
+    const vao = tt.ben.nha.duBi[0]
+    const kq = apDungCanThiep(tt, {
+      phut: tt.phut,
+      doi: 'nha',
+      noiDung: { loai: 'thay-nguoi', ra, vao },
+    })
+    if (!kq.thanhCong) throw new Error(`bị từ chối: ${kq.lyDo}`)
+
+    const cham = dungBaoCao(chayHetTran(kq.trangThai)).diemCauThu.filter(
+      (x) => x.doi === 'nha',
+    )
+    expect(cham).toHaveLength(n + 1)
+    // Can thiệp ở phút p có hiệu lực từ phút p+1, y như AC-11.5 của spec 001.
+    expect(cham.find((x) => x.playerId === vao)?.phutVao).toBe(11)
+    expect(cham.find((x) => x.playerId === ra)?.phutRa).toBe(11)
   })
 })

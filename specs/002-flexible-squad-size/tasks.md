@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | 33 AC (US-12 → US-16) |
-| **Tiến độ** | 18/25 |
+| **Tiến độ** | 24/25 |
 | **Sửa đổi** | 2026-11-01 — chẻ lần đầu từ plan (D64 phát sinh lúc chẻ), rồi sửa theo cả 7 phát hiện của `/analyze` |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -150,40 +150,40 @@ dụng chạy được (hiến pháp P6), và là một commit.
 
 ## Phase 21 — Lát 21: Lưu trữ, lịch sử, đóng spec
 
-- [ ] **T217** — Hai trường mới trong bản ghi trận
+- [x] **T217** — Hai trường mới trong bản ghi trận
   - File: sửa `src/storage/db.ts`, sửa `src/services/matchRepo.ts`, sửa `src/hooks/useMatch.ts`, sửa `src/services/matchRepo.test.ts`
   - Xong khi: `TomTatTran` mang `quanSo?` và `thoiLuong?`; bản ghi cũ thiếu hai trường thì **đọc ra 11 và 90**; `DB_VERSION` **giữ nguyên 3** (D61); test xanh — ghi một bản ghi thiếu hai trường rồi đọc ra đúng mặc định, và vòng tròn lưu/đọc một trận sân 5 không mất gì.
   - AC: AC-12.4, AC-12.6, AC-16.1, AC-16.2
   - Phụ thuộc: T200, **T219**
   - **Phải đi sau T219** (soát ra ở `/analyze`): `TranDaLuuSchema` là `z.object` nên zod lặng lẽ cắt khoá lạ. Ghi hai trường mới khi schema còn ở v4 thì xuất tệp rồi nhập lại là **mất trắng hai trường mà không báo gì**.
 
-- [ ] **T218** [P] — Lịch sử hiển thị quân số và thời lượng
+- [x] **T218** [P] — Lịch sử hiển thị quân số và thời lượng
   - File: sửa `src/ui/pages/TrangLichSu.tsx`, sửa `src/ui/strings.ts`
   - Xong khi: mỗi dòng lịch sử hiện quân số và thời lượng; trận cũ hiện "11 người · 90 phút"; mở một trận sân 5 xem lại được đầy đủ báo cáo và dòng sự kiện.
   - AC: AC-12.4, AC-12.6
   - Phụ thuộc: T217
 
-- [ ] **T219** [P] — Tệp sao lưu phiên bản 5
+- [x] **T219** [P] — Tệp sao lưu phiên bản 5
   - File: sửa `src/services/backupSchema.ts`, sửa `src/storage/migrations.ts`, sửa `src/services/backupService.ts`, sửa `src/services/backupService.test.ts`
   - Xong khi: `SCHEMA_VERSION` lên 5 kèm `nangV4LenV5` điền 11 người / 90 phút cho mọi trận trong tệp cũ; test xanh — nhập một tệp v4 thật rồi đọc ra đúng hai giá trị mặc định, và vòng tròn xuất/nhập v5 không mất trường nào.
   - AC: AC-16.4
   - Phụ thuộc: T200
 
-- [ ] **T220** — Báo cáo sau trận ở quân số nhỏ
+- [x] **T220** — Báo cáo sau trận ở quân số nhỏ
   - File: sửa `src/engine/baoCao.test.ts`
   - Xong khi: test xanh — chạy một trận n=5, bảng điểm cầu thủ có **đúng** những người đã ra sân của trận đó, không thừa không thiếu, và tổng theo từng cầu thủ khớp tổng theo bên.
   - AC: AC-15.3
   - Phụ thuộc: T202
   - Plan nói `dungBaoCao` vốn dựng từ `theoCauThu` nên có thể **không phải sửa code** — task này tồn tại để chứng minh điều đó, chứ không phải để tin vào nó.
 
-- [ ] **T223** — Đo xem dòng sự kiện ở n=11 có thật sự đổi không
+- [x] **T223** — Đo xem dòng sự kiện ở n=11 có thật sự đổi không
   - File: tạo `src/engine/tuongThichV5.test.ts`
   - Xong khi: chạy một bộ mã trận cố định ở **n=11, 90 phút, không thẻ đỏ tới ngưỡng huỷ**, rồi đối chiếu **từng dòng** với kết quả đã chốt của engine v5 (lưu thành bảng hằng trong chính test). Test in ra số dòng khớp và số dòng lệch.
   - AC: — *(cổng quyết định cho T221)*
   - Phụ thuộc: T212, T213, T214
   - **Phát sinh từ `/analyze`.** Bản đầu của plan mặc định là `Rng` đổi nên phải bump. Soát lại thì ở n=11 không chỗ nào đổi số lần hay thứ tự rút: lượt thay chỉ đổi trần can thiệp, huỷ trận cần từ 5 thẻ đỏ. Nếu giống hệt thì **không bump** — bump thừa là tự tay tước nút đấu lại của mọi trận sẽ lưu từ nay.
 
-- [ ] **T221** — `PHIEN_BAN_ENGINE`: bump hay không, theo số đo
+- [x] **T221** — `PHIEN_BAN_ENGINE`: bump hay không, theo số đo
   - File: sửa `src/engine/tran.ts`
   - Xong khi: **T223 đỏ** → lên 6 kèm chú thích nói rõ dòng nào đã đổi; **T223 xanh** → giữ nguyên 5 và ghi vào plan rằng bump không cần thiết, kèm số đo. Dù theo nhánh nào cũng kiểm tay: mở một trận đã lưu, nút đấu lại hành xử đúng như lý do mà ứng dụng nói ra.
   - AC: AC-16.3

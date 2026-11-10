@@ -1,4 +1,5 @@
 import { moDb, type TomTatTran, type TranDaLuu } from '../storage/db'
+import { QUAN_SO_TRAN_CU, THOI_LUONG_TRAN_CU } from '../storage/migrations'
 import { chuanHoaLoiLuuTru } from './errors'
 
 /*
@@ -19,6 +20,36 @@ import { chuanHoaLoiLuuTru } from './errors'
 */
 
 export const SO_TRAN_GIU_LAI = 20
+
+/*
+  Điền quân số và thời lượng cho bản ghi cũ, đúng MỘT chỗ (AC-16.1, AC-16.2).
+
+  Trận lưu trước spec 002 không có hai trường này, mà lúc ấy ứng dụng chỉ đá
+  được 11 người 90 phút — nên hai con số là sự thật chắc chắn, không phải
+  phỏng đoán. Điền ở đây, ngay cửa đọc, để không chỗ nào trong ứng dụng phải
+  tự viết lại `?? 11`; viết rải rác thì sẽ có chỗ quên, và chỗ quên ấy hiện
+  ra màn hình dưới dạng một ô trống.
+
+  Bản ghi trên đĩa KHÔNG bị sửa (P3): đây là phép đọc, không phải phép ghi.
+*/
+function dienMacDinh<T extends TomTatTran>(tran: T): T {
+  if (tran.quanSo !== undefined && tran.thoiLuong !== undefined) return tran
+  return {
+    ...tran,
+    quanSo: tran.quanSo ?? QUAN_SO_TRAN_CU,
+    thoiLuong: tran.thoiLuong ?? THOI_LUONG_TRAN_CU,
+  }
+}
+
+/** Quân số của một trận đã lưu, đã tính cả bản ghi cũ. */
+export function quanSoCua(tran: TomTatTran): number {
+  return tran.quanSo ?? QUAN_SO_TRAN_CU
+}
+
+/** Thời lượng của một trận đã lưu, đã tính cả bản ghi cũ. */
+export function thoiLuongCua(tran: TomTatTran): number {
+  return tran.thoiLuong ?? THOI_LUONG_TRAN_CU
+}
 
 export interface KetQuaLuuTran {
   /** Id những trận bị loại khỏi lịch sử để giữ trần 20 (spec mục 5). */
@@ -73,7 +104,7 @@ export async function danhSach(): Promise<readonly TomTatTran[]> {
   try {
     const db = await moDb()
     const cac = await db.getAllFromIndex('matchSummaries', 'byKetThucLuc')
-    return cac.reverse()
+    return cac.reverse().map(dienMacDinh)
   } catch (loi) {
     throw chuanHoaLoiLuuTru(loi)
   }
@@ -83,7 +114,8 @@ export async function danhSach(): Promise<readonly TomTatTran[]> {
 export async function doc(id: string): Promise<TranDaLuu | null> {
   try {
     const db = await moDb()
-    return (await db.get('matches', id)) ?? null
+    const tran = await db.get('matches', id)
+    return tran ? dienMacDinh(tran) : null
   } catch (loi) {
     throw chuanHoaLoiLuuTru(loi)
   }
@@ -122,6 +154,8 @@ export function tomTatCua(tran: TranDaLuu): TomTatTran {
     tiSo: tran.tiSo,
     doiChuNha: tran.doiChuNha,
     doiKhach: tran.doiKhach,
+    quanSo: tran.quanSo,
+    thoiLuong: tran.thoiLuong,
   }
 }
 
