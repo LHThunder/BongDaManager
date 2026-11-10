@@ -1,5 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { xepLaiKhiDoiSoDo } from '../../domain/lineup'
+import { laySoDo } from '../../domain/formations'
+import { MUC_SAI_TOI_DA_KHI_XEP, xepLaiKhiDoiSoDo } from '../../domain/lineup'
+import {
+  mucSaiViTri,
+  MUC_TRU_HIEU_SUAT,
+  THU_TU_MUC_SAI,
+} from '../../domain/misplacement'
 import type { Player, Tactic } from '../../domain/types'
 import {
   SO_CAU_THU_DU_BI_TOI_DA,
@@ -46,10 +52,68 @@ interface DuLieuDoi {
 const RNG_THAT = { next: () => Math.random() }
 
 /**
- * Đăng ký mặc định: lấy trước những người đã được xếp trong chiến thuật, rồi
- * bù cho đủ `quanSo` từ danh sách đội, rồi tới dự bị.
+ * Chọn người cho từng Ô của sơ đồ: mỗi ô lấy người khớp vị trí nhất còn lại.
  *
- * Phần bù là bắt buộc chứ không phải cho đẹp: đội vừa tạo có bộ chiến thuật
+ * Đây là chỗ bản đầu của T215 làm sai, và nó chỉ lộ ra khi quân số nhỏ. Lúc
+ * ấy hàm này lấy `quanSo` người ĐẦU DANH SÁCH — mà một đội thật xếp theo số
+ * áo thì đầu danh sách là thủ môn rồi hậu vệ. Sân 5 với sơ đồ 2-2 cần hai
+ * tiền đạo, nên năm người đầu (thủ môn + bốn hậu vệ) chỉ xếp được 3/5 ô:
+ * người dùng chọn "5 người" rồi bị chặn ngay, không hiểu vì sao. Đo trên một
+ * đội 18 người xếp đúng tuyến: bốn trong bảy quân số không khởi động được.
+ *
+ * Thứ tự quét là thứ tự ô của sơ đồ, và khi hai người ngang điểm thì giữ
+ * người đứng trước trong danh sách — không có nguồn ngẫu nhiên nào, nên bấm
+ * hai lần ra đúng một kết quả (P1).
+ */
+function chonTheoSoDo(
+  cauThu: readonly Player[],
+  chienThuat: Tactic,
+  quanSo: number,
+): readonly string[] {
+  const nguongSai = THU_TU_MUC_SAI.indexOf(MUC_SAI_TOI_DA_KHI_XEP)
+  const conLai = new Set(cauThu.map((p) => p.id))
+  const hoSo = new Map(cauThu.map((p) => [p.id, p]))
+  const chon: string[] = []
+
+  for (const o of laySoDo(chienThuat.formationId).oVien) {
+    if (chon.length >= quanSo) break
+
+    let totNhat: string | null = null
+    let diemTot = Number.POSITIVE_INFINITY
+
+    for (const id of conLai) {
+      const muc = mucSaiViTri(o.viTri, hoSo.get(id)?.positions ?? [])
+      if (THU_TU_MUC_SAI.indexOf(muc) > nguongSai) continue
+      const diem = MUC_TRU_HIEU_SUAT[muc]
+      if (diem < diemTot) {
+        diemTot = diem
+        totNhat = id
+      }
+    }
+
+    if (totNhat !== null) {
+      chon.push(totNhat)
+      conLai.delete(totNhat)
+    }
+  }
+
+  // Ô nào không ai xếp nổi thì vẫn lấy thêm người cho đủ quân số: màn này
+  // phải nói "thiếu bao nhiêu" (AC-12.3), không phải tự ý đăng ký ít đi.
+  for (const p of cauThu) {
+    if (chon.length >= quanSo) break
+    if (conLai.has(p.id)) {
+      chon.push(p.id)
+      conLai.delete(p.id)
+    }
+  }
+
+  return chon
+}
+
+/**
+ * Đăng ký mặc định: `quanSo` người khớp sơ đồ nhất làm chính, rồi tới dự bị.
+ *
+ * Mở màn ra là đăng ký sẵn chứ không để trống: đội vừa tạo có bộ chiến thuật
  * mặc định với toàn ô TRỐNG, nên nếu chỉ lấy theo chiến thuật thì màn này mở
  * ra với 0 người chính và người dùng phải tự bấm đủ từng ấy lần.
  */
@@ -58,29 +122,15 @@ function dangKyMacDinh(
   chienThuat: Tactic,
   quanSo: number,
 ): Record<string, VaiTroDangKy> {
-  const trongSoDo = new Set(
-    chienThuat.oVien
-      .map((o) => o.playerId)
-      .filter((id): id is string => id !== null),
-  )
+  const chinh = new Set(chonTheoSoDo(cauThu, chienThuat, quanSo))
 
   const ra: Record<string, VaiTroDangKy> = {}
-  let soChinh = 0
-
-  for (const p of cauThu) {
-    if (trongSoDo.has(p.id) && soChinh < quanSo) {
-      ra[p.id] = 'chinh'
-      soChinh += 1
-    }
-  }
-
   let soDuBi = 0
+
   for (const p of cauThu) {
-    if (ra[p.id]) continue
-    if (soChinh < quanSo) {
+    if (chinh.has(p.id)) {
       ra[p.id] = 'chinh'
-      soChinh += 1
-    } else if (soDuBi > SO_CAU_THU_DU_BI_TOI_DA) {
+    } else if (soDuBi < SO_CAU_THU_DU_BI_TOI_DA) {
       ra[p.id] = 'du-bi'
       soDuBi += 1
     } else {

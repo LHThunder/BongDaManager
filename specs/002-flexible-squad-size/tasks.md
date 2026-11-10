@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | 33 AC (US-12 → US-16) |
-| **Tiến độ** | 24/25 |
+| **Tiến độ** | 25/25 |
 | **Sửa đổi** | 2026-11-01 — chẻ lần đầu từ plan (D64 phát sinh lúc chẻ), rồi sửa theo cả 7 phát hiện của `/analyze` |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -190,7 +190,7 @@ dụng chạy được (hiến pháp P6), và là một commit.
   - Phụ thuộc: **T223**
   - Để **cuối cùng trong các thay đổi engine**: tăng sớm thì mỗi lần sửa engine tiếp theo lại phải tự hỏi có cần tăng nữa không.
 
-- [ ] **T222** — Kiểm tay từng quân số và đóng spec
+- [x] **T222** — Kiểm tay từng quân số và đóng spec
   - File: `specs/002-flexible-squad-size/spec.md`
   - Xong khi: **mỗi quân số từ 5 tới 11 chạy trọn một trận trên ứng dụng đang chạy** (Definition of Done của spec đòi), cộng kiểm tay bốn việc chỉ kiểm tay mới thấy — xếp đội hình sân 5 rồi quay lại sân 11 thấy đội hình cũ còn nguyên; đá một trận 20 phút đếm số dòng tường thuật; ép một trận tới ngưỡng huỷ; mở một trận cũ trong lịch sử. Tick 32 AC và đổi `Status` thành **Done**.
   - AC: toàn bộ
