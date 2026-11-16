@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | 36 AC (US-17 → US-23) |
-| **Tiến độ** | 25/43 |
+| **Tiến độ** | 27/43 |
 | **Sửa đổi** | 2026-11-16 — chẻ lần đầu từ plan, rồi sửa theo cả 8 phát hiện của `/analyze`; thêm T341–T342 lúc làm Phase 23 |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -191,13 +191,13 @@ duyệt theme**. Không có nó thì T326 áp theme ra 27 file còn lại rồi 
   - AC: AC-19.3, AC-22.1, AC-22.3
   - Phụ thuộc: T303
 
-- [ ] **T321** — Lớp lưới 1: test quét khoá toàn bộ
+- [x] **T321** — Lớp lưới 1: test quét khoá toàn bộ
   - File: tạo `src/ui/ngonNgu/ngonNgu.test.ts`
   - Xong khi: test xanh — mọi khối chuỗi có **đủ và đúng** tập khoá ở cả hai ngôn ngữ, không khoá nào rỗng. Kiểu `typeof` đã chặn phần lớn; test này bắt những chỗ kiểu không với tới.
   - AC: AC-22.1, AC-22.2
   - Phụ thuộc: T317, T318, T319, T320
 
-- [ ] **T322** — Lớp lưới 2: dấu hiệu thấy được lúc chạy
+- [x] **T322** — Lớp lưới 2: dấu hiệu thấy được lúc chạy
   - File: sửa `src/ui/ngonNgu/index.ts`
   - Xong khi: tra một khoá không có bản dịch thì trả về chuỗi đánh dấu thấy được *(ví dụ `⟨thiếu: CHUNG.huy⟩`)*, **không rơi về ngôn ngữ kia** và **không ném lỗi** làm vỡ màn hình; có test cho đúng hành vi đó.
   - AC: AC-22.2
@@ -407,3 +407,12 @@ duyệt theme**. Không có nó thì T326 áp theme ra 27 file còn lại rồi 
 - **`coTep()` ở lại `strings.ts`, có chủ ý.** Nó chỉ sinh KÝ HIỆU đơn vị
   (B/KB/MB), viết y hệt ở hai ngôn ngữ — cùng lý do đã cho tên sơ đồ (D75)
   và dấu "▲" của sân 2D.
+- **Một ngoại lệ thật của phép kiểm "tiếng Anh không còn chữ Việt" (T321):**
+  `NGON_NGU.vi` phải là "Tiếng Việt" ở CẢ HAI bản. Tên một ngôn ngữ viết
+  bằng chính ngôn ngữ ấy; dịch thành "Vietnamese" là làm nút chuyển khó tìm
+  hơn cho đúng người cần nó. Đã ghi vào danh sách ký hiệu dùng chung cùng
+  `TEN_SO_DO` và `SAN_2D.dauThamGia`.
+- **Tự kiểm của T321, kiểu như T302 đã làm:** xoá một khoá của bảng chỉ mục
+  (`LY_DO_TU_CHOI_CAN_THIEP['o-khong-ton-tai']`) khỏi `en.ts` → `tsc` im
+  lặng hoàn toàn, test đỏ 2 chỗ. Đó đúng là khoảng trống mà lớp lưới này
+  sinh ra để lấp. Đã khôi phục.

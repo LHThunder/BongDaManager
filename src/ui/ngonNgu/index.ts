@@ -236,7 +236,81 @@ const EN: BoChuoi = {
   LOI: LOI_EN,
 }
 
-export const BO_CHUOI: Readonly<Record<NgonNgu, BoChuoi>> = { vi: VI, en: EN }
+/*
+  Lớp lưới THỨ HAI của AC-22.2: dấu hiệu THẤY ĐƯỢC lúc chạy (T322).
+
+  Lớp lưới thứ nhất — `ngonNgu.test.ts` cộng kiểu `BanDich` — chặn trước khi
+  phát hành. Nhưng nó quét những khoá đã BIẾT TÊN. Hai chỗ nó không với tới:
+
+  - **Bảng chỉ mục tra bằng dữ liệu**: `LY_DO_TU_CHOI_CAN_THIEP[lyDo]` hay
+    `LICH_SU.lyDoKhongDauLai[ma]` tra bằng mã do engine/services phát ra.
+    Thêm một mã mới ở lớp dưới mà quên thêm câu ở đây thì không phép kiểm
+    tĩnh nào thấy.
+  - **Tệp sao lưu và dữ liệu cũ**: một bản ghi lưu từ bản ứng dụng khác có
+    thể mang mã mà bản này chưa biết.
+
+  Quyết định của /clarify: KHÔNG âm thầm rơi về ngôn ngữ kia, và KHÔNG ném
+  lỗi làm vỡ màn hình. Thay vào đó trả về một chuỗi đánh dấu — người dùng
+  thấy ngay là chỗ ấy thiếu bản dịch, và báo lại được bằng đúng đường dẫn
+  khoá ghi trong dấu ấy.
+
+  `Proxy` chỉ chặn `get`, nên `Object.keys`, `in`, và việc duyệt khối vẫn
+  y như cũ — phép kiểm của lớp lưới thứ nhất không bị lớp này che mắt.
+*/
+export function dauThieuBanDich(duongDan: string): string {
+  return `⟨thiếu: ${duongDan}⟩`
+}
+
+function bocCanh<T extends object>(nut: T, goc: string): T {
+  /*
+    `Set` và hàm giữ nguyên: bọc `Set` làm `.has` mất `this`, còn hàm thì
+    không ai tra khoá trên nó. Mảng cũng giữ nguyên — index ngoài biên của
+    mảng là lỗi lập trình, không phải thiếu bản dịch.
+  */
+  if (nut instanceof Set || nut instanceof Map || Array.isArray(nut)) {
+    return nut
+  }
+
+  const daBoc: Record<string, unknown> = {}
+  for (const khoa of Object.keys(nut)) {
+    const giaTri = (nut as Record<string, unknown>)[khoa]
+    daBoc[khoa] =
+      giaTri !== null && typeof giaTri === 'object'
+        ? bocCanh(giaTri as object, `${goc}.${khoa}`)
+        : giaTri
+  }
+
+  return new Proxy(daBoc, {
+    get(dich, khoa, nhan) {
+      if (typeof khoa !== 'string' || khoa in dich) {
+        return Reflect.get(dich, khoa, nhan)
+      }
+      /*
+        Khoá nội bộ của JS/React (`then`, `Symbol.toPrimitive`, `$$typeof`…)
+        đi qua đường trên vì chúng không phải string hoặc đã có sẵn; chỉ
+        khoá chuỗi LẠ mới thành dấu thiếu bản dịch.
+      */
+      return dauThieuBanDich(`${goc}.${khoa}`)
+    },
+  }) as T
+}
+
+function bocBoChuoi(bo: BoChuoi): BoChuoi {
+  const ra: Record<string, unknown> = {}
+  for (const khoi of Object.keys(bo)) {
+    const giaTri = (bo as unknown as Record<string, unknown>)[khoi]
+    ra[khoi] =
+      giaTri !== null && typeof giaTri === 'object'
+        ? bocCanh(giaTri as object, khoi)
+        : giaTri
+  }
+  return ra as unknown as BoChuoi
+}
+
+export const BO_CHUOI: Readonly<Record<NgonNgu, BoChuoi>> = {
+  vi: bocBoChuoi(VI),
+  en: bocBoChuoi(EN),
+}
 
 /*
   Tra nhãn của MỘT mức thuộc MỘT chỉ thị.
