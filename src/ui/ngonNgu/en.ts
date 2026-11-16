@@ -3,7 +3,9 @@ import type {
   CHUNG_VI,
   DANH_SACH_DOI_VI,
   NGON_NGU_VI,
+  CANH_BAO_XUNG_DOT_VI,
   NHAN_CHI_SO_VI,
+  NHAN_MUC_DO_VI,
   NHAN_VAI_TRO_VI,
   NHAN_VI_TRI_VI,
   XOA_DOI_VI,
@@ -343,4 +345,24 @@ export const NHAN_CHI_SO_EN: typeof NHAN_CHI_SO_VI = {
   'phan-xa': 'Reflexes',
   'bat-bong': 'Handling',
   'phat-dong': 'Distribution',
+}
+
+export const NHAN_MUC_DO_EN: typeof NHAN_MUC_DO_VI = {
+  'ngoi-sao': 'Star',
+  kha: 'Good',
+  'trung-binh': 'Average',
+  yeu: 'Poor',
+}
+
+/*
+  Ba câu cảnh báo giữ nguyên cấu trúc "A cần X, nhưng B lại Y — nên Z": mỗi
+  câu nêu hai chỉ thị chọi nhau rồi nói hậu quả, đúng thứ AC-7.3 đòi.
+*/
+export const CANH_BAO_XUNG_DOT_EN: typeof CANH_BAO_XUNG_DOT_VI = {
+  'viet-vi-voi-doi-hinh-thap':
+    'An offside trap needs the back line to step up together, but a deep line sits on its own goal — the trap will almost never spring.',
+  'pressing-cao-voi-doi-hinh-thap':
+    'High pressing means swarming the ball the moment it is lost, while a deep line tells players to drop first — they will run a lot without winning it back.',
+  'tan-cong-bien-voi-doi-hinh-hep':
+    'Attacking down the flanks needs players hugging the touchline, but a narrow shape pulls them into the middle.',
 }

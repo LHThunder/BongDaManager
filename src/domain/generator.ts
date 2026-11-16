@@ -26,15 +26,16 @@ export type MucDo = 'ngoi-sao' | 'kha' | 'trung-binh' | 'yeu'
 
 export interface MucDoMeta {
   readonly id: MucDo
-  /** Tên hiển thị, tiếng Việt (P8). */
-  readonly ten: string
 }
 
+/*
+  Bốn mức chỉ còn **mã** (T341, quyết định D68). Nhãn nằm ở lớp ngôn ngữ.
+*/
 export const CAC_MUC_DO: readonly MucDoMeta[] = [
-  { id: 'ngoi-sao', ten: 'Ngôi sao' },
-  { id: 'kha', ten: 'Khá' },
-  { id: 'trung-binh', ten: 'Trung bình' },
-  { id: 'yeu', ten: 'Yếu' },
+  { id: 'ngoi-sao' },
+  { id: 'kha' },
+  { id: 'trung-binh' },
+  { id: 'yeu' },
 ]
 
 /** Mức nền cho những chỉ số KHÔNG liên quan tới vị trí của cầu thủ. */

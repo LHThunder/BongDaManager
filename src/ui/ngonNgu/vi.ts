@@ -1,4 +1,9 @@
-import type { ChiThiId, MucTheoChiThi } from '../../domain/instructions'
+import type {
+  ChiThiId,
+  MucTheoChiThi,
+  XungDotId,
+} from '../../domain/instructions'
+import type { MucDo } from '../../domain/generator'
 import type { RoleId } from '../../domain/roles'
 import type {
   AttributeId,
@@ -388,4 +393,22 @@ export const NHAN_CHI_SO_VI: Readonly<
   'phan-xa': 'Phản xạ',
   'bat-bong': 'Bắt bóng',
   'phat-dong': 'Phát động',
+}
+
+/** Nhãn bốn mức sinh nhanh chỉ số (T341). */
+export const NHAN_MUC_DO_VI: Readonly<Record<MucDo, string>> = {
+  'ngoi-sao': 'Ngôi sao',
+  kha: 'Khá',
+  'trung-binh': 'Trung bình',
+  yeu: 'Yếu',
+}
+
+/** Ba câu cảnh báo xung đột chỉ thị (AC-7.3, T342). */
+export const CANH_BAO_XUNG_DOT_VI: Readonly<Record<XungDotId, string>> = {
+  'viet-vi-voi-doi-hinh-thap':
+    'Bẫy việt vị cần hàng phòng ngự dâng lên cùng nhịp, nhưng đội hình thấp thì hàng phòng ngự đứng sát khung thành — bẫy gần như không bao giờ có tác dụng.',
+  'pressing-cao-voi-doi-hinh-thap':
+    'Pressing cao đòi vồ bóng ngay khi mất, còn đội hình thấp lại bắt lùi về trước — cầu thủ sẽ chạy nhiều mà không giành lại được bóng.',
+  'tan-cong-bien-voi-doi-hinh-hep':
+    'Tấn công qua hai biên cần người bám sát đường biên, nhưng đội hình hẹp lại kéo họ vào trung lộ.',
 }

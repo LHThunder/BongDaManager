@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import { ATTRIBUTES, GK_ATTRIBUTES } from '../../domain/attributes'
-import { CHI_THI, THU_TU_CHI_THI } from '../../domain/instructions'
+import { CAC_MUC_DO } from '../../domain/generator'
+import {
+  CHI_THI,
+  THU_TU_CHI_THI,
+  type XungDotId,
+} from '../../domain/instructions'
 import { ROLES } from '../../domain/roles'
 import { POSITIONS } from '../../domain/positions'
 import type { NgonNgu } from '../../services/tuyChonRepo'
@@ -156,6 +161,39 @@ describe('nhãn chỉ số, ở cả hai ngôn ngữ', () => {
         BO_CHUOI.en.NHAN_CHI_SO[a.id],
         `chỉ số ${a.id} chưa được dịch`,
       ).not.toBe(BO_CHUOI.vi.NHAN_CHI_SO[a.id])
+    }
+  })
+})
+
+describe('nhãn mức sinh nhanh và câu cảnh báo xung đột (T341, T342)', () => {
+  it('bốn mức sinh nhanh có nhãn ở cả hai ngôn ngữ', () => {
+    for (const ngonNgu of CAC_NGON_NGU) {
+      const bang = BO_CHUOI[ngonNgu].NHAN_MUC_DO
+      for (const m of CAC_MUC_DO) {
+        expect(bang[m.id], `${ngonNgu}: thiếu mức ${m.id}`).toBeDefined()
+        expect(bang[m.id].trim(), `${ngonNgu}: ${m.id}`).not.toBe('')
+      }
+    }
+  })
+
+  /*
+    Ba mã xung đột phải có câu ở cả hai ngôn ngữ. Kiểu `Record<XungDotId, …>`
+    đã chặn việc thiếu, nhưng không chặn được câu rỗng hay câu quên dịch.
+  */
+  it('ba câu cảnh báo xung đột có ở cả hai ngôn ngữ và khác nhau', () => {
+    const ma = Object.keys(BO_CHUOI.vi.CANH_BAO_XUNG_DOT) as XungDotId[]
+    expect(ma).toHaveLength(3)
+    for (const m of ma) {
+      for (const ngonNgu of CAC_NGON_NGU) {
+        expect(
+          BO_CHUOI[ngonNgu].CANH_BAO_XUNG_DOT[m].trim(),
+          `${ngonNgu}: ${m}`,
+        ).not.toBe('')
+      }
+      expect(
+        BO_CHUOI.en.CANH_BAO_XUNG_DOT[m],
+        `xung đột ${m} chưa được dịch`,
+      ).not.toBe(BO_CHUOI.vi.CANH_BAO_XUNG_DOT[m])
     }
   })
 })

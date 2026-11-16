@@ -5,8 +5,8 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | 36 AC (US-17 → US-23) |
-| **Tiến độ** | 15/41 |
-| **Sửa đổi** | 2026-11-16 — chẻ lần đầu từ plan, rồi sửa theo cả 8 phát hiện của `/analyze` |
+| **Tiến độ** | 17/43 |
+| **Sửa đổi** | 2026-11-16 — chẻ lần đầu từ plan, rồi sửa theo cả 8 phát hiện của `/analyze`; thêm T341–T342 lúc làm Phase 23 |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
 > Mỗi task phải: chạm file cụ thể + có cách kiểm chứng + đủ nhỏ để làm trong một lần.
@@ -118,6 +118,19 @@ duyệt theme**. Không có nó thì T326 áp theme ra 27 file còn lại rồi 
   - Xong khi: hàm trả `{ chiSo, giaTri }` — **bỏ trường `ten`**; giao diện tra nhãn từ lớp ngôn ngữ; không hàm nào trong `domain/` còn **sinh ra** chữ hiển thị, không chỉ là không **chứa** chữ.
   - AC: AC-19.1, AC-19.2
   - Phụ thuộc: T309
+
+
+- [x] **T341** [P] — Nhãn bốn mức sinh nhanh chỉ số
+  - File: sửa `src/domain/generator.ts`, sửa `src/ui/ngonNgu/{vi,en}.ts`, sửa `src/ui/components/FormCauThu.tsx`
+  - Xong khi: `CAC_MUC_DO` còn đúng `{ id }`; bốn nhãn *Ngôi sao / Khá / Trung bình / Yếu* nằm ở lớp ngôn ngữ dưới dạng `Record<MucDo, string>`; form cầu thủ hiện đúng bốn mức ở cả hai ngôn ngữ.
+  - AC: AC-19.1, AC-22.1
+  - Phụ thuộc: T302
+
+- [x] **T342** [P] — Ba câu cảnh báo xung đột chỉ thị
+  - File: sửa `src/domain/instructions.ts`, sửa `src/ui/ngonNgu/{vi,en}.ts`, sửa `src/ui/components/ChiThiDoi.tsx`, sửa `src/domain/instructions.test.ts`
+  - Xong khi: `XungDot` mang **mã** xung đột thay cho câu chữ; ba câu cảnh báo của AC-7.3 nằm ở lớp ngôn ngữ; dựng một bộ chỉ thị có xung đột rồi xem ở cả hai ngôn ngữ, câu cảnh báo đúng thứ tiếng đang chọn.
+  - AC: AC-19.1, AC-22.1
+  - Phụ thuộc: T302
 
 ---
 
@@ -316,7 +329,7 @@ duyệt theme**. Không có nó thì T326 áp theme ra 27 file còn lại rồi 
 | AC-18.2 | T315 |
 | AC-18.3 | T313, T315 |
 | AC-18.4 | T316, T333 |
-| AC-19.1 | T306, T307, T308, T309, T310, T311, T337 |
+| AC-19.1 | T306, T307, T308, T309, T310, T311, T337, T341, T342 |
 | AC-19.2 | T306, T307, T308, T309, T311, T337 |
 | AC-19.3 | T320, T333 |
 | AC-19.4 | T305, T317, T333 |
@@ -335,7 +348,7 @@ duyệt theme**. Không có nó thì T326 áp theme ra 27 file còn lại rồi 
 | AC-21.3 | T330 |
 | AC-21.4 | T329 |
 | AC-21.5 | T330 |
-| AC-22.1 | T317, T318, T320, T321, T333, T336 |
+| AC-22.1 | T317, T318, T320, T321, T333, T336, T341, T342 |
 | AC-22.2 | T302, T321, T322 |
 | AC-22.3 | T320, T336 |
 | AC-22.4 | T319 |
@@ -359,6 +372,13 @@ duyệt theme**. Không có nó thì T326 áp theme ra 27 file còn lại rồi 
 - **Hiến pháp mục 4:** T300 chạm lớp đọc/ghi dữ liệu nên **chưa có test là
   chưa xong**. T315, T321, T322, T328 là test, không phải việc phụ.
 - **Rủi ro R31** đã thành T310: test nhãn **đi theo nhãn**, không bị xoá.
+- **Sửa lúc làm Phase 23:** còn hai chỗ nhãn trong `domain/` mà không task
+  nào nhận — bốn mức sinh nhanh ở `generator.ts`, và ba câu cảnh báo xung
+  đột ở `instructions.ts` (trường tên là `canhBao`). Thành T341 và T342.
+  Cả hai lọt vì cùng một lý do đã làm con số "23 nhãn" của T308 sai: con số
+  99 đến từ một `grep` bắt `ten:`/`moTa:`/`nhan:`, nên nó bỏ sót `danhDoi`
+  và `canhBao`. **Đếm nhãn bằng tên trường là cách đếm sai** — phải đếm mọi
+  chuỗi có dấu tiếng Việt trong `domain/`.
 - **Sửa lúc làm Phase 22:** `src/App.tsx` có ba chuỗi hiển thị mà không task
   nào nhận — hai nhãn điều hướng và dải báo lỗi lưu trữ. Đã thêm vào T320.
   Lỗ hổng loại này không lộ ra ở bảng phủ AC, vì bảng ấy soát theo **AC**

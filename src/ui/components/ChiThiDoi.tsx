@@ -36,7 +36,7 @@ function datMuc<K extends ChiThiId>(
  * vẫn bật bẫy việt vị là một lựa chọn tồi, nhưng là lựa chọn của người dùng.
  */
 export function ChiThiDoi({ chiThi, onDoi }: Props) {
-  const { NHAN_CHI_THI } = useChuoi()
+  const { NHAN_CHI_THI, CANH_BAO_XUNG_DOT } = useChuoi()
   const xungDot = cacXungDot(chiThi)
   const chiThiCoXungDot = new Set(xungDot.flatMap((x) => x.cacChiThi))
 
@@ -111,7 +111,7 @@ export function ChiThiDoi({ chiThi, onDoi }: Props) {
           </p>
           <ul className="mt-1 space-y-1 text-sm text-amber-900">
             {xungDot.map((x) => (
-              <li key={x.cacChiThi.join('+')}>{x.canhBao}</li>
+              <li key={x.cacChiThi.join('+')}>{CANH_BAO_XUNG_DOT[x.ma]}</li>
             ))}
           </ul>
           <p className="mt-1 text-sm text-amber-800">

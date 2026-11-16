@@ -46,7 +46,7 @@ export function FormCauThu({
   onXong,
   onHuy,
 }: Props) {
-  const { NHAN_VI_TRI, NHAN_CHI_SO } = useChuoi()
+  const { NHAN_VI_TRI, NHAN_CHI_SO, NHAN_MUC_DO } = useChuoi()
   const { luuCauThu } = usePlayers(teamId)
   const dangSua = cauThuDangSua !== undefined
 
@@ -358,7 +358,7 @@ export function FormCauThu({
                 onClick={() => sinhNhanh(m.id)}
                 className="rounded-md border border-slate-300 px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-400"
               >
-                {m.ten}
+                {NHAN_MUC_DO[m.id]}
               </button>
             ))}
           </div>

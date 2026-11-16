@@ -81,7 +81,8 @@ describe('phát hiện xung đột giữa các chỉ thị (AC-7.3)', () => {
     expect([...xungDot[0].cacChiThi].sort()).toEqual(
       ['bay-viet-vi', 'do-cao-doi-hinh'].sort(),
     )
-    expect(xungDot[0].canhBao.trim().length).toBeGreaterThan(0)
+    // Câu cảnh báo đã sang lớp ngôn ngữ (T342); ở đây chỉ còn kiểm MÃ.
+    expect(xungDot[0].ma).toBe('viet-vi-voi-doi-hinh-thap')
   })
 
   it('pressing cao cùng đội hình thấp là xung đột', () => {

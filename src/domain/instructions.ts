@@ -112,11 +112,24 @@ export function laMucHopLe<K extends ChiThiId>(
 // Xung đột giữa các chỉ thị (AC-7.3)
 // ---------------------------------------------------------------------------
 
+/** Mã của từng kiểu xung đột, để lớp ngôn ngữ tra câu cảnh báo. */
+export type XungDotId =
+  | 'viet-vi-voi-doi-hinh-thap'
+  | 'pressing-cao-voi-doi-hinh-thap'
+  | 'tan-cong-bien-voi-doi-hinh-hep'
+
+/*
+  Xung đột mang **mã**, không mang câu chữ (T342, quyết định D68 và D76).
+
+  Bản đầu nhét thẳng một đoạn văn tiếng Việt vào kết quả của `cacXungDot` —
+  tức `domain` sinh ra chữ hiển thị, đúng thứ P8 cấm. Chỗ này lọt qua cả
+  `/analyze` lẫn lần đếm nhãn ban đầu vì trường tên là `canhBao` chứ không
+  phải `ten` hay `moTa`.
+*/
 export interface XungDot {
+  readonly ma: XungDotId
   /** Các chỉ thị liên quan, để UI đánh dấu đúng ô. */
   readonly cacChiThi: readonly ChiThiId[]
-  /** Câu cảnh báo, tiếng Việt (P8). */
-  readonly canhBao: string
 }
 
 /**
@@ -128,25 +141,22 @@ export function cacXungDot(bo: BoChiThi): readonly XungDot[] {
 
   if (bo['bay-viet-vi'] === 'bat' && bo['do-cao-doi-hinh'] === 'thap') {
     ketQua.push({
+      ma: 'viet-vi-voi-doi-hinh-thap',
       cacChiThi: ['bay-viet-vi', 'do-cao-doi-hinh'],
-      canhBao:
-        'Bẫy việt vị cần hàng phòng ngự dâng lên cùng nhịp, nhưng đội hình thấp thì hàng phòng ngự đứng sát khung thành — bẫy gần như không bao giờ có tác dụng.',
     })
   }
 
   if (bo['cuong-do-pressing'] === 'cao' && bo['do-cao-doi-hinh'] === 'thap') {
     ketQua.push({
+      ma: 'pressing-cao-voi-doi-hinh-thap',
       cacChiThi: ['cuong-do-pressing', 'do-cao-doi-hinh'],
-      canhBao:
-        'Pressing cao đòi vồ bóng ngay khi mất, còn đội hình thấp lại bắt lùi về trước — cầu thủ sẽ chạy nhiều mà không giành lại được bóng.',
     })
   }
 
   if (bo['huong-tan-cong'] === 'bien' && bo['do-rong-doi-hinh'] === 'hep') {
     ketQua.push({
+      ma: 'tan-cong-bien-voi-doi-hinh-hep',
       cacChiThi: ['huong-tan-cong', 'do-rong-doi-hinh'],
-      canhBao:
-        'Tấn công qua hai biên cần người bám sát đường biên, nhưng đội hình hẹp lại kéo họ vào trung lộ.',
     })
   }
 
