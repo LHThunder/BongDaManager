@@ -55,6 +55,12 @@ function veTu(tt: TrangThaiTran, suKien: SuKien | null = null) {
     tenCauThu: (id) => id,
     soAo: () => 9,
     nhanViTri: (v) => v,
+    /*
+      Test gọi thẳng `hinhSan`, nên nó không dựng sẵn ngôn ngữ nào: mô tả
+      điểm là chuỗi cho trình đọc màn hình, không phép kiểm nào ở đây soi
+      tới nó (D68).
+    */
+    moTaDiem: () => '',
   })
 }
 

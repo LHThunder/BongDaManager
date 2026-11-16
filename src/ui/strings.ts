@@ -28,6 +28,7 @@ import {
   THAY_NGUOI_VI,
   CAN_THIEP_GIUA_TRAN_VI,
   LICH_SU_VI,
+  SAN_2D_VI,
   BAO_CAO_SAU_TRAN_VI,
   VAO_BAT_GON_VI,
   SO_SANH_TRAN_VI,
@@ -208,32 +209,7 @@ export const LY_DO_TU_CHOI_CAN_THIEP: Readonly<Record<string, string>> = {
 export const LICH_SU = LICH_SU_VI
 
 /** Sân 2D dạng điểm (US-10). */
-export const SAN_2D = {
-  tieuDe: 'Sân đấu',
-  an: 'Ẩn sân',
-  hien: 'Hiện sân',
-  moTaSan: (nha: string, khach: string) =>
-    `Sân 2D: ${nha} đá từ trái sang phải, ${khach} đá từ phải sang trái.`,
-  /** Nhãn cho từng điểm tròn, để trình đọc màn hình đọc được (P9). */
-  moTaDiem: (
-    ten: string,
-    soAo: number | null,
-    viTri: string,
-    tenDoi: string,
-    thamGia: boolean,
-  ) => {
-    const phan = [ten]
-    if (soAo !== null) phan.push(`số áo ${soAo}`)
-    if (viTri) phan.push(viTri)
-    phan.push(tenDoi)
-    if (thamGia) phan.push('đang tham gia tình huống')
-    return phan.join(', ')
-  },
-  /** Dấu chữ cho người đang tham gia — không chỉ dựa vào màu (P9, D42). */
-  dauThamGia: '▲',
-  anKhiChayHet:
-    'Sân tạm nghỉ trong lúc chạy hết trận, rồi vẽ lại ở phút cuối.',
-} as const
+export const SAN_2D = SAN_2D_VI
 
 /** Báo cáo sau trận (AC-11.1 → AC-11.5). */
 export const BAO_CAO_SAU_TRAN = BAO_CAO_SAU_TRAN_VI

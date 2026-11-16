@@ -927,3 +927,31 @@ export const MUC_SAI_VI_TRI_VI: Readonly<Record<MucSai, string>> = {
   vua: 'Lệch vừa',
   nang: 'Sai nặng',
 }
+
+/** Sân 2D dạng điểm (US-10). */
+export const SAN_2D_VI = {
+  tieuDe: 'Sân đấu',
+  an: 'Ẩn sân',
+  hien: 'Hiện sân',
+  moTaSan: (nha: string, khach: string) =>
+    `Sân 2D: ${nha} đá từ trái sang phải, ${khach} đá từ phải sang trái.`,
+  /** Nhãn cho từng điểm tròn, để trình đọc màn hình đọc được (P9). */
+  moTaDiem: (
+    ten: string,
+    soAo: number | null,
+    viTri: string,
+    tenDoi: string,
+    thamGia: boolean,
+  ) => {
+    const phan = [ten]
+    if (soAo !== null) phan.push(`số áo ${soAo}`)
+    if (viTri) phan.push(viTri)
+    phan.push(tenDoi)
+    if (thamGia) phan.push('đang tham gia tình huống')
+    return phan.join(', ')
+  },
+  /** Dấu chữ cho người đang tham gia — không chỉ dựa vào màu (P9, D42). */
+  dauThamGia: '▲',
+  anKhiChayHet:
+    'Sân tạm nghỉ trong lúc chạy hết trận, rồi vẽ lại ở phút cuối.',
+} as const

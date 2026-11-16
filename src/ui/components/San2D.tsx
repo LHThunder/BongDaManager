@@ -4,7 +4,8 @@ import type { PositionId } from '../../domain/types'
 import type { BenDoi, SuKien } from '../../engine/suKien'
 import type { BenTran } from '../../engine/tran'
 import { latVung, vungCuaViTri, type VungSan } from '../../engine/vung'
-import { SAN_2D } from '../strings'
+import { useChuoi } from '../../hooks/useNgonNgu'
+import type { BoChuoi } from '../ngonNgu'
 
 /*
   Sân 2D dạng điểm (US-10, quyết định D41).
@@ -241,6 +242,13 @@ interface DuLieuVe {
    * ngôn ngữ — làm vậy là buộc mọi test phải dựng sẵn một ngôn ngữ (D68).
    */
   readonly nhanViTri: (viTri: PositionId) => string
+  /**
+   * Câu mô tả một điểm, cho trình đọc màn hình.
+   *
+   * Cũng đi vào bằng THAM SỐ, đúng lý do của `nhanViTri` ngay trên: hàm
+   * thuần không được tự đi tra lớp ngôn ngữ (D68).
+   */
+  readonly moTaDiem: BoChuoi['SAN_2D']['moTaDiem']
 }
 
 interface Props extends DuLieuVe {
@@ -299,6 +307,7 @@ export function hinhSan({
   tenCauThu,
   soAo,
   nhanViTri,
+  moTaDiem,
 }: DuLieuVe): HinhSan {
   /*
     Quân số suy từ SƠ ĐỒ đang dùng, không từ `trenSan`: thẻ đỏ làm số người
@@ -369,7 +378,7 @@ export function hinhSan({
         mauChu,
         nhan: so === null ? '' : String(so),
         noiBat,
-        moTa: SAN_2D.moTaDiem(
+        moTa: moTaDiem(
           tenCauThu(x.playerId),
           so,
           nhanViTri(x.viTriO),
@@ -388,6 +397,7 @@ export function hinhSan({
 }
 
 export function San2D(props: Props) {
+  const { SAN_2D } = useChuoi()
   const { nha, khach, msMoiPhut } = props
   const msChuyen = thoiGianChuyen(msMoiPhut)
   const { khung, banKinh, cacDiem, duongBong } = hinhSan(props)

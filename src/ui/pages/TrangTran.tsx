@@ -21,7 +21,7 @@ import { San2D } from '../components/San2D'
 import { ChiThiDoi } from '../components/ChiThiDoi'
 import { DongTuongThuat } from '../components/DongTuongThuat'
 import { ThayNguoi } from '../components/ThayNguoi'
-import { LICH_SU, LY_DO_TU_CHOI_CAN_THIEP, SAN_2D } from '../strings'
+import { LICH_SU, LY_DO_TU_CHOI_CAN_THIEP } from '../strings'
 
 interface Props {
   readonly onRoiTran: () => void
@@ -34,7 +34,16 @@ interface Props {
  * Trận sống trong bộ nhớ: rời trang là mất (AC-9.10, quyết định D32).
  */
 export function TrangTran({ onRoiTran }: Props) {
-  const { NHAN_VI_TRI, CAN_THIEP_GIUA_TRAN, CHON_CAP_DAU, CHUNG, SO_SANH_TRAN, TRAN_DAU, VAO_BAT_GON } = useChuoi()
+  const {
+    NHAN_VI_TRI,
+    CAN_THIEP_GIUA_TRAN,
+    CHON_CAP_DAU,
+    CHUNG,
+    SAN_2D,
+    SO_SANH_TRAN,
+    TRAN_DAU,
+    VAO_BAT_GON,
+  } = useChuoi()
   const {
     tran,
     dangChay,
@@ -414,6 +423,7 @@ export function TrangTran({ onRoiTran }: Props) {
               tenCauThu={(id) => tenTheoId.get(id) ?? id}
               soAo={(id) => soAoTheoId.get(id) ?? null}
               nhanViTri={(v) => NHAN_VI_TRI[v].ten}
+              moTaDiem={SAN_2D.moTaDiem}
             />
           </div>
         )}

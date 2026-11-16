@@ -18,6 +18,7 @@ import type {
   BAO_CAO_SAU_TRAN_VI,
   VAO_BAT_GON_VI,
   SO_SANH_TRAN_VI,
+  SAN_2D_VI,
   FORM_DOI_VI,
   TRANG_DOI_VI,
   XOA_CAU_THU_VI,
@@ -813,4 +814,34 @@ export const SO_SANH_TRAN_EN: BanDich<typeof SO_SANH_TRAN_VI> = {
   cuSut: 'Shots',
   coHoi: 'Clear-cut chances',
   hai: (nha: number, khach: number) => `${nha} – ${khach}`,
+}
+
+export const SAN_2D_EN: BanDich<typeof SAN_2D_VI> = {
+  tieuDe: 'The pitch',
+  an: 'Hide the pitch',
+  hien: 'Show the pitch',
+  moTaSan: (nha: string, khach: string) =>
+    `2D pitch: ${nha} are playing left to right, ${khach} right to left.`,
+  moTaDiem: (
+    ten: string,
+    soAo: number | null,
+    viTri: string,
+    tenDoi: string,
+    thamGia: boolean,
+  ) => {
+    const phan = [ten]
+    if (soAo !== null) phan.push(`number ${soAo}`)
+    if (viTri) phan.push(viTri)
+    phan.push(tenDoi)
+    if (thamGia) phan.push('involved in this passage of play')
+    return phan.join(', ')
+  },
+  /*
+    Dấu tam giác là KÝ HIỆU, không phải chữ — viết y hệt ở hai ngôn ngữ,
+    cùng lý do với tên sơ đồ (D75). Vẫn phải khai ở đây để phép kiểm hình
+    dạng của `BanDich` không hụt khoá.
+  */
+  dauThamGia: '▲',
+  anKhiChayHet:
+    'The pitch rests while the match plays itself out, then is drawn again at the final minute.',
 }

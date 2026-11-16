@@ -22,6 +22,7 @@ import {
   BAO_CAO_SAU_TRAN_EN,
   VAO_BAT_GON_EN,
   SO_SANH_TRAN_EN,
+  SAN_2D_EN,
   FORM_DOI_EN,
   TRANG_DOI_EN,
   XOA_CAU_THU_EN,
@@ -62,6 +63,7 @@ import {
   BAO_CAO_SAU_TRAN_VI,
   VAO_BAT_GON_VI,
   SO_SANH_TRAN_VI,
+  SAN_2D_VI,
   FORM_DOI_VI,
   TRANG_DOI_VI,
   XOA_CAU_THU_VI,
@@ -126,6 +128,7 @@ export interface BoChuoi {
   readonly CHON_MAU_AO: BanDich<typeof CHON_MAU_AO_VI>
   readonly BANG_CHI_SO: BanDich<typeof BANG_CHI_SO_VI>
   readonly FORM_CAU_THU: BanDich<typeof FORM_CAU_THU_VI>
+  readonly SAN_2D: BanDich<typeof SAN_2D_VI>
 }
 
 const VI: BoChuoi = {
@@ -165,6 +168,7 @@ const VI: BoChuoi = {
   CHON_MAU_AO: CHON_MAU_AO_VI,
   BANG_CHI_SO: BANG_CHI_SO_VI,
   FORM_CAU_THU: FORM_CAU_THU_VI,
+  SAN_2D: SAN_2D_VI,
 }
 const EN: BoChuoi = {
   CHUNG: CHUNG_EN,
@@ -204,6 +208,7 @@ const EN: BoChuoi = {
   CHON_MAU_AO: CHON_MAU_AO_EN,
   BANG_CHI_SO: BANG_CHI_SO_EN,
   FORM_CAU_THU: FORM_CAU_THU_EN,
+  SAN_2D: SAN_2D_EN,
 }
 
 export const BO_CHUOI: Readonly<Record<NgonNgu, BoChuoi>> = { vi: VI, en: EN }

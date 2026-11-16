@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | 36 AC (US-17 → US-23) |
-| **Tiến độ** | 23/43 |
+| **Tiến độ** | 24/43 |
 | **Sửa đổi** | 2026-11-16 — chẻ lần đầu từ plan, rồi sửa theo cả 8 phát hiện của `/analyze`; thêm T341–T342 lúc làm Phase 23 |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -177,8 +177,8 @@ duyệt theme**. Không có nó thì T326 áp theme ra 27 file còn lại rồi 
   - AC: AC-22.1
   - Phụ thuộc: T303
 
-- [ ] **T319** [P] — Chữ trong sân 2D
-  - File: sửa `src/ui/components/San2D.tsx`, `src/ui/components/SanBong.tsx`
+- [x] **T319** [P] — Chữ trong sân 2D
+  - File: sửa `src/ui/components/San2D.tsx`, `src/ui/pages/TrangTran.tsx`, `src/ui/san2D.test.ts`; khối `SAN_2D` rời `strings.ts` sang `ngonNgu/{vi,en,index}.ts`. `SanBong.tsx` KHÔNG có chữ hiển thị nào — nó chỉ vẽ khung sân cho trang chiến thuật, nhãn do `OViTri` đưa vào.
   - Xong khi: mô tả từng điểm và nhãn trong ảnh SVG theo ngôn ngữ đang chọn — P8 nêu đích danh "kể cả chữ trong SVG".
   - AC: AC-22.4
   - Phụ thuộc: T303
