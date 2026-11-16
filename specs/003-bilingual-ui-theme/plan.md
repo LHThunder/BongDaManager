@@ -224,7 +224,7 @@ Bảy lát cắt dọc, tiếp số "lát" của spec 002 (lát 18–21).
 | **25** | Quét nốt các màn còn lại sang `useChuoi()`; dựng hai lớp lưới (D72) | Mọi màn hình song ngữ; sót chuỗi là lộ ra |
 | **26** | Theme trên màn mẫu (D74) → **người dùng duyệt** → áp ra toàn bộ + dark mode (D70) + test tương phản | Toàn ứng dụng có nhận diện, đổi được sáng/tối |
 | **27** | Bộ biểu tượng (D73) | Icon ở mọi màn hình chính |
-| **28** | US-23 (hai lỗi treo), đi tay 2 ngôn ngữ × 2 chế độ, đo lại bốn ngân sách, đóng spec | Spec 003 Done |
+| **28** | US-23 (hai lỗi treo), dọn `strings.ts` và định dạng ngày theo ngôn ngữ (T343–T344, tìm ra khi làm lát 25), đi tay 2 ngôn ngữ × 2 chế độ, đo lại bốn ngân sách, đóng spec | Spec 003 Done |
 
 Lát 26 có một **cổng chặn người dùng** ở giữa: không áp theme ra 27 file còn
 lại trước khi màn mẫu được duyệt.
