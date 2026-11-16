@@ -1,11 +1,20 @@
 import { useChuoi } from '../../hooks/useNgonNgu'
 import { useEffect, useRef, useState } from 'react'
 import { useTeams } from '../../hooks/useTeams'
-import { laLoiUngDung } from '../../services/errors'
+import { laLoiUngDung, type LoiUngDung } from '../../services/errors'
 import { MAU_AO_MAC_DINH, type TeamSummary } from '../../services/teamRepo'
 
 import { ChonAnh } from './ChonAnh'
 import { ChonMauAo } from './ChonMauAo'
+
+/*
+  Lỗi giữ nguyên DẠNG LỖI trong state, câu chữ chỉ dựng lúc vẽ.
+
+  Dựng câu ngay lúc bắt lỗi thì câu ấy đóng băng ở thứ tiếng lúc đó: đổi
+  ngôn ngữ xong, cả màn hình đổi mà riêng dòng báo lỗi đứng im (AC-17.5).
+  Lỗi KHÔNG phải `LoiUngDung` thì không có gì để dịch, nên nó vẫn là chuỗi.
+*/
+type LoiHienThi = LoiUngDung | string | null
 
 interface Props {
   /** Có giá trị khi đang sửa một đội có sẵn; bỏ trống khi tạo đội mới. */
@@ -34,7 +43,7 @@ export function FormDoi({ doiDangSua, onXong, onHuy }: Props) {
     doiDangSua?.secondaryColor ?? MAU_AO_MAC_DINH.phu,
   )
 
-  const [loi, datLoi] = useState<string | null>(null)
+  const [loi, datLoi] = useState<LoiHienThi>(null)
   const [canhBaoTrungTen, datCanhBaoTrungTen] = useState<string | null>(null)
   const [dangGui, datDangGui] = useState(false)
   const oTen = useRef<HTMLInputElement>(null)
@@ -77,7 +86,7 @@ export function FormDoi({ doiDangSua, onXong, onHuy }: Props) {
       })
       onXong(doi.id)
     } catch (e) {
-      datLoi(laLoiUngDung(e) ? LOI.cau(e) : String(e))
+      datLoi(laLoiUngDung(e) ? e : String(e))
       datDangGui(false)
     }
   }
@@ -135,7 +144,7 @@ export function FormDoi({ doiDangSua, onXong, onHuy }: Props) {
 
         {loi !== null && (
           <p role="alert" className="mt-3 text-sm text-loi-chu">
-            {loi}
+            {typeof loi === 'string' ? loi : LOI.cau(loi)}
           </p>
         )}
 

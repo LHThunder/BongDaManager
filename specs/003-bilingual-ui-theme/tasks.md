@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | 36 AC (US-17 → US-23) |
-| **Tiến độ** | 41/45 |
+| **Tiến độ** | 43/45 |
 | **Sửa đổi** | 2026-11-16 — chẻ lần đầu từ plan, rồi sửa theo cả 8 phát hiện của `/analyze`; thêm T341–T342 lúc làm Phase 23; thêm T343–T344 lúc làm Phase 25 |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -308,18 +308,69 @@ duyệt theme**. Không có nó thì T326 áp theme ra 27 file còn lại rồi 
   - AC: AC-22.1
   - Phụ thuộc: T303
 
-- [ ] **T333** — Kiểm tay 2 ngôn ngữ × 2 chế độ
+- [x] **T333** — Kiểm tay 2 ngôn ngữ × 2 chế độ
   - File: — *(kiểm trên ứng dụng đang chạy)*
   - Xong khi: đi hết **mọi** màn hình ở bốn tổ hợp, kể cả màn hình trống và màn hình lỗi, không sót chữ và không chỗ nào tương phản kém. Đọc trọn một trận ở tiếng Anh, soi từng dòng về ngữ pháp và chủ ngữ. Xuất rồi nhập lại một tệp sao lưu ở ngôn ngữ khác.
   - AC: AC-17.5, AC-18.4, AC-19.3, AC-19.4, AC-22.1
   - Phụ thuộc: T328, T330, T331, T332, T343, T344
+  - **Kết quả (2026-11-16).** Quét tự động trên trang đang chạy ở **cả bốn tổ
+    hợp** cho mỗi màn: trang chủ, lịch sử (kèm một bản ghi mở ra), trang đội,
+    hộp thoại sửa cầu thủ, trang chiến thuật, chọn cặp đấu, trong trận, báo
+    cáo sau trận, hộp xác nhận xoá. Phép quét đo **tương phản thật** của từng
+    cụm chữ so với nền đã trộn phía sau nó, và bắt chữ lọt ngôn ngữ cùng dấu
+    `⟨thiếu:`. Kết quả cuối: **0 chữ lọt, 0 dấu thiếu bản dịch, 0 cặp dưới
+    ngưỡng** ở cả bốn tổ hợp.
+  - **Ba lỗi thật do chính lần kiểm tay này tìm ra, đã sửa:**
+    1. **Nút tắt không đọc được.** Nền đổi sang `nen-nhan` ở Phase 26 nhưng
+       màu chữ vẫn là `chu-tren-chinh` (trắng ở chế độ sáng) → 1.17:1. Phép
+       kiểm T328 không thấy vì nó đo CẶP TOKEN, còn đây là một nút quên khai
+       `disabled:text-`. Đã thêm vào 4 file.
+    2. **Dòng báo lỗi không đổi theo ngôn ngữ.** `datLoi(LOI.cau(e))` dựng
+       câu ngay lúc bắt lỗi, nên câu ấy đóng băng ở thứ tiếng lúc đó: đổi
+       ngôn ngữ thì cả màn hình đổi, riêng dòng lỗi đứng im (AC-17.5). Lỗi
+       nay được lưu DẠNG LỖI, câu chỉ dựng lúc vẽ — 4 file.
+    3. **Hai mẫu câu tiếng Anh mơ hồ về chủ ngữ và một mẫu lẫn thì.**
+       "swarm them in their own half" / "cuts out X's build-up inside their
+       own half" — "their" gắn được vào cả hai đội; và "thought he had
+       scored, but the keeper pushes it away" lẫn quá khứ với hiện tại. Đã
+       viết lại cả ba. Đây đúng là thứ chỉ lộ ra khi ĐỌC một trận, không
+       phép kiểm nào bắt được.
+  - **Hai phần KHÔNG kiểm được, nêu rõ chứ không lờ đi:**
+    - **Màn hình rỗng "chưa có đội" và "chưa có trận"** cần xoá sạch dữ liệu
+      thật của người dùng mới thấy. P3 không cho làm thế. Chuỗi của chúng
+      vẫn nằm trong lớp lưới quét khoá của T321.
+    - **Vòng tròn xuất rồi nhập một tệp sao lưu** cần ghi một tệp vào máy
+      người dùng rồi thay toàn bộ database bằng nó. Thay vào đó: đường LỖI
+      của việc nhập đã kiểm tay ở cả hai ngôn ngữ (tệp không phải ZIP, tệp
+      sai định dạng — câu lỗi đúng thứ tiếng và đổi theo nút ngôn ngữ), còn
+      vòng tròn dữ liệu thì `backupService.test.ts` đã phủ sẵn
+      ("vòng tròn xuất rồi nhập cho ra dữ liệu bằng chính nó, kể cả ảnh").
 
-- [ ] **T334** — Đo lại bốn ngân sách hiệu năng
+- [x] **T334** — Đo lại bốn ngân sách hiệu năng
   - File: — *(đo trên bản build)*
   - Xong khi: mở danh sách 25 cầu thủ < 300ms; kéo-thả < 100ms; giả lập trọn trận < 3 giây; mở ứng dụng 20 đội + 20 trận < 2 giây. Thêm: đổi ngôn ngữ < 200ms, đổi chế độ < 200ms. **Phông và icon mới không được đẩy lần mở đầu vượt 2 giây.**
   - Gộp luôn **T035 của spec 001** — task cuối cùng còn mở của spec ấy, đo hai ngân sách hiển thị và cần đúng trình duyệt của người dùng. T333 đã bắt mở trình duyệt rồi nên đo thêm hai con số này không tốn lượt nào. Đo xong thì tick T035 bên `specs/001-football-team-sim/tasks.md`.
   - AC: —
   - Phụ thuộc: T333
+  - **Kết quả (2026-11-16), đo bằng `performance.now()` quanh thao tác, trên
+    bản build:** mở trang 60ms · mở danh sách cầu thủ của một đội (18 người)
+    13,1ms · nhấc một cầu thủ bằng bàn phím 5,9ms, thả 4,4ms · chạy hết một
+    trận 90 phút 13,5ms · đổi ngôn ngữ 2,7–3,9ms · đổi chế độ sáng/tối
+    2,2–3,0ms. Bốn tệp phông tải song song, tệp lâu nhất 200ms, và
+    `font-display: swap` nên không tệp nào chặn chữ hiện ra.
+  - **Mọi con số trên là THỜI GIAN TỚI LÚC DOM ĐỔI, không phải tới lúc NHÌN
+    THẤY.** Pane ẩn thì trình duyệt coi trang là trang nền: nó không vẽ và
+    không chạy `requestAnimationFrame`. Đây đúng là rào cản mà **T035 của
+    spec 001** đã ghi lại từ 2026-10-29, và nó chưa hề mất đi.
+  - **Vì thế T035 của spec 001 VẪN KHÔNG TICK ĐƯỢC.** T334 dự tính gộp nó
+    vào đây, nhưng dự tính ấy sai: hai ngân sách của T035 là "thời gian tới
+    lúc nhìn thấy", mà môi trường này không đo được. Nó vẫn cần người dùng
+    mở ứng dụng trên trình duyệt của chính mình.
+  - **Hai con số đo ở quy mô nhỏ hơn ngân sách:** danh sách đo ở 18 cầu thủ
+    chứ không phải 25, và lần mở đo với 2 đội + 7 trận chứ không phải 20+20
+    — dựng đủ quy mô ấy là ghi dữ liệu giả vào database THẬT của người dùng.
+    Biên còn lại là 23 lần và 33 lần, nên không có dấu hiệu vượt; nhưng đó
+    là suy luận, không phải phép đo.
 
 - [ ] **T335** — Tick 36 AC và đóng spec
   - File: sửa `specs/003-bilingual-ui-theme/spec.md`

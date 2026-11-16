@@ -549,7 +549,7 @@ export function ChonCapDau({ onQuayLai, onDaBatDau }: Props) {
             type="button"
             onClick={batDau}
             disabled={idNha === '' || idKhach === '' || !maHopLe}
-            className="mt-4 rounded-md bg-chinh px-4 py-2 text-sm font-medium text-chu-tren-chinh hover:bg-chinh-dam disabled:cursor-not-allowed disabled:bg-nen-nhan"
+            className="mt-4 rounded-md bg-chinh px-4 py-2 text-sm font-medium text-chu-tren-chinh hover:bg-chinh-dam disabled:cursor-not-allowed disabled:bg-nen-nhan disabled:text-chu-phu"
           >
             {CHON_CAP_DAU.batDau}
           </button>

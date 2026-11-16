@@ -14,6 +14,15 @@ import {
 
 import { AnhThayThe } from './AnhThayThe'
 
+/*
+  Lỗi giữ nguyên DẠNG LỖI trong state, câu chữ chỉ dựng lúc vẽ.
+
+  Dựng câu ngay lúc bắt lỗi thì câu ấy đóng băng ở thứ tiếng lúc đó: đổi
+  ngôn ngữ xong, cả màn hình đổi mà riêng dòng báo lỗi đứng im (AC-17.5).
+  Lỗi KHÔNG phải `LoiUngDung` thì không có gì để dịch, nên nó vẫn là chuỗi.
+*/
+type LoiHienThi = LoiUngDung | string | null
+
 interface Props {
   readonly loai: 'chan-dung' | 'logo'
   readonly anhId: string | null
@@ -36,7 +45,7 @@ export function ChonAnh({ loai, anhId, ten, mauNen, onDaChon }: Props) {
   const [viTriCat, datViTriCat] = useState({ x: 0, y: 0 })
   const [phongTo, datPhongTo] = useState(1)
   const [vungCat, datVungCat] = useState<Area | null>(null)
-  const [loi, datLoi] = useState<string | null>(null)
+  const [loi, datLoi] = useState<LoiHienThi>(null)
   const [dangXuLy, datDangXuLy] = useState(false)
   const oTep = useRef<HTMLInputElement>(null)
 
@@ -62,7 +71,7 @@ export function ChonAnh({ loai, anhId, ten, mauNen, onDaChon }: Props) {
 
     if (!laTepAnh(tep)) {
       // Giữ nguyên ảnh cũ, chỉ báo lỗi (AC-3.3).
-      datLoi(LOI.cau(new LoiUngDung('NotAnImage', { giaTri: tep.type || '' })))
+      datLoi(new LoiUngDung('NotAnImage', { giaTri: tep.type || '' }))
       return
     }
 
@@ -73,7 +82,7 @@ export function ChonAnh({ loai, anhId, ten, mauNen, onDaChon }: Props) {
         const daXuLy = await chuanBiLogo(tep)
         onDaChon(await luuAnh(daXuLy))
       } catch (e) {
-        datLoi(laLoiUngDung(e) ? LOI.cau(e) : String(e))
+        datLoi(laLoiUngDung(e) ? e : String(e))
       } finally {
         datDangXuLy(false)
       }
@@ -101,7 +110,7 @@ export function ChonAnh({ loai, anhId, ten, mauNen, onDaChon }: Props) {
       onDaChon(await luuAnh(daXuLy))
       dong()
     } catch (e) {
-      datLoi(laLoiUngDung(e) ? LOI.cau(e) : String(e))
+      datLoi(laLoiUngDung(e) ? e : String(e))
       datDangXuLy(false)
     }
   }
@@ -153,7 +162,7 @@ export function ChonAnh({ loai, anhId, ten, mauNen, onDaChon }: Props) {
 
       {loi !== null && (
         <p role="alert" className="mt-2 text-sm text-loi-chu">
-          {loi}
+          {typeof loi === 'string' ? loi : LOI.cau(loi)}
         </p>
       )}
 
@@ -198,7 +207,7 @@ export function ChonAnh({ loai, anhId, ten, mauNen, onDaChon }: Props) {
 
             {loi !== null && (
               <p role="alert" className="mt-2 text-sm text-loi-chu">
-                {loi}
+                {typeof loi === 'string' ? loi : LOI.cau(loi)}
               </p>
             )}
 

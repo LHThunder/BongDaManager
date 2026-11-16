@@ -59,7 +59,7 @@ export const MAU_EN: CungSoMau<typeof MAU_VI> = {
   ],
   'cuu-thua': [
     (c) => `The keeper flies across to keep out ${c.ten}'s shot.`,
-    (c) => `${c.ten} thought he had scored, but the keeper pushes it away.`,
+    (c) => `${c.ten} is sure he has scored, but the keeper pushes it away.`,
     (c) => `A fine save to deny ${c.ten}.`,
     (c) => `${c.ten}'s effort is blocked right on the line.`,
   ],
@@ -72,8 +72,8 @@ export const MAU_EN: CungSoMau<typeof MAU_VI> = {
   'cuop-bong-cao': [
     (c) =>
       c.ten2
-        ? `${c.tenDoiKia} swarm them in their own half, and ${c.ten2} wins it back.`
-        : `${c.tenDoiKia} swarm them in their own half and win the ball back.`,
+        ? `${c.tenDoiKia} swarm forward inside their opponents' half, and ${c.ten2} wins it back.`
+        : `${c.tenDoiKia} swarm forward inside their opponents' half and win the ball back.`,
     (c) =>
       c.ten2
         ? `${c.ten2} presses and steals the ball high up the pitch.`
@@ -84,8 +84,8 @@ export const MAU_EN: CungSoMau<typeof MAU_VI> = {
         : `An effective press from ${c.tenDoiKia}.`,
     (c) =>
       c.ten2
-        ? `${c.ten2} cuts out ${c.tenDoi}'s build-up inside their own half.`
-        : `${c.tenDoiKia} cut out the build-up inside their own half.`,
+        ? `${c.ten2} cuts out the build-up deep in ${c.tenDoi}'s half.`
+        : `${c.tenDoiKia} cut out the build-up deep in their opponents' half.`,
   ],
   'thoat-xuong': [
     (c) => `${c.ten} breaks in behind the back line.`,

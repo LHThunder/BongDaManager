@@ -19,10 +19,19 @@ import type {
   Rng,
 } from '../../domain/types'
 import { usePlayers } from '../../hooks/usePlayers'
-import { laLoiUngDung } from '../../services/errors'
+import { laLoiUngDung, type LoiUngDung } from '../../services/errors'
 
 import { BangChiSo } from './BangChiSo'
 import { ChonAnh } from './ChonAnh'
+
+/*
+  Lỗi giữ nguyên DẠNG LỖI trong state, câu chữ chỉ dựng lúc vẽ.
+
+  Dựng câu ngay lúc bắt lỗi thì câu ấy đóng băng ở thứ tiếng lúc đó: đổi
+  ngôn ngữ xong, cả màn hình đổi mà riêng dòng báo lỗi đứng im (AC-17.5).
+  Lỗi KHÔNG phải `LoiUngDung` thì không có gì để dịch, nên nó vẫn là chuỗi.
+*/
+type LoiHienThi = LoiUngDung | string | null
 
 interface Props {
   readonly teamId: string
@@ -78,7 +87,7 @@ export function FormCauThu({
     cauThuDangSua?.portraitImageId ?? null,
   )
 
-  const [loi, datLoi] = useState<string | null>(null)
+  const [loi, datLoi] = useState<LoiHienThi>(null)
   const [canhBaoDoiSangThuMon, datCanhBaoDoiSangThuMon] = useState(false)
   const [nhacChonViTri, datNhacChonViTri] = useState(false)
   const [viTriXem, datViTriXem] = useState<PositionId | null>(
@@ -194,9 +203,7 @@ export function FormCauThu({
         (D76), nên chỉ chỗ này mới dựng được câu có tên chỉ số. Đây cũng
         là nơi duy nhất sinh ra `InvalidAttributeValue`.
       */
-      datLoi(
-        laLoiUngDung(e) ? LOI.cau(e, (id) => NHAN_CHI_SO[id]) : String(e),
-      )
+      datLoi(laLoiUngDung(e) ? e : String(e))
       datDangGui(false)
     }
   }
@@ -427,7 +434,9 @@ export function FormCauThu({
 
         {loi !== null && (
           <p role="alert" className="mt-3 text-sm text-loi-chu">
-            {loi}
+            {typeof loi === 'string'
+            ? loi
+            : LOI.cau(loi, (id) => NHAN_CHI_SO[id])}
           </p>
         )}
 

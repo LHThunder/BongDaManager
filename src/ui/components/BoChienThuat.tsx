@@ -50,7 +50,7 @@ export function BoChienThuat({
         <button
           type="submit"
           disabled={tenGon === ''}
-          className="rounded-md bg-chinh px-3 py-1.5 text-sm font-medium text-chu-tren-chinh hover:bg-chinh-dam disabled:cursor-not-allowed disabled:bg-nen-nhan"
+          className="rounded-md bg-chinh px-3 py-1.5 text-sm font-medium text-chu-tren-chinh hover:bg-chinh-dam disabled:cursor-not-allowed disabled:bg-nen-nhan disabled:text-chu-phu"
         >
           {BO_CHIEN_THUAT.luuThanhBo}
         </button>

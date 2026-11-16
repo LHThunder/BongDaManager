@@ -42,7 +42,7 @@ export function BangDieuKhienTran({
         type="button"
         onClick={dangChay ? onTamDung : onTiepTuc}
         disabled={daKetThuc}
-        className="rounded-md bg-chinh px-4 py-2 text-sm font-medium text-chu-tren-chinh hover:bg-chinh-dam disabled:cursor-not-allowed disabled:bg-nen-nhan"
+        className="rounded-md bg-chinh px-4 py-2 text-sm font-medium text-chu-tren-chinh hover:bg-chinh-dam disabled:cursor-not-allowed disabled:bg-nen-nhan disabled:text-chu-phu"
       >
         {dangChay ? TRAN_DAU.tamDung : TRAN_DAU.tiepTuc}
       </button>

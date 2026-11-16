@@ -1,10 +1,19 @@
 import { BieuTuong } from './BieuTuong'
 import { useEffect, useRef, useState } from 'react'
 import { useBackup } from '../../hooks/useBackup'
-import { laLoiUngDung } from '../../services/errors'
+import { laLoiUngDung, type LoiUngDung } from '../../services/errors'
 import type { CheDoNhap, TomTatTep } from '../../services/backupService'
 import { useChuoi } from '../../hooks/useNgonNgu'
 import { coTep } from '../ngonNgu/soLieu'
+
+/*
+  Lỗi giữ nguyên DẠNG LỖI trong state, câu chữ chỉ dựng lúc vẽ.
+
+  Dựng câu ngay lúc bắt lỗi thì câu ấy đóng băng ở thứ tiếng lúc đó: đổi
+  ngôn ngữ xong, cả màn hình đổi mà riêng dòng báo lỗi đứng im (AC-17.5).
+  Lỗi KHÔNG phải `LoiUngDung` thì không có gì để dịch, nên nó vẫn là chuỗi.
+*/
+type LoiHienThi = LoiUngDung | string | null
 
 interface Props {
   /** Gọi sau khi nhập xong để màn hình nạp lại dữ liệu. */
@@ -27,7 +36,7 @@ export function SaoLuu({ onDaNhap }: Props) {
   const [dangDoc, datDangDoc] = useState(false)
   const [tepDangCho, datTepDangCho] = useState<File | null>(null)
   const [tomTat, datTomTat] = useState<TomTatTep | null>(null)
-  const [loi, datLoi] = useState<string | null>(null)
+  const [loi, datLoi] = useState<LoiHienThi>(null)
   const [thongBao, datThongBao] = useState<string | null>(null)
   const oTep = useRef<HTMLInputElement>(null)
 
@@ -52,7 +61,7 @@ export function SaoLuu({ onDaNhap }: Props) {
     try {
       await xuatTep()
     } catch (e) {
-      datLoi(laLoiUngDung(e) ? LOI.cau(e) : String(e))
+      datLoi(laLoiUngDung(e) ? e : String(e))
     } finally {
       datDangXuat(false)
     }
@@ -70,7 +79,7 @@ export function SaoLuu({ onDaNhap }: Props) {
       datTomTat(await xemTruocTep(tep))
       datTepDangCho(tep)
     } catch (e) {
-      datLoi(laLoiUngDung(e) ? LOI.cau(e) : String(e))
+      datLoi(laLoiUngDung(e) ? e : String(e))
     } finally {
       datDangDoc(false)
     }
@@ -94,7 +103,7 @@ export function SaoLuu({ onDaNhap }: Props) {
       datTomTat(null)
       onDaNhap()
     } catch (e) {
-      datLoi(laLoiUngDung(e) ? LOI.cau(e) : String(e))
+      datLoi(laLoiUngDung(e) ? e : String(e))
     }
   }
 
@@ -151,7 +160,7 @@ export function SaoLuu({ onDaNhap }: Props) {
 
       {loi !== null && (
         <p role="alert" className="mt-3 text-sm text-loi-chu">
-          {loi}
+          {typeof loi === 'string' ? loi : LOI.cau(loi)}
         </p>
       )}
 
