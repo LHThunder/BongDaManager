@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | 36 AC (US-17 → US-23) |
-| **Tiến độ** | 35/45 |
+| **Tiến độ** | 37/45 |
 | **Sửa đổi** | 2026-11-16 — chẻ lần đầu từ plan, rồi sửa theo cả 8 phát hiện của `/analyze`; thêm T341–T342 lúc làm Phase 23; thêm T343–T344 lúc làm Phase 25 |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -266,14 +266,14 @@ duyệt theme**. Không có nó thì T326 áp theme ra 27 file còn lại rồi 
 
 ## Phase 27 — Lát 27: Bộ biểu tượng
 
-- [ ] **T329** — Chép bộ icon và dựng component `BieuTuong`
+- [x] **T329** — Chép bộ icon và dựng component `BieuTuong`
   - File: tạo `src/ui/components/BieuTuong.tsx`, tạo `src/ui/bieuTuong/*.svg`, tạo `THIRD-PARTY-LICENSES.md`
   - Xong khi: 10 icon Tabler cho 10 khái niệm ở AC-21.1 nằm trong repo dưới dạng SVG nội tuyến; **giấy phép MIT và nguồn gốc ghi lại trong repo**; chạy offline hiện đủ. Khái niệm nào bộ Tabler không có thì dùng chữ, **không trộn bộ khác** (AC-21.2).
   - AC: AC-21.1, AC-21.2, AC-21.4
   - Phụ thuộc: —
 
-- [ ] **T330** — Đặt biểu tượng vào các màn hình chính
-  - File: sửa `src/ui/pages/DanhSachDoi.tsx`, `TrangDoi.tsx`, `TrangLichSu.tsx`, `TrangTran.tsx`, `TrangChienThuat.tsx`
+- [x] **T330** — Đặt biểu tượng vào các màn hình chính
+  - File: sửa `src/ui/pages/{DanhSachDoi,TrangDoi,TrangLichSu,TrangTran,TrangChienThuat}.tsx`, `src/App.tsx`, `src/ui/components/{SaoLuu,ThayNguoi,DongTuongThuat}.tsx`
   - Xong khi: mỗi khái niệm lặp lại có biểu tượng riêng, **luôn kèm nhãn chữ hoặc `aria-label`** — biểu tượng không bao giờ là cách duy nhất để hiểu; đổi ngôn ngữ thì biểu tượng giữ nguyên, chỉ chữ đổi.
   - AC: AC-21.1, AC-21.3, AC-21.5
   - Phụ thuộc: T329, T340
@@ -439,6 +439,22 @@ duyệt theme**. Không có nó thì T326 áp theme ra 27 file còn lại rồi 
   mọi tệp CSS, nên `import '../index.css?raw'` của T328 sẽ "xanh" mà không
   đo gì cả. Bật xử lý CSS là cách để phép kiểm đọc đúng bảng màu thật; không
   test nào khác nhập CSS nên bật lên không tốn gì.
+- **Phase 27 — ba khái niệm bộ Tabler không có đúng nghĩa.** Chiến thuật
+  (không có `strategy` → `chess`), thẻ phạt (không có thẻ trọng tài →
+  `rectangle-vertical`, đúng hình dạng tấm thẻ), bàn thắng (không có `goal`
+  hay `net`; `ball-football` đã dành cho "trận đấu" → `target-arrow`). Cả
+  ba vẫn nằm trong bộ Tabler nên không phạm AC-21.2. Ghi lại ở
+  `THIRD-PARTY-LICENSES.md` để sau này ai đọc không tưởng là tuỳ tiện.
+- **`BieuTuong` CỐ Ý không có prop `aria-label`.** AC-21.3 đòi thông tin của
+  biểu tượng đồng thời có mặt dưới dạng chữ — cho cả người nhìn lẫn người
+  dùng trình đọc màn hình. Một prop `aria-label` chỉ lo được vế thứ hai và
+  mở đường cho những nút chỉ-có-biểu-tượng. Nên component luôn là trang trí
+  (`aria-hidden`), và khái niệm nào không có chỗ cho chữ thì dùng chữ.
+- **Hai mục cấu hình chết bị cắt lúc kiểm tay.** `BIEU_TUONG_NHAN` ban đầu
+  có `'ban-thang'` và `'thay-nguoi'`, nhưng chip trong dòng tường thuật chỉ
+  vẽ khi sự kiện CÓ nhãn chữ, mà bảng nhãn chỉ có thẻ vàng, thẻ đỏ và kiệt
+  sức. Hai mục ấy không bao giờ hiện được. Chỉ lộ ra khi mở trình duyệt đọc
+  một trận thật — đọc code không thấy, vì hai bảng nằm cách nhau.
 - **`coTep()` KHÔNG qua lớp ngôn ngữ, có chủ ý.** Nó chỉ sinh KÝ HIỆU đơn
   vị (B/KB/MB), viết y hệt ở hai ngôn ngữ — cùng lý do đã cho tên sơ đồ
   (D75) và dấu "▲" của sân 2D. T343 chuyển nó sang `ngonNgu/soLieu.ts` để

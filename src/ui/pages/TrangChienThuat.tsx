@@ -1,3 +1,4 @@
+import { BieuTuong } from '../components/BieuTuong'
 import { useChuoi } from '../../hooks/useNgonNgu'
 import type { BoChuoi } from '../ngonNgu'
 import {
@@ -378,7 +379,8 @@ export function TrangChienThuat({ teamId, onQuayLai }: Props) {
             kichThuoc="lon"
           />
           <div>
-            <p className="text-sm uppercase tracking-wide text-chu-phu">
+            <p className="flex items-center gap-1.5 text-sm uppercase tracking-wide text-chu-phu">
+              <BieuTuong ten="chienThuat" co="nho" />
               {TRANG_CHIEN_THUAT.tieuDe}
             </p>
             <h2 className="text-2xl font-bold text-chu">

@@ -1,3 +1,4 @@
+import { BieuTuong, type TenBieuTuong } from './BieuTuong'
 import { useChuoi } from '../../hooks/useNgonNgu'
 import type { SuKien } from '../../engine/suKien'
 
@@ -16,6 +17,24 @@ interface Props {
   Ở tầng module chỉ giữ được KHOÁ: nhãn phụ thuộc ngôn ngữ đang chọn nên
   phải tra lúc vẽ, trong thân component (P8).
 */
+/*
+  Biểu tượng đi kèm nhãn CHỮ của dòng tường thuật.
+
+  Chỉ hai loại có mặt ở đây, và đó là tất cả những gì hiện được: chip này
+  chỉ vẽ khi sự kiện có nhãn chữ, mà bảng nhãn (`KHOA_NHAN` ngay dưới) chỉ
+  có thẻ vàng, thẻ đỏ và kiệt sức. Thêm 'ban-thang' hay 'thay-nguoi' vào
+  đây là thêm cấu hình chết — chúng không có nhãn chữ nên chip không bao
+  giờ vẽ.
+
+  `kiet-suc` thì CÓ nhãn chữ, nhưng bộ Tabler không có biểu tượng nào đúng
+  nghĩa, nên nó chỉ có chữ: spec chốt rõ là thiếu thì dùng chữ, KHÔNG trộn
+  biểu tượng từ bộ khác (AC-21.2).
+*/
+const BIEU_TUONG_NHAN: Partial<Record<SuKien['loai'], TenBieuTuong>> = {
+  'the-vang': 'the',
+  'the-do': 'the',
+}
+
 const KHOA_NHAN: Partial<
   Record<SuKien['loai'], 'nhanTheVang' | 'nhanTheDo' | 'nhanKietSuc'>
 > = {
@@ -76,10 +95,13 @@ export function DongTuongThuat({ cacSuKien, tenCauThu, tenDoi }: Props) {
             <span className="flex-1 text-chu">
               {nhanLoai(sk.loai) && (
                 <span
-                  className={`mr-1 rounded px-1 text-xs font-medium ${
+                  className={`mr-1 inline-flex items-center gap-1 rounded px-1 text-xs font-medium ${
                     MAU_NHAN[sk.loai] ?? 'bg-nen-nhan text-chu'
                   }`}
                 >
+                  {BIEU_TUONG_NHAN[sk.loai] !== undefined && (
+                    <BieuTuong ten={BIEU_TUONG_NHAN[sk.loai]!} co="nho" />
+                  )}
                   {nhanLoai(sk.loai)}
                 </span>
               )}

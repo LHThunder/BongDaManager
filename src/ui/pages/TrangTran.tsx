@@ -1,3 +1,4 @@
+import { BieuTuong } from '../components/BieuTuong'
 import { useChuoi } from '../../hooks/useNgonNgu'
 import { useEffect, useRef, useState } from 'react'
 import { dungBaoCao } from '../../engine/baoCao'
@@ -366,7 +367,8 @@ export function TrangTran({ onRoiTran }: Props) {
 
       {soSanh && (
         <section className="mt-4 rounded-lg border border-vien bg-nen-the p-4">
-          <h3 className="text-base font-semibold text-chu">
+          <h3 className="flex items-center gap-2 text-base font-semibold text-chu">
+            <BieuTuong ten="tran" co="nho" />
             {SO_SANH_TRAN.tieuDe}
           </h3>
           <p className="mt-0.5 text-sm text-chu-phu">{SO_SANH_TRAN.moTa}</p>
@@ -394,7 +396,8 @@ export function TrangTran({ onRoiTran }: Props) {
       {/* Sân 2D, ẩn/hiện được và nhớ lựa chọn (AC-10.1 → AC-10.6). */}
       <section className="mt-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-base font-semibold text-chu">
+          <h3 className="flex items-center gap-2 text-base font-semibold text-chu">
+            <BieuTuong ten="san" co="nho" />
             {SAN_2D.tieuDe}
           </h3>
           <button

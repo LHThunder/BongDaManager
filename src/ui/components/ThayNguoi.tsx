@@ -1,3 +1,4 @@
+import { BieuTuong } from './BieuTuong'
 import { useChuoi } from '../../hooks/useNgonNgu'
 import { useState } from 'react'
 import type { BenTran } from '../../engine/tran'
@@ -40,7 +41,8 @@ export function ThayNguoi({ ben, tenCauThu, tamDung, onThay, loi }: Props) {
 
   return (
     <section className="rounded-lg border border-vien bg-nen-the p-4">
-      <h3 className="text-base font-semibold text-chu">
+      <h3 className="flex items-center gap-2 text-base font-semibold text-chu">
+        <BieuTuong ten="thayNguoi" />
         {THAY_NGUOI.tieuDe}
       </h3>
       {khongCoGhe ? (

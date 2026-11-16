@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { ngheBiChanNangCap, ngheNhuongDuongNangCap } from './storage/db'
 import { useAppStore } from './store/appStore'
 import { useChuoi, useTuyChonHienThi } from './hooks/useNgonNgu'
+import { BieuTuong } from './ui/components/BieuTuong'
 import { ChonCheDo } from './ui/components/ChonCheDo'
 import { ChonNgonNgu } from './ui/components/ChonNgonNgu'
 
@@ -182,15 +183,17 @@ export default function App() {
               <button
                 type="button"
                 onClick={moLichSu}
-                className="rounded-md border border-vien-dam px-4 py-2 text-sm font-medium text-chu hover:bg-nen-nhan"
+                className="flex items-center gap-2 rounded-md border border-vien-dam px-4 py-2 text-sm font-medium text-chu hover:bg-nen-nhan"
               >
+                <BieuTuong ten="lichSu" co="nho" />
                 {LICH_SU.tieuDe}
               </button>
               <button
                 type="button"
                 onClick={moChonCapDau}
-                className="rounded-md bg-chinh px-4 py-2 text-sm font-medium text-chu-tren-chinh hover:bg-chinh-dam"
+                className="flex items-center gap-2 rounded-md bg-chinh px-4 py-2 text-sm font-medium text-chu-tren-chinh hover:bg-chinh-dam"
               >
+                <BieuTuong ten="tran" co="nho" />
                 {CHON_CAP_DAU.tieuDe}
               </button>
             </div>

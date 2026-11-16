@@ -1,3 +1,4 @@
+import { BieuTuong } from '../components/BieuTuong'
 import { useEffect, useState } from 'react'
 import { coTranDangDien, useTeams } from '../../hooks/useTeams'
 import type { TeamSummary } from '../../services/teamRepo'
@@ -40,7 +41,8 @@ export function DanhSachDoi({ onMoDoi }: Props) {
   return (
     <div>
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold text-chu">
+        <h2 className="flex items-center gap-2 text-xl font-semibold text-chu">
+          <BieuTuong ten="doi" />
           {DANH_SACH_DOI.tieuDe}
         </h2>
         {teams.length > 0 && (

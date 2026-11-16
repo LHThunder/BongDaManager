@@ -1,3 +1,4 @@
+import { BieuTuong } from '../components/BieuTuong'
 import { useChuoi } from '../../hooks/useNgonNgu'
 import { useEffect, useMemo, useState } from 'react'
 import { hoSoHoanTat } from '../../domain/completeness'
@@ -97,7 +98,8 @@ export function TrangDoi({ teamId, onQuayLai, onMoChienThuat }: Props) {
             kichThuoc="lon"
           />
           <div>
-            <p className="text-sm uppercase tracking-wide text-chu-phu">
+            <p className="flex items-center gap-1.5 text-sm uppercase tracking-wide text-chu-phu">
+              <BieuTuong ten="doi" co="nho" />
               {TRANG_DOI.doiNay}
             </p>
             <h2 className="text-2xl font-bold text-chu">{doi.name}</h2>
@@ -107,14 +109,16 @@ export function TrangDoi({ teamId, onQuayLai, onMoChienThuat }: Props) {
         <button
           type="button"
           onClick={() => onMoChienThuat(teamId)}
-          className="rounded-md border border-chinh px-4 py-2 text-sm font-medium text-chinh hover:bg-chinh-nhat"
+          className="flex items-center gap-2 rounded-md border border-chinh px-4 py-2 text-sm font-medium text-chinh hover:bg-chinh-nhat"
         >
+          <BieuTuong ten="chienThuat" co="nho" />
           {TRANG_CHIEN_THUAT.moChienThuat}
         </button>
       </div>
 
       <div className="mt-8 flex flex-wrap items-center justify-between gap-3">
-        <h3 className="text-lg font-semibold text-chu">
+        <h3 className="flex items-center gap-2 text-lg font-semibold text-chu">
+          <BieuTuong ten="cauThu" />
           {TRANG_DOI.danhSachCauThu}
         </h3>
         <div className="flex items-center gap-3">

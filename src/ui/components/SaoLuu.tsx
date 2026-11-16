@@ -1,3 +1,4 @@
+import { BieuTuong } from './BieuTuong'
 import { useEffect, useRef, useState } from 'react'
 import { useBackup } from '../../hooks/useBackup'
 import { laLoiUngDung } from '../../services/errors'
@@ -99,7 +100,8 @@ export function SaoLuu({ onDaNhap }: Props) {
 
   return (
     <section className="mt-10 rounded-lg border border-vien bg-nen-the p-5">
-      <h3 className="text-base font-semibold text-chu">
+      <h3 className="flex items-center gap-2 text-base font-semibold text-chu">
+        <BieuTuong ten="saoLuu" />
         {SAO_LUU.tieuDe}
       </h3>
       <p className="mt-1 max-w-2xl text-sm text-chu-phu">{SAO_LUU.moTa}</p>

@@ -1,3 +1,4 @@
+import { BieuTuong } from '../components/BieuTuong'
 import { useChuoi } from '../../hooks/useNgonNgu'
 import { useEffect, useState } from 'react'
 import { PHIEN_BAN_ENGINE } from '../../engine/tran'
@@ -93,7 +94,8 @@ export function TrangLichSu({ onQuayLai, onDauLai }: Props) {
         {CHUNG.quayLai}
       </button>
 
-      <h2 className="mt-4 font-tieuDe text-2xl font-bold uppercase tracking-wide text-chu">
+      <h2 className="mt-4 flex items-center gap-2 font-tieuDe text-2xl font-bold uppercase tracking-wide text-chu">
+        <BieuTuong ten="lichSu" co="lon" />
         {LICH_SU.tieuDe}
       </h2>
       <p className="mt-1 text-sm text-chu-phu">
@@ -213,7 +215,8 @@ export function TrangLichSu({ onQuayLai, onDauLai }: Props) {
           })()}
 
           <div className="mt-4">
-            <h4 className="font-tieuDe text-base font-bold uppercase tracking-wide text-chu">
+            <h4 className="flex items-center gap-2 font-tieuDe text-base font-bold uppercase tracking-wide text-chu">
+              <BieuTuong ten="banThang" co="nho" />
               {BAO_CAO_SAU_TRAN.tieuDeGhiBan}
             </h4>
             <div className="mt-2">
