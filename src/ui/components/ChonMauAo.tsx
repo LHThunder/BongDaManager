@@ -1,9 +1,10 @@
+import { useChuoi } from '../../hooks/useNgonNgu'
 import {
   laMauHopLe,
   nenDamBaoTuongPhan,
   trungMauAo,
 } from '../../domain/colors'
-import { CHON_MAU_AO } from '../strings'
+
 import { chuCaiDau } from './AnhThayThe'
 
 export interface DoiDeSoMau {
@@ -46,6 +47,7 @@ export function ChonMauAo({
   doiKhac,
   onDoi,
 }: Props) {
+  const { CHON_MAU_AO } = useChuoi()
   const hopLe = laMauHopLe(mauChinh) && laMauHopLe(mauPhu)
 
   const doiTrungMau = hopLe

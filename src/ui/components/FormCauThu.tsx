@@ -20,7 +20,7 @@ import type {
 } from '../../domain/types'
 import { usePlayers } from '../../hooks/usePlayers'
 import { laLoiUngDung } from '../../services/errors'
-import { CHAN_THUAN, CHUNG, FORM_CAU_THU, TRANG_DOI, cauLoi } from '../strings'
+import { cauLoi } from '../strings'
 import { BangChiSo } from './BangChiSo'
 import { ChonAnh } from './ChonAnh'
 
@@ -46,7 +46,7 @@ export function FormCauThu({
   onXong,
   onHuy,
 }: Props) {
-  const { NHAN_VI_TRI, NHAN_CHI_SO, NHAN_MUC_DO } = useChuoi()
+  const { NHAN_VI_TRI, NHAN_CHI_SO, NHAN_MUC_DO, CHAN_THUAN, CHUNG, FORM_CAU_THU, TRANG_DOI } = useChuoi()
   const { luuCauThu } = usePlayers(teamId)
   const dangSua = cauThuDangSua !== undefined
 

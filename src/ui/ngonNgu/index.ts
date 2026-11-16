@@ -5,6 +5,14 @@ import {
   DANH_SACH_DOI_EN,
   NGON_NGU_EN,
   CANH_BAO_XUNG_DOT_EN,
+  FORM_DOI_EN,
+  TRANG_DOI_EN,
+  XOA_CAU_THU_EN,
+  CHAN_THUAN_EN,
+  CHON_ANH_EN,
+  CHON_MAU_AO_EN,
+  BANG_CHI_SO_EN,
+  FORM_CAU_THU_EN,
   NHAN_CHI_SO_EN,
   NHAN_MUC_DO_EN,
   NHAN_CHI_THI_EN,
@@ -19,6 +27,14 @@ import {
   DANH_SACH_DOI_VI,
   NGON_NGU_VI,
   CANH_BAO_XUNG_DOT_VI,
+  FORM_DOI_VI,
+  TRANG_DOI_VI,
+  XOA_CAU_THU_VI,
+  CHAN_THUAN_VI,
+  CHON_ANH_VI,
+  CHON_MAU_AO_VI,
+  BANG_CHI_SO_VI,
+  FORM_CAU_THU_VI,
   NHAN_CHI_SO_VI,
   NHAN_MUC_DO_VI,
   NHAN_CHI_THI_VI,
@@ -49,6 +65,14 @@ export interface BoChuoi {
   readonly NHAN_CHI_SO: typeof NHAN_CHI_SO_VI
   readonly NHAN_MUC_DO: typeof NHAN_MUC_DO_VI
   readonly CANH_BAO_XUNG_DOT: typeof CANH_BAO_XUNG_DOT_VI
+  readonly FORM_DOI: BanDich<typeof FORM_DOI_VI>
+  readonly TRANG_DOI: BanDich<typeof TRANG_DOI_VI>
+  readonly XOA_CAU_THU: BanDich<typeof XOA_CAU_THU_VI>
+  readonly CHAN_THUAN: BanDich<typeof CHAN_THUAN_VI>
+  readonly CHON_ANH: BanDich<typeof CHON_ANH_VI>
+  readonly CHON_MAU_AO: BanDich<typeof CHON_MAU_AO_VI>
+  readonly BANG_CHI_SO: BanDich<typeof BANG_CHI_SO_VI>
+  readonly FORM_CAU_THU: BanDich<typeof FORM_CAU_THU_VI>
 }
 
 const VI: BoChuoi = {
@@ -62,6 +86,14 @@ const VI: BoChuoi = {
   NHAN_CHI_SO: NHAN_CHI_SO_VI,
   NHAN_MUC_DO: NHAN_MUC_DO_VI,
   CANH_BAO_XUNG_DOT: CANH_BAO_XUNG_DOT_VI,
+  FORM_DOI: FORM_DOI_VI,
+  TRANG_DOI: TRANG_DOI_VI,
+  XOA_CAU_THU: XOA_CAU_THU_VI,
+  CHAN_THUAN: CHAN_THUAN_VI,
+  CHON_ANH: CHON_ANH_VI,
+  CHON_MAU_AO: CHON_MAU_AO_VI,
+  BANG_CHI_SO: BANG_CHI_SO_VI,
+  FORM_CAU_THU: FORM_CAU_THU_VI,
 }
 const EN: BoChuoi = {
   CHUNG: CHUNG_EN,
@@ -74,6 +106,14 @@ const EN: BoChuoi = {
   NHAN_CHI_SO: NHAN_CHI_SO_EN,
   NHAN_MUC_DO: NHAN_MUC_DO_EN,
   CANH_BAO_XUNG_DOT: CANH_BAO_XUNG_DOT_EN,
+  FORM_DOI: FORM_DOI_EN,
+  TRANG_DOI: TRANG_DOI_EN,
+  XOA_CAU_THU: XOA_CAU_THU_EN,
+  CHAN_THUAN: CHAN_THUAN_EN,
+  CHON_ANH: CHON_ANH_EN,
+  CHON_MAU_AO: CHON_MAU_AO_EN,
+  BANG_CHI_SO: BANG_CHI_SO_EN,
+  FORM_CAU_THU: FORM_CAU_THU_EN,
 }
 
 export const BO_CHUOI: Readonly<Record<NgonNgu, BoChuoi>> = { vi: VI, en: EN }

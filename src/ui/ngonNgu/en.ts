@@ -1,6 +1,14 @@
 import type { BanDich } from './kieu'
 import type {
   CHUNG_VI,
+  FORM_DOI_VI,
+  TRANG_DOI_VI,
+  XOA_CAU_THU_VI,
+  CHAN_THUAN_VI,
+  CHON_ANH_VI,
+  CHON_MAU_AO_VI,
+  BANG_CHI_SO_VI,
+  FORM_CAU_THU_VI,
   DANH_SACH_DOI_VI,
   NGON_NGU_VI,
   CANH_BAO_XUNG_DOT_VI,
@@ -365,4 +373,131 @@ export const CANH_BAO_XUNG_DOT_EN: typeof CANH_BAO_XUNG_DOT_VI = {
     'High pressing means swarming the ball the moment it is lost, while a deep line tells players to drop first — they will run a lot without winning it back.',
   'tan-cong-bien-voi-doi-hinh-hep':
     'Attacking down the flanks needs players hugging the touchline, but a narrow shape pulls them into the middle.',
+}
+
+// ---------------------------------------------------------------------------
+// Nhóm đội và cầu thủ (T317)
+// ---------------------------------------------------------------------------
+
+export const FORM_DOI_EN: BanDich<typeof FORM_DOI_VI> = {
+  tieuDeTao: 'New team',
+  tieuDeSua: 'Edit team',
+  nutTao: 'Create team',
+  nutDoiTen: 'Update team',
+  nhanTen: 'Team name',
+  gidanhTen: 'For example: My team',
+  nhanMauChinh: 'Home kit colour',
+  nhanMauPhu: 'Away kit colour',
+  canhBaoTrungTen: (ten: string) =>
+    `There is already a team called "${ten}". Create another with the same name?`,
+  xacNhanTrungTen: 'Create anyway',
+}
+
+export const TRANG_DOI_EN: BanDich<typeof TRANG_DOI_VI> = {
+  doiNay: 'Team',
+  danhSachCauThu: 'Squad',
+  themCauThu: 'Add player',
+  chuaCoCauThuTieuDe: 'This team has no players yet',
+  chuaCoCauThuMoTa:
+    'Add your first player: enter a name, a shirt number and a preferred position, then use quick-fill if you would rather not type every attribute.',
+  themCauThuDauTien: 'Add your first player',
+  sapXepTheo: 'Sort by',
+  sapXep: {
+    ten: 'Name',
+    soAo: 'Number',
+    tuoi: 'Age',
+    viTri: 'Position',
+  },
+  cotSoAo: 'No.',
+  cotTen: 'Name',
+  cotTuoi: 'Age',
+  cotViTri: 'Position',
+  cotChanThuan: 'Preferred foot',
+  cotChiSoTong: 'Overall',
+  chuaHoanTat: 'Incomplete',
+  chuaHoanTatChiTiet: (n: number) =>
+    n === 1 ? '1 attribute missing' : `${n} attributes missing`,
+  chuaTinhDuocChiSoTong: 'Not enough attributes to work it out',
+  suaCauThu: 'Edit',
+  xoaCauThu: 'Delete',
+}
+
+export const XOA_CAU_THU_EN: BanDich<typeof XOA_CAU_THU_VI> = {
+  tieuDe: 'Delete this player?',
+  moTa: (ten: string, soAo: number) =>
+    `"${ten}" (number ${soAo}) will be removed from the squad. This cannot be undone.`,
+  xacNhan: 'Delete player',
+}
+
+export const CHAN_THUAN_EN: BanDich<typeof CHAN_THUAN_VI> = {
+  trai: 'Left',
+  phai: 'Right',
+  'ca-hai': 'Both',
+}
+
+export const CHON_ANH_EN: BanDich<typeof CHON_ANH_VI> = {
+  nhanAnhCauThu: 'Portrait',
+  nhanLogoDoi: 'Team badge',
+  chonAnh: 'Choose image',
+  doiAnh: 'Change image',
+  xoaAnh: 'Remove image',
+  tieuDeCat: 'Crop to a square',
+  huongDanCat:
+    'Drag to choose the part you want to keep, and use the slider to zoom in or out.',
+  phongTo: 'Zoom',
+  xacNhanCat: 'Use this image',
+  dangXuLy: 'Processing image…',
+}
+
+export const CHON_MAU_AO_EN: BanDich<typeof CHON_MAU_AO_VI> = {
+  nhanMauChinh: 'Home kit colour',
+  nhanMauPhu: 'Away kit colour',
+  xemTruoc: 'Preview',
+  canhBaoTrungMauDoiKhac: (tenDoi: string) =>
+    `This home colour is very close to "${tenDoi}". The two sides will be hard to tell apart when they meet.`,
+  canhBaoChinhVaPhuGiongNhau:
+    'The home and away colours are very close, so the away kit will not help tell the sides apart.',
+  canhBaoNenDaDieuChinh:
+    'This colour has too little contrast with both white and black text, so the displayed background has been darkened or lightened slightly to keep the text readable.',
+}
+
+export const BANG_CHI_SO_EN: BanDich<typeof BANG_CHI_SO_VI> = {
+  tieuDe: 'Attributes',
+  khoangHopLe:
+    'Each attribute is a whole number from 1 to 20. An empty box means it has not been filled in.',
+  loiNgoaiKhoang: (tenChiSoDo: string) =>
+    `${tenChiSoDo} must be a whole number from 1 to 20. The value you entered was discarded.`,
+  nhomTen: {
+    'ky-thuat': 'Technical',
+    'phong-ngu': 'Defending',
+    'the-chat': 'Physical',
+    'tinh-than': 'Mental',
+    'thu-mon': 'Goalkeeping',
+  },
+}
+
+export const FORM_CAU_THU_EN: BanDich<typeof FORM_CAU_THU_VI> = {
+  tieuDeThem: 'Add player',
+  tieuDeSua: 'Edit player',
+  nutThem: 'Add player',
+  nutLuuSua: 'Update',
+  nhanTen: 'Player name',
+  gidanhTen: 'For example: John Smith',
+  nhanSoAo: 'Shirt number',
+  nhanTuoi: 'Age',
+  nhanChanThuan: 'Preferred foot',
+  nhanViTri: 'Preferred positions',
+  giaiThichThuMon:
+    'Goalkeepers use their own set of attributes, so they cannot double up as outfield players. Clear Goalkeeper if you want to pick outfield positions.',
+  giaiThichViTriSan:
+    'Outfield positions are selected, so Goalkeeper cannot be added. Clear every outfield position if you want this player to be a goalkeeper.',
+  canhBaoDoiSangThuMon:
+    'Turning this player into a goalkeeper switches them to the goalkeeping attributes. Attributes that are no longer used will not be kept.',
+  xacNhanDoiSangThuMon: 'Switch to goalkeeper anyway',
+  sinhNhanh: 'Quick-fill attributes',
+  sinhNhanhMoTa:
+    'Pick a level to fill in every attribute, then adjust whichever boxes you want.',
+  canChonViTriTruoc:
+    'Choose the preferred positions first — the generated levels depend on them.',
+  chiSoTongTaiViTri: (tenViTri: string) => `Overall as a ${tenViTri}`,
 }

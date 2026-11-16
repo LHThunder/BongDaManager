@@ -6,13 +6,7 @@ import { viTriTotNhat } from '../../domain/rating'
 import type { Player, Team } from '../../domain/types'
 import { usePlayers } from '../../hooks/usePlayers'
 import * as teamRepo from '../../services/teamRepo'
-import {
-  CHAN_THUAN,
-  CHUNG,
-  TRANG_CHIEN_THUAT,
-  TRANG_DOI,
-  XOA_CAU_THU,
-} from '../strings'
+import { TRANG_CHIEN_THUAT } from '../strings'
 import { AnhThayThe } from '../components/AnhThayThe'
 import { FormCauThu } from '../components/FormCauThu'
 import { HopXacNhan } from '../components/HopXacNhan'
@@ -53,7 +47,7 @@ function sapXep(cauThu: readonly Player[], khoa: KhoaSapXep): Player[] {
 
 /** Trang của một đội: thông tin đội và danh sách cầu thủ (AC-2.7, AC-2.8). */
 export function TrangDoi({ teamId, onQuayLai, onMoChienThuat }: Props) {
-  const { NHAN_VI_TRI } = useChuoi()
+  const { NHAN_VI_TRI, CHAN_THUAN, CHUNG, TRANG_DOI, XOA_CAU_THU } = useChuoi()
   const [doi, datDoi] = useState<Team | null>(null)
   const { cauThu, napCauThu, xoaCauThu } = usePlayers(teamId)
   const [khoa, datKhoa] = useState<KhoaSapXep>('soAo')

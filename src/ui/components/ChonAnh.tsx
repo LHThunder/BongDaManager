@@ -1,3 +1,4 @@
+import { useChuoi } from '../../hooks/useNgonNgu'
 import { useEffect, useRef, useState } from 'react'
 import Cropper, { type Area } from 'react-easy-crop'
 import { LoiUngDung, laLoiUngDung } from '../../services/errors'
@@ -10,7 +11,7 @@ import {
   taoUrlAnh,
   type KhungCat,
 } from '../../services/imageService'
-import { CHON_ANH, CHUNG, cauLoi } from '../strings'
+import { cauLoi } from '../strings'
 import { AnhThayThe } from './AnhThayThe'
 
 interface Props {
@@ -29,6 +30,7 @@ interface Props {
  * được giữ nguyên.
  */
 export function ChonAnh({ loai, anhId, ten, mauNen, onDaChon }: Props) {
+  const { CHON_ANH, CHUNG } = useChuoi()
   const [tepDangCat, datTepDangCat] = useState<File | null>(null)
   const [urlXemTruoc, datUrlXemTruoc] = useState<string | null>(null)
   const [viTriCat, datViTriCat] = useState({ x: 0, y: 0 })

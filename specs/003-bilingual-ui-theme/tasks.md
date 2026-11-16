@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | 36 AC (US-17 → US-23) |
-| **Tiến độ** | 21/43 |
+| **Tiến độ** | 22/43 |
 | **Sửa đổi** | 2026-11-16 — chẻ lần đầu từ plan, rồi sửa theo cả 8 phát hiện của `/analyze`; thêm T341–T342 lúc làm Phase 23 |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -165,7 +165,7 @@ duyệt theme**. Không có nó thì T326 áp theme ra 27 file còn lại rồi 
 
 ## Phase 25 — Lát 25: Quét nốt giao diện và dựng hai lớp lưới
 
-- [ ] **T317** [P] — Nhóm màn hình đội và cầu thủ
+- [x] **T317** [P] — Nhóm màn hình đội và cầu thủ
   - File: sửa `src/ui/pages/TrangDoi.tsx`, `src/ui/components/{FormDoi,FormCauThu,ChonMauAo,ChonAnh,AnhThayThe,DanhSachNgoaiSan}.tsx`
   - Xong khi: đi hết nhóm này ở cả hai ngôn ngữ, không sót chữ; tên đội và tên cầu thủ người dùng gõ **giữ nguyên đúng như đã gõ**.
   - AC: AC-19.4, AC-22.1

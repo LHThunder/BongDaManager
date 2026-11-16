@@ -14,7 +14,7 @@ import type {
   PositionId,
 } from '../../domain/types'
 import { CHI_SO_MAX, CHI_SO_MIN } from '../../domain/types'
-import { BANG_CHI_SO } from '../strings'
+
 
 interface Props {
   readonly positions: readonly PositionId[]
@@ -65,7 +65,7 @@ export function BangChiSo({
   onDoiChiSo,
   onDoiChiSoThuMon,
 }: Props) {
-  const { NHAN_CHI_SO } = useChuoi()
+  const { NHAN_CHI_SO, BANG_CHI_SO } = useChuoi()
   const [loiO, datLoiO] = useState<string | null>(null)
 
   const canCo = chiSoCanCo(positions)

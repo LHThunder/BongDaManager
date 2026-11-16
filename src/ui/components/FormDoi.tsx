@@ -1,8 +1,9 @@
+import { useChuoi } from '../../hooks/useNgonNgu'
 import { useEffect, useRef, useState } from 'react'
 import { useTeams } from '../../hooks/useTeams'
 import { laLoiUngDung } from '../../services/errors'
 import { MAU_AO_MAC_DINH, type TeamSummary } from '../../services/teamRepo'
-import { CHUNG, FORM_DOI, cauLoi } from '../strings'
+import { cauLoi } from '../strings'
 import { ChonAnh } from './ChonAnh'
 import { ChonMauAo } from './ChonMauAo'
 
@@ -18,6 +19,7 @@ interface Props {
  * (AC-1.2, AC-1.3, AC-1.5, AC-1.7, AC-3.5, AC-3.6, AC-3.7).
  */
 export function FormDoi({ doiDangSua, onXong, onHuy }: Props) {
+  const { CHUNG, FORM_DOI } = useChuoi()
   const { teams, taoDoi, capNhatDoi, kiemTraTrungTen } = useTeams()
   const dangSua = doiDangSua !== undefined
 
