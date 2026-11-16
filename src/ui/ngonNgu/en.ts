@@ -3,6 +3,7 @@ import type {
   CHUNG_VI,
   DANH_SACH_DOI_VI,
   NGON_NGU_VI,
+  NHAN_VI_TRI_VI,
   XOA_DOI_VI,
 } from './vi'
 
@@ -72,4 +73,26 @@ export const XOA_DOI_EN: BanDich<typeof XOA_DOI_VI> = {
   tranDangDien:
     ' This team has a match in progress; deleting the team abandons that match and it will not be saved to history.',
   xacNhan: 'Delete team',
+}
+
+/*
+  Tên vị trí theo cách gọi của **bóng đá Anh**: "Centre back", "Striker" —
+  không phải "Center back" hay "Forward" kiểu Mỹ (giả định mục 9 của spec).
+
+  Viết tắt giữ đúng quy ước sơ đồ quen thuộc: LB, CB, RB, DM, LM, CM, RM,
+  LW, AM, RW, ST.
+*/
+export const NHAN_VI_TRI_EN: typeof NHAN_VI_TRI_VI = {
+  GK: { ten: 'Goalkeeper', vietTat: 'GK' },
+  DL: { ten: 'Left back', vietTat: 'LB' },
+  DC: { ten: 'Centre back', vietTat: 'CB' },
+  DR: { ten: 'Right back', vietTat: 'RB' },
+  DM: { ten: 'Defensive midfielder', vietTat: 'DM' },
+  ML: { ten: 'Left midfielder', vietTat: 'LM' },
+  MC: { ten: 'Centre midfielder', vietTat: 'CM' },
+  MR: { ten: 'Right midfielder', vietTat: 'RM' },
+  AML: { ten: 'Left winger', vietTat: 'LW' },
+  AM: { ten: 'Attacking midfielder', vietTat: 'AM' },
+  AMR: { ten: 'Right winger', vietTat: 'RW' },
+  ST: { ten: 'Striker', vietTat: 'ST' },
 }

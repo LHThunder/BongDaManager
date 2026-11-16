@@ -1,5 +1,5 @@
+import { useChuoi } from '../../hooks/useNgonNgu'
 import { tenChiSo } from '../../domain/attributes'
-import { layViTri } from '../../domain/positions'
 import {
   chiSoChuaDat,
   vaiTroChoViTri,
@@ -28,6 +28,7 @@ export function ChonVaiTro({
   onChon,
   onDong,
 }: Props) {
+  const { NHAN_VI_TRI } = useChuoi()
   const cacVaiTro = vaiTroChoViTri(viTri)
 
   return (
@@ -37,7 +38,7 @@ export function ChonVaiTro({
           <h3 className="text-lg font-semibold text-slate-900">
             {VAI_TRO.tieuDe}
           </h3>
-          <p className="text-sm text-slate-500">{layViTri(viTri).ten}</p>
+          <p className="text-sm text-slate-500">{NHAN_VI_TRI[viTri].ten}</p>
         </div>
         <button
           type="button"

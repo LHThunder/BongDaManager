@@ -26,12 +26,6 @@ describe('bảng 12 vị trí (AC-2.1)', () => {
     expect(new Set(ids).size).toBe(12)
   })
 
-  it('mỗi vị trí có tên tiếng Việt và tên viết tắt không rỗng', () => {
-    for (const p of POSITIONS) {
-      expect(p.ten.trim(), `vị trí ${p.id} thiếu tên`).not.toBe('')
-      expect(p.vietTat.trim(), `vị trí ${p.id} thiếu viết tắt`).not.toBe('')
-    }
-  })
 
   it('mỗi vị trí thuộc đúng một tuyến hợp lệ', () => {
     for (const p of POSITIONS) {

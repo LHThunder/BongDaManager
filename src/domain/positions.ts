@@ -2,21 +2,21 @@ import type { Position, PositionId } from './types'
 
 /** 12 vị trí sở trường (AC-2.1), theo thứ tự từ khung thành ra phía trước. */
 export const POSITIONS: readonly Position[] = [
-  { id: 'GK', ten: 'Thủ môn', vietTat: 'TM', tuyen: 'thu-mon', ben: 'giua' },
+  { id: 'GK', tuyen: 'thu-mon', ben: 'giua' },
 
-  { id: 'DL', ten: 'Hậu vệ trái', vietTat: 'HVT', tuyen: 'phong-ngu', ben: 'trai' },
-  { id: 'DC', ten: 'Trung vệ', vietTat: 'TV', tuyen: 'phong-ngu', ben: 'giua' },
-  { id: 'DR', ten: 'Hậu vệ phải', vietTat: 'HVP', tuyen: 'phong-ngu', ben: 'phai' },
+  { id: 'DL', tuyen: 'phong-ngu', ben: 'trai' },
+  { id: 'DC', tuyen: 'phong-ngu', ben: 'giua' },
+  { id: 'DR', tuyen: 'phong-ngu', ben: 'phai' },
 
-  { id: 'DM', ten: 'Tiền vệ trụ', vietTat: 'TVT', tuyen: 'tien-ve', ben: 'giua' },
-  { id: 'ML', ten: 'Tiền vệ cánh trái', vietTat: 'TVCT', tuyen: 'tien-ve', ben: 'trai' },
-  { id: 'MC', ten: 'Tiền vệ trung tâm', vietTat: 'TVTT', tuyen: 'tien-ve', ben: 'giua' },
-  { id: 'MR', ten: 'Tiền vệ cánh phải', vietTat: 'TVCP', tuyen: 'tien-ve', ben: 'phai' },
+  { id: 'DM', tuyen: 'tien-ve', ben: 'giua' },
+  { id: 'ML', tuyen: 'tien-ve', ben: 'trai' },
+  { id: 'MC', tuyen: 'tien-ve', ben: 'giua' },
+  { id: 'MR', tuyen: 'tien-ve', ben: 'phai' },
 
-  { id: 'AML', ten: 'Chạy cánh trái', vietTat: 'CCT', tuyen: 'tan-cong', ben: 'trai' },
-  { id: 'AM', ten: 'Tiền vệ tấn công', vietTat: 'TVTC', tuyen: 'tan-cong', ben: 'giua' },
-  { id: 'AMR', ten: 'Chạy cánh phải', vietTat: 'CCP', tuyen: 'tan-cong', ben: 'phai' },
-  { id: 'ST', ten: 'Tiền đạo', vietTat: 'TĐ', tuyen: 'tan-cong', ben: 'giua' },
+  { id: 'AML', tuyen: 'tan-cong', ben: 'trai' },
+  { id: 'AM', tuyen: 'tan-cong', ben: 'giua' },
+  { id: 'AMR', tuyen: 'tan-cong', ben: 'phai' },
+  { id: 'ST', tuyen: 'tan-cong', ben: 'giua' },
 ]
 
 const THEO_ID = new Map<PositionId, Position>(POSITIONS.map((p) => [p.id, p]))

@@ -1,3 +1,4 @@
+import { useChuoi } from '../../hooks/useNgonNgu'
 import {
   DndContext,
   KeyboardCode,
@@ -21,7 +22,6 @@ import {
 } from '../../domain/lineup'
 import { mucSaiViTri } from '../../domain/misplacement'
 import { vaiTroMacDinh } from '../../domain/roles'
-import { layViTri } from '../../domain/positions'
 import type { Player } from '../../domain/types'
 import { usePlayers } from '../../hooks/usePlayers'
 import { useTactic } from '../../hooks/useTactic'
@@ -152,6 +152,7 @@ function cauLyDo(
   so sánh bằng Object.is không bị render lặp.
 */
 export function TrangChienThuat({ teamId, onQuayLai }: Props) {
+  const { NHAN_VI_TRI } = useChuoi()
   const tenDoi = useAppStore(
     (s) => s.teams.find((d) => d.id === teamId)?.name ?? null,
   )
@@ -215,9 +216,9 @@ export function TrangChienThuat({ teamId, onQuayLai }: Props) {
         (s) => s.id === chienThuat?.formationId,
       )
       const viTri = soDoHienTai?.oVien.find((o) => o.slotId === slotId)?.viTri
-      return viTri ? TRANG_CHIEN_THUAT.nhanO(layViTri(viTri).ten) : String(id)
+      return viTri ? TRANG_CHIEN_THUAT.nhanO(NHAN_VI_TRI[viTri].ten) : String(id)
     },
-    [chienThuat],
+    [chienThuat, NHAN_VI_TRI],
   )
 
   const tenNguoiKeo = useCallback(
@@ -325,7 +326,7 @@ export function TrangChienThuat({ teamId, onQuayLai }: Props) {
           .map((o) => o.playerId)
           .filter((id): id is string => id !== null),
       ),
-    [chienThuat],
+    [chienThuat, NHAN_VI_TRI],
   )
 
   const ngoaiSan = useMemo(

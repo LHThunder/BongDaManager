@@ -1,3 +1,4 @@
+import { useChuoi } from '../../hooks/useNgonNgu'
 import { useEffect, useRef, useState } from 'react'
 import { dungBaoCao } from '../../engine/baoCao'
 import type { SuKien } from '../../engine/suKien'
@@ -43,6 +44,7 @@ interface Props {
  * Trận sống trong bộ nhớ: rời trang là mất (AC-9.10, quyết định D32).
  */
 export function TrangTran({ onRoiTran }: Props) {
+  const { NHAN_VI_TRI } = useChuoi()
   const {
     tran,
     dangChay,
@@ -421,6 +423,7 @@ export function TrangTran({ onRoiTran }: Props) {
               msMoiPhut={MS_MOI_PHUT[tocDo]}
               tenCauThu={(id) => tenTheoId.get(id) ?? id}
               soAo={(id) => soAoTheoId.get(id) ?? null}
+              nhanViTri={(v) => NHAN_VI_TRI[v].ten}
             />
           </div>
         )}

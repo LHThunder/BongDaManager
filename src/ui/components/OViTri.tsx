@@ -1,7 +1,7 @@
 import { useDraggable, useDroppable } from '@dnd-kit/core'
 import type { OViTriSoDo } from '../../domain/formations'
 import { MUC_TRU_HIEU_SUAT, type MucSai } from '../../domain/misplacement'
-import { layViTri } from '../../domain/positions'
+import { useChuoi } from '../../hooks/useNgonNgu'
 import { chiSoChuaDat, layVaiTro, type RoleId } from '../../domain/roles'
 import type { Player } from '../../domain/types'
 import { SAI_VI_TRI, TRANG_CHIEN_THUAT, VAI_TRO } from '../strings'
@@ -51,7 +51,8 @@ export function OViTri({
   dangChon = false,
   onChon,
 }: Props) {
-  const viTri = layViTri(o.viTri)
+  const { NHAN_VI_TRI } = useChuoi()
+  const nhanViTri = NHAN_VI_TRI[o.viTri]
   const vaiTro = layVaiTro(roleId)
 
   // Cảnh báo ngay tại ô khi cầu thủ chưa đáp ứng vai trò (AC-6.4); chi tiết
@@ -88,8 +89,12 @@ export function OViTri({
 
   const nhan =
     cauThu === null
-      ? TRANG_CHIEN_THUAT.nhanO(viTri.ten)
-      : TRANG_CHIEN_THUAT.oCoNguoi(viTri.ten, cauThu.name, cauThu.shirtNumber)
+      ? TRANG_CHIEN_THUAT.nhanO(nhanViTri.ten)
+      : TRANG_CHIEN_THUAT.oCoNguoi(
+          nhanViTri.ten,
+          cauThu.name,
+          cauThu.shirtNumber,
+        )
 
   const vien =
     mucSai === null ? 'border-white/40 border-dashed' : VIEN_THEO_MUC[mucSai]
@@ -123,7 +128,7 @@ export function OViTri({
       >
         {cauThu === null ? (
           <>
-            <span className="text-sm font-bold">{viTri.vietTat}</span>
+            <span className="text-sm font-bold">{nhanViTri.vietTat}</span>
             <span className="text-[10px] leading-none text-white/70">
               {TRANG_CHIEN_THUAT.oTrong}
             </span>

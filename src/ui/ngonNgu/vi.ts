@@ -1,3 +1,4 @@
+import type { PositionId } from '../../domain/types'
 /*
   Bảng chuỗi tiếng Việt (hiến pháp P8, bản 2.0.0).
 
@@ -72,3 +73,26 @@ export const XOA_DOI_VI = {
     ' Đội này đang có một trận dở; xoá đội thì trận đang diễn ra bị bỏ và không vào lịch sử.',
   xacNhan: 'Xoá đội',
 } as const
+
+/*
+  Nhãn 12 vị trí (T306, quyết định D68).
+
+  Khai `Record<PositionId, …>` chứ không phải object thường: thiếu một vị
+  trí là **lỗi biên dịch**, không phải một ô trống trên màn hình người dùng.
+*/
+export const NHAN_VI_TRI_VI: Readonly<
+  Record<PositionId, { readonly ten: string; readonly vietTat: string }>
+> = {
+  GK: { ten: 'Thủ môn', vietTat: 'TM' },
+  DL: { ten: 'Hậu vệ trái', vietTat: 'HVT' },
+  DC: { ten: 'Trung vệ', vietTat: 'TV' },
+  DR: { ten: 'Hậu vệ phải', vietTat: 'HVP' },
+  DM: { ten: 'Tiền vệ trụ', vietTat: 'TVT' },
+  ML: { ten: 'Tiền vệ cánh trái', vietTat: 'TVCT' },
+  MC: { ten: 'Tiền vệ trung tâm', vietTat: 'TVTT' },
+  MR: { ten: 'Tiền vệ cánh phải', vietTat: 'TVCP' },
+  AML: { ten: 'Chạy cánh trái', vietTat: 'CCT' },
+  AM: { ten: 'Tiền vệ tấn công', vietTat: 'TVTC' },
+  AMR: { ten: 'Chạy cánh phải', vietTat: 'CCP' },
+  ST: { ten: 'Tiền đạo', vietTat: 'TĐ' },
+}

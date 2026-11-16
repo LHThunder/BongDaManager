@@ -35,12 +35,17 @@ export type PositionLine = 'thu-mon' | 'phong-ngu' | 'tien-ve' | 'tan-cong'
 /** Bên của một vị trí. Dùng cho mức sai nhẹ "lệch trái/phải cùng tuyến". */
 export type PositionSide = 'trai' | 'giua' | 'phai'
 
+/*
+  Vị trí chỉ còn **mã và trường cấu trúc** (hiến pháp P8 bản 2.0.0, quyết
+  định D68). Tên hiển thị và tên viết tắt nằm ở lớp ngôn ngữ `ui/ngonNgu`,
+  tra theo `id`.
+
+  Lý do không giữ `ten` rồi thêm `tenEn`: như vậy lớp dữ liệu bóng đá sẽ
+  phình ra theo số ngôn ngữ, và `domain` thì không có việc gì phải biết ứng
+  dụng đang nói thứ tiếng nào.
+*/
 export interface Position {
   readonly id: PositionId
-  /** Tên hiển thị, tiếng Việt (P8). */
-  readonly ten: string
-  /** Tên viết tắt để hiện trên sơ đồ. */
-  readonly vietTat: string
   readonly tuyen: PositionLine
   readonly ben: PositionSide
 }

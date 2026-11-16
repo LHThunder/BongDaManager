@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | 36 AC (US-17 → US-23) |
-| **Tiến độ** | 6/41 |
+| **Tiến độ** | 7/41 |
 | **Sửa đổi** | 2026-11-16 — chẻ lần đầu từ plan, rồi sửa theo cả 8 phát hiện của `/analyze` |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -64,7 +64,7 @@ duyệt theme**. Không có nó thì T326 áp theme ra 27 file còn lại rồi 
 
 ## Phase 23 — Lát 23: 99 nhãn rời khỏi `domain/`
 
-- [ ] **T306** [P] — Nhãn vị trí rời khỏi domain
+- [x] **T306** [P] — Nhãn vị trí rời khỏi domain
   - File: sửa `src/domain/positions.ts`, sửa `src/ui/ngonNgu/vi.ts`, sửa `src/ui/ngonNgu/en.ts`
   - Xong khi: `Position` không còn `ten`/`vietTat`; hai bảng `Record<PositionId, {ten, vietTat}>` phủ đủ 12 vị trí; `tsc` sạch — thiếu một vị trí là lỗi biên dịch (D68).
   - AC: AC-19.1, AC-19.2

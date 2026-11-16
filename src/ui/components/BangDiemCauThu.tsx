@@ -1,5 +1,5 @@
+import { useChuoi } from '../../hooks/useNgonNgu'
 import { useState } from 'react'
-import { layViTri } from '../../domain/positions'
 import type { DiemCuaCauThu } from '../../engine/baoCao'
 import { DIEM_NEN } from '../../engine/diemCauThu'
 import { BAO_CAO_SAU_TRAN } from '../strings'
@@ -35,6 +35,7 @@ function dauCuaDiem(diemCong: number): string {
  * có **nhãn chữ** đi kèm chứ không chỉ dựa vào màu.
  */
 export function BangDiemCauThu({ diemCauThu, tenCauThu }: Props) {
+  const { NHAN_VI_TRI } = useChuoi()
   const [dangMo, datDangMo] = useState<string | null>(null)
 
   const theoDiem = [...diemCauThu].sort((a, b) => b.diem - a.diem)
@@ -64,7 +65,7 @@ export function BangDiemCauThu({ diemCauThu, tenCauThu }: Props) {
                 </span>
               </span>
               <span className="w-16 text-slate-600">
-                {layViTri(x.viTriDaDa).vietTat}
+                {NHAN_VI_TRI[x.viTriDaDa].vietTat}
               </span>
               <span className="w-12 text-right font-mono font-semibold text-slate-900">
                 {x.diem.toFixed(1)}

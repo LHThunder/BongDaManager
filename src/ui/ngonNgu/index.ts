@@ -3,6 +3,7 @@ import {
   CHUNG_EN,
   DANH_SACH_DOI_EN,
   NGON_NGU_EN,
+  NHAN_VI_TRI_EN,
   XOA_DOI_EN,
 } from './en'
 import type { BanDich } from './kieu'
@@ -10,6 +11,7 @@ import {
   CHUNG_VI,
   DANH_SACH_DOI_VI,
   NGON_NGU_VI,
+  NHAN_VI_TRI_VI,
   XOA_DOI_VI,
 } from './vi'
 
@@ -29,6 +31,7 @@ export interface BoChuoi {
   readonly NGON_NGU: BanDich<typeof NGON_NGU_VI>
   readonly DANH_SACH_DOI: BanDich<typeof DANH_SACH_DOI_VI>
   readonly XOA_DOI: BanDich<typeof XOA_DOI_VI>
+  readonly NHAN_VI_TRI: typeof NHAN_VI_TRI_VI
 }
 
 const VI: BoChuoi = {
@@ -36,12 +39,14 @@ const VI: BoChuoi = {
   NGON_NGU: NGON_NGU_VI,
   DANH_SACH_DOI: DANH_SACH_DOI_VI,
   XOA_DOI: XOA_DOI_VI,
+  NHAN_VI_TRI: NHAN_VI_TRI_VI,
 }
 const EN: BoChuoi = {
   CHUNG: CHUNG_EN,
   NGON_NGU: NGON_NGU_EN,
   DANH_SACH_DOI: DANH_SACH_DOI_EN,
   XOA_DOI: XOA_DOI_EN,
+  NHAN_VI_TRI: NHAN_VI_TRI_EN,
 }
 
 export const BO_CHUOI: Readonly<Record<NgonNgu, BoChuoi>> = { vi: VI, en: EN }

@@ -1,6 +1,7 @@
+import { useChuoi } from '../../hooks/useNgonNgu'
 import { useEffect, useMemo, useState } from 'react'
 import { hoSoHoanTat } from '../../domain/completeness'
-import { layViTri, POSITIONS } from '../../domain/positions'
+import { POSITIONS } from '../../domain/positions'
 import { viTriTotNhat } from '../../domain/rating'
 import type { Player, Team } from '../../domain/types'
 import { usePlayers } from '../../hooks/usePlayers'
@@ -52,6 +53,7 @@ function sapXep(cauThu: readonly Player[], khoa: KhoaSapXep): Player[] {
 
 /** Trang của một đội: thông tin đội và danh sách cầu thủ (AC-2.7, AC-2.8). */
 export function TrangDoi({ teamId, onQuayLai, onMoChienThuat }: Props) {
+  const { NHAN_VI_TRI } = useChuoi()
   const [doi, datDoi] = useState<Team | null>(null)
   const { cauThu, napCauThu, xoaCauThu } = usePlayers(teamId)
   const [khoa, datKhoa] = useState<KhoaSapXep>('soAo')
@@ -216,7 +218,7 @@ export function TrangDoi({ teamId, onQuayLai, onMoChienThuat }: Props) {
                     </td>
                     <td className="px-3 py-2 text-slate-600">{p.age}</td>
                     <td className="px-3 py-2 text-slate-600">
-                      {p.positions.map((v) => layViTri(v).vietTat).join(', ')}
+                      {p.positions.map((v) => NHAN_VI_TRI[v].vietTat).join(', ')}
                     </td>
                     <td className="px-3 py-2 text-slate-600">
                       {CHAN_THUAN[p.preferredFoot]}
@@ -226,7 +228,7 @@ export function TrangDoi({ teamId, onQuayLai, onMoChienThuat }: Props) {
                         <span className="font-semibold text-slate-900">
                           {totNhat.diem}
                           <span className="ml-1 text-xs font-normal text-slate-500">
-                            {layViTri(totNhat.viTri).vietTat}
+                            {NHAN_VI_TRI[totNhat.viTri].vietTat}
                           </span>
                         </span>
                       ) : (

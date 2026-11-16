@@ -1,6 +1,5 @@
 import { mauChuTuongPhan } from '../../domain/colors'
 import { laySoDo, soNguoiCuaSoDo } from '../../domain/formations'
-import { layViTri } from '../../domain/positions'
 import type { PositionId } from '../../domain/types'
 import type { BenDoi, SuKien } from '../../engine/suKien'
 import type { BenTran } from '../../engine/tran'
@@ -234,6 +233,14 @@ interface DuLieuVe {
   readonly suKien: SuKien | null
   readonly tenCauThu: (playerId: string) => string
   readonly soAo: (playerId: string) => number | null
+  /**
+   * Tên vị trí để dựng mô tả từng điểm.
+   *
+   * Đi vào bằng THAM SỐ, đúng cách `tenCauThu` và `soAo` vẫn đi: `hinhSan`
+   * là hàm thuần và được test gọi thẳng, nên nó không được tự đi tra lớp
+   * ngôn ngữ — làm vậy là buộc mọi test phải dựng sẵn một ngôn ngữ (D68).
+   */
+  readonly nhanViTri: (viTri: PositionId) => string
 }
 
 interface Props extends DuLieuVe {
@@ -291,6 +298,7 @@ export function hinhSan({
   suKien,
   tenCauThu,
   soAo,
+  nhanViTri,
 }: DuLieuVe): HinhSan {
   /*
     Quân số suy từ SƠ ĐỒ đang dùng, không từ `trenSan`: thẻ đỏ làm số người
@@ -364,7 +372,7 @@ export function hinhSan({
         moTa: SAN_2D.moTaDiem(
           tenCauThu(x.playerId),
           so,
-          layViTri(x.viTriO).ten,
+          nhanViTri(x.viTriO),
           doiTren.ten,
           noiBat,
         ),

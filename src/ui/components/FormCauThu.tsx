@@ -1,3 +1,4 @@
+import { useChuoi } from '../../hooks/useNgonNgu'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { GK_CHI_SO_CHUNG } from '../../domain/attributes'
 import { hoSoHoanTat } from '../../domain/completeness'
@@ -5,7 +6,6 @@ import { CAC_MUC_DO, sinhChiSo, type MucDo } from '../../domain/generator'
 import {
   cacViTriConChonDuoc,
   laThuMon,
-  layViTri,
   POSITIONS,
 } from '../../domain/positions'
 import { chiSoTongTheoViTri } from '../../domain/rating'
@@ -46,6 +46,7 @@ export function FormCauThu({
   onXong,
   onHuy,
 }: Props) {
+  const { NHAN_VI_TRI } = useChuoi()
   const { luuCauThu } = usePlayers(teamId)
   const dangSua = cauThuDangSua !== undefined
 
@@ -291,7 +292,7 @@ export function FormCauThu({
                         : 'rounded-full border border-slate-300 px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-400'
                   }
                 >
-                  {p.ten}
+                  {NHAN_VI_TRI[p.id].ten}
                 </button>
               )
             })}
@@ -385,7 +386,7 @@ export function FormCauThu({
             {viTri.length > 0 && (
               <label className="flex items-center gap-2 text-slate-700">
                 {FORM_CAU_THU.chiSoTongTaiViTri(
-                  viTriXem ? layViTri(viTriXem).ten : '',
+                  viTriXem ? NHAN_VI_TRI[viTriXem].ten : '',
                 )}
                 <select
                   value={viTriXem ?? ''}
@@ -394,7 +395,7 @@ export function FormCauThu({
                 >
                   {viTri.map((v) => (
                     <option key={v} value={v}>
-                      {layViTri(v).ten}
+                      {NHAN_VI_TRI[v].ten}
                     </option>
                   ))}
                 </select>

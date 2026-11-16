@@ -1,4 +1,4 @@
-import { layViTri } from '../../domain/positions'
+import { useChuoi } from '../../hooks/useNgonNgu'
 import type { Player } from '../../domain/types'
 import { SO_CAU_THU_CHINH, SO_CAU_THU_DU_BI_TOI_DA } from '../../engine/batDau'
 import { DANG_KY_DOI_HINH, TRANG_CHIEN_THUAT } from '../strings'
@@ -19,6 +19,7 @@ interface Props {
  * được đưa vào `trenSan` hay `duBi` khi dựng cấu hình trận.
  */
 export function DangKyDoiHinh({ tenDoi, cauThu, dangKy, onDoi }: Props) {
+  const { NHAN_VI_TRI } = useChuoi()
   const dem = (v: VaiTroDangKy) =>
     cauThu.filter((p) => dangKy[p.id] === v).length
 
@@ -57,7 +58,7 @@ export function DangKyDoiHinh({ tenDoi, cauThu, dangKy, onDoi }: Props) {
               {p.name}
             </span>
             <span className="w-12 shrink-0 text-xs text-slate-500">
-              {layViTri(p.positions[0] ?? 'MC').vietTat}
+              {NHAN_VI_TRI[p.positions[0] ?? 'MC'].vietTat}
             </span>
             <label className="sr-only" htmlFor={`dk-${p.id}`}>
               {TRANG_CHIEN_THUAT.nhanO(p.name)}

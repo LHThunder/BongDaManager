@@ -54,6 +54,7 @@ function veTu(tt: TrangThaiTran, suKien: SuKien | null = null) {
     suKien,
     tenCauThu: (id) => id,
     soAo: () => 9,
+    nhanViTri: (v) => v,
   })
 }
 
