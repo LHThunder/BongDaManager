@@ -13,7 +13,15 @@ import {
   type TrangThaiTran,
 } from '../engine/tran'
 import type { SuKien } from '../engine/suKien'
-import { hinhSan, khungSan, KHUNG_SAN, type DiemCauThu } from './components/San2D'
+import { MS_MOI_PHUT } from '../hooks/useMatch'
+import {
+  hinhSan,
+  khungSan,
+  KHUNG_SAN,
+  thoiGianChuyen,
+  THOI_GIAN_CHUYEN_TOI_DA,
+  type DiemCauThu,
+} from './components/San2D'
 
 /*
   Hình học của sân 2D ở mọi quân số (AC-15.1, AC-15.2, AC-15.6).
@@ -195,6 +203,52 @@ describe('điểm không chồng khít lên nhau (AC-15.2)', () => {
         expect(d.y, bao).toBeGreaterThanOrEqual(leY)
         expect(d.y, bao).toBeLessThanOrEqual(leY + khung.cao)
       }
+    }
+  })
+})
+
+/*
+  Nhịp di chuyển của điểm trên sân.
+
+  Sân 2D không có vòng lặp animation (quyết định D41): mỗi điểm là một `<g>`
+  đổi `transform`, và CSS lo phần đi từ chỗ cũ sang chỗ mới. Nghĩa là thời
+  gian transition phải NGẮN HƠN khoảng cách giữa hai lần đổi chỗ — nếu không,
+  điểm bị giật sang đích mới khi còn đang bay dở, và người xem thấy một mớ
+  hỗn loạn chứ không thấy đường đi.
+
+  Bản đầu đặt cứng 280ms, dài hơn nhịp đồng hồ ở cả ba mức tốc độ. Lỗi chìm ở
+  sân 11 vì mỗi tình huống chỉ kéo ~17% đội hình; sân 5 kéo 37% nên nó lộ ra.
+*/
+describe('nhịp di chuyển của điểm trên sân', () => {
+  it('ở mọi mức tốc độ, cú chuyển chỗ kết thúc trước nhịp đồng hồ kế tiếp', () => {
+    for (const [muc, ms] of Object.entries(MS_MOI_PHUT)) {
+      expect(
+        thoiGianChuyen(ms),
+        `mức ${muc}: ${ms}ms một phút trận`,
+      ).toBeLessThanOrEqual(ms)
+    }
+  })
+
+  it('mức Thường cho 180ms, Nhanh 63ms, Rất nhanh 18ms', () => {
+    expect(thoiGianChuyen(200)).toBe(180)
+    expect(thoiGianChuyen(70)).toBe(63)
+    expect(thoiGianChuyen(20)).toBe(18)
+  })
+
+  /*
+    Đồng hồ chậm tới đâu thì chuyển chỗ cũng không được lê quá 280ms: quá dài
+    thì điểm còn đang bò trong khi dòng tường thuật đã kể xong tình huống.
+  */
+  it('đồng hồ rất chậm vẫn không vượt trần 280ms', () => {
+    expect(thoiGianChuyen(10_000)).toBe(THOI_GIAN_CHUYEN_TOI_DA)
+    expect(thoiGianChuyen(400)).toBe(THOI_GIAN_CHUYEN_TOI_DA)
+  })
+
+  it('không bao giờ trả về số âm hay số lẻ', () => {
+    for (const ms of [0, 1, 7, 20, 70, 200, 999]) {
+      const t = thoiGianChuyen(ms)
+      expect(t, `${ms}ms`).toBeGreaterThanOrEqual(0)
+      expect(Number.isInteger(t), `${ms}ms -> ${t}`).toBe(true)
     }
   })
 })

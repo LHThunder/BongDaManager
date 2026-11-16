@@ -8,7 +8,7 @@ import {
   phutHienThi,
   type NoiDungCanThiep,
 } from '../../engine/tran'
-import { useMatch } from '../../hooks/useMatch'
+import { MS_MOI_PHUT, useMatch } from '../../hooks/useMatch'
 import * as playerRepo from '../../services/playerRepo'
 import * as tuyChonRepo from '../../services/tuyChonRepo'
 import { aoDangDung, mauAoRaSan } from '../mauAo'
@@ -418,6 +418,7 @@ export function TrangTran({ onRoiTran }: Props) {
                 mauAo: mauAoRaSan(doiKhach, mauAo.khach),
               }}
               suKien={suKienDangXem}
+              msMoiPhut={MS_MOI_PHUT[tocDo]}
               tenCauThu={(id) => tenTheoId.get(id) ?? id}
               soAo={(id) => soAoTheoId.get(id) ?? null}
             />

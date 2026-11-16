@@ -226,13 +226,47 @@ export interface DoiTrenSan {
   readonly mauAo: string
 }
 
-interface Props {
+/** Những gì `hinhSan` cần để tính toạ độ — không có gì liên quan tới nhịp vẽ. */
+interface DuLieuVe {
   readonly nha: DoiTrenSan
   readonly khach: DoiTrenSan
   /** Sự kiện đang hiển thị; `null` khi trận chưa chạy. */
   readonly suKien: SuKien | null
   readonly tenCauThu: (playerId: string) => string
   readonly soAo: (playerId: string) => number | null
+}
+
+interface Props extends DuLieuVe {
+  /** Nhịp đồng hồ trận: bao nhiêu mili-giây cho một phút chơi. */
+  readonly msMoiPhut: number
+}
+
+/** Thời gian chuyển chỗ dài nhất, dùng khi đồng hồ chạy đủ thong thả. */
+export const THOI_GIAN_CHUYEN_TOI_DA = 280
+
+/**
+ * Chừa lại 10% để cú chuyển chỗ KẾT THÚC trước khi tình huống sau tới.
+ * Mốc tình huống cách nhau trung bình ~1,15 phút trận, nên 0,9 là biên an
+ * toàn kể cả ở những đoạn dày sự kiện nhất.
+ */
+const TI_LE_KIP = 0.9
+
+/**
+ * Thời gian một điểm đi từ chỗ cũ tới chỗ mới, buộc theo nhịp đồng hồ trận.
+ *
+ * Bản đầu đặt cứng 280ms. Đo ra thì ở CẢ BA mức tốc độ, con số ấy dài hơn
+ * khoảng cách giữa hai lần đổi chỗ — Thường ~220ms, Nhanh ~77ms, Rất nhanh
+ * ~22ms — nên không cú di chuyển nào kịp tới đích: điểm luôn đang bay dở thì
+ * bị giật sang đích mới. Ở mức Nhanh nó bị giật bốn lần trước khi tới nơi
+ * được một lần.
+ *
+ * Lỗi này có từ spec 001 nhưng chìm ở sân 11, vì mỗi tình huống chỉ kéo ~17%
+ * đội hình đi. Sân 5 cũng ~1,88 người mỗi tình huống nhưng trên một đội hình
+ * năm người, tức **37%** — mắt đọc chuyển động theo tỉ lệ, không theo số
+ * tuyệt đối, nên cùng một lỗi ở sân 5 thành ra loạn.
+ */
+export function thoiGianChuyen(msMoiPhut: number): number {
+  return Math.min(THOI_GIAN_CHUYEN_TOI_DA, Math.round(msMoiPhut * TI_LE_KIP))
 }
 
 export interface HinhSan {
@@ -251,7 +285,13 @@ export interface HinhSan {
  * và AC-15.2 (không điểm nào đè khít điểm khác) đều là phát biểu về toạ độ,
  * nên hàm này là chỗ chứng minh chúng.
  */
-export function hinhSan({ nha, khach, suKien, tenCauThu, soAo }: Props): HinhSan {
+export function hinhSan({
+  nha,
+  khach,
+  suKien,
+  tenCauThu,
+  soAo,
+}: DuLieuVe): HinhSan {
   /*
     Quân số suy từ SƠ ĐỒ đang dùng, không từ `trenSan`: thẻ đỏ làm số người
     trên sân tụt xuống, mà khung sân thì không được co lại giữa trận.
@@ -340,7 +380,8 @@ export function hinhSan({ nha, khach, suKien, tenCauThu, soAo }: Props): HinhSan
 }
 
 export function San2D(props: Props) {
-  const { nha, khach } = props
+  const { nha, khach, msMoiPhut } = props
+  const msChuyen = thoiGianChuyen(msMoiPhut)
   const { khung, banKinh, cacDiem, duongBong } = hinhSan(props)
   const bong = duongBong[duongBong.length - 1]
   const tiLe = tiLeKhung(khung)
@@ -431,7 +472,7 @@ export function San2D(props: Props) {
           <g
             key={d.playerId}
             transform={`translate(${d.x} ${d.y})`}
-            style={{ transition: 'transform 280ms ease-out' }}
+            style={{ transition: `transform ${msChuyen}ms ease-out` }}
           >
             <title>{d.moTa}</title>
             <circle
