@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **ID** | `003-bilingual-ui-theme` |
-| **Status** | Draft |
+| **Status** | Clarified (2026-11-16) |
 | **Created** | 2026-11-16 |
 | **Branch** | `003-bilingual-ui-theme` |
 
@@ -48,6 +48,9 @@ Hai cái đau tách bạch:
 - Đổi bất kỳ công thức, luật bóng đá hay hành vi engine nào. Spec này không
   chạm vào kết quả trận đấu.
 - Đổi định dạng tệp sao lưu hay cấu trúc dữ liệu đã lưu.
+- **Đổi bố cục màn hình.** Vị trí các khối, cách chia cột và đường điều
+  hướng giữ nguyên như hiện tại; theme chỉ đổi màu, phông chữ và chi tiết
+  trang trí (quyết định ngày 2026-11-16).
 - Giao diện riêng cho điện thoại và máy tính bảng (vẫn là non-goal của dự án).
 - Hoạt ảnh, chuyển cảnh, hiệu ứng động ngoài những gì đã có.
 - Tự sinh đội/cầu thủ ngẫu nhiên và mô phỏng di chuyển liên tục — thuộc spec
@@ -79,6 +82,7 @@ người khác xem**.
 - [ ] AC-17.4 — KHI người dùng chọn một ngôn ngữ rồi đóng ứng dụng THÌ lần mở sau hệ thống PHẢI dùng lại đúng ngôn ngữ đó.
 - [ ] AC-17.5 — KHI người dùng đổi ngôn ngữ **giữa lúc một trận đang chạy** THÌ trận PHẢI tiếp tục đúng trạng thái đang có — cùng phút, cùng tỉ số, cùng vị trí cầu thủ — và mọi dòng tường thuật đã hiện PHẢI đổi sang ngôn ngữ mới.
 - [ ] AC-17.6 — KHI người dùng đổi ngôn ngữ THÌ nút đổi ngôn ngữ PHẢI với tới được bằng bàn phím, không chỉ bằng chuột.
+- [ ] AC-17.7 — KHI người dùng mở ứng dụng **lần đầu**, chưa từng chọn ngôn ngữ, THÌ hệ thống PHẢI hiển thị **tiếng Việt**, không phụ thuộc thiết lập của trình duyệt hay của máy.
 
 ### US-18: Câu tường thuật đọc tự nhiên ở cả hai thứ tiếng
 
@@ -113,10 +117,15 @@ giống một thứ của riêng tôi chứ không phải một bản dựng k�
 **Acceptance criteria:**
 
 - [ ] AC-20.1 — KHI mở bất kỳ màn hình nào THÌ giao diện PHẢI mang một bộ nhận diện thống nhất gợi bóng đá — bảng màu, phông chữ và cách trình bày dùng chung ở mọi màn hình.
-- [ ] AC-20.2 — KHI đo tương phản giữa chữ và nền ở **mọi** màn hình của theme mới THÌ tỉ lệ PHẢI đạt tối thiểu **4.5:1**.
+- [ ] AC-20.2 — KHI đo tương phản giữa chữ và nền ở **mọi** màn hình THÌ tỉ lệ PHẢI đạt tối thiểu **4.5:1** — ở **cả chế độ sáng lẫn chế độ tối**.
 - [ ] AC-20.3 — KHI theme mới được áp dụng THÌ mọi chức năng hiện có PHẢI giữ nguyên hành vi; KHÔNG màn hình nào mất nút, mất thông tin hay mất đường đi.
 - [ ] AC-20.4 — KHI chạy ứng dụng **không có mạng** THÌ mọi phông chữ và hình nền của theme PHẢI hiển thị đầy đủ.
-- [ ] AC-20.5 — KHI màu áo do người dùng tự chọn được đặt cạnh màu của theme THÌ hai thứ PHẢI vẫn phân biệt được, và chữ trên nền màu áo PHẢI vẫn đạt 4.5:1.
+- [ ] AC-20.5 — KHI màu áo do người dùng tự chọn được đặt cạnh màu của theme THÌ hai thứ PHẢI vẫn phân biệt được, và chữ trên nền màu áo PHẢI vẫn đạt 4.5:1 — ở cả hai chế độ.
+- [ ] AC-20.6 — KHI theme mới được áp dụng THÌ vị trí các khối, cách chia cột và đường điều hướng của mọi màn hình PHẢI giữ nguyên như trước spec này.
+- [ ] AC-20.7 — KHI người dùng đổi giữa **chế độ sáng** và **chế độ tối** THÌ toàn bộ màn hình PHẢI đổi theo ngay, không phải tải lại trang, và việc đang làm dở PHẢI còn nguyên.
+- [ ] AC-20.8 — KHI người dùng chọn một chế độ rồi đóng ứng dụng THÌ lần mở sau hệ thống PHẢI dùng lại đúng chế độ đó.
+- [ ] AC-20.9 — KHI người dùng mở ứng dụng **lần đầu**, chưa từng chọn chế độ, THÌ hệ thống PHẢI hiển thị **chế độ sáng**.
+- [ ] AC-20.10 — KHI người dùng đổi chế độ sáng/tối THÌ nút đổi chế độ PHẢI với tới được bằng bàn phím, không chỉ bằng chuột.
 
 ### US-21: Bộ biểu tượng isometric
 
@@ -139,9 +148,19 @@ một màn hình**, để **không phải tự hỏi phần nào đã dịch, ph
 **Acceptance criteria:**
 
 - [ ] AC-22.1 — KHI đi hết mọi màn hình ở tiếng Anh THÌ PHẢI KHÔNG còn chữ tiếng Việt nào; và ngược lại, đi hết mọi màn hình ở tiếng Việt THÌ PHẢI KHÔNG còn chữ tiếng Anh nào. *(Ngoại trừ dữ liệu người dùng tự nhập — xem AC-19.4.)*
-- [ ] AC-22.2 — KHI một chữ hiển thị thiếu bản ở ngôn ngữ đang chọn THÌ hệ thống PHẢI báo rõ là **thiếu bản dịch**, và PHẢI KHÔNG lặng lẽ hiện chữ của ngôn ngữ kia.
+- [ ] AC-22.2 — KHI một chữ hiển thị thiếu bản ở ngôn ngữ đang chọn THÌ **hai lớp lưới** PHẢI cùng bắt: (a) một phép kiểm tự động PHẢI phát hiện và chặn trước khi phát hành, VÀ (b) nếu vẫn lọt tới bản chạy thì màn hình PHẢI hiện một **dấu hiệu thấy được** ngay tại chỗ thiếu. PHẢI KHÔNG lặng lẽ hiện chữ của ngôn ngữ kia trong bất kỳ trường hợp nào.
 - [ ] AC-22.3 — KHI một thông báo lỗi xuất hiện THÌ nó PHẢI bằng ngôn ngữ đang chọn, kể cả lỗi về tệp sao lưu hỏng hay hết dung lượng.
 - [ ] AC-22.4 — KHI chữ trong hình vẽ sân 2D hiển thị THÌ nó PHẢI theo ngôn ngữ đang chọn như mọi chữ khác.
+
+### US-23: Dọn hai chỗ hiển thị sai còn lại từ spec 002
+
+Là một **người dùng**, tôi muốn **hai chỗ đang nói sai được sửa luôn trong
+đợt này**, để **không phải nhìn con số vô lý mỗi lần dựng trận sân nhỏ**.
+
+**Acceptance criteria:**
+
+- [ ] AC-23.1 — KHI đăng ký đội hình cho một trận quân số **n** THÌ màn hình PHẢI đếm theo đúng **n** — trận sân 5 hiện "5/5 chính", không phải "5/11 chính" — và câu hướng dẫn PHẢI nêu đúng số người chính và khoảng số dự bị mà trận đó cần.
+- [ ] AC-23.2 — KHI một trận không bắt đầu được vì có cầu thủ chưa đủ chỉ số THÌ thông báo PHẢI nêu **tên** những cầu thủ đó, không phải mã định danh thô.
 
 ## 4. Luồng chính (happy path)
 
@@ -155,7 +174,10 @@ một màn hình**, để **không phải tự hỏi phần nào đã dịch, ph
    chọn, câu cú tự nhiên.
 5. Giữa trận, người dùng đổi ngôn ngữ → trận chạy tiếp đúng phút đó, mọi dòng
    đã hiện được kể lại bằng ngôn ngữ mới.
-6. Người dùng đóng ứng dụng rồi mở lại → vẫn đúng ngôn ngữ vừa chọn.
+6. Người dùng bật chế độ tối → toàn bộ màn hình đổi bảng màu, chữ vẫn đọc
+   được rõ, bố cục không xê dịch.
+7. Người dùng đóng ứng dụng rồi mở lại → vẫn đúng ngôn ngữ và đúng chế độ
+   sáng/tối vừa chọn.
 
 ## 5. Trường hợp biên & lỗi
 
@@ -170,49 +192,55 @@ một màn hình**, để **không phải tự hỏi phần nào đã dịch, ph
 | Trình duyệt không nhớ được lựa chọn ngôn ngữ | Rơi về ngôn ngữ mặc định, không báo lỗi chặn đường, không làm mất dữ liệu khác |
 | Chạy hoàn toàn offline | Mọi phông chữ và biểu tượng hiện đủ; không ô trống, không hình vỡ |
 | Màu áo người dùng chọn trùng màu nhấn của theme | Vẫn phân biệt được đội với nền; chữ vẫn đạt 4.5:1 |
+| Chế độ tối bật, người dùng chọn màu áo rất tối | Vẫn phân biệt được đội với nền sân và nền trang; chữ trên áo vẫn đạt 4.5:1 |
+| Trình duyệt không nhớ được lựa chọn chế độ sáng/tối | Rơi về chế độ sáng, không báo lỗi chặn đường, không làm mất dữ liệu khác |
+| Một biểu tượng của bộ icon không có sẵn cho khái niệm cần dùng | Dùng chữ thay thế; KHÔNG trộn biểu tượng từ bộ khác làm lệch góc nhìn (AC-21.2) |
 
 ## 6. Yêu cầu phi chức năng
 
 - **Hiệu năng:**
   - Đổi ngôn ngữ: màn hình hiện tại đổi xong trong **< 200ms**.
+  - Đổi chế độ sáng/tối: màn hình hiện tại đổi xong trong **< 200ms**.
   - Các ngân sách của spec 001 **giữ nguyên, không được nới**: mở danh sách 25
     cầu thủ < 300ms; phản hồi kéo-thả < 100ms; giả lập trọn trận < 3 giây; mở
     ứng dụng với 20 đội và 20 trận < 2 giây. Theme và biểu tượng thêm vào
     KHÔNG được đẩy lần mở đầu vượt ngân sách 2 giây.
 - **Bảo mật/quyền riêng tư:** không đổi. Không lời gọi mạng nào lúc chạy; phông
   chữ và biểu tượng đóng gói cùng ứng dụng.
-- **Accessibility:** tương phản tối thiểu 4.5:1 ở cả hai ngôn ngữ và trên theme
-  mới; nút đổi ngôn ngữ dùng được bằng bàn phím; biểu tượng không bao giờ là
-  cách duy nhất truyền đạt thông tin.
+- **Giấy phép:** bộ biểu tượng dùng lại PHẢI có giấy phép cho phép nhúng và
+  phát hành kèm ứng dụng. Giấy phép và nguồn gốc PHẢI được ghi lại trong repo.
+  Bộ nào không cho phép nhúng thì không dùng, dù đẹp tới đâu.
+- **Accessibility:** tương phản tối thiểu 4.5:1 ở **cả hai ngôn ngữ và cả hai
+  chế độ sáng/tối**; nút đổi ngôn ngữ và nút đổi chế độ đều dùng được bằng bàn
+  phím; biểu tượng không bao giờ là cách duy nhất truyền đạt thông tin.
 - **Dữ liệu:** không đổi định dạng lưu trữ, không đổi định dạng tệp sao lưu,
-  không migration. Lựa chọn ngôn ngữ là thiết lập của người dùng, mất nó không
-  làm mất dữ liệu nào khác.
+  không migration. Lựa chọn ngôn ngữ và lựa chọn chế độ sáng/tối là thiết lập
+  của người dùng; mất chúng không làm mất dữ liệu nào khác.
 
 ## 7. Định nghĩa hoàn thành (Definition of Done)
 
 - [ ] Toàn bộ AC ở mục 3 pass
 - [ ] Trường hợp biên mục 5 được xử lý
 - [ ] Không vi phạm nguyên tắc nào trong constitution **2.0.0**
-- [ ] **Tự tay đi hết mọi màn hình ở cả hai ngôn ngữ**, không chỉ kiểm bằng
-      test — kể cả màn hình lỗi và màn hình trống
+- [ ] **Theme được duyệt trên một màn hình mẫu** trước khi áp ra toàn bộ ứng
+      dụng — không áp 31 màn rồi mới hỏi
+- [ ] **Tự tay đi hết mọi màn hình ở cả hai ngôn ngữ VÀ cả hai chế độ
+      sáng/tối**, không chỉ kiểm bằng test — kể cả màn hình lỗi và màn hình
+      trống
 - [ ] Có phép kiểm tự động chứng minh **không sót chuỗi**: mỗi chữ hiển thị
       đều có bản ở cả hai ngôn ngữ
 - [ ] Có phép kiểm tự động chứng minh **AC-18.2**: cùng một trận ở hai ngôn
       ngữ cho cùng số dòng, cùng thứ tự, cùng phút
 - [ ] Tệp sao lưu xuất từ bản trước spec này nhập lại được, dữ liệu nguyên vẹn
 - [ ] Đo lại bốn ngân sách hiệu năng của spec 001, không cái nào vượt
+- [ ] Hai chỗ hiển thị sai của spec 002 (US-23) đã sửa và kiểm tay trên một
+      trận sân nhỏ thật
+- [ ] Giấy phép của bộ biểu tượng đã ghi lại trong repo
 
 ## 8. Câu hỏi mở
 
-> Dùng đúng cú pháp `[NEEDS CLARIFICATION: câu hỏi]` để `/clarify` quét được.
-> Chỉ khi mục này rỗng mới được chạy `/plan`.
-
-- [NEEDS CLARIFICATION: Lần đầu mở ứng dụng, khi người dùng chưa từng chọn gì, ngôn ngữ mặc định là gì — luôn luôn tiếng Việt, hay đi theo ngôn ngữ trình duyệt đang đặt? Hiến pháp P4 cấm gọi mạng chứ không cấm đọc thiết lập trình duyệt, nên cả hai đều hợp lệ.]
-- [NEEDS CLARIFICATION: Bộ biểu tượng isometric lấy từ đâu — vẽ tay và lưu trong repo, hay dùng một bộ có sẵn? Nếu dùng bộ có sẵn thì giấy phép nào chấp nhận được, và có chấp nhận việc bộ ấy nằm trong repo thay vì tải về lúc chạy không (P4 bắt buộc)?]
-- [NEEDS CLARIFICATION: Phạm vi của theme tới đâu — chỉ đổi màu, phông chữ và các chi tiết trang trí; hay đổi cả bố cục màn hình (vị trí các khối, cách chia cột, điều hướng)? Vế sau làm spec này lớn hơn nhiều và chạm vào mọi màn hình.]
-- [NEEDS CLARIFICATION: Chế độ tối (dark mode) có nằm trong phạm vi không? Nếu có thì mọi AC về tương phản 4.5:1 phải đạt ở cả hai chế độ, và số màn hình phải kiểm tay tăng gấp đôi.]
-- [NEEDS CLARIFICATION: Hai lỗi nhỏ còn treo từ spec 002 có gộp vào spec này không, vì cả hai đều nằm trên đường quét giao diện? (a) màn đăng ký đội hình vẫn đếm cứng theo 11 nên trận sân 5 hiện "5/11 chính" và câu "Chọn đúng 11 cầu thủ chính và đúng 7 cầu thủ dự bị"; (b) câu lỗi "còn cầu thủ thiếu chỉ số" in mã định danh thô thay vì tên cầu thủ.]
-- [NEEDS CLARIFICATION: Khi thiếu bản dịch, "báo rõ" ở AC-22.2 nghĩa là gì với người dùng cuối — hiện một dấu hiệu thấy được ngay trên màn hình, hay chỉ cần phép kiểm tự động chặn trước khi phát hành? Vế đầu người dùng sẽ nhìn thấy nếu có sót; vế sau thì không.]
+Không còn câu hỏi mở. Toàn bộ 6 điểm ban đầu cộng 1 điểm phát sinh trong lúc
+làm rõ đã được chốt ngày **2026-11-16** — xem mục 10.
 
 ## 9. Giả định
 
@@ -228,5 +256,22 @@ một màn hình**, để **không phải tự hỏi phần nào đã dịch, ph
 - Việc dời 99 nhãn hiển thị ra khỏi lớp dữ liệu bóng đá **không** đụng tới
   định dạng tệp sao lưu — đã kiểm: nơi kiểm tra tệp chỉ đọc mã định danh, và
   engine chỉ đọc trường cấu trúc, không nơi nào đọc phần chữ.
-- Người dùng sẽ duyệt theme do tôi đề xuất trước khi nó được áp vào mọi màn
-  hình, nên spec này không chốt sẵn bảng màu cụ thể.
+- Spec này **không chốt sẵn bảng màu**: theme được dựng trên một màn hình mẫu
+  để người dùng duyệt, chốt xong mới áp ra phần còn lại.
+- Có tồn tại ít nhất một bộ biểu tượng isometric giấy phép mở phủ đủ 10 khái
+  niệm ở AC-21.1. Nếu tìm không ra bộ nào đủ, spec này phải quay lại hỏi — vì
+  khi đó lựa chọn duy nhất còn lại là vẽ tay, và đó là một khối lượng khác hẳn.
+
+## 10. Nhật ký làm rõ
+
+Toàn bộ quyết định dưới đây được chốt ngày **2026-11-16** qua phiên `/clarify`.
+
+| # | Câu hỏi | Quyết định | Ghi vào |
+|---|---|---|---|
+| 1 | Theme đổi tới đâu? | **Chỉ màu, phông chữ và chi tiết trang trí.** Bố cục giữ nguyên — rủi ro thấp nhất, và gộp được vào cùng một lượt quét với phần song ngữ | AC-20.6, Non-goals |
+| 2 | Chế độ tối có trong phạm vi? | **Có, người dùng tự chọn.** Ngược khuyến nghị: nó nhân đôi phần chứng minh tương phản và nhân đôi số màn hình phải đi tay. Đã ghi cái giá đó vào Definition of Done thay vì để nó lộ ra lúc đang làm | AC-20.2, AC-20.5, AC-20.7 → AC-20.10, mục 5, mục 6, mục 7 |
+| 3 | Bộ biểu tượng lấy từ đâu? | **Bộ có sẵn giấy phép mở**, nhúng thẳng vào repo cho đúng P4. Icon isometric có chiều sâu và đổ bóng nên vẽ tay khó ra được chất lượng dùng được | mục 6 (Giấy phép), mục 9 |
+| 4 | Duyệt theme lúc nào? *(phát sinh lúc làm rõ)* | **Một màn hình mẫu trước**, chốt xong mới áp ra 31 màn còn lại. AC-20.1 là AC mơ hồ nhất spec, và đây là cơ chế biến nó thành thứ có cổng chặn | mục 7, mục 9 |
+| 5 | Ngôn ngữ mặc định lần đầu? | **Luôn tiếng Việt**, không đọc thiết lập trình duyệt. Đoán được, và nút đổi chỉ cách một cú bấm nên đoán sai gần như không mất gì | AC-17.7 |
+| 6 | Hai lỗi treo từ spec 002? | **Gộp cả hai.** Cả hai đều là chuỗi hiển thị nên dù sao cũng phải đụng tới khi đưa qua lớp ngôn ngữ; sửa lúc đang mở file rẻ hơn mở lại lần nữa | US-23 |
+| 7 | "Báo rõ là thiếu bản dịch"? | **Cả hai lớp lưới**: phép kiểm chặn trước khi phát hành, cộng dấu hiệu thấy được lúc chạy nếu vẫn lọt. Tấm lưới thứ hai đáng lẽ không bao giờ kích hoạt | AC-22.2 |
