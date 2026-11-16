@@ -1,3 +1,6 @@
+import { laChiSoHopLe } from '../../domain/attributes'
+import type { AttributeId, GkAttributeId } from '../../domain/types'
+import type { LoiUngDung } from '../../services/errors'
 import type { BanDich } from './kieu'
 import type {
   CHUNG_VI,
@@ -19,6 +22,10 @@ import type {
   VAO_BAT_GON_VI,
   SO_SANH_TRAN_VI,
   SAN_2D_VI,
+  SAO_LUU_VI,
+  LUU_TRU_VI,
+  LICH_SU_VI,
+  LOI_VI,
   FORM_DOI_VI,
   TRANG_DOI_VI,
   XOA_CAU_THU_VI,
@@ -844,4 +851,139 @@ export const SAN_2D_EN: BanDich<typeof SAN_2D_VI> = {
   dauThamGia: '▲',
   anKhiChayHet:
     'The pitch rests while the match plays itself out, then is drawn again at the final minute.',
+}
+
+export const SAO_LUU_EN: BanDich<typeof SAO_LUU_VI> = {
+  tieuDe: 'Back up your data',
+  moTa: 'The data lives in this browser, so clearing your browser data loses it. Export a file to keep it, or to move it to another machine.',
+  nutXuat: 'Export to a file',
+  dangDungTep: 'Building the file…',
+  kichThuocUocTinh: (co: string) => `The file will be about ${co}`,
+  nutNhap: 'Import from a file',
+  dangDocTep: 'Reading the file…',
+  tomTatTep: (soDoi: number, soCauThu: number, soAnh: number) =>
+    `This file holds ${soDoi} teams, ${soCauThu} players and ${soAnh} photos.`,
+  hoiCheDo: 'What should happen to the data already on this machine?',
+  nutThayThe: 'Replace everything',
+  moTaThayThe: 'Delete all the data here, then use the data in the file.',
+  nutGop: 'Add alongside',
+  moTaGop: 'Keep the data that is here and add the data in the file next to it.',
+  daNhapThayThe: (soDoi: number, soCauThu: number, soTran: number) =>
+    `All the data has been replaced: ${soDoi} teams, ${soCauThu} players, ${soTran} matches in the history.`,
+  daNhapGop: (soDoi: number, soCauThu: number) =>
+    `Added ${soDoi} teams and ${soCauThu} players alongside the data already here.`,
+  gopBoQuaLichSu: (soTran: number) =>
+    `The file also holds ${soTran} matches of history, but adding alongside takes no history — each match record points at its teams and players by their old ids. To bring the history across too, use "Replace everything".`,
+  canhBaoKhongBen:
+    'The browser has not marked this data as persistent, so it can be cleared when the machine runs short of space. Export a backup file regularly.',
+}
+
+export const LUU_TRU_EN: BanDich<typeof LUU_TRU_VI> = {
+  canhBaoChuaLuu:
+    'The browser storage is full, so that last change was NOT saved.',
+  goiYXuatTep: 'Export your data to a file so nothing you entered is lost.',
+  canhBaoKhongBen:
+    'The browser has not marked this data as persistent, so it can be cleared when the machine runs short of space.',
+  goiYXuatTepThuongXuyen: 'Export a backup file regularly.',
+}
+
+export const LICH_SU_EN: BanDich<typeof LICH_SU_VI> = {
+  tieuDe: 'Match history',
+  moTa: (giuLai: number) =>
+    `Keeps the last ${giuLai} matches. Older ones drop off the list by themselves.`,
+  chuaCoTran: 'No matches yet. Play one and come back here.',
+  moLink: 'Open again',
+  dong: 'Close',
+  cotThoiDiem: 'Finished at',
+  cotCapDau: 'Fixture',
+  cotTiSo: 'Score',
+  cotMaTran: 'Match code',
+  dinhDangTran: (quanSo: number, thoiLuong: number) =>
+    `${quanSo}-a-side · ${thoiLuong} minutes`,
+  doiDaXoa: 'team deleted',
+  khongDauLaiDuoc:
+    'One of the two teams has been deleted, so this match can only be read back, not replayed.',
+  khacPhienBan:
+    'This match ran on an older engine version, so replaying it with the same code will NOT give the same match. The record itself reads back intact.',
+  dauLai: 'Replay this match',
+  lyDoKhongDauLai: {
+    'khac-phien-ban-engine':
+      'Cannot be replayed: this match ran on an older engine version, so the same code now gives a different match.',
+    'doi-da-bi-xoa':
+      'Cannot be replayed: one of the two teams has been deleted, so there is no profile left to rebuild the fixture from.',
+  },
+  daLoaiTranCu: (so: number) =>
+    so === 1
+      ? 'The history was full, so the oldest match has dropped off the list.'
+      : `The history was full, so the ${so} oldest matches have dropped off the list.`,
+  dongBaoDaLoai: 'Got it',
+  tieuDeDienBien: 'Match commentary',
+}
+
+export const LY_DO_TU_CHOI_CAN_THIEP_EN: Readonly<Record<string, string>> = {
+  'tran-da-ket-thuc': 'The match has finished; nothing can be changed now.',
+  'khong-phai-doi-cua-ban': 'You can only make changes to your own team.',
+  'het-luot-thay': 'There are no substitutions left.',
+  'cau-thu-khong-tren-san': 'This player is not on the pitch.',
+  'cau-thu-khong-trong-du-bi': 'This player is not among the substitutes.',
+  'da-nhan-the-do': 'This player has been sent off.',
+  'o-khong-ton-tai': 'That slot is not part of the formation in use.',
+  'vai-tro-khong-phu-hop': 'That role cannot be used in that slot.',
+  'khung-thanh-da-co-thu-mon': 'A proper goalkeeper is already in goal.',
+  'cau-thu-da-bat-gon': 'This player is already in goal.',
+}
+
+/** Mệnh đề nêu rõ bộ chiến thuật sai ở đâu, ghép vào câu `InvalidTactic`. */
+const LY_DO_CHIEN_THUAT_SAI_EN: Readonly<Record<string, string>> = {
+  'so-o': ' because the number of slots does not match the formation',
+  'slot-la': ' because a slot does not belong to this formation',
+  'vai-tro-khong-phu-hop':
+    ' because a role cannot be used in the slot it is in',
+  'cau-thu-khac-doi': ' because a slot holds a player who is not in this team',
+  'cau-thu-trung-o': ' because one player is in two slots at once',
+  'thieu-chi-thi': ' because a team instruction is missing',
+  'bo-cua-doi-khac': ' because this set belongs to another team',
+  ten: ' while the set has no name',
+}
+
+export const LOI_EN: BanDich<typeof LOI_VI> = {
+  cau: (
+    loi: LoiUngDung,
+    nhanChiSo?: (id: AttributeId | GkAttributeId) => string,
+  ): string => {
+    switch (loi.ma) {
+      case 'EmptyName':
+        return 'A team name cannot be empty.'
+      case 'NotFound':
+        return 'This data is no longer there. It may have been deleted elsewhere.'
+      case 'DuplicateShirtNumber':
+        return `Number ${loi.chiTiet.giaTri ?? ''} is already taken by another player in this team. Choose a different one.`.trim()
+      case 'InvalidAttributeValue':
+        return nhanChiSo &&
+          loi.chiTiet.truong &&
+          laChiSoHopLe(loi.chiTiet.truong)
+          ? `${nhanChiSo(loi.chiTiet.truong)} has to be a whole number from 1 to 20.`
+          : 'This attribute has to be a whole number from 1 to 20.'
+      case 'InvalidPositions':
+        return 'A goalkeeper uses his own set of attributes, so he cannot also hold an outfield position. Either choose Goalkeeper on its own, or only outfield positions.'
+      case 'NotAnImage':
+        return 'The file you chose is not an image. Choose an image file (JPG, PNG or WebP).'
+      case 'DecodeFailed':
+        return 'This image could not be read; the file may be damaged. Try another one.'
+      case 'NotJson':
+        return 'This is not a backup file from this app. Choose a file exported from here.'
+      case 'SchemaInvalid':
+        return `The backup file has the wrong format${loi.chiTiet.duongDan ? ` at "${loi.chiTiet.duongDan}"` : ''}. Your current data has not been touched.`
+      case 'VersionTooNew':
+        return 'This file was exported from a newer version of the app than the one you are running, so it cannot be read.'
+      case 'QuotaExceeded':
+        return `${LUU_TRU_EN.canhBaoChuaLuu} ${LUU_TRU_EN.goiYXuatTep}`
+      case 'StorageUnavailable':
+        return 'The browser storage could not be opened. Try reloading the page.'
+      case 'InvalidColor':
+        return 'That colour code is not valid. Choose the kit colour again.'
+      case 'InvalidTactic':
+        return `The tactic set could not be saved${LY_DO_CHIEN_THUAT_SAI_EN[String(loi.chiTiet.truong)] ?? ''}. The tactics you have saved have not been touched.`
+    }
+  },
 }

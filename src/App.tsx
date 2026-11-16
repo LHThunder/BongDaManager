@@ -3,7 +3,7 @@ import { ngheBiChanNangCap, ngheNhuongDuongNangCap } from './storage/db'
 import { useAppStore } from './store/appStore'
 import { useChuoi, useTuyChonHienThi } from './hooks/useNgonNgu'
 import { ChonNgonNgu } from './ui/components/ChonNgonNgu'
-import { CHON_CAP_DAU, LICH_SU, cauLoi } from './ui/strings'
+
 import { ChonCapDau } from './ui/pages/ChonCapDau'
 import { DanhSachDoi } from './ui/pages/DanhSachDoi'
 import { TrangChienThuat } from './ui/pages/TrangChienThuat'
@@ -28,7 +28,7 @@ export default function App() {
     đĩa một lần mà chẳng được gì thêm.
   */
   useTuyChonHienThi()
-  const { CHUNG } = useChuoi()
+  const { CHON_CAP_DAU, CHUNG, LICH_SU, LOI } = useChuoi()
 
   const [khung, datKhung] = useState<Khung>({ loai: 'danh-sach-doi' })
   const loiLuuTru = useAppStore((s) => s.loiLuuTru)
@@ -161,7 +161,7 @@ export default function App() {
       {loiLuuTru !== null && (
         <div role="alert" className="border-b border-amber-200 bg-amber-50">
           <div className="mx-auto flex max-w-5xl items-start gap-4 px-4 py-3">
-            <p className="flex-1 text-sm text-amber-900">{cauLoi(loiLuuTru)}</p>
+            <p className="flex-1 text-sm text-amber-900">{LOI.cau(loiLuuTru)}</p>
             <button
               type="button"
               onClick={() => datLoiLuuTru(null)}

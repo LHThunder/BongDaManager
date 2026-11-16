@@ -21,7 +21,7 @@ import { San2D } from '../components/San2D'
 import { ChiThiDoi } from '../components/ChiThiDoi'
 import { DongTuongThuat } from '../components/DongTuongThuat'
 import { ThayNguoi } from '../components/ThayNguoi'
-import { LICH_SU, LY_DO_TU_CHOI_CAN_THIEP } from '../strings'
+
 
 interface Props {
   readonly onRoiTran: () => void
@@ -43,6 +43,8 @@ export function TrangTran({ onRoiTran }: Props) {
     SO_SANH_TRAN,
     TRAN_DAU,
     VAO_BAT_GON,
+    LICH_SU,
+    LY_DO_TU_CHOI_CAN_THIEP,
   } = useChuoi()
   const {
     tran,

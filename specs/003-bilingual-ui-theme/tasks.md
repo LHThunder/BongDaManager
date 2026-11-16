@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | 36 AC (US-17 → US-23) |
-| **Tiến độ** | 24/43 |
+| **Tiến độ** | 25/43 |
 | **Sửa đổi** | 2026-11-16 — chẻ lần đầu từ plan, rồi sửa theo cả 8 phát hiện của `/analyze`; thêm T341–T342 lúc làm Phase 23 |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -183,7 +183,7 @@ duyệt theme**. Không có nó thì T326 áp theme ra 27 file còn lại rồi 
   - AC: AC-22.4
   - Phụ thuộc: T303
 
-- [ ] **T320** [P] — Sao lưu, thông báo lỗi, và khung ứng dụng
+- [x] **T320** [P] — Sao lưu, thông báo lỗi, và khung ứng dụng
   - File: sửa `src/ui/components/{SaoLuu,HopXacNhan}.tsx`, sửa `src/App.tsx`, sửa `src/ui/ngonNgu/{vi,en}.ts` phần câu lỗi và hai nhãn điều hướng
   - Xong khi: mọi thông báo lỗi — tệp hỏng, sai sơ đồ, hết dung lượng — hiện bằng ngôn ngữ đang chọn; xuất tệp ở một ngôn ngữ rồi nhập lại ở ngôn ngữ kia vẫn vào đủ; **hai nút điều hướng ở đầu trang** ("Lịch sử trận đấu", "Bắt đầu một trận") và dải báo lỗi lưu trữ cũng theo ngôn ngữ đang chọn.
   - Ghi chú: câu "hết dung lượng" nằm trong nhóm này chính là đường mà **AC-4.7 của spec 001** phủ. Dịch nó sang tiếng Anh **không** làm AC-4.7 tick được — nó vẫn không quan sát được đầu-cuối.
@@ -395,3 +395,15 @@ duyệt theme**. Không có nó thì T326 áp theme ra 27 file còn lại rồi 
   nào nhận — hai nhãn điều hướng và dải báo lỗi lưu trữ. Đã thêm vào T320.
   Lỗ hổng loại này không lộ ra ở bảng phủ AC, vì bảng ấy soát theo **AC**
   chứ không theo **file**; nó chỉ lộ khi mở ứng dụng lên nhìn.
+- **Hai thứ KHÔNG task nào nhận, tìm ra khi làm T320** — nêu ra, chưa làm:
+  1. `src/ui/strings.ts` giờ chỉ còn `coTep()` là thật sự có người gọi; 140
+     dòng còn lại là tái xuất chết (`export const X = X_VI`) từ lúc chuyển
+     dần từng khối. Không task nào nhận việc xoá chúng, mà lớp lưới của T321
+     quét theo KHỐI nên cũng không bắt được.
+  2. `TrangLichSu.tsx` định dạng mốc thời gian bằng
+     `toLocaleString('vi-VN')` đặt cứng, nên ở chế độ tiếng Anh ngày vẫn
+     hiện kiểu Việt (16:28:13 16/11/2026). Không AC nào nói về định dạng
+     ngày và không task nào chạm tới nó.
+- **`coTep()` ở lại `strings.ts`, có chủ ý.** Nó chỉ sinh KÝ HIỆU đơn vị
+  (B/KB/MB), viết y hệt ở hai ngôn ngữ — cùng lý do đã cho tên sơ đồ (D75)
+  và dấu "▲" của sân 2D.

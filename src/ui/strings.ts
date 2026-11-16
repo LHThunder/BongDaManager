@@ -1,4 +1,3 @@
-import { laChiSoHopLe } from '../domain/attributes'
 import {
   CHUNG_VI,
   MUC_SAI_VI_TRI_VI,
@@ -29,13 +28,12 @@ import {
   CAN_THIEP_GIUA_TRAN_VI,
   LICH_SU_VI,
   SAN_2D_VI,
+  LY_DO_TU_CHOI_CAN_THIEP_VI,
   BAO_CAO_SAU_TRAN_VI,
   VAO_BAT_GON_VI,
   SO_SANH_TRAN_VI,
   XOA_DOI_VI,
 } from './ngonNgu/vi'
-import type { AttributeId, GkAttributeId } from '../domain/types'
-import type { LoiUngDung } from '../services/errors'
 
 /*
   Mọi chữ người dùng nhìn thấy nằm ở đây, bằng tiếng Việt (hiến pháp P8).
@@ -117,63 +115,10 @@ export const CHI_THI_DOI = CHI_THI_DOI_VI
 
 export const BO_CHIEN_THUAT = BO_CHIEN_THUAT_VI
 
-/**
- * Dịch một lỗi của lớp services thành câu tiếng Việt nói rõ chuyện gì xảy ra
- * và cần làm gì (hiến pháp mục 4, phần Xử lý lỗi).
- */
-export function cauLoi(loi: LoiUngDung,
-  nhanChiSo?: (id: AttributeId | GkAttributeId) => string,
-): string {
-  switch (loi.ma) {
-    case 'EmptyName':
-      return 'Tên đội không được để trống.'
-    case 'NotFound':
-      return 'Không tìm thấy dữ liệu này nữa. Có thể nó đã bị xoá ở nơi khác.'
-    case 'DuplicateShirtNumber':
-      return `Số áo ${loi.chiTiet.giaTri ?? ''} đã có cầu thủ khác trong đội dùng. Hãy chọn số khác.`.trim()
-    case 'InvalidAttributeValue':
-      /*
-        `truong` nay là **mã chỉ số**, không còn là tên tiếng Việt (D76).
-        Gọi kèm `nhanChiSo` thì câu nêu đúng tên; không kèm thì câu vẫn
-        đúng nghĩa mà không in mã thô ra cho người dùng đọc.
-      */
-      return nhanChiSo && loi.chiTiet.truong && laChiSoHopLe(loi.chiTiet.truong)
-        ? `Chỉ số ${nhanChiSo(loi.chiTiet.truong)} phải là số nguyên từ 1 đến 20.`
-        : 'Chỉ số này phải là số nguyên từ 1 đến 20.'
-    case 'InvalidPositions':
-      return 'Thủ môn dùng bộ chỉ số riêng nên không kiêm vị trí sân. Hãy chọn Thủ môn một mình, hoặc chỉ chọn các vị trí sân.'
-    case 'NotAnImage':
-      return 'Tệp bạn chọn không phải ảnh. Hãy chọn tệp ảnh (JPG, PNG hoặc WebP).'
-    case 'DecodeFailed':
-      return 'Không đọc được ảnh này, có thể tệp đã hỏng. Hãy thử một ảnh khác.'
-    case 'NotJson':
-      return 'Tệp này không phải tệp sao lưu của ứng dụng. Hãy chọn tệp đã xuất ra từ đây.'
-    case 'SchemaInvalid':
-      return `Tệp sao lưu sai định dạng${loi.chiTiet.duongDan ? ` ở phần "${loi.chiTiet.duongDan}"` : ''}. Dữ liệu hiện có của bạn không bị thay đổi.`
-    case 'VersionTooNew':
-      return 'Tệp này được xuất từ một bản ứng dụng mới hơn bản bạn đang dùng, nên không đọc được.'
-    case 'QuotaExceeded':
-      return `${LUU_TRU.canhBaoChuaLuu} ${LUU_TRU.goiYXuatTep}`
-    case 'StorageUnavailable':
-      return 'Không mở được bộ lưu trữ của trình duyệt. Hãy thử tải lại trang.'
-    case 'InvalidColor':
-      return 'Mã màu không hợp lệ. Hãy chọn lại màu áo.'
-    case 'InvalidTactic':
-      return `Không lưu được bộ chiến thuật${LY_DO_CHIEN_THUAT_SAI[String(loi.chiTiet.truong)] ?? ''}. Chiến thuật đang lưu của bạn không bị thay đổi.`
-  }
-}
-
-/** Mệnh đề nêu rõ bộ chiến thuật sai ở đâu, ghép vào câu `InvalidTactic`. */
-const LY_DO_CHIEN_THUAT_SAI: Readonly<Record<string, string>> = {
-  'so-o': ' vì số ô không khớp với sơ đồ',
-  'slot-la': ' vì có ô không thuộc sơ đồ này',
-  'vai-tro-khong-phu-hop': ' vì có vai trò không dùng được cho vị trí của ô',
-  'cau-thu-khac-doi': ' vì có ô xếp cầu thủ không thuộc đội này',
-  'cau-thu-trung-o': ' vì một cầu thủ đang được xếp vào hai ô',
-  'thieu-chi-thi': ' vì thiếu một chỉ thị toàn đội',
-  'bo-cua-doi-khac': ' vì bộ này thuộc đội khác',
-  ten: ' khi chưa đặt tên cho bộ',
-}
+/*
+  Câu lỗi nay thuộc lớp ngôn ngữ: `LOI.cau` của `useChuoi()` (T320). Nó là
+  chữ người dùng ĐỌC, nên phải theo ngôn ngữ đang chọn như mọi khối khác.
+*/
 
 // ---------------------------------------------------------------------------
 // Giai đoạn 3 — trận đấu
@@ -192,18 +137,7 @@ export const THAY_NGUOI = THAY_NGUOI_VI
 export const CAN_THIEP_GIUA_TRAN = CAN_THIEP_GIUA_TRAN_VI
 
 /** Câu cho từng lý do can thiệp bị từ chối. */
-export const LY_DO_TU_CHOI_CAN_THIEP: Readonly<Record<string, string>> = {
-  'tran-da-ket-thuc': 'Trận đã kết thúc, không can thiệp được nữa.',
-  'khong-phai-doi-cua-ban': 'Bạn chỉ can thiệp được vào đội của mình.',
-  'het-luot-thay': 'Đã hết lượt thay người.',
-  'cau-thu-khong-tren-san': 'Cầu thủ này không có trên sân.',
-  'cau-thu-khong-trong-du-bi': 'Cầu thủ này không nằm trong danh sách dự bị.',
-  'da-nhan-the-do': 'Cầu thủ này đã nhận thẻ đỏ.',
-  'o-khong-ton-tai': 'Ô này không thuộc sơ đồ đang dùng.',
-  'vai-tro-khong-phu-hop': 'Vai trò không dùng được cho vị trí của ô.',
-  'khung-thanh-da-co-thu-mon': 'Khung thành đã có thủ môn thực thụ.',
-  'cau-thu-da-bat-gon': 'Cầu thủ này đang bắt gôn rồi.',
-}
+export const LY_DO_TU_CHOI_CAN_THIEP = LY_DO_TU_CHOI_CAN_THIEP_VI
 
 /** Lịch sử trận đấu (AC-11.7, AC-11.4, AC-4.2). */
 export const LICH_SU = LICH_SU_VI

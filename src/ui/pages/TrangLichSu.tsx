@@ -8,7 +8,7 @@ import type { AnhChupDoi, TomTatTran, TranDaLuu } from '../../storage/db'
 import { BangDiemCauThu } from '../components/BangDiemCauThu'
 import { DanhSachGhiBan } from '../components/DanhSachGhiBan'
 import { DongTuongThuat } from '../components/DongTuongThuat'
-import { LICH_SU } from '../strings'
+
 
 interface Props {
   readonly onQuayLai: () => void
@@ -32,7 +32,7 @@ function ngayGio(mocMs: number): string {
 }
 
 export function TrangLichSu({ onQuayLai, onDauLai }: Props) {
-  const { BAO_CAO_SAU_TRAN, CHUNG } = useChuoi()
+  const { BAO_CAO_SAU_TRAN, CHUNG, LICH_SU } = useChuoi()
   const teams = useAppStore((s) => s.teams)
   const lichSu = useAppStore((s) => s.lichSu)
   const datLichSu = useAppStore((s) => s.datLichSu)

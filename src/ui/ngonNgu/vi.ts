@@ -12,6 +12,8 @@ import type {
   GkAttributeId,
   PositionId,
 } from '../../domain/types'
+import { laChiSoHopLe } from '../../domain/attributes'
+import type { LoiUngDung } from '../../services/errors'
 /*
   Bảng chuỗi tiếng Việt (hiến pháp P8, bản 2.0.0).
 
@@ -954,4 +956,85 @@ export const SAN_2D_VI = {
   dauThamGia: '▲',
   anKhiChayHet:
     'Sân tạm nghỉ trong lúc chạy hết trận, rồi vẽ lại ở phút cuối.',
+} as const
+
+/** Câu cho từng lý do can thiệp bị từ chối. */
+export const LY_DO_TU_CHOI_CAN_THIEP_VI: Readonly<Record<string, string>> = {
+  'tran-da-ket-thuc': 'Trận đã kết thúc, không can thiệp được nữa.',
+  'khong-phai-doi-cua-ban': 'Bạn chỉ can thiệp được vào đội của mình.',
+  'het-luot-thay': 'Đã hết lượt thay người.',
+  'cau-thu-khong-tren-san': 'Cầu thủ này không có trên sân.',
+  'cau-thu-khong-trong-du-bi': 'Cầu thủ này không nằm trong danh sách dự bị.',
+  'da-nhan-the-do': 'Cầu thủ này đã nhận thẻ đỏ.',
+  'o-khong-ton-tai': 'Ô này không thuộc sơ đồ đang dùng.',
+  'vai-tro-khong-phu-hop': 'Vai trò không dùng được cho vị trí của ô.',
+  'khung-thanh-da-co-thu-mon': 'Khung thành đã có thủ môn thực thụ.',
+  'cau-thu-da-bat-gon': 'Cầu thủ này đang bắt gôn rồi.',
+}
+
+/** Mệnh đề nêu rõ bộ chiến thuật sai ở đâu, ghép vào câu `InvalidTactic`. */
+const LY_DO_CHIEN_THUAT_SAI_VI: Readonly<Record<string, string>> = {
+  'so-o': ' vì số ô không khớp với sơ đồ',
+  'slot-la': ' vì có ô không thuộc sơ đồ này',
+  'vai-tro-khong-phu-hop': ' vì có vai trò không dùng được cho vị trí của ô',
+  'cau-thu-khac-doi': ' vì có ô xếp cầu thủ không thuộc đội này',
+  'cau-thu-trung-o': ' vì một cầu thủ đang được xếp vào hai ô',
+  'thieu-chi-thi': ' vì thiếu một chỉ thị toàn đội',
+  'bo-cua-doi-khac': ' vì bộ này thuộc đội khác',
+  ten: ' khi chưa đặt tên cho bộ',
+}
+
+/*
+  Câu lỗi của lớp services, nói rõ chuyện gì xảy ra và cần làm gì (hiến
+  pháp mục 4, phần Xử lý lỗi).
+
+  Nằm trong lớp ngôn ngữ như mọi khối khác, vì đây là chữ người dùng ĐỌC —
+  không phải mã lỗi. Hai bản viết riêng từng ngôn ngữ, không ghép từ mảnh
+  dùng chung (P8).
+*/
+export const LOI_VI = {
+  cau: (
+    loi: LoiUngDung,
+    nhanChiSo?: (id: AttributeId | GkAttributeId) => string,
+  ): string => {
+    switch (loi.ma) {
+      case 'EmptyName':
+        return 'Tên đội không được để trống.'
+      case 'NotFound':
+        return 'Không tìm thấy dữ liệu này nữa. Có thể nó đã bị xoá ở nơi khác.'
+      case 'DuplicateShirtNumber':
+        return `Số áo ${loi.chiTiet.giaTri ?? ''} đã có cầu thủ khác trong đội dùng. Hãy chọn số khác.`.trim()
+      case 'InvalidAttributeValue':
+        /*
+          `truong` nay là **mã chỉ số**, không còn là tên tiếng Việt (D76).
+          Gọi kèm `nhanChiSo` thì câu nêu đúng tên; không kèm thì câu vẫn
+          đúng nghĩa mà không in mã thô ra cho người dùng đọc.
+        */
+        return nhanChiSo &&
+          loi.chiTiet.truong &&
+          laChiSoHopLe(loi.chiTiet.truong)
+          ? `Chỉ số ${nhanChiSo(loi.chiTiet.truong)} phải là số nguyên từ 1 đến 20.`
+          : 'Chỉ số này phải là số nguyên từ 1 đến 20.'
+      case 'InvalidPositions':
+        return 'Thủ môn dùng bộ chỉ số riêng nên không kiêm vị trí sân. Hãy chọn Thủ môn một mình, hoặc chỉ chọn các vị trí sân.'
+      case 'NotAnImage':
+        return 'Tệp bạn chọn không phải ảnh. Hãy chọn tệp ảnh (JPG, PNG hoặc WebP).'
+      case 'DecodeFailed':
+        return 'Không đọc được ảnh này, có thể tệp đã hỏng. Hãy thử một ảnh khác.'
+      case 'NotJson':
+        return 'Tệp này không phải tệp sao lưu của ứng dụng. Hãy chọn tệp đã xuất ra từ đây.'
+      case 'SchemaInvalid':
+        return `Tệp sao lưu sai định dạng${loi.chiTiet.duongDan ? ` ở phần "${loi.chiTiet.duongDan}"` : ''}. Dữ liệu hiện có của bạn không bị thay đổi.`
+      case 'VersionTooNew':
+        return 'Tệp này được xuất từ một bản ứng dụng mới hơn bản bạn đang dùng, nên không đọc được.'
+      case 'QuotaExceeded':
+        return `${LUU_TRU_VI.canhBaoChuaLuu} ${LUU_TRU_VI.goiYXuatTep}`
+      case 'StorageUnavailable':
+        return 'Không mở được bộ lưu trữ của trình duyệt. Hãy thử tải lại trang.'
+      case 'InvalidColor':
+        return 'Mã màu không hợp lệ. Hãy chọn lại màu áo.'
+      case 'InvalidTactic':
+        return `Không lưu được bộ chiến thuật${LY_DO_CHIEN_THUAT_SAI_VI[String(loi.chiTiet.truong)] ?? ''}. Chiến thuật đang lưu của bạn không bị thay đổi.`
+    }
+  },
 } as const

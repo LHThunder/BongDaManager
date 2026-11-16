@@ -11,7 +11,7 @@ import {
   taoUrlAnh,
   type KhungCat,
 } from '../../services/imageService'
-import { cauLoi } from '../strings'
+
 import { AnhThayThe } from './AnhThayThe'
 
 interface Props {
@@ -30,7 +30,7 @@ interface Props {
  * được giữ nguyên.
  */
 export function ChonAnh({ loai, anhId, ten, mauNen, onDaChon }: Props) {
-  const { CHON_ANH, CHUNG } = useChuoi()
+  const { CHON_ANH, CHUNG, LOI } = useChuoi()
   const [tepDangCat, datTepDangCat] = useState<File | null>(null)
   const [urlXemTruoc, datUrlXemTruoc] = useState<string | null>(null)
   const [viTriCat, datViTriCat] = useState({ x: 0, y: 0 })
@@ -62,7 +62,7 @@ export function ChonAnh({ loai, anhId, ten, mauNen, onDaChon }: Props) {
 
     if (!laTepAnh(tep)) {
       // Giữ nguyên ảnh cũ, chỉ báo lỗi (AC-3.3).
-      datLoi(cauLoi(new LoiUngDung('NotAnImage', { giaTri: tep.type || '' })))
+      datLoi(LOI.cau(new LoiUngDung('NotAnImage', { giaTri: tep.type || '' })))
       return
     }
 
@@ -73,7 +73,7 @@ export function ChonAnh({ loai, anhId, ten, mauNen, onDaChon }: Props) {
         const daXuLy = await chuanBiLogo(tep)
         onDaChon(await luuAnh(daXuLy))
       } catch (e) {
-        datLoi(laLoiUngDung(e) ? cauLoi(e) : String(e))
+        datLoi(laLoiUngDung(e) ? LOI.cau(e) : String(e))
       } finally {
         datDangXuLy(false)
       }
@@ -101,7 +101,7 @@ export function ChonAnh({ loai, anhId, ten, mauNen, onDaChon }: Props) {
       onDaChon(await luuAnh(daXuLy))
       dong()
     } catch (e) {
-      datLoi(laLoiUngDung(e) ? cauLoi(e) : String(e))
+      datLoi(laLoiUngDung(e) ? LOI.cau(e) : String(e))
       datDangXuLy(false)
     }
   }

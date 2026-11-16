@@ -23,6 +23,11 @@ import {
   VAO_BAT_GON_EN,
   SO_SANH_TRAN_EN,
   SAN_2D_EN,
+  SAO_LUU_EN,
+  LUU_TRU_EN,
+  LICH_SU_EN,
+  LY_DO_TU_CHOI_CAN_THIEP_EN,
+  LOI_EN,
   FORM_DOI_EN,
   TRANG_DOI_EN,
   XOA_CAU_THU_EN,
@@ -64,6 +69,11 @@ import {
   VAO_BAT_GON_VI,
   SO_SANH_TRAN_VI,
   SAN_2D_VI,
+  SAO_LUU_VI,
+  LUU_TRU_VI,
+  LICH_SU_VI,
+  LY_DO_TU_CHOI_CAN_THIEP_VI,
+  LOI_VI,
   FORM_DOI_VI,
   TRANG_DOI_VI,
   XOA_CAU_THU_VI,
@@ -129,6 +139,11 @@ export interface BoChuoi {
   readonly BANG_CHI_SO: BanDich<typeof BANG_CHI_SO_VI>
   readonly FORM_CAU_THU: BanDich<typeof FORM_CAU_THU_VI>
   readonly SAN_2D: BanDich<typeof SAN_2D_VI>
+  readonly SAO_LUU: BanDich<typeof SAO_LUU_VI>
+  readonly LUU_TRU: BanDich<typeof LUU_TRU_VI>
+  readonly LICH_SU: BanDich<typeof LICH_SU_VI>
+  readonly LY_DO_TU_CHOI_CAN_THIEP: Readonly<Record<string, string>>
+  readonly LOI: BanDich<typeof LOI_VI>
 }
 
 const VI: BoChuoi = {
@@ -169,6 +184,11 @@ const VI: BoChuoi = {
   BANG_CHI_SO: BANG_CHI_SO_VI,
   FORM_CAU_THU: FORM_CAU_THU_VI,
   SAN_2D: SAN_2D_VI,
+  SAO_LUU: SAO_LUU_VI,
+  LUU_TRU: LUU_TRU_VI,
+  LICH_SU: LICH_SU_VI,
+  LY_DO_TU_CHOI_CAN_THIEP: LY_DO_TU_CHOI_CAN_THIEP_VI,
+  LOI: LOI_VI,
 }
 const EN: BoChuoi = {
   CHUNG: CHUNG_EN,
@@ -209,6 +229,11 @@ const EN: BoChuoi = {
   BANG_CHI_SO: BANG_CHI_SO_EN,
   FORM_CAU_THU: FORM_CAU_THU_EN,
   SAN_2D: SAN_2D_EN,
+  SAO_LUU: SAO_LUU_EN,
+  LUU_TRU: LUU_TRU_EN,
+  LICH_SU: LICH_SU_EN,
+  LY_DO_TU_CHOI_CAN_THIEP: LY_DO_TU_CHOI_CAN_THIEP_EN,
+  LOI: LOI_EN,
 }
 
 export const BO_CHUOI: Readonly<Record<NgonNgu, BoChuoi>> = { vi: VI, en: EN }

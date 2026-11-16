@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import { useBackup } from '../../hooks/useBackup'
 import { laLoiUngDung } from '../../services/errors'
 import type { CheDoNhap, TomTatTep } from '../../services/backupService'
-import { CHUNG, SAO_LUU, cauLoi, coTep } from '../strings'
+import { useChuoi } from '../../hooks/useNgonNgu'
+import { coTep } from '../strings'
 
 interface Props {
   /** Gọi sau khi nhập xong để màn hình nạp lại dữ liệu. */
@@ -16,6 +17,7 @@ interface Props {
  * thay thế hay gộp. Chưa chọn thì chưa có gì thay đổi (AC-4.6).
  */
 export function SaoLuu({ onDaNhap }: Props) {
+  const { CHUNG, LOI, SAO_LUU } = useChuoi()
   const { luuTruKhongBen, uocTinhKichThuoc, xuatTep, xemTruocTep, nhapTep } =
     useBackup()
 
@@ -49,7 +51,7 @@ export function SaoLuu({ onDaNhap }: Props) {
     try {
       await xuatTep()
     } catch (e) {
-      datLoi(laLoiUngDung(e) ? cauLoi(e) : String(e))
+      datLoi(laLoiUngDung(e) ? LOI.cau(e) : String(e))
     } finally {
       datDangXuat(false)
     }
@@ -67,7 +69,7 @@ export function SaoLuu({ onDaNhap }: Props) {
       datTomTat(await xemTruocTep(tep))
       datTepDangCho(tep)
     } catch (e) {
-      datLoi(laLoiUngDung(e) ? cauLoi(e) : String(e))
+      datLoi(laLoiUngDung(e) ? LOI.cau(e) : String(e))
     } finally {
       datDangDoc(false)
     }
@@ -91,7 +93,7 @@ export function SaoLuu({ onDaNhap }: Props) {
       datTomTat(null)
       onDaNhap()
     } catch (e) {
-      datLoi(laLoiUngDung(e) ? cauLoi(e) : String(e))
+      datLoi(laLoiUngDung(e) ? LOI.cau(e) : String(e))
     }
   }
 
