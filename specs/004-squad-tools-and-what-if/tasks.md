@@ -1,0 +1,364 @@
+# Tasks: Dựng đội nhanh, sân sống động, và đấu lại từ một phút bất kỳ
+
+| | |
+|---|---|
+| **Spec** | `./spec.md` |
+| **Plan** | `./plan.md` |
+| **Phạm vi** | 37 AC (US-24 → US-27) |
+| **Tiến độ** | 0/40 |
+| **Sửa đổi** | 2026-11-17 — chẻ lần đầu từ plan |
+
+> Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
+> Mỗi task phải: chạm file cụ thể + có cách kiểm chứng + đủ nhỏ để làm trong một lần.
+
+Số task bắt đầu từ **T400** để không lẫn với T001–T136 của spec 001,
+T200–T224 của spec 002 và T300–T344 của spec 003. Bảy phase dưới đây là bảy
+lát cắt dọc ở `plan.md` mục 9; mỗi phase kết thúc là một ứng dụng chạy được
+(hiến pháp P6), và là một commit.
+
+> ⚠️ **Ràng buộc xuyên suốt: KHÔNG đổi engine.** `PHIEN_BAN_ENGINE` giữ
+> nguyên 5. Task nào chạm gần `src/engine/` đều có dòng này trong tiêu chí
+> xong. Gặp chỗ tưởng như buộc phải đổi engine thì **dừng và hỏi người
+> dùng**, không tự đổi — đổi là mọi trận đã lưu mất nút đấu lại (rủi ro R33,
+> rủi ro có hậu quả cao nhất của spec).
+
+---
+
+## Phase 29 — Lát 29: Kho tên và sinh MỘT cầu thủ
+
+- [ ] **T400** — Kho tên hư cấu hai thứ tiếng
+  - File: tạo `src/domain/tenNgauNhien.ts`
+  - Xong khi: hai kho tên (Việt, Anh) nằm trong `domain`, mỗi kho là hai danh sách họ và tên ghép được (D81); hàm sinh nhận **kho và nguồn ngẫu nhiên qua tham số**, không gọi `Math.random` (P1); `domain` KHÔNG import gì từ `services` hay `ui` (D80).
+  - AC: AC-24.8
+  - Phụ thuộc: —
+
+- [ ] **T401** — Test kho tên
+  - File: tạo `src/domain/tenNgauNhien.test.ts`
+  - Xong khi: test xanh — cùng một nguồn ngẫu nhiên cho ra cùng tên; hai kho cho ra tên khác nhau về bộ ký tự; sinh 200 tên từ một kho thì tỉ lệ trùng thấp hơn 10%.
+  - AC: AC-24.8
+  - Phụ thuộc: T400
+
+- [ ] **T402** — Sinh một cầu thủ đầy đủ ở `domain`
+  - File: sửa `src/domain/generator.ts`
+  - Xong khi: hàm mới sinh đủ tên, tuổi, số áo, vị trí sở trường và chỉ số cho **một** cầu thủ, dùng lại `sinhChiSo` đã có; nhận danh sách số áo đang dùng để tránh trùng; nhận `Rng` và kho tên qua tham số.
+  - AC: AC-24.1, AC-24.2, AC-24.3
+  - Phụ thuộc: T400
+
+- [ ] **T403** — Test sinh một cầu thủ
+  - File: sửa `src/domain/generator.test.ts`
+  - Xong khi: test xanh — không trường bắt buộc nào trống; chỉ số nằm đúng dải của mức đã chọn và mức cao hơn cho chỉ số tổng cao hơn ở cùng vị trí; số áo không trùng với danh sách truyền vào; cùng nguồn ngẫu nhiên cho cùng kết quả.
+  - AC: AC-24.1, AC-24.2, AC-24.3
+  - Phụ thuộc: T402
+
+- [ ] **T404** — Nút sinh cầu thủ trong form, và chuỗi hai ngôn ngữ
+  - File: sửa `src/ui/components/FormCauThu.tsx`, `src/ui/ngonNgu/{vi,en,index}.ts`
+  - Xong khi: trong form cầu thủ có nút sinh toàn bộ hồ sơ (không chỉ chỉ số như hiện nay); nguồn ngẫu nhiên thật dựng ở tầng giao diện đúng nếp `taoMaTran(RNG_THAT)`; kho tên chọn theo ngôn ngữ đang chọn; bấm hai lần ra hai người khác nhau; **mọi chuỗi mới có đủ hai ngôn ngữ trong cùng commit** (P8).
+  - AC: AC-24.1, AC-24.5, AC-24.6, AC-24.8
+  - Phụ thuộc: T402
+
+---
+
+## Phase 30 — Lát 30: Sinh CẢ ĐỘI kèm chiến thuật
+
+- [ ] **T405** — Sinh cả đội ở `domain`
+  - File: sửa `src/domain/generator.ts`
+  - Xong khi: hàm mới sinh đủ người cho một quân số cho trước cộng tối đa 7 dự bị (sân 11 ra 18 người), bảo đảm mỗi vị trí của sơ đồ có ít nhất một người đá đúng sở trường, số áo không trùng nhau trong đội.
+  - AC: AC-24.4
+  - Phụ thuộc: T402
+
+- [ ] **T406** — Test sinh cả đội
+  - File: sửa `src/domain/generator.test.ts`
+  - Xong khi: test xanh — đủ số người; mọi vị trí của sơ đồ được phủ; không hai cầu thủ nào trùng số áo; cùng nguồn ngẫu nhiên cho cùng một đội.
+  - AC: AC-24.4
+  - Phụ thuộc: T405
+
+- [ ] **T407** — Lưu đội sinh ra trong MỘT transaction
+  - File: sửa `src/services/teamRepo.ts`
+  - Xong khi: hàm lưu đội sinh ra ghi `teams` + `players` + `tactics` trong **một** `db.transaction([...], 'readwrite')` theo đúng nếp `create` đang có (D82); bộ chiến thuật kèm theo đã xếp đủ ô của sơ đồ, dùng lại lớp xếp của `domain/lineup.ts` chứ không viết thuật toán xếp thứ hai (D83); **`DB_VERSION` không đổi**.
+  - AC: AC-24.4, AC-24.7
+  - Phụ thuộc: T405
+
+- [ ] **T408** — Test lưu đội sinh ra là tất-cả-hoặc-không-gì
+  - File: sửa `src/services/teamRepo.test.ts`
+  - Xong khi: test xanh — lưu thành công thì có đủ đội, cầu thủ và chiến thuật; ép lỗi giữa chừng thì **không** còn lại đội, cầu thủ hay chiến thuật nào.
+  - AC: AC-24.7
+  - Phụ thuộc: T407
+
+- [ ] **T409** — Nút sinh cả đội trên màn danh sách đội
+  - File: sửa `src/ui/pages/DanhSachDoi.tsx`, `src/ui/ngonNgu/{vi,en,index}.ts`
+  - Xong khi: bấm một nút, chọn mức độ và quân số, ra một đội **đá được ngay**; mở trang chiến thuật của đội ấy thấy đội hình đã xếp đủ ô; chuỗi đủ hai ngôn ngữ.
+  - AC: AC-24.4, AC-24.6
+  - Phụ thuộc: T407
+
+---
+
+## Phase 31 — Lát 31: Nhân bản đội và lọc danh sách
+
+- [ ] **T410** — Nhân bản đội ở `services`
+  - File: sửa `src/services/teamRepo.ts`
+  - Xong khi: hàm nhân bản tạo đội mới với **id mới cho mọi bản ghi**, chép chỉ số và màu áo, **bỏ ảnh** chân dung và logo (quyết định `/clarify` câu 6); tất cả trong một transaction; **`DB_VERSION` không đổi**.
+  - AC: AC-26.1, AC-26.3
+  - Phụ thuộc: —
+
+- [ ] **T411** — Test nhân bản đội
+  - File: sửa `src/services/teamRepo.test.ts`
+  - Xong khi: test xanh — bản sao có đủ số cầu thủ và chỉ số giống hệt; **không id nào dùng chung** với đội gốc; sửa bản sao thì gốc không đổi và ngược lại; bản sao không mang ảnh nào.
+  - AC: AC-26.1, AC-26.2, AC-26.3
+  - Phụ thuộc: T410
+
+- [ ] **T412** — Nút nhân bản trên màn danh sách đội
+  - File: sửa `src/ui/pages/DanhSachDoi.tsx`, `src/ui/ngonNgu/{vi,en,index}.ts`
+  - Xong khi: mỗi đội có một nút nhân bản; bản sao mang tên phân biệt được; **trước khi nhân bản, màn hình nói rõ bản sao sẽ không có ảnh** (AC-26.3); chuỗi đủ hai ngôn ngữ.
+  - AC: AC-26.1, AC-26.3
+  - Phụ thuộc: T410
+
+- [ ] **T413** — Lọc danh sách cầu thủ
+  - File: sửa `src/ui/pages/TrangDoi.tsx`, `src/ui/ngonNgu/{vi,en,index}.ts`
+  - Xong khi: lọc được theo **tên, vị trí sở trường, khoảng chỉ số tổng, tuổi, chân thuận** và các bộ lọc kết hợp được; khoảng chỉ số tổng nêu rõ đang tính theo **vị trí nào** (dùng `chiSoTongTheoViTri`); danh sách nói rõ đang hiện bao nhiêu trên tổng bao nhiêu; lọc ở tầng giao diện, **không** thêm chỉ mục database (D87).
+  - AC: AC-26.4, AC-26.5, AC-26.6
+  - Phụ thuộc: —
+
+- [ ] **T414** — Trạng thái rỗng khi lọc không ra ai
+  - File: sửa `src/ui/pages/TrangDoi.tsx`, `src/ui/ngonNgu/{vi,en}.ts`
+  - Xong khi: lọc không khớp ai thì hiện thông báo không có kết quả kèm một thao tác xoá bộ lọc; bấm vào trở lại danh sách đầy đủ.
+  - AC: AC-26.7
+  - Phụ thuộc: T413
+
+- [ ] **T415** — Bàn phím và tương phản cho phần lọc
+  - File: sửa `src/ui/pages/TrangDoi.tsx`
+  - Xong khi: Tab đi được qua mọi ô lọc; đo tương phản chữ/nền của phần lọc ở **cả hai chế độ** sáng và tối, đều ≥ 4.5:1.
+  - AC: AC-26.4
+  - Phụ thuộc: T413
+
+---
+
+## Phase 32 — Lát 32: Tự chọn đội hình kèm LÝ DO
+
+- [ ] **T416** — Lớp chọn trả thêm mã lý do
+  - File: sửa `src/domain/lineup.ts`
+  - Xong khi: kết quả xếp đội hình kèm **mã lý do** cho từng ô (ví dụ `'dung-so-truong'`, `'chi-so-cao-nhat'`, `'lap-cho-trong'`) và mã cho trường hợp thiếu người; **không một chuỗi hiển thị nào** nằm trong `domain` (P8, D84).
+  - AC: AC-26.8, AC-26.9
+  - Phụ thuộc: —
+
+- [ ] **T417** — Test mã lý do
+  - File: sửa `src/domain/lineup.test.ts`
+  - Xong khi: test xanh — người đá đúng sở trường nhận mã khác người được lấp chỗ trống; đội thiếu người thì số ô điền được đúng bằng số người có và phần thiếu có mã riêng.
+  - AC: AC-26.8, AC-26.9
+  - Phụ thuộc: T416
+
+- [ ] **T418** — Nút tự chọn đội hình trên trang chiến thuật
+  - File: sửa `src/hooks/useTactic.ts`, `src/ui/pages/TrangChienThuat.tsx`, `src/ui/ngonNgu/{vi,en,index}.ts`
+  - Xong khi: một nút điền đủ các ô của sơ đồ đang dùng; mỗi ô đọc được lý do bằng chữ ở ngôn ngữ đang chọn; đội thiếu người thì điền được bao nhiêu hay bấy nhiêu và nói rõ còn thiếu mấy người.
+  - AC: AC-26.8, AC-26.9
+  - Phụ thuộc: T416
+
+- [ ] **T419** — Sửa lại từng ô sau khi tự chọn
+  - File: sửa `src/ui/pages/TrangChienThuat.tsx`
+  - Xong khi: sau khi tự chọn, kéo-thả và thao tác bàn phím đổi người ở từng ô vẫn chạy như trước; đổi xong thì lý do của ô ấy biến mất hoặc cập nhật, không để lại lý do cũ nói sai.
+  - AC: AC-26.10
+  - Phụ thuộc: T418
+
+---
+
+## Phase 33 — Lát 33: Nội suy chuyển động trên sân 2D
+
+> Lát này độc lập với 29–32. `San2D.tsx` hiện ~540 dòng và là file chịu
+> thay đổi nặng nhất của spec.
+
+- [ ] **T420** [P] — Lưới an toàn: trận cũ vẫn đấu lại đúng
+  - File: tạo `src/engine/tuongThichV5.test.ts` *(hoặc nối vào test tương thích đã có nếu tên trùng)*
+  - Xong khi: test xanh — một trận dựng từ cấu hình cố định, chạy hết, cho đúng tỉ số và đúng từng dòng sự kiện như bản ghi tham chiếu; `PHIEN_BAN_ENGINE` vẫn là 5. **Task này nằm SỚM có chủ đích**: nó là lưới duy nhất bắt được việc ai đó lỡ tay đụng engine ở Phase 33 hay 34 (rủi ro R33).
+  - AC: AC-25.4, AC-25.5
+  - Phụ thuộc: —
+
+- [ ] **T421** — Lớp nội suy đường cong
+  - File: tạo `src/ui/noiSuy.ts`, tạo `src/ui/noiSuy.test.ts`
+  - Xong khi: hàm thuần nhận hai mốc và một tỉ lệ 0→1, trả toạ độ trên đường cong trơn; test xanh — tại tỉ lệ 0 và 1 trả **đúng** toạ độ hai mốc (đây là điều giữ AC-25.2); đường đi không vọt ra ngoài khung sân.
+  - AC: AC-25.1, AC-25.2
+  - Phụ thuộc: —
+
+- [ ] **T422** — Sân 2D vẽ theo nhịp, dùng lớp nội suy
+  - File: sửa `src/ui/components/San2D.tsx`
+  - Xong khi: các điểm di chuyển liên tục theo đường cong giữa hai tình huống, không nhảy; `hinhSan` **giữ nguyên chữ ký thuần** và vẫn là nơi quyết định toạ độ tại mốc; `src/ui/san2D.test.ts` vẫn xanh không phải sửa; **không đụng `src/engine/`**.
+  - AC: AC-25.1, AC-25.2
+  - Phụ thuộc: T421
+
+- [ ] **T423** — Tốc độ theo thể lực
+  - File: sửa `src/ui/components/San2D.tsx`
+  - Xong khi: điểm của người đã xuống thể lực di chuyển chậm hơn rõ rệt so với người còn sung sức cùng lúc; thể lực đọc từ `ben.theLuc` của trạng thái trận đang chạy; **không** thêm trường nào vào `SuKien` và **không đụng engine**.
+  - AC: AC-25.7
+  - Phụ thuộc: T422
+
+- [ ] **T424** — Thể lực vẫn phải có mặt bằng CHỮ
+  - File: — *(kiểm trên ứng dụng đang chạy)*
+  - Xong khi: xác nhận nhãn chữ "kiệt sức" trong dòng tường thuật vẫn hiện đúng lúc, nên tốc độ di chuyển **không** phải kênh duy nhất báo thể lực (P9). Thiếu thì bổ sung nhãn chữ, không bỏ AC-25.7.
+  - AC: AC-25.8
+  - Phụ thuộc: T423
+
+- [ ] **T425** — Theo kịp khi đổi tốc độ trận
+  - File: sửa `src/ui/components/San2D.tsx`
+  - Xong khi: đổi tốc độ ở cả ba mức, không điểm nào còn đang di chuyển dở khi tình huống kế tiếp tới; dùng lại `thoiGianChuyen` đã có chứ không đặt cứng con số mới.
+  - AC: AC-25.3
+  - Phụ thuộc: T422
+
+- [ ] **T426** — Tôn trọng chế độ giảm chuyển động
+  - File: sửa `src/ui/components/San2D.tsx`
+  - Xong khi: bật giảm chuyển động ở hệ điều hành (hoặc giả lập trong trình duyệt) thì sân thôi nội suy mà vẫn hiển thị đúng vị trí tại từng mốc.
+  - AC: AC-25.6
+  - Phụ thuộc: T422
+
+---
+
+## Phase 34 — Lát 34: Đấu lại từ một phút bất kỳ
+
+> Lát này độc lập với 29–33.
+
+- [ ] **T427** [P] — Dựng lại cấu hình trận từ bản ghi đã lưu
+  - File: tạo `src/services/phatLai.ts`, tạo `src/services/phatLai.test.ts`
+  - Xong khi: hàm thuần ánh xạ `TranDaLuu` → `CauHinhTran` (D78); test xanh — cấu hình dựng lại mang đúng `maTran`, hai đội, quân số, thời lượng, cờ sân trung lập; **không sửa gì trong `src/engine/`**.
+  - AC: AC-27.1
+  - Phụ thuộc: —
+
+- [ ] **T428** — Vòng lặp phát lại tới phút X
+  - File: sửa `src/services/phatLai.ts`
+  - Xong khi: hàm chạy `taoTran` rồi lặp `buocTiep`, xếp từng can thiệp đã lưu vào **đúng phút** của nó, dừng ở phút chỉ định; chỉ gọi hàm thuần đã có của engine (D77); **không sửa `src/engine/`**.
+  - AC: AC-27.1, AC-27.2
+  - Phụ thuộc: T427
+
+- [ ] **T429** — Test xương sống 1: không đổi gì thì ra y hệt
+  - File: sửa `src/services/phatLai.test.ts`
+  - Xong khi: test xanh — phát lại tới một phút rồi chạy nốt **mà không thêm can thiệp nào** cho ra dòng sự kiện và tỉ số **giống hệt** trận gốc, từng dòng một.
+  - AC: AC-27.4
+  - Phụ thuộc: T428
+
+- [ ] **T430** — Test xương sống 2: phần trước điểm rẽ giống hệt
+  - File: sửa `src/services/phatLai.test.ts`
+  - Xong khi: test xanh — phát lại tới phút X, thêm một can thiệp mới, chạy nốt; mọi dòng sự kiện **trước** phút X giống hệt trận gốc; từ phút X trở đi được phép khác.
+  - AC: AC-27.2
+  - Phụ thuộc: T428
+
+- [ ] **T431** — Hook điều phối rẽ nhánh, giữ trong bộ nhớ
+  - File: tạo `src/hooks/useRePhatLai.ts`
+  - Xong khi: hook nhận bản ghi trận, phút rẽ và can thiệp mới, trả kết quả rẽ nhánh; kết quả sống **chỉ trong bộ nhớ**, không gọi bất kỳ hàm ghi nào của `services` (D79); chặn phút nằm ngoài khoảng của trận gốc.
+  - AC: AC-27.1, AC-27.7, AC-27.8
+  - Phụ thuộc: T428
+
+- [ ] **T432** — Chọn phút trong dòng tường thuật
+  - File: sửa `src/ui/components/DongTuongThuat.tsx`, `src/ui/pages/TrangLichSu.tsx`, `src/ui/ngonNgu/{vi,en,index}.ts`
+  - Xong khi: mở một trận trong lịch sử, chọn được một phút từ dòng tường thuật; đi được bằng bàn phím; chuỗi đủ hai ngôn ngữ. Dòng tường thuật ở **trang trận đang chạy** vẫn hiển thị như cũ, không mọc thêm nút.
+  - AC: AC-27.1
+  - Phụ thuộc: T431
+
+- [ ] **T433** — Màn hình rẽ nhánh: đổi quyết định rồi chạy tiếp
+  - File: tạo `src/ui/components/RePhatLai.tsx`, sửa `src/ui/pages/TrangLichSu.tsx`, sửa `src/ui/ngonNgu/{vi,en,index}.ts`
+  - Xong khi: tại phút đã chọn, đổi được một chỉ thị toàn đội hoặc thay một người, rồi chạy nốt; màn hình này **không** phơi ra lối rẽ nhánh lần nữa và nói rõ mỗi lần rẽ nhánh đều xuất phát từ một trận trong lịch sử.
+  - AC: AC-27.1, AC-27.10
+  - Phụ thuộc: T431
+
+- [ ] **T434** — Khối so sánh với trận gốc
+  - File: sửa `src/ui/components/RePhatLai.tsx`, sửa `src/ui/ngonNgu/{vi,en}.ts`
+  - Xong khi: hiện cạnh nhau tỉ số và các chỉ tiêu hai đội của trận gốc và trận rẽ nhánh; dùng lại cấu trúc báo cáo sau trận đã có chứ không dựng bảng thứ hai.
+  - AC: AC-27.3
+  - Phụ thuộc: T433
+
+- [ ] **T435** — Từ chối rẽ nhánh khi không rẽ được
+  - File: sửa `src/ui/pages/TrangLichSu.tsx`, sửa `src/ui/ngonNgu/{vi,en}.ts`
+  - Xong khi: trận chạy bằng engine cũ hơn, hoặc trận có đội đã bị xoá, thì lối rẽ nhánh bị chặn kèm lý do bằng chữ; dùng lại `matchRepo.lyDoKhongDauLai` đã biết phân biệt hai trường hợp này.
+  - AC: AC-27.5, AC-27.6
+  - Phụ thuộc: T433
+
+- [ ] **T436** — Hỏi trước khi rời màn hình rẽ nhánh
+  - File: sửa `src/ui/components/RePhatLai.tsx`, sửa `src/ui/ngonNgu/{vi,en}.ts`
+  - Xong khi: rời màn hình rẽ nhánh thì được hỏi trước, nói rõ kết quả sẽ mất vì nó không được lưu; đồng ý thì về lịch sử và **trận gốc còn nguyên**.
+  - AC: AC-27.7, AC-27.9
+  - Phụ thuộc: T433
+
+---
+
+## Phase 35 — Lát 35: Kiểm tay, đo ngân sách, đóng spec
+
+- [ ] **T437** — Kiểm tay 2 ngôn ngữ × 2 chế độ
+  - File: — *(kiểm trên ứng dụng đang chạy)*
+  - Xong khi: đi hết mọi màn hình mới ở bốn tổ hợp, kể cả màn hình lỗi và trạng thái rỗng của phần lọc; không sót chữ, không chỗ nào tương phản dưới 4.5:1, không dấu hiệu thiếu bản dịch.
+  - AC: AC-24.8, AC-26.3, AC-26.7
+  - Phụ thuộc: T409, T412, T414, T418, T426, T436
+
+- [ ] **T438** — Đo lại các ngân sách ở spec mục 6
+  - File: — *(đo trên bản build)*
+  - Xong khi: sinh một đội < 2 giây; nhân bản đội 30 cầu thủ < 2 giây; gõ ô lọc cập nhật < 100ms; chạy hết một trận < 3 giây **với sân 2D bật và 22 điểm chạy đường cong** (AC-25.9); chạy tiếp một trận rẽ nhánh < 3 giây. Ghi số đo vào mô tả commit, và nói rõ số đo là thời gian tới lúc DOM đổi hay tới lúc nhìn thấy.
+  - AC: AC-25.9
+  - Phụ thuộc: T437
+
+- [ ] **T439** — Tick 37 AC và đóng spec
+  - File: sửa `specs/004-squad-tools-and-what-if/spec.md`
+  - Xong khi: mọi AC ở mục 3 được tick có căn cứ; Definition of Done đủ chín mục; `Status` đổi thành **Done**; xác nhận `PHIEN_BAN_ENGINE` vẫn là 5 và định dạng tệp sao lưu không đổi.
+  - AC: toàn bộ
+  - Phụ thuộc: T438
+
+---
+
+## Bảng phủ AC
+
+| AC | Task |
+|---|---|
+| AC-24.1 | T402, T403, T404 |
+| AC-24.2 | T402, T403 |
+| AC-24.3 | T402, T403 |
+| AC-24.4 | T405, T406, T407, T409 |
+| AC-24.5 | T404 |
+| AC-24.6 | T404, T409 |
+| AC-24.7 | T407, T408 |
+| AC-24.8 | T400, T401, T404, T437 |
+| AC-25.1 | T421, T422 |
+| AC-25.2 | T421, T422 |
+| AC-25.3 | T425 |
+| AC-25.4 | T420 |
+| AC-25.5 | T420 |
+| AC-25.6 | T426 |
+| AC-25.7 | T423 |
+| AC-25.8 | T424 |
+| AC-25.9 | T438 |
+| AC-26.1 | T410, T411, T412 |
+| AC-26.2 | T411 |
+| AC-26.3 | T410, T411, T412, T437 |
+| AC-26.4 | T413, T415 |
+| AC-26.5 | T413 |
+| AC-26.6 | T413 |
+| AC-26.7 | T414, T437 |
+| AC-26.8 | T416, T417, T418 |
+| AC-26.9 | T416, T417, T418 |
+| AC-26.10 | T419 |
+| AC-27.1 | T427, T428, T431, T432, T433 |
+| AC-27.2 | T428, T430 |
+| AC-27.3 | T434 |
+| AC-27.4 | T429 |
+| AC-27.5 | T435 |
+| AC-27.6 | T435 |
+| AC-27.7 | T431, T436 |
+| AC-27.8 | T431 |
+| AC-27.9 | T436 |
+| AC-27.10 | T433 |
+
+## Ghi chú thực thi
+
+- **Chuỗi phụ thuộc dài nhất** nằm ở Phase 34: T427 → T428 → T431 → T433 →
+  T434/T435/T436 → T437 → T438 → T439, tức **9 mắt**. Phase 29–32 chuỗi dài
+  nhất chỉ 3 mắt.
+- **Chạy song song được:** ba nhánh gần như độc lập — Phase 29→30 (sinh),
+  Phase 31+32 (dựng đội nhanh), Phase 33 (chuyển động), Phase 34 (rẽ nhánh).
+  Trong từng phase, T410 và T413 độc lập nhau; T420, T421 và T427 độc lập
+  với mọi thứ khác và làm được ngay từ đầu.
+- **T420 cố tình nằm sớm.** Nó không phục vụ tính năng nào — nó là lưới an
+  toàn cho rủi ro R33. Làm nó trước Phase 33 và 34 thì mọi lần chạy test sau
+  đó đều kiểm hộ rằng engine chưa bị đụng.
+- **Hiến pháp mục 4:** T400, T402, T405 chạm `domain`; T407, T410, T427
+  chạm lớp đọc/ghi dữ liệu — tất cả đều **chưa xong nếu chưa có test**
+  (T401, T403, T406, T408, T411, T429/T430).
+- **Bài học của spec 003 về danh sách file:** danh sách file ở trên đã
+  `grep` trước khi chốt — `sinhChiSo` và `CAC_MUC_DO` hiện chỉ có `domain/
+  generator.ts` và `FormCauThu.tsx` đọc; `xepLaiKhiDoiSoDo` có `useTactic.ts`
+  đọc. Nếu lúc làm thấy phạm vi rộng hơn danh sách, **ghi lại vào đây** thay
+  vì lặng lẽ sửa thêm file.
+- **P8 lặp lại ở 7 task** (T404, T409, T412, T413, T414, T418, T432, T433,
+  T434, T435, T436): chuỗi mới phải có đủ hai ngôn ngữ **trong cùng commit**.
+  Đây là cái giá cố định của mọi tính năng kể từ hiến pháp 2.0.0.
