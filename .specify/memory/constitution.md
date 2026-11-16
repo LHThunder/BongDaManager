@@ -1,7 +1,7 @@
 # Constitution — Ứng dụng bóng đá: dựng đội, giả lập trận, và sự nghiệp một cầu thủ
 
 > Hiến pháp kỹ thuật của dự án. Mọi spec / plan / task đều phải tuân thủ.
-> Version: 3.0.0 · Ratified: 2026-10-26 · Last amended: 2026-11-16
+> Version: 3.0.1 · Ratified: 2026-10-26 · Last amended: 2026-11-16
 
 ## 1. Mục đích & phạm vi
 
@@ -12,6 +12,9 @@ Dự án là một ứng dụng web chạy trên máy cá nhân, cho một ngư�
 **Vòng lặp 2 — sự nghiệp một cầu thủ (hướng mới, chốt ngày 2026-11-16).** Người dùng là **một cầu thủ**, không phải người cầm đội: mùa giải có lịch đấu và bảng xếp hạng, huấn luyện viên do máy điều khiển quyết định bạn đá chính, dự bị hay ngồi ngoài, và chỉ số của bạn phát triển theo tuổi và phong độ. Giá trị cốt lõi ở đây khác hẳn vòng lặp 1: không phải "chiến thuật của tôi có đúng không", mà **"tôi có được chọn không, và vì sao"**.
 
 > **Đây là đổi hướng có ý thức, không phải mở rộng dần.** Ngày 2026-11-16, sau khi spec 003 đóng, người dùng chốt thêm vòng lặp 2. Hiến pháp ghi lại mốc này ở đây. Non-goals của spec 001 — một tài liệu đã `Done` — **KHÔNG bị sửa ngược**: sửa ngược là làm sai lệch hồ sơ của quyết định lúc đó. Spec đầu tiên của hướng mới MUST nêu rõ nó thay thế những non-goals ấy, và dẫn về mục này.
+
+> **Trình tự: vòng lặp 1 xong đã, rồi mới tới vòng lặp 2.** Cùng ngày 2026-11-16, người dùng chốt thêm: hoàn thiện vòng lặp huấn luyện viên trước, sự nghiệp để sau. Vì vậy **spec 004 thuộc vòng lặp 1**, không phải sự nghiệp. Ba điểm cần xác nhận ở mục 7 chỉ chặn spec đầu tiên của vòng lặp 2, không chặn spec 004.
+> *Lý do ghi lại:* một hiến pháp tuyên bố hướng mới mà spec kế tiếp lại làm hướng cũ là chỗ dễ khiến người đọc sau này tưởng dự án đi lạc. Nó không lạc — nó xếp hàng.
 
 Dữ liệu người dùng bỏ công nhập là tài sản quý nhất của ứng dụng; mọi quyết định kỹ thuật phải đặt việc không làm mất dữ liệu lên trên sự tiện lợi khi lập trình.
 
@@ -157,10 +160,11 @@ Mọi giới hạn kiểu "giữ N trận gần nhất" MUST NOT âm thầm xoá
 | 1.0.1 | 2026-10-29 | Chốt hai điểm cần xác nhận ở mục 7 |
 | **2.0.0** | **2026-11-16** | **P8 đổi từ "chỉ tiếng Việt, cấm hạ tầng đa ngôn ngữ" sang "song ngữ Việt–Anh". MAJOR vì đổi nghĩa một nguyên tắc. Kéo theo: bỏ "đa ngôn ngữ" khỏi non-goals, sửa mục xử lý lỗi và mục i18n ở Chuẩn chất lượng** |
 | **3.0.0** | **2026-11-16** | **Đổi hướng dự án: thêm vòng lặp "sự nghiệp một cầu thủ" bên cạnh vòng lặp huấn luyện viên đã có. MAJOR vì gỡ hai non-goals nền tảng (career nhiều mùa; giải đấu, lịch thi đấu, bảng xếp hạng) và vì mục đích dự án đổi nghĩa. Kéo theo: P1 mở rộng sang quy mô mùa giải, P6 nói rõ "chạy được" nghĩa là chơi hết một mùa, P7 phủ tệp sao lưu một sự nghiệp, thêm **P10** về quy mô lưu trữ, thêm ràng buộc về dữ liệu đóng gói sẵn và bản quyền, thêm ngân sách hiệu năng cho mùa giải. Non-goals của spec 001 KHÔNG sửa ngược — xem mục 1** |
+| 3.0.1 | 2026-11-16 | Ghi lại trình tự: hoàn thiện vòng lặp huấn luyện viên trước, sự nghiệp sau. Spec 004 thuộc vòng lặp 1; ba điểm cần xác nhận ở mục 7 chỉ chặn spec đầu tiên của vòng lặp 2. PATCH vì chỉ làm rõ, không đổi nguyên tắc nào |
 
 ## 7. Điểm cần xác nhận
 
-Đổi hướng ngày 2026-11-16 mở ra ba điểm mới, **phải chốt trước khi `/specify` cho hướng sự nghiệp**:
+Đổi hướng ngày 2026-11-16 mở ra ba điểm mới. Chúng **chỉ chặn spec đầu tiên của vòng lặp sự nghiệp**, không chặn spec 004 — spec 004 thuộc vòng lặp huấn luyện viên, xem mục 1:
 
 - **[CẦN XÁC NHẬN: hai vòng lặp sống song song hay thay thế nhau?]** Hiến pháp này viết theo hướng **song song** — vòng lặp huấn luyện viên của spec 001–003 giữ nguyên, sự nghiệp là lối vào thứ hai. Nếu ý người dùng là sự nghiệp **thay thế** chế độ cũ thì câu chữ ở mục 1 phải đổi, và phần lớn giao diện hiện có sẽ thành mã chết.
 - **[CẦN XÁC NHẬN: một sự nghiệp giữ tối đa bao nhiêu mùa?]** P10 nói cách giữ, nhưng không nói trần. Cần một con số để thiết kế lưu trữ: 15 mùa? 25 mùa? Hay không trần và chấp nhận tệp sao lưu lớn dần?
