@@ -96,7 +96,7 @@ Anh viết**, để **theo dõi trận đấu chứ không phải giải mã m�
 
 - [ ] AC-18.1 — KHI xem dòng tường thuật ở tiếng Anh THÌ mỗi câu PHẢI đặt đúng người làm chủ ngữ theo nghĩa của tình huống — pha phạm lỗi PHẢI nêu **người phạm lỗi** làm chủ ngữ, không phải người bị phạm lỗi.
 - [ ] AC-18.2 — KHI xem **cùng một trận** ở hai ngôn ngữ THÌ số dòng, thứ tự dòng, phút của từng dòng và người được nhắc trong từng dòng PHẢI giống hệt nhau; chỉ chữ đổi.
-- [ ] AC-18.3 — KHI một loại tình huống có nhiều mẫu câu ở ngôn ngữ này THÌ nó PHẢI có **số mẫu câu không ít hơn** ở ngôn ngữ kia, để trận đấu không đọc nghèo đi khi đổi ngôn ngữ.
+- [ ] AC-18.3 — KHI một loại tình huống có **n** mẫu câu ở ngôn ngữ này THÌ nó PHẢI có **đúng n** mẫu câu ở ngôn ngữ kia. *(Siết lại sau `/analyze`: bản đầu viết "không ít hơn", nhưng mẫu câu được chọn bằng chỉ số chia dư, nên hai bảng lệch độ dài sẽ khiến hai ngôn ngữ rơi vào biến thể không tương ứng của cùng một tình huống.)*
 - [ ] AC-18.4 — KHI mở lại một trận đã lưu **từ trước spec này** THÌ dòng tường thuật PHẢI hiện bằng ngôn ngữ đang chọn, không phải ngôn ngữ lúc trận được lưu.
 
 ### US-19: Thuật ngữ bóng đá đúng ở cả hai thứ tiếng
@@ -226,7 +226,7 @@ Là một **người dùng**, tôi muốn **hai chỗ đang nói sai được s�
 - [ ] Trường hợp biên mục 5 được xử lý
 - [ ] Không vi phạm nguyên tắc nào trong constitution **2.0.0**
 - [ ] **Theme được duyệt trên một màn hình mẫu** trước khi áp ra toàn bộ ứng
-      dụng — không áp 31 màn rồi mới hỏi
+      dụng — không áp ra 27 file còn lại rồi mới hỏi
 - [ ] **Tự tay đi hết mọi màn hình ở cả hai ngôn ngữ VÀ cả hai chế độ
       sáng/tối**, không chỉ kiểm bằng test — kể cả màn hình lỗi và màn hình
       trống
@@ -274,8 +274,10 @@ Toàn bộ quyết định dưới đây được chốt ngày **2026-11-16** qu
 | 1 | Theme đổi tới đâu? | **Chỉ màu, phông chữ và chi tiết trang trí.** Bố cục giữ nguyên — rủi ro thấp nhất, và gộp được vào cùng một lượt quét với phần song ngữ | AC-20.6, Non-goals |
 | 2 | Chế độ tối có trong phạm vi? | **Có, người dùng tự chọn.** Ngược khuyến nghị: nó nhân đôi phần chứng minh tương phản và nhân đôi số màn hình phải đi tay. Đã ghi cái giá đó vào Definition of Done thay vì để nó lộ ra lúc đang làm | AC-20.2, AC-20.5, AC-20.7 → AC-20.10, mục 5, mục 6, mục 7 |
 | 3 | Bộ biểu tượng lấy từ đâu? | **Bộ có sẵn giấy phép mở**, nhúng thẳng vào repo cho đúng P4. Icon isometric có chiều sâu và đổ bóng nên vẽ tay khó ra được chất lượng dùng được | mục 6 (Giấy phép), mục 9 |
-| 4 | Duyệt theme lúc nào? *(phát sinh lúc làm rõ)* | **Một màn hình mẫu trước**, chốt xong mới áp ra 31 màn còn lại. AC-20.1 là AC mơ hồ nhất spec, và đây là cơ chế biến nó thành thứ có cổng chặn | mục 7, mục 9 |
+| 4 | Duyệt theme lúc nào? *(phát sinh lúc làm rõ)* | **Một màn hình mẫu trước**, chốt xong mới áp ra phần còn lại. AC-20.1 là AC mơ hồ nhất spec, và đây là cơ chế biến nó thành thứ có cổng chặn | mục 7, mục 9 |
 | 5 | Ngôn ngữ mặc định lần đầu? | **Luôn tiếng Việt**, không đọc thiết lập trình duyệt. Đoán được, và nút đổi chỉ cách một cú bấm nên đoán sai gần như không mất gì | AC-17.7 |
 | 6 | Hai lỗi treo từ spec 002? | **Gộp cả hai.** Cả hai đều là chuỗi hiển thị nên dù sao cũng phải đụng tới khi đưa qua lớp ngôn ngữ; sửa lúc đang mở file rẻ hơn mở lại lần nữa | US-23 |
 | 7 | "Báo rõ là thiếu bản dịch"? | **Cả hai lớp lưới**: phép kiểm chặn trước khi phát hành, cộng dấu hiệu thấy được lúc chạy nếu vẫn lọt. Tấm lưới thứ hai đáng lẽ không bao giờ kích hoạt | AC-22.2 |
 | 8 | Bộ icon isometric lấy ở đâu? *(kiểm lại lúc `/plan`)* | **Bỏ isometric, dùng bộ phẳng giấy phép MIT.** Ba lượt tìm cho thấy không có bộ isometric nào giấy phép mở phủ đủ 10 khái niệm bóng đá: thứ có giấy phép mở thì sai chủ đề (bộ isometric CC0 duy nhất tìm được là icon kiến trúc đám mây), thứ đúng chủ đề thì giấy phép thương mại hoặc đòi ghi công. Giả định ở điểm 3 đã bị chính phép kiểm mà spec yêu cầu bác bỏ | Tiêu đề spec, mục 1, Non-goals, US-21, AC-21.1, AC-21.2, mục 9 |
+| 9 | AC-18.3 viết lỏng hơn mức cần *(phát hiện lúc `/analyze`)* | **Siết thành "đúng n mẫu", không phải "không ít hơn".** `ui/tuongThuat.ts:235` chọn mẫu bằng `cacMau[mauCau % cacMau.length]`, nên hai bảng lệch độ dài thì hai ngôn ngữ rơi vào biến thể không tương ứng. Plan D69 vốn đã đòi bằng đúng — chỗ sai nằm ở AC, không ở plan | AC-18.3 |
+| 10 | Nhãn hiển thị lọt ra ngoài `ui` *(phát hiện lúc `/analyze`)* | **Payload lỗi và kết quả của `domain` chỉ mang mã, `ui` tra chữ.** `playerRepo` nhét tên chỉ số tiếng Việt vào câu lỗi nên màn hình tiếng Anh sẽ lẫn tiếng Việt — AC-22.1 không thể đạt. Xem plan D76 | AC-19.2, AC-22.1, AC-22.3 |

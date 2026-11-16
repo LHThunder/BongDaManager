@@ -42,8 +42,10 @@
 | `src/ui/tuongThuat.ts` (~62 mẫu câu) | `MAU` thành hai bảng, viết lại bản tiếng Anh |
 | `src/domain/{positions,roles,instructions,attributes}.ts` | Bỏ 99 nhãn hiển thị, giữ trường cấu trúc |
 | `src/services/tuyChonRepo.ts` | Thêm hai tuỳ chọn, đúng pattern `docHienSan2D` đã có |
+| `src/services/playerRepo.ts` | Payload lỗi thôi mang nhãn tiếng Việt (D76) |
+| `src/domain/roles.ts` | `chiSoThieuChoVaiTro` thôi trả nhãn (D76) |
 | `src/store/appStore.ts` | Giữ ngôn ngữ và chế độ đang chọn |
-| 31 file `src/ui/pages` + `src/ui/components` | Đổi từ `import { X }` sang `useChuoi()`; áp token màu |
+| 28 file `src/ui/pages` (6) + `src/ui/components` (22) | Đổi từ `import { X }` sang `useChuoi()`; áp token màu |
 | `tailwind.config.js` | Thêm `darkMode` và bảng token màu |
 | `src/ui/components/DangKyDoiHinh.tsx` | US-23 (a) |
 | `src/ui/pages/ChonCapDau.tsx` | US-23 (b) |
@@ -79,12 +81,13 @@
 | **D66** | Hình dạng bảng chuỗi | Giữ 34 khối, mỗi khối hai bản; bản EN khai kiểu `typeof` bản VI | `Record<NgonNgu, …>` phẳng; tệp JSON | `typeof` biến **lớp lưới thứ nhất của AC-22.2 thành miễn phí**: thiếu một khoá là lỗi biên dịch, thừa một khoá cũng vậy. JSON thì mất sạch kiểm kiểu |
 | **D67** | Chuỗi tới component | Hook `useChuoi()` đọc ngôn ngữ từ store | React Context riêng; truyền prop xuyên cây | zustand đã là chỗ giữ trạng thái toàn cục; thêm Context là thêm cơ chế thứ hai. Truyền prop qua 74 file thì không |
 | **D68** | 99 nhãn trong `domain/` | Bỏ hẳn `ten`/`vietTat`; nhãn thành `Record<PositionId, string>` trong lớp ngôn ngữ | Giữ `ten`, thêm `tenEn` | P8 cấm thẳng. Và `tenEn` mở đường cho `tenFr` — lớp dữ liệu bóng đá sẽ phình theo số ngôn ngữ. `Record<PositionId, …>` lại bắt lỗi thiếu vị trí ngay lúc biên dịch |
-| **D69** | Câu tường thuật | Hai bảng `MAU_VI` / `MAU_EN`, cùng khoá và **cùng độ dài mỗi loại** | Một bảng chung, mỗi hàm tự rẽ nhánh theo ngôn ngữ | Rẽ nhánh bên trong hàm chính là "ghép mảnh dùng chung" mà P8 cấm. Cùng độ dài là điều kiện để `mauCau` — một chỉ số — chọn **đúng vị trí tương ứng** ở cả hai bảng, nhờ đó AC-18.2 đạt được bằng cấu trúc chứ không bằng cẩn thận |
-| **D70** | Theme + dark mode | Biến CSS trên `:root` và `:root[data-che-do='toi']`; Tailwind token trỏ tới biến | Rải class `dark:` khắp 31 file; thay stylesheet khi đổi chế độ | Bố cục giữ nguyên (AC-20.6) nên chỉ giá trị màu đổi. Đổi một thuộc tính trên `<html>` thì **không re-render React** — ngân sách <200ms đạt được hiển nhiên. Rải `dark:` nghĩa là mỗi màu phải sửa hai chỗ ở 31 file, và AC-20.2 phải kiểm tay từng chỗ |
+| **D69** | Câu tường thuật | Hai bảng `MAU_VI` / `MAU_EN`, cùng khoá và **cùng độ dài mỗi loại** | Một bảng chung, mỗi hàm tự rẽ nhánh theo ngôn ngữ | Rẽ nhánh bên trong hàm chính là "ghép mảnh dùng chung" mà P8 cấm. Cùng độ dài là điều kiện để `mauCau` — một chỉ số — chọn **đúng vị trí tương ứng** ở cả hai bảng, vì `tuongThuat.ts:235` chọn bằng `cacMau[mauCau % cacMau.length]`, nhờ đó AC-18.2 đạt được bằng cấu trúc chứ không bằng cẩn thận |
+| **D70** | Theme + dark mode | Biến CSS trên `:root` và `:root[data-che-do='toi']`; Tailwind token trỏ tới biến | Rải class `dark:` khắp 28 file; thay stylesheet khi đổi chế độ | Bố cục giữ nguyên (AC-20.6) nên chỉ giá trị màu đổi. Đổi một thuộc tính trên `<html>` thì **không re-render React** — ngân sách <200ms đạt được hiển nhiên. Rải `dark:` nghĩa là mỗi màu phải sửa hai chỗ ở 28 file, và AC-20.2 phải kiểm tay từng chỗ |
 | **D71** | Nơi lưu hai tuỳ chọn | `tuyChonRepo` đã có, thêm hai khoá trong store `meta` | `localStorage`; bảng mới trong IndexedDB | D51 của spec 001 đã lập luận xong: `localStorage` là chỗ lưu **thứ hai** mà tệp sao lưu không biết tới và P7 không phủ. Bảng mới thì phải tăng `DB_VERSION` — không đáng cho hai khoá |
 | **D72** | Hai lớp lưới cho chuỗi thiếu | Lớp 1: kiểu `typeof` (D66) + `Record<Id,…>` (D68) + một test quét khoá. Lớp 2: hàm tra trả chuỗi đánh dấu thấy được | Ném lỗi lúc chạy; rơi về tiếng Việt | Rơi về tiếng Việt là thứ P8 cấm đích danh. Ném lỗi thì một nhãn thiếu làm vỡ cả màn hình — chữa còn tệ hơn bệnh. Lớp 2 là lưới an toàn **đáng lẽ không bao giờ kích hoạt**, vì lớp 1 chặn trước |
 | **D73** | Bộ icon | **Tabler Icons (MIT)**, chép ~12 SVG cần dùng vào repo | `@tabler/icons-react`; heroicons; bộ isometric CC-BY | Chép 12 file rẻ và nhẹ hơn một dependency phải tree-shake từ 6545 icon. Isometric đã bị loại ở mục 10 điểm 8 của spec sau ba lượt tìm |
 | **D74** | Màn hình mẫu duyệt theme | **Trang Lịch sử trận đấu** | Trang chủ; trang trận đấu | Nó có bảng, nút, chữ phụ, trạng thái rỗng và một khối chi tiết mở ra — đủ loại thành phần để thấy theme. Trang chủ quá nghèo thành phần; trang trận đấu quá động, khó so hai bảng màu |
+| **D76** | Nhãn hiển thị lọt ra ngoài `ui` | **Payload lỗi và kết quả của `domain` chỉ mang MÃ**, `ui` tra chữ | Giữ nhãn trong payload rồi dịch sau; truyền ngôn ngữ xuống `services` | Phát hiện ở `/analyze`: `playerRepo.ts:76,88` nhét `tenChiSo(id)` — **tên chỉ số tiếng Việt** — vào `chiTiet.truong`, và `strings.ts:398` in thẳng nó vào câu lỗi. Ở chế độ tiếng Anh ra *"Attribute **Dứt điểm** must be…"*, tức AC-22.1 và AC-17.4 **không thể đạt**. `domain/roles.ts:331,333` cũng trả `{ chiSo, ten }` ra ngoài. Đáng chú ý: quy ước đúng **đã có sẵn** trong repo — `kiemTraToHopViTri` trả mã `'thu-mon-kiem-vi-tri-san'`, `chiTiet.truong` ở mọi chỗ khác là khoá máy (`'playerId'`, `'shirtNumber'`). D76 chỉ khôi phục quy ước ấy ở hai chỗ đã phá nó, không phát minh gì mới. Truyền ngôn ngữ xuống `services` thì bị hiến pháp mục 3 chặn: luồng phụ thuộc một chiều |
 | **D75** | Tên sơ đồ | **Giữ nguyên** `FORMATIONS.ten` trong `domain/` | Dời sang lớp ngôn ngữ như 99 nhãn kia | "4-4-2" là **cùng một chữ** ở cả hai ngôn ngữ — nó là ký hiệu, không phải nhãn cần dịch. Dời nó đi là tạo một bảng tra có hai cột giống hệt nhau |
 
 ## 4. Mô hình dữ liệu
@@ -121,6 +124,8 @@ và `THU_TU_CHI_THI`; engine chỉ đọc `tuyen`, `chiSoQuanTrong`, `viTriApDun
 | `tra(khoi, khoa)` | khối chuỗi, khoá | `string` | Thiếu bản dịch → trả chuỗi đánh dấu thấy được (D72 lớp 2) |
 | `cauTuongThuat(sk, boiCanh, ngonNgu)` | `SuKien`, `BoiCanhCau`, ngôn ngữ | `string` | Loại sự kiện không có mẫu → `CAU_LUI` của ngôn ngữ đó |
 | `nhanViTri(id, ngonNgu)` | `PositionId` | `string` | — (`Record` đủ khoá, kiểm lúc biên dịch) |
+| `ChiTietLoi.truong` *(sửa contract)* | — | `string` **mã máy**, không bao giờ là nhãn hiển thị | — (D76) |
+| `chiSoThieuChoVaiTro(...)` *(sửa contract)* | như cũ | `{ chiSo, giaTri }[]` — **bỏ** trường `ten` | — (D76) |
 | `docNgonNgu()` / `datNgonNgu(n)` | — / `'vi' \| 'en'` | `NgonNgu` / `void` | Đọc lỗi → mặc định `'vi'`; ghi lỗi → nổi lên như `datHienSan2D` |
 | `docCheDo()` / `datCheDo(c)` | — / `'sang' \| 'toi'` | `CheDo` / `void` | Như trên, mặc định `'sang'` |
 
@@ -137,10 +142,10 @@ và `THU_TU_CHI_THI`; engine chỉ đọc `tuyen`, `chiSoQuanTrong`, `viTriApDun
 | AC-17.7 | `NGON_NGU_MAC_DINH = 'vi'`, không đọc `navigator.language` |
 | AC-18.1 | `MAU_EN` viết riêng theo ngữ pháp tiếng Anh; `BoiCanhCau` đã mang đủ `ten`, `ten2`, `tenDoi`, `tenDoiKia` nên đảo chủ–vị được (D69) |
 | AC-18.2 | Hai bảng cùng khoá và **cùng độ dài**; `mauCau` là chỉ số chung (D69) + test ở mục 7 |
-| AC-18.3 | Cùng độ dài mỗi loại, kiểm bằng kiểu và bằng test |
+| AC-18.3 | Cùng **đúng** độ dài mỗi loại (spec siết lại sau `/analyze`), kiểm bằng kiểu và bằng test |
 | AC-18.4 | Trận đã lưu giữ `SuKien` có cấu trúc, không giữ chữ — dựng lại theo ngôn ngữ hiện tại |
 | AC-19.1 | `NHAN_DOMAIN_EN` viết bằng thuật ngữ bóng đá Anh, không dịch từng từ (D68) |
-| AC-19.2 | Nhãn rời khỏi `domain/` nên không đường tính toán nào đọc chữ (D68) |
+| AC-19.2 | Nhãn rời khỏi `domain/` nên không đường tính toán nào đọc chữ (D68, D76) |
 | AC-19.3 | Tệp sao lưu không đổi; `backupSchema` chỉ đọc id (mục 4) |
 | AC-19.4 | Tên đội/cầu thủ là dữ liệu, không đi qua lớp ngôn ngữ |
 | AC-20.1 | Bảng token màu + phông trong `tailwind.config.js`, dùng chung mọi màn (D70) |
@@ -160,7 +165,7 @@ và `THU_TU_CHI_THI`; engine chỉ đọc `tuyen`, `chiSoQuanTrong`, `viTriApDun
 | AC-21.5 | Biểu tượng không đi qua lớp ngôn ngữ |
 | AC-22.1 | Lớp lưới 1 của D72 + phép đi tay ở Definition of Done |
 | AC-22.2 | D72 — hai lớp lưới |
-| AC-22.3 | Thông báo lỗi vốn đã là mã lỗi dịch ở tầng `ui` (D của spec 001), nay dịch theo ngôn ngữ đang chọn |
+| AC-22.3 | Thông báo lỗi vốn đã là mã lỗi dịch ở tầng `ui`, nay dịch theo ngôn ngữ đang chọn — **cộng D76** để payload thôi mang chữ tiếng Việt |
 | AC-22.4 | `San2D` nhận nhãn qua `useChuoi()` như mọi component |
 | AC-23.1 | `DangKyDoiHinh` nhận `quanSo` thay cho hằng số 11 |
 | AC-23.2 | `cauLyDo` tra tên cầu thủ từ danh sách đã có trong `ChonCapDau` |
@@ -199,7 +204,8 @@ và `THU_TU_CHI_THI`; engine chỉ đọc `tuyen`, `chiSoQuanTrong`, `viTriApDun
 | **R29** | Câu tường thuật tiếng Anh sai ngữ pháp hoặc sai chủ ngữ | Trung bình | **Cao** — đây là thứ người dùng đọc suốt trận | Đọc tay trọn một trận; AC-18.1 nêu đích danh cái bẫy đảo chủ–vị của pha phạm lỗi |
 | **R30** | Dark mode làm vỡ tương phản ở chỗ dùng màu áo người dùng | Trung bình | Cao (P9) | Test tương phản chạy cho cả hai bảng; `mauChuTuongPhan` đã có sẵn |
 | **R31** | Dời nhãn khỏi `domain/` làm đỏ test hiện có | **Chắc chắn** | Thấp | Đã đếm: `attributes.test.ts`, `positions.test.ts`, `instructions.test.ts` đang khẳng định trên `.ten`. Những phép kiểm ấy **đi theo nhãn** sang lớp ngôn ngữ, không xoá |
-| **R32** | Theme bị bác sau khi đã áp ra 31 màn | Thấp | Cao | D74 — duyệt trên một màn mẫu trước, đó chính là lý do cổng chặn này có trong Definition of Done |
+| **R32** | Theme bị bác sau khi đã áp ra 27 file còn lại | Thấp | Cao | D74 — duyệt trên một màn mẫu trước, đó chính là lý do cổng chặn này có trong Definition of Done |
+| **R34** | Còn chỗ khác ngoài `playerRepo` và `roles` cũng đẩy nhãn ra khỏi `ui` | Thấp | Cao | Đã quét `engine/`, `services/`, `storage/`, `domain/` và chỉ thấy hai chỗ. Test ở T321 quét khoá sẽ không bắt được loại lỗi này, nên phép bắt thật là bước đi tay T333 ở chế độ tiếng Anh |
 | **R33** | Bộ Tabler thiếu icon cho một khái niệm (thay người, sân đấu) | Trung bình | Thấp | AC-21.2 cấm trộn bộ khác; trường hợp biên của spec đã chốt: dùng chữ thay thế |
 
 **Rollback:** mọi thay đổi nằm ở tầng `ui` + hằng số `domain`, không đụng dữ
@@ -213,12 +219,12 @@ Bảy lát cắt dọc, tiếp số "lát" của spec 002 (lát 18–21).
 | Lát | Nội dung | Xong thì chạy được gì |
 |---|---|---|
 | **22** | Hạ tầng ngôn ngữ (D65, D66, D67), `tuyChonRepo` hai tuỳ chọn (D71), nút đổi ngôn ngữ, và **một** màn hình chuyển trọn sang `useChuoi()` | Mở ứng dụng, bấm đổi ngôn ngữ, thấy màn ấy đổi thật và nhớ qua lần mở sau |
-| **23** | Dời 99 nhãn khỏi `domain/` (D68), dựng `NHAN_DOMAIN_VI`/`EN`, dời các test nhãn (R31) | Trang chiến thuật và trang cầu thủ đọc được ở cả hai ngôn ngữ |
+| **23** | Dời 99 nhãn khỏi `domain/` (D68), dựng `NHAN_DOMAIN_VI`/`EN`, dời các test nhãn (R31), **và chặn hai chỗ đẩy nhãn ra ngoài `ui` (D76)** | Trang chiến thuật và trang cầu thủ đọc được ở cả hai ngôn ngữ |
 | **24** | Câu tường thuật: tách `MAU` thành hai bảng, viết `MAU_EN` (D69), test AC-18.2 | Đá một trận, đọc tường thuật tiếng Anh |
 | **25** | Quét nốt các màn còn lại sang `useChuoi()`; dựng hai lớp lưới (D72) | Mọi màn hình song ngữ; sót chuỗi là lộ ra |
 | **26** | Theme trên màn mẫu (D74) → **người dùng duyệt** → áp ra toàn bộ + dark mode (D70) + test tương phản | Toàn ứng dụng có nhận diện, đổi được sáng/tối |
 | **27** | Bộ biểu tượng (D73) | Icon ở mọi màn hình chính |
 | **28** | US-23 (hai lỗi treo), đi tay 2 ngôn ngữ × 2 chế độ, đo lại bốn ngân sách, đóng spec | Spec 003 Done |
 
-Lát 26 có một **cổng chặn người dùng** ở giữa: không áp theme ra 31 màn trước
-khi màn mẫu được duyệt.
+Lát 26 có một **cổng chặn người dùng** ở giữa: không áp theme ra 27 file còn
+lại trước khi màn mẫu được duyệt.

@@ -5,8 +5,8 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | 36 AC (US-17 → US-23) |
-| **Tiến độ** | 0/36 |
-| **Sửa đổi** | 2026-11-16 — chẻ lần đầu từ plan |
+| **Tiến độ** | 0/41 |
+| **Sửa đổi** | 2026-11-16 — chẻ lần đầu từ plan, rồi sửa theo cả 8 phát hiện của `/analyze` |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
 > Mỗi task phải: chạm file cụ thể + có cách kiểm chứng + đủ nhỏ để làm trong một lần.
@@ -17,7 +17,7 @@ mục 9; mỗi phase kết thúc là một ứng dụng chạy được (hiến 
 một commit.
 
 **Một task không phải việc của tôi:** T323 là cổng chặn chờ **người dùng
-duyệt theme**. Không có nó thì T324 áp theme ra 31 màn rồi mới biết có đúng
+duyệt theme**. Không có nó thì T326 áp theme ra 27 file còn lại rồi mới biết có đúng
 ý hay không — đúng rủi ro R32.
 
 ---
@@ -49,14 +49,14 @@ duyệt theme**. Không có nó thì T324 áp theme ra 31 màn rồi mới biế
   - Phụ thuộc: T301, T302
 
 - [ ] **T304** — Nút đổi ngôn ngữ
-  - File: tạo `src/ui/components/ChonNgonNgu.tsx`, sửa `src/ui/App.tsx`
+  - File: tạo `src/ui/components/ChonNgonNgu.tsx`, sửa `src/App.tsx`
   - Xong khi: bấm nút thì chữ của khối `CHUNG` đổi ngay **không tải lại trang**; Tab tới được nút bằng bàn phím; đóng mở lại ứng dụng vẫn giữ ngôn ngữ vừa chọn.
   - AC: AC-17.2, AC-17.3, AC-17.4, AC-17.6
   - Phụ thuộc: T303
 
-- [ ] **T305** — Trang chủ chuyển trọn sang `useChuoi()`
-  - File: sửa `src/ui/pages/TrangChu.tsx`
-  - Xong khi: đi hết trang chủ ở cả hai ngôn ngữ, **không sót một chữ nào** của ngôn ngữ kia; tên đội do người dùng nhập giữ nguyên.
+- [ ] **T305** — Trang danh sách đội chuyển trọn sang `useChuoi()`
+  - File: sửa `src/ui/pages/DanhSachDoi.tsx`
+  - Xong khi: đi hết trang danh sách đội ở cả hai ngôn ngữ, **không sót một chữ nào** của ngôn ngữ kia; tên đội do người dùng nhập giữ nguyên.
   - AC: AC-19.4
   - Phụ thuộc: T304
 
@@ -106,6 +106,19 @@ duyệt theme**. Không có nó thì T324 áp theme ra 31 màn rồi mới biế
   - AC: —
   - Phụ thuộc: T306
 
+
+- [ ] **T336** — Payload lỗi thôi mang nhãn tiếng Việt
+  - File: sửa `src/services/playerRepo.ts`, sửa `src/services/errors.ts` *(chú thích)*, sửa `src/ui/ngonNgu/{vi,en}.ts`, sửa `src/services/playerRepo.test.ts`
+  - Xong khi: `InvalidAttributeValue` mang **mã chỉ số** (`'dut-diem'`) thay cho tên tiếng Việt; lớp `ui` tra chữ khi dựng câu lỗi; test xanh — ném lỗi với một chỉ số sai thì `chiTiet.truong` là mã, không phải chữ. Đây là khôi phục quy ước sẵn có: mọi chỗ khác trong repo đã dùng mã máy (D76).
+  - AC: AC-22.1, AC-22.3
+  - Phụ thuộc: T309
+
+- [ ] **T337** — `chiSoThieuChoVaiTro` thôi trả nhãn
+  - File: sửa `src/domain/roles.ts`, sửa `src/domain/roles.test.ts`, sửa nơi dùng trong `src/ui/components/`
+  - Xong khi: hàm trả `{ chiSo, giaTri }` — **bỏ trường `ten`**; giao diện tra nhãn từ lớp ngôn ngữ; không hàm nào trong `domain/` còn **sinh ra** chữ hiển thị, không chỉ là không **chứa** chữ.
+  - AC: AC-19.1, AC-19.2
+  - Phụ thuộc: T309
+
 ---
 
 ## Phase 24 — Lát 24: Câu tường thuật hai ngôn ngữ
@@ -113,6 +126,7 @@ duyệt theme**. Không có nó thì T324 áp theme ra 31 màn rồi mới biế
 - [ ] **T313** — Tách `MAU` thành hai bảng
   - File: tạo `src/ui/ngonNgu/mauCau.vi.ts`, `src/ui/ngonNgu/mauCau.en.ts`; sửa `src/ui/tuongThuat.ts`
   - Xong khi: `MAU_VI` mang nguyên 62 mẫu hiện có; `MAU_EN` khai kiểu buộc **cùng khoá và cùng độ dài mỗi loại** với `MAU_VI` (D69); `tsc` đỏ nếu một loại lệch số mẫu.
+  - Ghi chú: `SO_MAU_CAU` hiện là export **chết** — chú thích nói "dùng cho test" nhưng không test nào dùng. Task này quyết định số phận nó: cho test đếm độ dài hai bảng dùng, hoặc xoá.
   - AC: AC-18.3
   - Phụ thuộc: T302
 
@@ -159,6 +173,7 @@ duyệt theme**. Không có nó thì T324 áp theme ra 31 màn rồi mới biế
 - [ ] **T320** [P] — Sao lưu và thông báo lỗi
   - File: sửa `src/ui/components/{SaoLuu,HopXacNhan}.tsx`, sửa `src/ui/ngonNgu/{vi,en}.ts` phần câu lỗi
   - Xong khi: mọi thông báo lỗi — tệp hỏng, sai sơ đồ, hết dung lượng — hiện bằng ngôn ngữ đang chọn; xuất tệp ở một ngôn ngữ rồi nhập lại ở ngôn ngữ kia vẫn vào đủ.
+  - Ghi chú: câu "hết dung lượng" nằm trong nhóm này chính là đường mà **AC-4.7 của spec 001** phủ. Dịch nó sang tiếng Anh **không** làm AC-4.7 tick được — nó vẫn không quan sát được đầu-cuối.
   - AC: AC-19.3, AC-22.3
   - Phụ thuộc: T303
 
@@ -196,17 +211,35 @@ duyệt theme**. Không có nó thì T324 áp theme ra 31 màn rồi mới biế
   - AC: AC-20.1
   - Phụ thuộc: T324
 
-- [ ] **T326** — Áp theme ra toàn bộ 31 màn hình
-  - File: sửa mọi file còn lại trong `src/ui/pages/` và `src/ui/components/`
-  - Xong khi: mọi màn hình dùng token màu chung, không còn màu viết cứng; mọi chức năng giữ nguyên hành vi, **không màn nào mất nút hay mất đường đi**.
+- [ ] **T326** — Áp theme: nhóm đội và cầu thủ
+  - File: sửa `src/ui/pages/TrangDoi.tsx`, `src/ui/components/{FormDoi,FormCauThu,ChonMauAo,ChonAnh,AnhThayThe,DanhSachNgoaiSan,BangChiSo}.tsx`
+  - Xong khi: nhóm này dùng token màu chung, **không còn một màu viết cứng nào**; bố cục không xê dịch; chức năng giữ nguyên.
   - AC: AC-20.1, AC-20.3, AC-20.6
   - Phụ thuộc: **T325**
 
+- [ ] **T338** [P] — Áp theme: nhóm trận đấu
+  - File: sửa `src/ui/pages/{ChonCapDau,TrangTran}.tsx`, `src/ui/components/{DangKyDoiHinh,BangDieuKhienTran,ThayNguoi,BaoCaoSauTran,BangDiemCauThu,DanhSachGhiBan,DongTuongThuat}.tsx`
+  - Xong khi: như T326, cho nhóm này.
+  - AC: AC-20.1, AC-20.3, AC-20.6
+  - Phụ thuộc: **T325**
+
+- [ ] **T339** [P] — Áp theme: sân 2D, sao lưu, hộp thoại
+  - File: sửa `src/ui/components/{San2D,SanBong,SaoLuu,HopXacNhan,OViTri}.tsx`
+  - Xong khi: như T326. Riêng sân 2D: màu cỏ và màu vạch theo token, **nhưng màu áo người dùng chọn giữ nguyên** — nó là dữ liệu, không phải theme.
+  - AC: AC-20.1, AC-20.3, AC-20.6
+  - Phụ thuộc: **T325**
+
+- [ ] **T340** — Áp theme: các trang còn lại, và quét màu viết cứng
+  - File: sửa `src/ui/pages/{DanhSachDoi,TrangChienThuat}.tsx`, `src/App.tsx`, `src/ui/components/{BoChienThuat,ChiThiDoi,ChonVaiTro}.tsx`
+  - Xong khi: grep toàn bộ `src/ui` và `src/App.tsx` **không còn mã màu viết cứng nào** ngoài token; cả 28 file đã qua theme.
+  - AC: AC-20.1, AC-20.3, AC-20.6
+  - Phụ thuộc: T326, T338, T339
+
 - [ ] **T327** — Nút đổi chế độ sáng/tối
-  - File: tạo `src/ui/components/ChonCheDo.tsx`, sửa `src/ui/App.tsx`
+  - File: tạo `src/ui/components/ChonCheDo.tsx`, sửa `src/App.tsx`
   - Xong khi: bấm nút thì cả ứng dụng đổi bảng màu **không tải lại trang** và việc đang làm dở còn nguyên; Tab tới được bằng bàn phím; đóng mở lại vẫn giữ chế độ vừa chọn; lần đầu mở là chế độ sáng.
   - AC: AC-20.7, AC-20.8, AC-20.9, AC-20.10
-  - Phụ thuộc: T326
+  - Phụ thuộc: T340
 
 - [ ] **T328** — Test tương phản cho cả hai bảng màu
   - File: tạo `src/ui/theme.test.ts`
@@ -225,10 +258,10 @@ duyệt theme**. Không có nó thì T324 áp theme ra 31 màn rồi mới biế
   - Phụ thuộc: —
 
 - [ ] **T330** — Đặt biểu tượng vào các màn hình chính
-  - File: sửa `src/ui/pages/TrangChu.tsx`, `TrangDoi.tsx`, `TrangLichSu.tsx`, `TrangTran.tsx`, `TrangChienThuat.tsx`
+  - File: sửa `src/ui/pages/DanhSachDoi.tsx`, `TrangDoi.tsx`, `TrangLichSu.tsx`, `TrangTran.tsx`, `TrangChienThuat.tsx`
   - Xong khi: mỗi khái niệm lặp lại có biểu tượng riêng, **luôn kèm nhãn chữ hoặc `aria-label`** — biểu tượng không bao giờ là cách duy nhất để hiểu; đổi ngôn ngữ thì biểu tượng giữ nguyên, chỉ chữ đổi.
   - AC: AC-21.1, AC-21.3, AC-21.5
-  - Phụ thuộc: T329, T326
+  - Phụ thuộc: T329, T340
 
 ---
 
@@ -255,6 +288,7 @@ duyệt theme**. Không có nó thì T324 áp theme ra 31 màn rồi mới biế
 - [ ] **T334** — Đo lại bốn ngân sách hiệu năng
   - File: — *(đo trên bản build)*
   - Xong khi: mở danh sách 25 cầu thủ < 300ms; kéo-thả < 100ms; giả lập trọn trận < 3 giây; mở ứng dụng 20 đội + 20 trận < 2 giây. Thêm: đổi ngôn ngữ < 200ms, đổi chế độ < 200ms. **Phông và icon mới không được đẩy lần mở đầu vượt 2 giây.**
+  - Gộp luôn **T035 của spec 001** — task cuối cùng còn mở của spec ấy, đo hai ngân sách hiển thị và cần đúng trình duyệt của người dùng. T333 đã bắt mở trình duyệt rồi nên đo thêm hai con số này không tốn lượt nào. Đo xong thì tick T035 bên `specs/001-football-team-sim/tasks.md`.
   - AC: —
   - Phụ thuộc: T333
 
@@ -281,16 +315,16 @@ duyệt theme**. Không có nó thì T324 áp theme ra 31 màn rồi mới biế
 | AC-18.2 | T315 |
 | AC-18.3 | T313, T315 |
 | AC-18.4 | T316, T333 |
-| AC-19.1 | T306, T307, T308, T309, T310, T311 |
-| AC-19.2 | T306, T307, T308, T309, T311 |
+| AC-19.1 | T306, T307, T308, T309, T310, T311, T337 |
+| AC-19.2 | T306, T307, T308, T309, T311, T337 |
 | AC-19.3 | T320, T333 |
 | AC-19.4 | T305, T317, T333 |
-| AC-20.1 | T324, T325, T326 |
+| AC-20.1 | T324, T325, T326, T338, T339, T340 |
 | AC-20.2 | T328 |
-| AC-20.3 | T326 |
+| AC-20.3 | T326, T338, T339, T340 |
 | AC-20.4 | T323 |
 | AC-20.5 | T328 |
-| AC-20.6 | T324, T326 |
+| AC-20.6 | T324, T326, T338, T339, T340 |
 | AC-20.7 | T327 |
 | AC-20.8 | T300, T327 |
 | AC-20.9 | T300, T327 |
@@ -300,22 +334,27 @@ duyệt theme**. Không có nó thì T324 áp theme ra 31 màn rồi mới biế
 | AC-21.3 | T330 |
 | AC-21.4 | T329 |
 | AC-21.5 | T330 |
-| AC-22.1 | T317, T318, T321, T333 |
+| AC-22.1 | T317, T318, T321, T333, T336 |
 | AC-22.2 | T302, T321, T322 |
-| AC-22.3 | T320 |
+| AC-22.3 | T320, T336 |
 | AC-22.4 | T319 |
 | AC-23.1 | T331 |
 | AC-23.2 | T332 |
 
 ## Ghi chú thực thi
 
-- **Chuỗi phụ thuộc dài nhất** (9 mắt, và nó là đường găng): T323 → T324 →
-  **T325** → T326 → T327 → T328 → T333 → T334 → T335. Đường găng đi qua một
-  cổng chặn không nằm trong tay tôi — T325 chờ người dùng duyệt. Nhánh ngôn
-  ngữ ngắn hơn: T300 → T301 → T303 → T318 → T331 → T333 → T334 → T335 (8).
+- **Chuỗi phụ thuộc dài nhất** (10 mắt, và nó là đường găng): T323 → T324 →
+  **T325** → T326 → T340 → T327 → T328 → T333 → T334 → T335. Đường găng đi qua
+  một cổng chặn không nằm trong tay tôi — T325 chờ người dùng duyệt. Nhánh
+  ngôn ngữ ngắn hơn: T300 → T301 → T303 → T318 → T331 → T333 → T334 → T335 (8).
 - **Làm song song được:** T306–T309 (bốn file domain khác nhau);
-  T317–T320 (bốn nhóm màn hình khác nhau); T331–T332; và cả nhánh theme
-  T323–T324 chạy song song với nhánh ngôn ngữ T313–T316.
+  T317–T320 và T326/T338/T339 (nhóm màn hình khác nhau); T331–T332; và cả
+  nhánh theme T323–T324 chạy song song với nhánh ngôn ngữ T313–T316.
+- **Tám phát hiện của `/analyze` đã xử lý:** T336–T337 đóng phát hiện
+  CRITICAL (nhãn lọt ra ngoài `ui`); AC-18.3 siết lại trong spec; bốn đường
+  dẫn file sai đã sửa; T326 chẻ thành T326/T338/T339/T340; con số "31 màn"
+  sửa thành 28 file; `SO_MAU_CAU` ghi vào T313; T035 gộp vào T334; AC-4.7
+  ghi vào T320.
 - **Hiến pháp mục 4:** T300 chạm lớp đọc/ghi dữ liệu nên **chưa có test là
   chưa xong**. T315, T321, T322, T328 là test, không phải việc phụ.
 - **Rủi ro R31** đã thành T310: test nhãn **đi theo nhãn**, không bị xoá.
