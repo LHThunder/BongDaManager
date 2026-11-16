@@ -1,6 +1,7 @@
+import { useChuoi } from '../../hooks/useNgonNgu'
 import { useState } from 'react'
 import type { BenTran } from '../../engine/tran'
-import { THAY_NGUOI } from '../strings'
+
 
 interface Props {
   readonly ben: BenTran
@@ -17,6 +18,7 @@ interface Props {
  * đang chạy thì người dùng không kịp đọc chuyện gì vừa xảy ra.
  */
 export function ThayNguoi({ ben, tenCauThu, tamDung, onThay, loi }: Props) {
+  const { THAY_NGUOI } = useChuoi()
   const [ra, datRa] = useState('')
   const [vao, datVao] = useState('')
 

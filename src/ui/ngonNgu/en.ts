@@ -1,6 +1,23 @@
 import type { BanDich } from './kieu'
 import type {
   CHUNG_VI,
+  MUC_SAI_VI_TRI_VI,
+  TRANG_CHIEN_THUAT_VI,
+  SAI_VI_TRI_VI,
+  TINH_TRANG_DOI_HINH_VI,
+  DOI_SO_DO_VI,
+  VAI_TRO_VI,
+  CHI_THI_DOI_VI,
+  BO_CHIEN_THUAT_VI,
+  CHON_CAP_DAU_VI,
+  DANG_KY_DOI_HINH_VI,
+  LY_DO_KHONG_BAT_DAU_VI,
+  TRAN_DAU_VI,
+  THAY_NGUOI_VI,
+  CAN_THIEP_GIUA_TRAN_VI,
+  BAO_CAO_SAU_TRAN_VI,
+  VAO_BAT_GON_VI,
+  SO_SANH_TRAN_VI,
   FORM_DOI_VI,
   TRANG_DOI_VI,
   XOA_CAU_THU_VI,
@@ -500,4 +517,300 @@ export const FORM_CAU_THU_EN: BanDich<typeof FORM_CAU_THU_VI> = {
   canChonViTriTruoc:
     'Choose the preferred positions first — the generated levels depend on them.',
   chiSoTongTaiViTri: (tenViTri: string) => `Overall as a ${tenViTri}`,
+}
+
+// ---------------------------------------------------------------------------
+// Nhóm chiến thuật (T318)
+// ---------------------------------------------------------------------------
+
+
+export const MUC_SAI_VI_TRI_EN: BanDich<typeof MUC_SAI_VI_TRI_VI> = {
+  dung: 'Natural position',
+  nhe: 'Slightly out of position',
+  vua: 'Out of position',
+  nang: 'Badly out of position',
+}
+
+export const TRANG_CHIEN_THUAT_EN: BanDich<typeof TRANG_CHIEN_THUAT_VI> = {
+  tieuDe: 'Tactics',
+  moChienThuat: 'Tactics',
+  nhanChonSoDo: 'Formation',
+  nhanChonQuanSo: 'Players per side',
+  nhanQuanSo: (n: number) => `${n}-a-side`,
+  tieuDeNgoaiSan: 'Off the pitch',
+  ngoaiSanTrong: 'Every player is on the pitch.',
+  chuaCoCauThu: 'This team has no players to put in a line-up yet.',
+  oTrong: 'Empty slot',
+  nhanO: (tenViTri: string) => `${tenViTri} slot`,
+  oCoNguoi: (tenViTri: string, tenCauThu: string, soAo: number) =>
+    `${tenViTri} slot: ${tenCauThu}, number ${soAo}`,
+  soAo: (so: number) => `Number ${so}`,
+  boRaNgoai: 'Take off the pitch',
+  datVaoO: 'Put in this slot',
+  nhacLen: 'Pick this player up',
+  datXuong: 'Put the picked-up player here',
+  thoiNhac: 'Cancel',
+  dangNhac: (ten: string) => `${ten} picked up. Choose a slot to put him down.`,
+  huongDanBanPhim:
+    'Use Tab to move between slots and players. Press Enter or Space to pick a player up, use the arrow keys to move to another slot, then press Enter or Space to put him down. Press Esc to cancel.',
+  /*
+    Những câu này @dnd-kit đọc cho trình đọc màn hình. Mặc định của nó vốn là
+    tiếng Anh kèm id nội bộ, nên ở đây không phải là "trả về mặc định" — câu
+    tiếng Anh viết tay vẫn cần, vì mặc định đọc cả chuỗi id ra.
+  */
+  moTaKeoDuoc: 'player, draggable',
+  huongDanDocManHinh:
+    'Press Enter or Space to pick the player up. While holding, use the arrow keys to choose a slot, Enter or Space to put him down, Esc to cancel.',
+  baoNhacLen: (ten: string) => `Picked up ${ten}.`,
+  baoDangOTren: (ten: string) => `Now over ${ten}.`,
+  baoDatXuong: (ten: string) => `Placed in ${ten}.`,
+  baoDatLaiChoCu: 'Returned to the original slot.',
+  baoThoiNhac: 'Cancelled, nothing moved.',
+  tenVungNgoaiSan: 'the off-pitch list',
+}
+
+export const SAI_VI_TRI_EN: BanDich<typeof SAI_VI_TRI_VI> = {
+  nhan: (muc, phanTramTru: number) =>
+    muc === 'dung'
+      ? MUC_SAI_VI_TRI_EN.dung
+      : `${MUC_SAI_VI_TRI_EN[muc]} — ${phanTramTru}% less effective`,
+  giaiThich: (tenViTriO: string, cacViTriSoTruong: string) =>
+    `This slot is ${tenViTriO}, but the player's natural positions are ${cacViTriSoTruong}.`,
+}
+
+export const TINH_TRANG_DOI_HINH_EN: BanDich<typeof TINH_TRANG_DOI_HINH_VI> = {
+  sanSang: 'The line-up is ready to play.',
+  tieuDeChuaDu: 'The line-up is not ready',
+  thieuNguoi: (soCo: number, soCan: number) =>
+    `Only ${soCo} of ${soCan} slots are filled. Fill all ${soCan}.`,
+  thieuThuMon: 'There is no goalkeeper in goal.',
+  hoSoChuaHoanTat: (tenCauThu: readonly string[]) =>
+    tenCauThu.length === 1
+      ? `${tenCauThu[0]} is missing attributes; fill them in before kick-off.`
+      : `${tenCauThu.length} players are missing attributes: ${tenCauThu.join(', ')}.`,
+}
+
+export const DOI_SO_DO_EN: BanDich<typeof DOI_SO_DO_VI> = {
+  daXepLai: (tenSoDo: string) =>
+    `The line-up has been rearranged for the ${tenSoDo} formation.`,
+  biDayRa: (ten: readonly string[]) =>
+    `No suitable slot left for ${ten.join(', ')} — they have been moved off the pitch.`,
+  biXepSai: (ten: readonly string[]) =>
+    `Playing out of their natural positions: ${ten.join(', ')}.`,
+}
+
+export const VAI_TRO_EN: BanDich<typeof VAI_TRO_VI> = {
+  tieuDe: 'Role',
+  nhanChon: 'Role for this slot',
+  chiSoQuanTrong: 'Key attributes',
+  tieuDeChuaDat: 'This player does not meet the role',
+  chiSoChuaDat: (tenChiSo: string, giaTri: number) => `${tenChiSo}: ${giaTri}`,
+  chiSoChuaDien: (tenChiSo: string) => `${tenChiSo}: not filled in`,
+  chuaDanhGiaDuoc:
+    'The player profile is missing attributes, so this role cannot be judged yet.',
+  datHet: 'The player meets every key attribute of this role.',
+  canhBaoNganTaiO: (soChiSo: number) =>
+    soChiSo === 1
+      ? '1 key attribute short'
+      : `${soChiSo} key attributes short`,
+}
+
+export const CHI_THI_DOI_EN: BanDich<typeof CHI_THI_DOI_VI> = {
+  tieuDe: 'Team instructions',
+  moTa: 'Every level gives something and costs something — none is simply better.',
+  tieuDeXungDot: 'Two instructions are working against each other',
+  ghiChuXungDot: 'You can still save it like this; this is only a reminder.',
+}
+
+export const BO_CHIEN_THUAT_EN: BanDich<typeof BO_CHIEN_THUAT_VI> = {
+  tieuDe: 'Saved tactics',
+  dangDung: 'In use',
+  luuThanhBo: 'Save as new set',
+  nhanTenBo: 'Tactic name',
+  gidanhTenBo: 'For example: Solid defence',
+  apDung: 'Use this set',
+  chuaCoBo: 'You have not saved any tactics yet.',
+}
+
+
+export const CHON_CAP_DAU_EN: BanDich<typeof CHON_CAP_DAU_VI> = {
+  tieuDe: 'Start a match',
+  nhanDoiNha: 'Home team',
+  nhanDoiKhach: 'Away team',
+  chonDoi: '— Choose a team —',
+  nhanQuanSo: 'Players per side',
+  moTaQuanSo:
+    'Each squad size uses its own set of tactics, chosen on the tactics page.',
+  nhanNguoi: (n: number) => `${n}-a-side`,
+  nhanThoiLuong: 'Match length',
+  moTaThoiLuong:
+    'A shorter match gets proportionally fewer commentary lines, so the reading rhythm stays the same.',
+  nhanPhut: (n: number) => `${n} minutes`,
+  sanTrungLap: 'Play on a neutral ground',
+  moTaSanTrungLap:
+    'Turns home advantage off completely, so two tactics can be compared fairly.',
+  nhanMaTran: 'Match code',
+  moTaMaTran:
+    'Keep this code — or paste an old one back in — and you can replay exactly that match, even after changing your tactics.',
+  maTranMoi: 'Generate a new code',
+  maTranKhongHopLe:
+    'A match code is exactly 10 characters, using digits and letters except I, L, O and U.',
+  batDau: 'Start match',
+  tieuDeChuaBatDauDuoc: 'Cannot start yet',
+  canHaiDoi:
+    'You need at least 2 teams to play a match. Create an opponent first.',
+  doiTrungMauAo: (tenDoi: string) =>
+    `Both sides share a kit colour, so ${tenDoi} will play in their away kit.`,
+}
+
+export const DANG_KY_DOI_HINH_EN: BanDich<typeof DANG_KY_DOI_HINH_VI> = {
+  tieuDe: 'Register the line-up',
+  moTa: 'Pick exactly 11 starters and exactly 7 substitutes.',
+  nhanChinh: 'Starting line-up',
+  nhanDuBi: 'Substitutes',
+  nhanNgoai: 'Not registered',
+  demChinh: (co: number, can: number) => `${co}/${can} starters`,
+  demDuBi: (co: number, can: number) => `${co}/${can} substitutes`,
+  dungTheoChienThuat: 'Take from the saved tactics',
+}
+
+export const LY_DO_KHONG_BAT_DAU_EN: BanDich<typeof LY_DO_KHONG_BAT_DAU_VI> = {
+  cungMotDoi: 'Both sides are the same team. Choose two different teams.',
+  chuaDuChinh: (tenDoi: string, co: number, can: number) =>
+    `${tenDoi} only have ${co} of ${can} starters.`,
+  chuaDungDuBi: (tenDoi: string, co: number, can: number) =>
+    `${tenDoi} have registered ${co} substitutes, but exactly ${can} are needed.`,
+  thieuThuMon: (tenDoi: string) => `${tenDoi} have no goalkeeper in goal.`,
+  hoSoChuaHoanTat: (tenDoi: string, ten: readonly string[]) =>
+    `${tenDoi} still have players missing attributes: ${ten.join(', ')}.`,
+  khongDuNguoi: (tenDoi: string, co: number) =>
+    `${tenDoi} only have ${co} players in the squad, not the 18 needed to register.`,
+}
+
+export const TRAN_DAU_EN: BanDich<typeof TRAN_DAU_VI> = {
+  tieuDe: 'Match',
+  phut: (p: number, buGio: boolean) => (buGio ? `${p}'+` : `${p}'`),
+  tamDung: 'Pause',
+  tiepTuc: 'Resume',
+  chayHet: 'Play the match out',
+  nhanTocDo: 'Speed',
+  tocDo: {
+    thuong: 'Normal',
+    nhanh: 'Fast',
+    ratNhanh: 'Very fast',
+  },
+  tieuDeDienBien: 'Commentary',
+  chuaBatDau: 'The match has not started.',
+  daKetThuc: 'The match has finished.',
+  canhBaoRoiTrang:
+    'Leaving the page abandons the match in progress. The match code will still let you replay this exact match later.',
+  nhanKietSuc: 'Exhausted',
+  nhanTheVang: 'Yellow card',
+  nhanTheDo: 'Red card',
+  quayLai: 'Leave match',
+}
+
+export const THAY_NGUOI_EN: BanDich<typeof THAY_NGUOI_VI> = {
+  tieuDe: 'Substitution',
+  conLuot: (con: number, toiDa: number) =>
+    `${con} of ${toiDa} substitutions left.`,
+  canTamDung: 'Pause the match before making a substitution.',
+  nhanRa: 'Coming off',
+  nhanVao: 'Going on',
+  chonCauThu: '— Choose a player —',
+  thucHien: 'Substitute',
+  hetLuot: 'No substitutions left.',
+  khongCoDuBi:
+    'This team registered no substitutes, so no substitutions can be made in this match.',
+}
+
+export const CAN_THIEP_GIUA_TRAN_EN: BanDich<typeof CAN_THIEP_GIUA_TRAN_VI> = {
+  tieuDeChiThi: 'Change instructions during the match',
+  moTa: 'Changes apply from the next minute; the minutes already played are unaffected.',
+  chiDoiDuocDoiCuaBan: 'You can only make changes to your own team.',
+}
+
+
+export const BAO_CAO_SAU_TRAN_EN: BanDich<typeof BAO_CAO_SAU_TRAN_VI> = {
+  tieuDe: 'Match report',
+  tieuDeGhiBan: 'Goalscorers',
+  chuaCoBanThang: 'There were no goals in this match.',
+  phut: (phut: number, buGio: boolean) => `${phut}'${buGio ? '+' : ''}`,
+
+  tieuDeChiTieu: 'Match statistics',
+  cotChiTieu: 'Statistic',
+  chiTieu: {
+    cuSut: 'Shots',
+    sutTrungDich: 'Shots on target',
+    kiemSoatBong: 'Possession',
+    coHoiRoRang: 'Clear-cut chances',
+    theVang: 'Yellow cards',
+    theDo: 'Red cards',
+  },
+  phanTram: (x: number) => `${x}%`,
+
+  tieuDeDiem: 'Player ratings',
+  moTaDiem:
+    'Rated 1–10, starting from 6.0. Tap a player to see the figures behind the rating.',
+  cotCauThu: 'Player',
+  cotViTri: 'Position',
+  cotDiem: 'Rating',
+  moBang: 'Show the figures',
+  dongBang: 'Hide the figures',
+  cotSoLieu: 'Figure',
+  cotGopDiem: 'Effect on rating',
+  diemNen: 'Base rating',
+  khongCoSoLieu: 'This player recorded nothing of note in the match.',
+
+  tieuChi: {
+    'ban-thang': 'Goals',
+    'kien-tao': 'Assists',
+    'sut-trung-dich': 'Shots on target',
+    'ti-le-chuyen': 'Pass completion',
+    'cuop-bong': 'Balls won',
+    'mat-bong': 'Possession lost',
+    'pham-loi': 'Fouls',
+    'can-cuu': 'Saves',
+    'tran-diem': 'Capped at 10',
+    'san-diem': 'Floored at 1',
+  },
+
+  tieuChiTheoPhanTram: new Set(['ti-le-chuyen']),
+
+  vaoSanPhut: (phut: number) => `on in the ${phut}th minute`,
+  raSanPhut: (phut: number) => `off in the ${phut}th minute`,
+  daTronTran: 'played the full match',
+
+  tieuDeDauLai: 'Replay this fixture',
+  moTaDauLai:
+    'No need to pick the teams or register the line-ups again. Keep the match code and you get exactly the match you just saw.',
+  dauLaiCungMa: 'Replay with the same code',
+  dauLaiMaMoi: 'Replay with a new code',
+}
+
+export const VAO_BAT_GON_EN: BanDich<typeof VAO_BAT_GON_VI> = {
+  tieuDeTrong: 'The goal is unguarded',
+  tieuDeChuaChay: (ten: string) => `${ten} is standing in goal`,
+  moTa:
+    'Choose an outfield player to go in goal. He will be badly out of position and lose effectiveness.',
+  nhanChon: 'Player going in goal',
+  chonCauThu: '— choose —',
+  thucHien: 'Put him in goal',
+  conLuotThay: (conLuot: number) =>
+    `${conLuot} substitutions left: bring the reserve keeper on for another player, then put him in goal.`,
+  hetLuotThay:
+    'There are no substitutions left, so an outfield player has to do it.',
+  canTamDung: 'Pause the match to choose who goes in goal.',
+}
+
+export const SO_SANH_TRAN_EN: BanDich<typeof SO_SANH_TRAN_VI> = {
+  tieuDe: 'Against the previous run of this match code',
+  moTa: 'The earlier result is kept only for this session.',
+  cotChiTieu: 'Statistic',
+  cotLanTruoc: 'Previous run',
+  cotLanNay: 'This run',
+  tiSo: 'Score',
+  cuSut: 'Shots',
+  coHoi: 'Clear-cut chances',
+  hai: (nha: number, khach: number) => `${nha} – ${khach}`,
 }

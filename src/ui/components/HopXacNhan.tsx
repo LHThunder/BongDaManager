@@ -1,5 +1,6 @@
+import { useChuoi } from '../../hooks/useNgonNgu'
 import { useEffect, useRef } from 'react'
-import { CHUNG } from '../strings'
+
 
 interface Props {
   readonly tieuDe: string
@@ -23,6 +24,7 @@ export function HopXacNhan({
   onXacNhan,
   onHuy,
 }: Props) {
+  const { CHUNG } = useChuoi()
   const nutHuy = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {

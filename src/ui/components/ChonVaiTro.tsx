@@ -5,7 +5,7 @@ import {
   type RoleId,
 } from '../../domain/roles'
 import type { Player, PositionId } from '../../domain/types'
-import { CHUNG, VAI_TRO } from '../strings'
+
 
 interface Props {
   readonly viTri: PositionId
@@ -27,7 +27,7 @@ export function ChonVaiTro({
   onChon,
   onDong,
 }: Props) {
-  const { NHAN_VAI_TRO, NHAN_CHI_SO, NHAN_VI_TRI } = useChuoi()
+  const { NHAN_VAI_TRO, NHAN_CHI_SO, NHAN_VI_TRI, CHUNG, VAI_TRO } = useChuoi()
   const cacVaiTro = vaiTroChoViTri(viTri)
 
   return (
@@ -99,7 +99,7 @@ interface CanhBaoProps {
  * nói sai về chính dữ liệu của họ.
  */
 function CanhBaoChuaDat({ cauThu, vaiTroId }: CanhBaoProps) {
-  const { NHAN_CHI_SO } = useChuoi()
+  const { NHAN_CHI_SO, VAI_TRO } = useChuoi()
   const chuaDat = chiSoChuaDat(vaiTroId, cauThu)
   const chuaDien = chuaDat.filter((c) => c.giaTri === null)
   const thapHon = chuaDat.filter((c) => c.giaTri !== null)

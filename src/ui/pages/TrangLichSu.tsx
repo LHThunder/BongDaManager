@@ -1,3 +1,4 @@
+import { useChuoi } from '../../hooks/useNgonNgu'
 import { useEffect, useState } from 'react'
 import { PHIEN_BAN_ENGINE } from '../../engine/tran'
 import * as matchRepo from '../../services/matchRepo'
@@ -7,7 +8,7 @@ import type { AnhChupDoi, TomTatTran, TranDaLuu } from '../../storage/db'
 import { BangDiemCauThu } from '../components/BangDiemCauThu'
 import { DanhSachGhiBan } from '../components/DanhSachGhiBan'
 import { DongTuongThuat } from '../components/DongTuongThuat'
-import { BAO_CAO_SAU_TRAN, CHUNG, LICH_SU } from '../strings'
+import { LICH_SU } from '../strings'
 
 interface Props {
   readonly onQuayLai: () => void
@@ -31,6 +32,7 @@ function ngayGio(mocMs: number): string {
 }
 
 export function TrangLichSu({ onQuayLai, onDauLai }: Props) {
+  const { BAO_CAO_SAU_TRAN, CHUNG } = useChuoi()
   const teams = useAppStore((s) => s.teams)
   const lichSu = useAppStore((s) => s.lichSu)
   const datLichSu = useAppStore((s) => s.datLichSu)

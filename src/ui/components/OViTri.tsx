@@ -4,7 +4,7 @@ import { MUC_TRU_HIEU_SUAT, type MucSai } from '../../domain/misplacement'
 import { useChuoi } from '../../hooks/useNgonNgu'
 import { chiSoChuaDat, type RoleId } from '../../domain/roles'
 import type { Player } from '../../domain/types'
-import { SAI_VI_TRI, TRANG_CHIEN_THUAT, VAI_TRO } from '../strings'
+
 import { AnhThayThe } from './AnhThayThe'
 import { idKeo, type DuLieuKeo } from './DanhSachNgoaiSan'
 
@@ -51,7 +51,7 @@ export function OViTri({
   dangChon = false,
   onChon,
 }: Props) {
-  const { NHAN_VI_TRI, NHAN_VAI_TRO } = useChuoi()
+  const { NHAN_VI_TRI, NHAN_VAI_TRO, SAI_VI_TRI, TRANG_CHIEN_THUAT, VAI_TRO } = useChuoi()
   const nhanViTri = NHAN_VI_TRI[o.viTri]
 
   // Cảnh báo ngay tại ô khi cầu thủ chưa đáp ứng vai trò (AC-6.4); chi tiết

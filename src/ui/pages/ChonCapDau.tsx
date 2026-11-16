@@ -1,3 +1,5 @@
+import { useChuoi } from '../../hooks/useNgonNgu'
+import type { BoChuoi } from '../ngonNgu'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { laySoDo } from '../../domain/formations'
 import { MUC_SAI_TOI_DA_KHI_XEP, xepLaiKhiDoiSoDo } from '../../domain/lineup'
@@ -31,12 +33,7 @@ import {
   DangKyDoiHinh,
   type VaiTroDangKy,
 } from '../components/DangKyDoiHinh'
-import {
-  CHON_CAP_DAU,
-  CHUNG,
-  LY_DO_KHONG_BAT_DAU,
-  TINH_TRANG_DOI_HINH,
-} from '../strings'
+
 
 interface Props {
   readonly onQuayLai: () => void
@@ -143,6 +140,7 @@ function dangKyMacDinh(
 
 /** Màn chọn cặp đấu, chỉ định chủ nhà và đăng ký 11+7 (AC-8.9, AC-8.10, AC-9.9). */
 export function ChonCapDau({ onQuayLai, onDaBatDau }: Props) {
+  const { CHON_CAP_DAU, CHUNG, LY_DO_KHONG_BAT_DAU, TINH_TRANG_DOI_HINH } = useChuoi()
   const teams = useAppStore((s) => s.teams)
   const { napDanhSachDoi } = useTeams()
   const { batDauTran, lyDoKhongBatDau } = useMatch()
@@ -512,7 +510,13 @@ export function ChonCapDau({ onQuayLai, onDaBatDau }: Props) {
               <ul className="mt-1 space-y-0.5 text-sm text-amber-900">
                 {lyDoKhongBatDau.map((ly, i) => (
                   <li key={`${ly.loai}-${i}`}>
-                    {cauLyDo(ly, tenDoi, quanSo)}
+                    {cauLyDo(
+                      ly,
+                      tenDoi,
+                      quanSo,
+                      LY_DO_KHONG_BAT_DAU,
+                      TINH_TRANG_DOI_HINH,
+                    )}
                   </li>
                 ))}
               </ul>
@@ -538,6 +542,8 @@ function cauLyDo(
   ly: LyDoKhongBatDau,
   tenDoi: (ben: 'nha' | 'khach') => string,
   quanSo: number,
+  LY_DO_KHONG_BAT_DAU: BoChuoi['LY_DO_KHONG_BAT_DAU'],
+  TINH_TRANG_DOI_HINH: BoChuoi['TINH_TRANG_DOI_HINH'],
 ): string {
   switch (ly.loai) {
     case 'cung-mot-doi':

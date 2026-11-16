@@ -1,5 +1,7 @@
+import { useChuoi } from '../../hooks/useNgonNgu'
+import type { BoChuoi } from '../ngonNgu'
 import { CAC_MUC_TOC_DO, type MucTocDo } from '../../hooks/useMatch'
-import { TRAN_DAU } from '../strings'
+
 
 interface Props {
   readonly dangChay: boolean
@@ -11,10 +13,16 @@ interface Props {
   readonly onDoiTocDo: (tocDo: MucTocDo) => void
 }
 
-const NHAN_TOC_DO: Readonly<Record<MucTocDo, string>> = {
-  thuong: TRAN_DAU.tocDo.thuong,
-  nhanh: TRAN_DAU.tocDo.nhanh,
-  'rat-nhanh': TRAN_DAU.tocDo.ratNhanh,
+/*
+  Ở tầng module chỉ giữ được KHOÁ, không giữ được nhãn: nhãn phụ thuộc ngôn
+  ngữ đang chọn nên phải tra lúc vẽ, trong thân component (P8).
+*/
+const KHOA_TOC_DO: Readonly<
+  Record<MucTocDo, keyof BoChuoi['TRAN_DAU']['tocDo']>
+> = {
+  thuong: 'thuong',
+  nhanh: 'nhanh',
+  'rat-nhanh': 'ratNhanh',
 }
 
 /** Tạm dừng, đổi tốc độ và chạy hết trận (AC-9.2, AC-9.3, AC-9.4). */
@@ -27,6 +35,7 @@ export function BangDieuKhienTran({
   onChayHet,
   onDoiTocDo,
 }: Props) {
+  const { TRAN_DAU } = useChuoi()
   return (
     <div className="flex flex-wrap items-center gap-3">
       <button
@@ -67,7 +76,7 @@ export function BangDieuKhienTran({
               onChange={() => onDoiTocDo(m)}
               className="sr-only"
             />
-            {NHAN_TOC_DO[m]}
+            {TRAN_DAU.tocDo[KHOA_TOC_DO[m]]}
           </label>
         ))}
       </fieldset>

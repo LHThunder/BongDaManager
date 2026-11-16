@@ -1,6 +1,7 @@
+import { useChuoi } from '../../hooks/useNgonNgu'
 import { useState } from 'react'
 import type { Tactic } from '../../domain/types'
-import { BO_CHIEN_THUAT, TEN_SO_DO } from '../strings'
+
 
 interface Props {
   readonly cacBo: readonly Tactic[]
@@ -17,6 +18,7 @@ export function BoChienThuat({
   onLuuThanhBo,
   onApDung,
 }: Props) {
+  const { BO_CHIEN_THUAT, TEN_SO_DO } = useChuoi()
   const [ten, datTen] = useState('')
   const tenGon = ten.trim()
 

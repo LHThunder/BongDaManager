@@ -21,17 +21,7 @@ import { San2D } from '../components/San2D'
 import { ChiThiDoi } from '../components/ChiThiDoi'
 import { DongTuongThuat } from '../components/DongTuongThuat'
 import { ThayNguoi } from '../components/ThayNguoi'
-import {
-  CAN_THIEP_GIUA_TRAN,
-  CHON_CAP_DAU,
-  CHUNG,
-  LICH_SU,
-  LY_DO_TU_CHOI_CAN_THIEP,
-  SO_SANH_TRAN,
-  SAN_2D,
-  TRAN_DAU,
-  VAO_BAT_GON,
-} from '../strings'
+import { LICH_SU, LY_DO_TU_CHOI_CAN_THIEP, SAN_2D } from '../strings'
 
 interface Props {
   readonly onRoiTran: () => void
@@ -44,7 +34,7 @@ interface Props {
  * Trận sống trong bộ nhớ: rời trang là mất (AC-9.10, quyết định D32).
  */
 export function TrangTran({ onRoiTran }: Props) {
-  const { NHAN_VI_TRI } = useChuoi()
+  const { NHAN_VI_TRI, CAN_THIEP_GIUA_TRAN, CHON_CAP_DAU, CHUNG, SO_SANH_TRAN, TRAN_DAU, VAO_BAT_GON } = useChuoi()
   const {
     tran,
     dangChay,

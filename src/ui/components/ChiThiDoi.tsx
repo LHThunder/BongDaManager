@@ -8,7 +8,7 @@ import {
 } from '../../domain/instructions'
 import { useChuoi } from '../../hooks/useNgonNgu'
 import { nhanMucChiThi } from '../ngonNgu'
-import { CHI_THI_DOI } from '../strings'
+
 
 interface Props {
   readonly chiThi: BoChiThi
@@ -36,7 +36,7 @@ function datMuc<K extends ChiThiId>(
  * vẫn bật bẫy việt vị là một lựa chọn tồi, nhưng là lựa chọn của người dùng.
  */
 export function ChiThiDoi({ chiThi, onDoi }: Props) {
-  const { NHAN_CHI_THI, CANH_BAO_XUNG_DOT } = useChuoi()
+  const { NHAN_CHI_THI, CANH_BAO_XUNG_DOT, CHI_THI_DOI } = useChuoi()
   const xungDot = cacXungDot(chiThi)
   const chiThiCoXungDot = new Set(xungDot.flatMap((x) => x.cacChiThi))
 

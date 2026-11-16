@@ -1,6 +1,7 @@
+import { useChuoi } from '../../hooks/useNgonNgu'
 import type { BaoCaoTran, ChiTieuBen } from '../../engine/baoCao'
 import type { BenDoi } from '../../engine/suKien'
-import { BAO_CAO_SAU_TRAN } from '../strings'
+
 import { BangDiemCauThu } from './BangDiemCauThu'
 import { DanhSachGhiBan } from './DanhSachGhiBan'
 
@@ -13,21 +14,20 @@ interface Props {
 }
 
 /** Sáu chỉ tiêu của AC-11.2, theo đúng thứ tự spec liệt kê. */
+/*
+  Bảng này chỉ còn phần CẤU TRÚC — khoá và cờ phần trăm. Nhãn tra theo khoá
+  lúc vẽ, vì `chiTieu` của hai bảng chuỗi dùng đúng tập khoá ấy (P8).
+*/
 const CAC_CHI_TIEU: readonly {
   readonly khoa: keyof ChiTieuBen
-  readonly nhan: string
   readonly phanTram?: boolean
 }[] = [
-  { khoa: 'cuSut', nhan: BAO_CAO_SAU_TRAN.chiTieu.cuSut },
-  { khoa: 'sutTrungDich', nhan: BAO_CAO_SAU_TRAN.chiTieu.sutTrungDich },
-  {
-    khoa: 'kiemSoatBong',
-    nhan: BAO_CAO_SAU_TRAN.chiTieu.kiemSoatBong,
-    phanTram: true,
-  },
-  { khoa: 'coHoiRoRang', nhan: BAO_CAO_SAU_TRAN.chiTieu.coHoiRoRang },
-  { khoa: 'theVang', nhan: BAO_CAO_SAU_TRAN.chiTieu.theVang },
-  { khoa: 'theDo', nhan: BAO_CAO_SAU_TRAN.chiTieu.theDo },
+  { khoa: 'cuSut' },
+  { khoa: 'sutTrungDich' },
+  { khoa: 'kiemSoatBong', phanTram: true },
+  { khoa: 'coHoiRoRang' },
+  { khoa: 'theVang' },
+  { khoa: 'theDo' },
 ]
 
 /**
@@ -44,6 +44,7 @@ export function BaoCaoSauTran({
   onDauLaiCungMa,
   onDauLaiMaMoi,
 }: Props) {
+  const { BAO_CAO_SAU_TRAN } = useChuoi()
   return (
     <section className="rounded-lg border border-slate-200 bg-white p-4">
       <h3 className="text-lg font-semibold text-slate-900">
@@ -90,7 +91,7 @@ export function BaoCaoSauTran({
                     {hien(baoCao.theoBen.nha[ct.khoa])}
                   </td>
                   <td className="py-0.5 text-center text-slate-600">
-                    {ct.nhan}
+                    {BAO_CAO_SAU_TRAN.chiTieu[ct.khoa]}
                   </td>
                   <td className="py-0.5 text-right font-mono font-semibold">
                     {hien(baoCao.theoBen.khach[ct.khoa])}

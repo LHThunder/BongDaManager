@@ -1,4 +1,5 @@
 import { useChuoi } from '../../hooks/useNgonNgu'
+import type { BoChuoi } from '../ngonNgu'
 import {
   DndContext,
   KeyboardCode,
@@ -38,14 +39,7 @@ import { SanBong } from '../components/SanBong'
 import { BoChienThuat } from '../components/BoChienThuat'
 import { ChiThiDoi } from '../components/ChiThiDoi'
 import { ChonVaiTro } from '../components/ChonVaiTro'
-import {
-  CHUNG,
-  DOI_SO_DO,
-  MUC_SAI_VI_TRI,
-  TEN_SO_DO,
-  TINH_TRANG_DOI_HINH,
-  TRANG_CHIEN_THUAT,
-} from '../strings'
+
 
 interface Props {
   readonly teamId: string
@@ -128,6 +122,7 @@ function cauLyDo(
   ly: LyDoChuaDuDieuKien,
   cauThu: readonly Player[],
   soO: number,
+  TINH_TRANG_DOI_HINH: BoChuoi['TINH_TRANG_DOI_HINH'],
 ): string {
   switch (ly.loai) {
     case 'thieu-nguoi':
@@ -152,7 +147,7 @@ function cauLyDo(
   so sánh bằng Object.is không bị render lặp.
 */
 export function TrangChienThuat({ teamId, onQuayLai }: Props) {
-  const { NHAN_VI_TRI } = useChuoi()
+  const { NHAN_VI_TRI, CHUNG, DOI_SO_DO, MUC_SAI_VI_TRI, TEN_SO_DO, TINH_TRANG_DOI_HINH, TRANG_CHIEN_THUAT } = useChuoi()
   const tenDoi = useAppStore(
     (s) => s.teams.find((d) => d.id === teamId)?.name ?? null,
   )
@@ -453,7 +448,7 @@ export function TrangChienThuat({ teamId, onQuayLai }: Props) {
             </p>
             <ul className="mt-1 space-y-0.5 text-sm text-amber-900">
               {tinhTrang.cacLyDo.map((ly) => (
-                <li key={ly.loai}>{cauLyDo(ly, cauThu, soDo.oVien.length)}</li>
+                <li key={ly.loai}>{cauLyDo(ly, cauThu, soDo.oVien.length, TINH_TRANG_DOI_HINH)}</li>
               ))}
             </ul>
           </>

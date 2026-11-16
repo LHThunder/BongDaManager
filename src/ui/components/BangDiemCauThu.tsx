@@ -1,8 +1,9 @@
 import { useChuoi } from '../../hooks/useNgonNgu'
+import type { BoChuoi } from '../ngonNgu'
 import { useState } from 'react'
 import type { DiemCuaCauThu } from '../../engine/baoCao'
 import { DIEM_NEN } from '../../engine/diemCauThu'
-import { BAO_CAO_SAU_TRAN } from '../strings'
+
 
 interface Props {
   readonly diemCauThu: readonly DiemCuaCauThu[]
@@ -10,16 +11,23 @@ interface Props {
 }
 
 /** Câu mô tả khoảng thời gian một người có mặt trên sân (AC-11.5). */
-function khoangThoiGian(x: DiemCuaCauThu): string {
+function khoangThoiGian(
+  x: DiemCuaCauThu,
+  chu: BoChuoi['BAO_CAO_SAU_TRAN'],
+): string {
   const phan: string[] = []
-  if (x.phutVao !== null) phan.push(BAO_CAO_SAU_TRAN.vaoSanPhut(x.phutVao))
-  if (x.phutRa !== null) phan.push(BAO_CAO_SAU_TRAN.raSanPhut(x.phutRa))
-  return phan.length === 0 ? BAO_CAO_SAU_TRAN.daTronTran : phan.join(', ')
+  if (x.phutVao !== null) phan.push(chu.vaoSanPhut(x.phutVao))
+  if (x.phutRa !== null) phan.push(chu.raSanPhut(x.phutRa))
+  return phan.length === 0 ? chu.daTronTran : phan.join(', ')
 }
 
-function soLieuHienThi(tieuChi: string, soLieu: number): string {
-  return BAO_CAO_SAU_TRAN.tieuChiTheoPhanTram.has(tieuChi)
-    ? BAO_CAO_SAU_TRAN.phanTram(soLieu)
+function soLieuHienThi(
+  tieuChi: string,
+  soLieu: number,
+  chu: BoChuoi['BAO_CAO_SAU_TRAN'],
+): string {
+  return chu.tieuChiTheoPhanTram.has(tieuChi)
+    ? chu.phanTram(soLieu)
     : String(soLieu)
 }
 
@@ -35,7 +43,7 @@ function dauCuaDiem(diemCong: number): string {
  * có **nhãn chữ** đi kèm chứ không chỉ dựa vào màu.
  */
 export function BangDiemCauThu({ diemCauThu, tenCauThu }: Props) {
-  const { NHAN_VI_TRI } = useChuoi()
+  const { NHAN_VI_TRI, BAO_CAO_SAU_TRAN } = useChuoi()
   const [dangMo, datDangMo] = useState<string | null>(null)
 
   const theoDiem = [...diemCauThu].sort((a, b) => b.diem - a.diem)
@@ -61,7 +69,7 @@ export function BangDiemCauThu({ diemCauThu, tenCauThu }: Props) {
               <span className="flex-1 text-slate-900">
                 {tenCauThu(x.playerId)}
                 <span className="ml-2 text-xs text-slate-500">
-                  {khoangThoiGian(x)}
+                  {khoangThoiGian(x, BAO_CAO_SAU_TRAN)}
                 </span>
               </span>
               <span className="w-16 text-slate-600">
@@ -108,7 +116,7 @@ export function BangDiemCauThu({ diemCauThu, tenCauThu }: Props) {
                           {BAO_CAO_SAU_TRAN.tieuChi[tp.tieuChi] ?? tp.tieuChi}
                         </span>
                         <span className="w-16 text-right font-mono">
-                          {soLieuHienThi(tp.tieuChi, tp.soLieu)}
+                          {soLieuHienThi(tp.tieuChi, tp.soLieu, BAO_CAO_SAU_TRAN)}
                         </span>
                         <span className="w-16 text-right font-mono">
                           {dauCuaDiem(tp.diemCong)}

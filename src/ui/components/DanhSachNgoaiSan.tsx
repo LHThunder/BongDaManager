@@ -1,6 +1,7 @@
+import { useChuoi } from '../../hooks/useNgonNgu'
 import { useDraggable, useDroppable } from '@dnd-kit/core'
 import type { Player } from '../../domain/types'
-import { TRANG_CHIEN_THUAT } from '../strings'
+
 import { AnhThayThe } from './AnhThayThe'
 
 /** Id droppable của vùng ngoài sân; kéo vào đây là đưa cầu thủ ra khỏi sân. */
@@ -23,6 +24,7 @@ interface MucProps {
 }
 
 function MucNgoaiSan({ cauThu, mauAo }: MucProps) {
+  const { TRANG_CHIEN_THUAT } = useChuoi()
   const duLieu: DuLieuKeo = { playerId: cauThu.id, slotId: null }
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({
@@ -80,6 +82,7 @@ interface Props {
  * thành trống và họ quay về danh sách này.
  */
 export function DanhSachNgoaiSan({ cauThu, mauAo, doiRong }: Props) {
+  const { TRANG_CHIEN_THUAT } = useChuoi()
   const { setNodeRef, isOver } = useDroppable({ id: ID_NGOAI_SAN })
 
   return (

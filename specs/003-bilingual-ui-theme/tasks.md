@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | 36 AC (US-17 → US-23) |
-| **Tiến độ** | 22/43 |
+| **Tiến độ** | 23/43 |
 | **Sửa đổi** | 2026-11-16 — chẻ lần đầu từ plan, rồi sửa theo cả 8 phát hiện của `/analyze`; thêm T341–T342 lúc làm Phase 23 |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -171,8 +171,8 @@ duyệt theme**. Không có nó thì T326 áp theme ra 27 file còn lại rồi 
   - AC: AC-19.4, AC-22.1
   - Phụ thuộc: T303
 
-- [ ] **T318** [P] — Nhóm màn hình trận đấu
-  - File: sửa `src/ui/pages/ChonCapDau.tsx`, `src/ui/components/{DangKyDoiHinh,BangDieuKhienTran,ThayNguoi,BangChiSo,BaoCaoSauTran,BangDiemCauThu,DanhSachGhiBan}.tsx`
+- [x] **T318** [P] — Nhóm màn hình trận đấu
+  - File: sửa `src/ui/pages/{ChonCapDau,TrangChienThuat,TrangTran,TrangDoi,TrangLichSu}.tsx`, `src/ui/components/{DangKyDoiHinh,BangDieuKhienTran,ThayNguoi,BaoCaoSauTran,BangDiemCauThu,DanhSachGhiBan,OViTri,ChonVaiTro,ChiThiDoi,BoChienThuat,DanhSachNgoaiSan,DongTuongThuat,HopXacNhan}.tsx` — 18 khối trong `ngonNgu/{en,index}.ts`
   - Xong khi: dựng và đá trọn một trận ở cả hai ngôn ngữ, không sót chữ.
   - AC: AC-22.1
   - Phụ thuộc: T303
@@ -369,6 +369,18 @@ duyệt theme**. Không có nó thì T326 áp theme ra 27 file còn lại rồi 
   dẫn file sai đã sửa; T326 chẻ thành T326/T338/T339/T340; con số "31 màn"
   sửa thành 28 file; `SO_MAU_CAU` ghi vào T313; T035 gộp vào T334; AC-4.7
   ghi vào T320.
+- **T318 chạm 19 file, không phải 8.** Danh sách file của task chỉ kể nhóm
+  "màn hình trận đấu", nhưng 18 khối của nó còn được đọc ở trang chiến thuật,
+  trang đội, trang lịch sử, hộp xác nhận và dòng tường thuật. Lần thứ tư
+  cùng một kiểu sai: danh sách file trong tasks.md được viết theo TÊN KHỐI,
+  còn phạm vi thật là MỌI NƠI ĐỌC KHỐI ẤY — phải `grep` tên khối trước khi
+  chốt danh sách file.
+- **Ba chỗ bảng ở tầng module giữ nhãn.** `NHAN_TOC_DO` (BangDieuKhienTran),
+  `CAC_CHI_TIEU` (BaoCaoSauTran) và `NHAN_THEO_LOAI` (DongTuongThuat) dựng
+  nhãn ngay lúc nạp module, tức trước khi biết ngôn ngữ. Cả ba đã đổi thành
+  bảng chỉ giữ KHOÁ, nhãn tra trong thân component. Hai hàm trợ giúp ở tầng
+  module (`cauLyDo` ở hai trang, `khoangThoiGian`/`soLieuHienThi`) nhận bảng
+  chuỗi làm tham số — cùng cách đã dùng cho `hinhSan()` ở T214.
 - **Hiến pháp mục 4:** T300 chạm lớp đọc/ghi dữ liệu nên **chưa có test là
   chưa xong**. T315, T321, T322, T328 là test, không phải việc phụ.
 - **Rủi ro R31** đã thành T310: test nhãn **đi theo nhãn**, không bị xoá.

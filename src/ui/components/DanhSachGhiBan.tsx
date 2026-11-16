@@ -1,6 +1,7 @@
+import { useChuoi } from '../../hooks/useNgonNgu'
 import type { BenDoi } from '../../engine/suKien'
 import type { NguoiGhiBan } from '../../engine/baoCao'
-import { BAO_CAO_SAU_TRAN } from '../strings'
+
 
 interface Props {
   readonly nguoiGhiBan: readonly NguoiGhiBan[]
@@ -15,6 +16,7 @@ interface Props {
  * trình tự nó đã diễn ra.
  */
 export function DanhSachGhiBan({ nguoiGhiBan, tenCauThu, tenDoi }: Props) {
+  const { BAO_CAO_SAU_TRAN } = useChuoi()
   if (nguoiGhiBan.length === 0) {
     return (
       <p className="text-sm text-slate-500">

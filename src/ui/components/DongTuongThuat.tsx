@@ -1,5 +1,6 @@
+import { useChuoi } from '../../hooks/useNgonNgu'
 import type { SuKien } from '../../engine/suKien'
-import { TRAN_DAU } from '../strings'
+
 import { useAppStore } from '../../store/appStore'
 import { dungCauTuongThuat } from '../tuongThuat'
 
@@ -9,11 +10,18 @@ interface Props {
   readonly tenDoi: (ben: SuKien['doi']) => string
 }
 
-/** Nhãn chữ cho những sự kiện cần nhận ra ngay, không chỉ bằng màu (P9). */
-const NHAN_THEO_LOAI: Partial<Record<SuKien['loai'], string>> = {
-  'the-vang': TRAN_DAU.nhanTheVang,
-  'the-do': TRAN_DAU.nhanTheDo,
-  'kiet-suc': TRAN_DAU.nhanKietSuc,
+/*
+  Nhãn chữ cho những sự kiện cần nhận ra ngay, không chỉ bằng màu (P9).
+
+  Ở tầng module chỉ giữ được KHOÁ: nhãn phụ thuộc ngôn ngữ đang chọn nên
+  phải tra lúc vẽ, trong thân component (P8).
+*/
+const KHOA_NHAN: Partial<
+  Record<SuKien['loai'], 'nhanTheVang' | 'nhanTheDo' | 'nhanKietSuc'>
+> = {
+  'the-vang': 'nhanTheVang',
+  'the-do': 'nhanTheDo',
+  'kiet-suc': 'nhanKietSuc',
 }
 
 const MAU_NHAN: Partial<Record<SuKien['loai'], string>> = {
@@ -31,6 +39,11 @@ const MAU_NHAN: Partial<Record<SuKien['loai'], string>> = {
  * Anh mà chỉ chạy thử mới lộ ra.
  */
 export function DongTuongThuat({ cacSuKien, tenCauThu, tenDoi }: Props) {
+  const { TRAN_DAU } = useChuoi()
+  const nhanLoai = (loai: SuKien['loai']): string | undefined => {
+    const khoa = KHOA_NHAN[loai]
+    return khoa === undefined ? undefined : TRAN_DAU[khoa]
+  }
   /*
     Đọc ngôn ngữ từ store chứ không nhận qua prop: dòng tường thuật được
     dựng LẠI mỗi lần vẽ, nên đổi ngôn ngữ giữa trận là mọi dòng đã hiện
@@ -61,13 +74,13 @@ export function DongTuongThuat({ cacSuKien, tenCauThu, tenDoi }: Props) {
               {TRAN_DAU.phut(sk.phut, sk.buGio)}
             </span>
             <span className="flex-1 text-slate-800">
-              {NHAN_THEO_LOAI[sk.loai] && (
+              {nhanLoai(sk.loai) && (
                 <span
                   className={`mr-1 rounded px-1 text-xs font-medium ${
                     MAU_NHAN[sk.loai] ?? 'bg-slate-200 text-slate-800'
                   }`}
                 >
-                  {NHAN_THEO_LOAI[sk.loai]}
+                  {nhanLoai(sk.loai)}
                 </span>
               )}
               {dungCauTuongThuat(sk, tenCauThu, tenDoi, ngonNgu)}
