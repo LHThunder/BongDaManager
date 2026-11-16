@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **ID** | `004-squad-tools-and-what-if` |
-| **Status** | Clarified (2026-11-17) |
+| **Status** | Planned (2026-11-17) |
 | **Created** | 2026-11-16 |
 | **Branch** | `004-squad-tools-and-what-if` |
 
@@ -127,7 +127,7 @@ việc thử chiến thuật chứ không phải cho việc nhập liệu và cu
 - [ ] AC-26.2 — KHI người dùng sửa hoặc xoá một cầu thủ ở đội nhân bản THÌ đội gốc PHẢI không thay đổi gì, và ngược lại.
 - [ ] AC-26.3 — KHI người dùng nhân bản một đội THÌ đội mới PHẢI **không mang** ảnh chân dung của cầu thủ và logo của đội gốc, mà dùng ảnh thay thế mặc định; và hệ thống PHẢI nói trước điều đó để người dùng không tưởng là lỗi.
 - [ ] AC-26.4 — KHI người dùng lọc danh sách cầu thủ THÌ hệ thống PHẢI lọc được theo **tên, vị trí sở trường, khoảng chỉ số tổng, tuổi, và chân thuận**; các bộ lọc PHẢI kết hợp được với nhau.
-- [ ] AC-26.5 — KHI lọc theo khoảng chỉ số tổng THÌ hệ thống PHẢI nói rõ con số ấy đang tính theo **vai trò nào**, vì chỉ số tổng của một người đổi theo vai trò đang xét.
+- [ ] AC-26.5 — KHI lọc theo khoảng chỉ số tổng THÌ hệ thống PHẢI nói rõ con số ấy đang tính theo **vị trí nào**, vì chỉ số tổng của một người đổi theo vị trí đang xét.
 - [ ] AC-26.6 — KHI người dùng lọc danh sách THÌ danh sách PHẢI chỉ còn những người khớp, và PHẢI nói rõ đang hiện bao nhiêu trên tổng số bao nhiêu.
 - [ ] AC-26.7 — KHI không ai khớp điều kiện lọc THÌ hệ thống PHẢI nói rõ là không có kết quả và cho một thao tác để trở về danh sách đầy đủ.
 - [ ] AC-26.8 — KHI người dùng yêu cầu tự chọn đội hình THÌ hệ thống PHẢI điền các ô của sơ đồ đang dùng, và với **mỗi ô** PHẢI nêu được lý do người đó được chọn.
@@ -279,7 +279,7 @@ Tám câu hỏi mở của mục 8 đã chốt ngày **2026-11-17**.
 | 2 | Tên cầu thủ sinh theo thứ tiếng nào? | **Theo ngôn ngữ giao diện đang chọn**. Tên đã sinh thì giữ nguyên khi đổi ngôn ngữ, vì nó là dữ liệu người dùng chứ không phải nhãn giao diện — đúng quyết định của spec 003 về việc không dịch dữ liệu người dùng. Cần hai kho tên hư cấu trong repo | AC-24.8, mục 6, mục 9 |
 | 3 | Trận rẽ nhánh có lưu vào lịch sử? | **Không lưu** — xem rồi bỏ. Giữ cho spec này không phải đổi mô hình lưu trữ và định dạng tệp sao lưu. Đổi lại, rời màn hình là mất, nên hệ thống phải nói trước | AC-27.9, Non-goals, mục 5 |
 | 4 | Có rẽ nhánh tiếp từ trận đã rẽ nhánh? | **Không.** Mỗi lần rẽ nhánh đều xuất phát từ một trận trong lịch sử. Tránh phải nghĩ cách hiển thị cây nhánh, và tránh để người dùng lạc không biết đang ở nhánh nào | AC-27.10, Non-goals, mục 5 |
-| 5 | Lọc cầu thủ theo tiêu chí nào? | **Cả năm**: tên, vị trí sở trường, khoảng chỉ số tổng, tuổi, chân thuận — và kết hợp được với nhau. Riêng chỉ số tổng phải nói rõ đang tính theo vai trò nào, vì con số ấy đổi theo vai trò | AC-26.4, AC-26.5 |
+| 5 | Lọc cầu thủ theo tiêu chí nào? | **Cả năm**: tên, vị trí sở trường, khoảng chỉ số tổng, tuổi, chân thuận — và kết hợp được với nhau. Riêng chỉ số tổng phải nói rõ đang tính theo **vị trí** nào, vì con số ấy đổi theo vị trí (sửa ngày 2026-11-17 lúc lập plan: bản chốt đầu ghi nhầm là "vai trò"; code tính theo vị trí — `chiSoTongTheoViTri`) | AC-26.4, AC-26.5 |
 | 6 | Nhân bản đội có chép ảnh? | **Không chép.** Bản sao dùng ảnh thay thế mặc định. Chép hết là ~3MB mỗi lần bấm; dùng chung ảnh thì va thẳng vào AC-26.2 "bản sao và gốc không ảnh hưởng nhau" | AC-26.3, Non-goals |
 | 7 | Nội suy chuyển động làm tới đâu? | **Đường cong + tốc độ theo thể lực** — phương án đắt nhất trong ba phương án, người dùng chọn ngược khuyến nghị. Kéo theo hai ràng buộc mới: ngân sách 3 giây một trận phải vẫn đạt với 22 điểm chạy đường cong, và tình trạng thể lực vẫn phải có mặt bằng chữ vì P9 cấm truyền thông tin chỉ bằng chuyển động | AC-25.1, AC-25.7, AC-25.8, AC-25.9, mục 6 |
 | 8 | Đội sinh ngẫu nhiên có mã để tạo lại y hệt? | **Không cần.** Sinh xong là dữ liệu bình thường, sửa thoải mái (AC-24.6); muốn đối chứng thì đã có nhân bản đội | Non-goals |
