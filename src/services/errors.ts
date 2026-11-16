@@ -2,7 +2,7 @@
   Lỗi của lớp services, mang MÃ chứ không mang câu tiếng Việt.
 
   Lớp `services` phải sạch khỏi chuỗi hiển thị: việc dịch mã sang câu tiếng
-  Việt là việc của `ui/strings.ts` (P8 áp dụng ở biên giao diện). Nhờ vậy một
+  Việt là việc của `ui/ngonNgu/` (P8 áp dụng ở biên giao diện). Nhờ vậy một
   mã lỗi chỉ có một câu duy nhất trên toàn ứng dụng, và test của services
   không phải so sánh chuỗi tiếng Việt.
 */
@@ -41,7 +41,7 @@ export type MaLoi =
   | 'InvalidTactic'
 
 /**
- * Thông tin kèm theo lỗi, để `ui/strings.ts` ghép được câu cụ thể —
+ * Thông tin kèm theo lỗi, để `ui/ngonNgu/` ghép được câu cụ thể —
  * ví dụ nêu đúng tên chỉ số nào sai, hay số áo nào đang trùng.
  */
 export interface ChiTietLoi {

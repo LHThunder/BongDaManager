@@ -4,7 +4,7 @@ import { useBackup } from '../../hooks/useBackup'
 import { laLoiUngDung } from '../../services/errors'
 import type { CheDoNhap, TomTatTep } from '../../services/backupService'
 import { useChuoi } from '../../hooks/useNgonNgu'
-import { coTep } from '../strings'
+import { coTep } from '../ngonNgu/soLieu'
 
 interface Props {
   /** Gọi sau khi nhập xong để màn hình nạp lại dữ liệu. */

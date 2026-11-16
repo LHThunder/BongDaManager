@@ -37,6 +37,7 @@ import type {
   DANH_SACH_DOI_VI,
   NGON_NGU_VI,
   CHE_DO_VI,
+  DINH_DANG_VI,
   CANH_BAO_XUNG_DOT_VI,
   NHAN_CHI_SO_VI,
   NHAN_MUC_DO_VI,
@@ -89,6 +90,15 @@ export const NGON_NGU_EN: BanDich<typeof NGON_NGU_VI> = {
   nhan: 'Language',
   vi: 'Tiếng Việt',
   en: 'English',
+}
+
+export const DINH_DANG_EN: BanDich<typeof DINH_DANG_VI> = {
+  /*
+    'en-GB' chứ không phải 'en-US': ứng dụng là bóng đá, và lối ngày
+    ngày-tháng-năm gần với lối tiếng Việt hơn, nên hai bản đọc giống nhau
+    về thứ tự chứ không đảo ngày và tháng cho nhau.
+  */
+  maVung: 'en-GB',
 }
 
 export const CHE_DO_EN: BanDich<typeof CHE_DO_VI> = {
@@ -680,7 +690,8 @@ export const CHON_CAP_DAU_EN: BanDich<typeof CHON_CAP_DAU_VI> = {
 
 export const DANG_KY_DOI_HINH_EN: BanDich<typeof DANG_KY_DOI_HINH_VI> = {
   tieuDe: 'Register the line-up',
-  moTa: 'Pick exactly 11 starters and exactly 7 substitutes.',
+  moTa: (quanSo: number, duBiToiDa: number) =>
+    `Pick exactly ${quanSo} starters, and up to ${duBiToiDa} substitutes.`,
   nhanChinh: 'Starting line-up',
   nhanDuBi: 'Substitutes',
   nhanNgoai: 'Not registered',
@@ -696,8 +707,8 @@ export const LY_DO_KHONG_BAT_DAU_EN: BanDich<typeof LY_DO_KHONG_BAT_DAU_VI> = {
   chuaDungDuBi: (tenDoi: string, co: number, can: number) =>
     `${tenDoi} have registered ${co} substitutes, but exactly ${can} are needed.`,
   thieuThuMon: (tenDoi: string) => `${tenDoi} have no goalkeeper in goal.`,
-  hoSoChuaHoanTat: (tenDoi: string, ten: readonly string[]) =>
-    `${tenDoi} still have players missing attributes: ${ten.join(', ')}.`,
+  hoSoChuaHoanTat: (tenDoi: string, tenCauThu: readonly string[]) =>
+    `${tenDoi} still have players missing attributes: ${tenCauThu.join(', ')}.`,
   khongDuNguoi: (tenDoi: string, co: number) =>
     `${tenDoi} only have ${co} players in the squad, not the 18 needed to register.`,
 }

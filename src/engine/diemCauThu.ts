@@ -14,7 +14,7 @@ import type { ThongKeCauThu } from './tran'
   cầu thủ" là luật bóng đá.
 
   Vì sao `tieuChi` là một khoá chứ không phải câu tiếng Việt: P8 đặt mọi chữ
-  người dùng thấy ở `ui/strings.ts`, và P2 không cho engine giữ chữ của giao
+  người dùng thấy ở `ui/ngonNgu/`, và P2 không cho engine giữ chữ của giao
   diện — cùng lý do mà D22 để engine phát sự kiện có cấu trúc rồi giao diện
   mới dựng câu. (Contract ở `plan.md` mục IV.5 ghi `ten: string`; đó là chỗ
   plan nói ngược hiến pháp, và theo mục 6 Quản trị thì hiến pháp đứng trên.)

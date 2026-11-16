@@ -309,6 +309,26 @@ export function ChonCapDau({ onQuayLai, onDaBatDau }: Props) {
   const tenDoi = (ben: 'nha' | 'khach') =>
     (ben === 'nha' ? doiNha?.name : doiKhach?.name) ?? ''
 
+  /*
+    Tên cầu thủ cho câu lỗi "còn cầu thủ thiếu chỉ số" (AC-23.2).
+
+    Lỗi do engine phát ra chỉ mang MÃ ĐỊNH DANH — đúng như D76 muốn, vì mã
+    là thứ duy nhất không phụ thuộc ngôn ngữ. Việc đổi mã thành tên là việc
+    của tầng giao diện, và đây là chỗ có đủ dữ liệu để làm: cả hai đội đã
+    nạp xong hồ sơ cầu thủ.
+
+    Tìm ở CẢ HAI đội vì câu lỗi không nói mã ấy thuộc bên nào. Không thấy
+    thì giữ nguyên mã — thà hiện một chuỗi khó đọc còn hơn hiện chuỗi rỗng
+    và để người dùng không biết thiếu ai.
+  */
+  const tenCauThu = (playerId: string): string => {
+    for (const id of [idNha, idKhach]) {
+      const p = duLieu[id]?.cauThu.find((x) => x.id === playerId)
+      if (p) return p.name
+    }
+    return playerId
+  }
+
   return (
     <div>
       <button
@@ -486,6 +506,7 @@ export function ChonCapDau({ onQuayLai, onDaBatDau }: Props) {
                 <DangKyDoiHinh
                   key={id}
                   tenDoi={tenDoi(i === 0 ? 'nha' : 'khach')}
+                  quanSo={quanSo}
                   cauThu={duLieu[id].cauThu}
                   dangKy={dangKy[id] ?? {}}
                   onDoi={(playerId, vaiTro) =>
@@ -513,6 +534,7 @@ export function ChonCapDau({ onQuayLai, onDaBatDau }: Props) {
                     {cauLyDo(
                       ly,
                       tenDoi,
+                      tenCauThu,
                       quanSo,
                       LY_DO_KHONG_BAT_DAU,
                       TINH_TRANG_DOI_HINH,
@@ -541,6 +563,7 @@ export function ChonCapDau({ onQuayLai, onDaBatDau }: Props) {
 function cauLyDo(
   ly: LyDoKhongBatDau,
   tenDoi: (ben: 'nha' | 'khach') => string,
+  tenCauThu: (playerId: string) => string,
   quanSo: number,
   LY_DO_KHONG_BAT_DAU: BoChuoi['LY_DO_KHONG_BAT_DAU'],
   TINH_TRANG_DOI_HINH: BoChuoi['TINH_TRANG_DOI_HINH'],
@@ -571,7 +594,7 @@ function cauLyDo(
             case 'ho-so-chua-hoan-tat':
               return LY_DO_KHONG_BAT_DAU.hoSoChuaHoanTat(
                 tenDoi(ly.doi),
-                l.cacPlayerId,
+                l.cacPlayerId.map(tenCauThu),
               )
           }
         })

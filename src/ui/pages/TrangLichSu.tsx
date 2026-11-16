@@ -28,12 +28,25 @@ interface Props {
   bản ghi giữ cả `teamId` lẫn ảnh chụp — quyết định D46.
 */
 
-function ngayGio(mocMs: number): string {
-  return new Date(mocMs).toLocaleString('vi-VN')
+/*
+  Mốc thời gian theo ngôn ngữ đang chọn (T344).
+
+  Mã vùng đi vào bằng THAM SỐ, không đặt cứng: đây là hàm thuần ở tầng
+  module nên nó không được tự tra lớp ngôn ngữ — cùng cách `hinhSan()` và
+  `cauLyDo()` vẫn nhận chữ (D68).
+*/
+function ngayGio(mocMs: number, maVung: string): string {
+  return new Date(mocMs).toLocaleString(maVung, {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
 }
 
 export function TrangLichSu({ onQuayLai, onDauLai }: Props) {
-  const { BAO_CAO_SAU_TRAN, CHUNG, LICH_SU } = useChuoi()
+  const { BAO_CAO_SAU_TRAN, CHUNG, DINH_DANG, LICH_SU } = useChuoi()
   const teams = useAppStore((s) => s.teams)
   const lichSu = useAppStore((s) => s.lichSu)
   const datLichSu = useAppStore((s) => s.datLichSu)
@@ -117,7 +130,7 @@ export function TrangLichSu({ onQuayLai, onDauLai }: Props) {
                 className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded border-b border-vien py-2 text-sm hover:bg-nen-nhan"
               >
                 <span className="w-40 shrink-0 text-chu-phu">
-                  {ngayGio(t.ketThucLuc)}
+                  {ngayGio(t.ketThucLuc, DINH_DANG.maVung)}
                 </span>
                 <span className="flex-1 text-chu">
                   {nha.ten}

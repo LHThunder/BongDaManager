@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | 36 AC (US-17 → US-23) |
-| **Tiến độ** | 37/45 |
+| **Tiến độ** | 41/45 |
 | **Sửa đổi** | 2026-11-16 — chẻ lần đầu từ plan, rồi sửa theo cả 8 phát hiện của `/analyze`; thêm T341–T342 lúc làm Phase 23; thêm T343–T344 lúc làm Phase 25 |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -282,26 +282,26 @@ duyệt theme**. Không có nó thì T326 áp theme ra 27 file còn lại rồi 
 
 ## Phase 28 — Lát 28: Hai lỗi treo, hai chỗ dọn, kiểm tay, đóng spec
 
-- [ ] **T331** [P] — Màn đăng ký đội hình đếm theo quân số thật
+- [x] **T331** [P] — Màn đăng ký đội hình đếm theo quân số thật
   - File: sửa `src/ui/components/DangKyDoiHinh.tsx`, sửa `src/ui/ngonNgu/{vi,en}.ts`
   - Xong khi: trận sân 5 hiện **"5/5 chính"** chứ không phải "5/11 chính"; câu hướng dẫn nêu đúng số người chính và khoảng số dự bị của trận đó, ở cả hai ngôn ngữ.
   - AC: AC-23.1
   - Phụ thuộc: T318
 
-- [ ] **T332** [P] — Câu lỗi nêu tên cầu thủ thay vì mã định danh
+- [x] **T332** [P] — Câu lỗi nêu tên cầu thủ thay vì mã định danh
   - File: sửa `src/ui/pages/ChonCapDau.tsx`
   - Xong khi: trận không bắt đầu được vì thiếu chỉ số thì thông báo nêu **tên** những cầu thủ đó, không phải chuỗi mã thô.
   - AC: AC-23.2
   - Phụ thuộc: T318
 
-- [ ] **T343** [P] — Dọn `strings.ts`: xoá những tái xuất đã chết
+- [x] **T343** [P] — Dọn `strings.ts`: xoá những tái xuất đã chết
   - File: xoá `src/ui/strings.ts`, chuyển `coTep()` sang `src/ui/ngonNgu/soLieu.ts`; sửa `src/ui/components/SaoLuu.tsx` cho đúng đường nhập mới
   - Xong khi: `grep -r "ui/strings" src/` không ra kết quả nào; `tsc` sạch và cả bộ test xanh. `coTep()` ở lại dạng hàm thuần, không qua `useChuoi()`, vì nó chỉ sinh ký hiệu đơn vị B/KB/MB — viết y hệt ở hai ngôn ngữ, cùng lý do đã cho tên sơ đồ (D75).
   - Ghi chú: tìm ra lúc làm T320. Suốt Phase 22–25 mỗi khối rời đi đều để lại một dòng `export const X = X_VI` để những file chưa chuyển vẫn biên dịch được; chuyển xong hết thì 140 dòng ấy thành rác. Lớp lưới của T321 quét theo **khối trong `BO_CHUOI`** nên không thấy chúng, và `tsc` cũng không, vì tái xuất không dùng tới không phải lỗi.
   - AC: — *(không phục vụ AC nào; là nợ kỹ thuật do chính cách chuyển dần từng khối sinh ra, nên trả trước khi đóng spec)*
   - Phụ thuộc: T332
 
-- [ ] **T344** [P] — Mốc thời gian theo ngôn ngữ đang chọn
+- [x] **T344** [P] — Mốc thời gian theo ngôn ngữ đang chọn
   - File: sửa `src/ui/pages/TrangLichSu.tsx`, sửa `src/ui/ngonNgu/{vi,en,index}.ts`
   - Xong khi: ở tiếng Anh, mốc thời gian của một trận trong lịch sử hiện theo lối Anh (ví dụ `16 Nov 2026, 16:28`) chứ không phải `16:28:13 16/11/2026`; ở tiếng Việt vẫn như cũ. Mã vùng (`vi-VN`/`en-GB`) nằm trong bảng chuỗi chứ không đặt cứng trong component.
   - Ghi chú: tìm ra lúc kiểm tay T320. `toLocaleString('vi-VN')` đặt cứng là chỗ **duy nhất** còn lại trong `src/` phụ thuộc vùng miền — đã `grep` `toLocale|Intl\.|vi-VN` để chắc. Không AC nào nói về định dạng ngày, nhưng một màn hình tiếng Anh in ngày kiểu Việt là đúng cái P8 cấm: một màn hình không trộn hai ngôn ngữ.

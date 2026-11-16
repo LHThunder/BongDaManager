@@ -21,9 +21,10 @@ import type { LoiUngDung } from '../../services/errors'
   nên thiếu một khoá hay thừa một khoá đều là lỗi biên dịch. Đó là lớp lưới
   thứ nhất của AC-22.2, và nó không tốn một dòng test nào (quyết định D66).
 
-  Mỗi khối ở đây tương ứng một khối cũ trong `ui/strings.ts`. Các khối còn
-  lại vẫn nằm ở `strings.ts` và sẽ chuyển dần qua từng lát cắt — chuyển cả
-  34 khối trong một lần là một commit khổng lồ không ai soát nổi.
+  Mọi khối ở đây từng nằm trong `ui/strings.ts`. Chúng chuyển sang đây dần
+  qua từng lát cắt — chuyển cả 34 khối trong một lần là một commit khổng lồ
+  không ai soát nổi — và khi khối cuối cùng rời đi thì `strings.ts` chỉ còn
+  những dòng tái xuất đã chết, nên tệp ấy đã bị xoá hẳn (T343).
 */
 
 export const CHUNG_VI = {
@@ -62,6 +63,19 @@ export const NGON_NGU_VI = {
 } as const
 
 /** Chế độ sáng/tối (AC-20.7 → AC-20.10). */
+/*
+  Mã vùng cho `toLocaleString` (T344).
+
+  Đây không phải chuỗi dịch, mà là THAM SỐ ĐỊNH DẠNG — nhưng nó vẫn thuộc
+  lớp ngôn ngữ, vì nó đổi theo đúng cái nút mà người dùng bấm. Đặt cứng
+  'vi-VN' trong component thì màn hình tiếng Anh in ngày kiểu Việt
+  (16:28:13 16/11/2026), tức trộn hai ngôn ngữ trên một màn hình — đúng
+  điều P8 cấm.
+*/
+export const DINH_DANG_VI = {
+  maVung: 'vi-VN',
+} as const
+
 export const CHE_DO_VI = {
   nhan: 'Chế độ hiển thị',
   sang: 'Sáng',
@@ -425,7 +439,7 @@ export const CANH_BAO_XUNG_DOT_VI: Readonly<Record<XungDotId, string>> = {
 }
 
 // ---------------------------------------------------------------------------
-// 27 khối còn lại, chuyển nguyên văn từ ui/strings.ts (T317–T320)
+// 27 khối còn lại, chuyển nguyên văn từ ui/strings.ts trước khi xoá tệp ấy (T317–T320, T343)
 // ---------------------------------------------------------------------------
 
 export const FORM_DOI_VI = {
@@ -718,7 +732,13 @@ export const CHON_CAP_DAU_VI = {
 
 export const DANG_KY_DOI_HINH_VI = {
   tieuDe: 'Đăng ký đội hình',
-  moTa: 'Chọn đúng 11 cầu thủ chính và đúng 7 cầu thủ dự bị.',
+  /*
+    Quân số đi vào bằng THAM SỐ, không đặt cứng 11: trận sân 5 thì câu này
+    phải nói 5 (AC-23.1). Và luật dự bị là 0 tới 7 chứ không phải đúng 7 —
+    spec 002 đã đổi (AC-14.1), nhưng câu chữ ở đây còn sót lại luật cũ.
+  */
+  moTa: (quanSo: number, duBiToiDa: number) =>
+    `Chọn đúng ${quanSo} cầu thủ chính, và tối đa ${duBiToiDa} cầu thủ dự bị.`,
   nhanChinh: 'Đội hình chính',
   nhanDuBi: 'Dự bị',
   nhanNgoai: 'Không đăng ký',
@@ -734,8 +754,8 @@ export const LY_DO_KHONG_BAT_DAU_VI = {
   chuaDungDuBi: (tenDoi: string, co: number, can: number) =>
     `${tenDoi} đang đăng ký ${co} dự bị, cần đúng ${can}.`,
   thieuThuMon: (tenDoi: string) => `${tenDoi} chưa có thủ môn trong khung.`,
-  hoSoChuaHoanTat: (tenDoi: string, ten: readonly string[]) =>
-    `${tenDoi} còn cầu thủ thiếu chỉ số: ${ten.join(', ')}.`,
+  hoSoChuaHoanTat: (tenDoi: string, tenCauThu: readonly string[]) =>
+    `${tenDoi} còn cầu thủ thiếu chỉ số: ${tenCauThu.join(', ')}.`,
   khongDuNguoi: (tenDoi: string, co: number) =>
     `${tenDoi} mới có ${co} cầu thủ trong đội, chưa đủ 18 người để đăng ký.`,
 } as const
@@ -907,34 +927,34 @@ export const SO_SANH_TRAN_VI = {
   hai: (nha: number, khach: number) => `${nha} – ${khach}`,
 } as const
 
-export const TEN_SO_DO_VI: Readonly<Record<FormationId, string>> = {
-  '2-2': '2-2',
-  '1-2-1': '1-2-1',
-  '2-3': '2-3',
-  '3-2': '3-2',
-  '2-3-1': '2-3-1',
-  '3-2-1': '3-2-1',
-  '3-3-1': '3-3-1',
-  '2-3-2': '2-3-2',
-  '3-3-2': '3-3-2',
-  '3-4-1': '3-4-1',
-  '4-3-2': '4-3-2',
-  '3-4-2': '3-4-2',
-  '4-4-2': '4-4-2',
-  '4-4-1-1': '4-4-1-1',
-  '4-3-3': '4-3-3',
-  '4-2-3-1': '4-2-3-1',
-  '4-1-4-1': '4-1-4-1',
-  '3-5-2': '3-5-2',
-  '3-4-3': '3-4-3',
-  '5-3-2': '5-3-2',
-}
-
-export const MUC_SAI_VI_TRI_VI: Readonly<Record<MucSai, string>> = {
-  dung: 'Đúng vị trí',
-  nhe: 'Lệch nhẹ',
-  vua: 'Lệch vừa',
-  nang: 'Sai nặng',
+export const TEN_SO_DO_VI: Readonly<Record<FormationId, string>> = {
+  '2-2': '2-2',
+  '1-2-1': '1-2-1',
+  '2-3': '2-3',
+  '3-2': '3-2',
+  '2-3-1': '2-3-1',
+  '3-2-1': '3-2-1',
+  '3-3-1': '3-3-1',
+  '2-3-2': '2-3-2',
+  '3-3-2': '3-3-2',
+  '3-4-1': '3-4-1',
+  '4-3-2': '4-3-2',
+  '3-4-2': '3-4-2',
+  '4-4-2': '4-4-2',
+  '4-4-1-1': '4-4-1-1',
+  '4-3-3': '4-3-3',
+  '4-2-3-1': '4-2-3-1',
+  '4-1-4-1': '4-1-4-1',
+  '3-5-2': '3-5-2',
+  '3-4-3': '3-4-3',
+  '5-3-2': '5-3-2',
+}
+
+export const MUC_SAI_VI_TRI_VI: Readonly<Record<MucSai, string>> = {
+  dung: 'Đúng vị trí',
+  nhe: 'Lệch nhẹ',
+  vua: 'Lệch vừa',
+  nang: 'Sai nặng',
 }
 
 /** Sân 2D dạng điểm (US-10). */
