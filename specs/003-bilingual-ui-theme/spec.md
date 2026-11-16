@@ -1,9 +1,9 @@
-# Spec: Giao diện song ngữ, theme bóng đá và bộ biểu tượng isometric
+# Spec: Giao diện song ngữ, theme bóng đá và bộ biểu tượng
 
 | | |
 |---|---|
 | **ID** | `003-bilingual-ui-theme` |
-| **Status** | Clarified (2026-11-16) |
+| **Status** | Planned (2026-11-16) |
 | **Created** | 2026-11-16 |
 | **Branch** | `003-bilingual-ui-theme` |
 
@@ -35,14 +35,17 @@ Hai cái đau tách bạch:
 - Mỗi ngôn ngữ **trọn vẹn**: không màn hình nào còn sót chữ của ngôn ngữ kia,
   và câu tường thuật đọc tự nhiên ở cả hai thứ tiếng chứ không phải bản dịch
   máy móc.
-- Toàn bộ ứng dụng mang một bộ nhận diện bóng đá thống nhất, kèm bộ biểu
-  tượng **isometric** cho những khái niệm lặp đi lặp lại.
+- Toàn bộ ứng dụng mang một bộ nhận diện bóng đá thống nhất, kèm một bộ biểu
+  tượng dùng chung cho những khái niệm lặp đi lặp lại.
 - Không một con số, một luật bóng đá, hay một byte dữ liệu người dùng nào đổi
   vì những việc trên.
 
 **Non-goals:**
 
 - Ngôn ngữ thứ ba ngoài tiếng Việt và tiếng Anh.
+- **Biểu tượng isometric.** Đã tìm và không có bộ isometric nào giấy phép mở
+  phủ đủ 10 khái niệm bóng đá cần dùng; người dùng chốt ngày 2026-11-16 là bỏ
+  isometric, lấy một bộ phẳng giấy phép MIT (xem mục 10, điểm 8).
 - **Dịch dữ liệu do người dùng nhập.** Tên đội, tên cầu thủ, tên bộ chiến
   thuật giữ nguyên đúng như người dùng đã gõ, ở mọi ngôn ngữ.
 - Đổi bất kỳ công thức, luật bóng đá hay hành vi engine nào. Spec này không
@@ -127,15 +130,15 @@ giống một thứ của riêng tôi chứ không phải một bản dựng k�
 - [ ] AC-20.9 — KHI người dùng mở ứng dụng **lần đầu**, chưa từng chọn chế độ, THÌ hệ thống PHẢI hiển thị **chế độ sáng**.
 - [ ] AC-20.10 — KHI người dùng đổi chế độ sáng/tối THÌ nút đổi chế độ PHẢI với tới được bằng bàn phím, không chỉ bằng chuột.
 
-### US-21: Bộ biểu tượng isometric
+### US-21: Bộ biểu tượng nhất quán
 
 Là một **người dùng**, tôi muốn **mỗi khái niệm quen thuộc có một biểu tượng
 riêng**, để **quét mắt là tìm ra chỗ cần, không phải đọc từng nhãn**.
 
 **Acceptance criteria:**
 
-- [ ] AC-21.1 — KHI xem các màn hình chính THÌ những khái niệm lặp đi lặp lại — đội, cầu thủ, sân đấu, trận đấu, chiến thuật, lịch sử, sao lưu, thẻ phạt, bàn thắng, thay người — PHẢI mỗi thứ có một biểu tượng isometric riêng.
-- [ ] AC-21.2 — KHI đặt các biểu tượng cạnh nhau THÌ chúng PHẢI cùng một góc nhìn isometric và cùng độ dày nét, trông như một bộ chứ không phải nhặt từ nhiều nơi.
+- [ ] AC-21.1 — KHI xem các màn hình chính THÌ những khái niệm lặp đi lặp lại — đội, cầu thủ, sân đấu, trận đấu, chiến thuật, lịch sử, sao lưu, thẻ phạt, bàn thắng, thay người — PHẢI mỗi thứ có một biểu tượng riêng.
+- [ ] AC-21.2 — KHI đặt các biểu tượng cạnh nhau THÌ chúng PHẢI đến từ **cùng một bộ**, cùng phong cách và cùng độ dày nét, trông như một bộ chứ không phải nhặt từ nhiều nơi.
 - [ ] AC-21.3 — KHI một biểu tượng mang thông tin THÌ thông tin đó PHẢI đồng thời có mặt dưới dạng chữ; biểu tượng KHÔNG được là cách duy nhất để hiểu.
 - [ ] AC-21.4 — KHI chạy ứng dụng **không có mạng** THÌ mọi biểu tượng PHẢI hiển thị đầy đủ.
 - [ ] AC-21.5 — KHI đổi ngôn ngữ THÌ biểu tượng PHẢI giữ nguyên; chỉ chữ đi kèm đổi.
@@ -165,7 +168,7 @@ Là một **người dùng**, tôi muốn **hai chỗ đang nói sai được s�
 ## 4. Luồng chính (happy path)
 
 1. Người dùng mở ứng dụng → giao diện hiện bằng ngôn ngữ đã chọn lần trước,
-   với theme bóng đá và biểu tượng isometric ở mọi màn hình.
+   với theme bóng đá và biểu tượng ở mọi màn hình.
 2. Người dùng bấm nút đổi ngôn ngữ → toàn bộ chữ trên màn hình đổi ngay sang
    ngôn ngữ kia, vị trí cuộn và việc đang làm dở giữ nguyên.
 3. Người dùng mở một đội → tên vị trí, vai trò và chỉ số hiện bằng thuật ngữ
@@ -258,9 +261,9 @@ làm rõ đã được chốt ngày **2026-11-16** — xem mục 10.
   engine chỉ đọc trường cấu trúc, không nơi nào đọc phần chữ.
 - Spec này **không chốt sẵn bảng màu**: theme được dựng trên một màn hình mẫu
   để người dùng duyệt, chốt xong mới áp ra phần còn lại.
-- Có tồn tại ít nhất một bộ biểu tượng isometric giấy phép mở phủ đủ 10 khái
-  niệm ở AC-21.1. Nếu tìm không ra bộ nào đủ, spec này phải quay lại hỏi — vì
-  khi đó lựa chọn duy nhất còn lại là vẽ tay, và đó là một khối lượng khác hẳn.
+- Bộ biểu tượng dùng lại phủ đủ 10 khái niệm ở AC-21.1. Giả định này **đã
+  được kiểm** ngày 2026-11-16 chứ không còn là phỏng đoán: giả định isometric
+  ban đầu hoá ra sai và đã bị thay — xem mục 10, điểm 8.
 
 ## 10. Nhật ký làm rõ
 
@@ -275,3 +278,4 @@ Toàn bộ quyết định dưới đây được chốt ngày **2026-11-16** qu
 | 5 | Ngôn ngữ mặc định lần đầu? | **Luôn tiếng Việt**, không đọc thiết lập trình duyệt. Đoán được, và nút đổi chỉ cách một cú bấm nên đoán sai gần như không mất gì | AC-17.7 |
 | 6 | Hai lỗi treo từ spec 002? | **Gộp cả hai.** Cả hai đều là chuỗi hiển thị nên dù sao cũng phải đụng tới khi đưa qua lớp ngôn ngữ; sửa lúc đang mở file rẻ hơn mở lại lần nữa | US-23 |
 | 7 | "Báo rõ là thiếu bản dịch"? | **Cả hai lớp lưới**: phép kiểm chặn trước khi phát hành, cộng dấu hiệu thấy được lúc chạy nếu vẫn lọt. Tấm lưới thứ hai đáng lẽ không bao giờ kích hoạt | AC-22.2 |
+| 8 | Bộ icon isometric lấy ở đâu? *(kiểm lại lúc `/plan`)* | **Bỏ isometric, dùng bộ phẳng giấy phép MIT.** Ba lượt tìm cho thấy không có bộ isometric nào giấy phép mở phủ đủ 10 khái niệm bóng đá: thứ có giấy phép mở thì sai chủ đề (bộ isometric CC0 duy nhất tìm được là icon kiến trúc đám mây), thứ đúng chủ đề thì giấy phép thương mại hoặc đòi ghi công. Giả định ở điểm 3 đã bị chính phép kiểm mà spec yêu cầu bác bỏ | Tiêu đề spec, mục 1, Non-goals, US-21, AC-21.1, AC-21.2, mục 9 |
