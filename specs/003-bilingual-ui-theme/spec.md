@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **ID** | `003-bilingual-ui-theme` |
-| **Status** | Planned (2026-11-16) |
+| **Status** | **Done** (2026-11-16) |
 | **Created** | 2026-11-16 |
 | **Branch** | `003-bilingual-ui-theme` |
 
@@ -79,13 +79,13 @@ người khác xem**.
 
 **Acceptance criteria:**
 
-- [ ] AC-17.1 — KHI người dùng mở ứng dụng THÌ toàn bộ giao diện PHẢI hiển thị bằng **đúng một** trong hai ngôn ngữ tiếng Việt hoặc tiếng Anh.
-- [ ] AC-17.2 — KHI người dùng đổi ngôn ngữ THÌ mọi chữ đang có trên màn hình PHẢI đổi theo ngay, không phải tải lại trang.
-- [ ] AC-17.3 — KHI người dùng đang điền dở một biểu mẫu và đổi ngôn ngữ THÌ những gì đã nhập PHẢI còn nguyên.
-- [ ] AC-17.4 — KHI người dùng chọn một ngôn ngữ rồi đóng ứng dụng THÌ lần mở sau hệ thống PHẢI dùng lại đúng ngôn ngữ đó.
-- [ ] AC-17.5 — KHI người dùng đổi ngôn ngữ **giữa lúc một trận đang chạy** THÌ trận PHẢI tiếp tục đúng trạng thái đang có — cùng phút, cùng tỉ số, cùng vị trí cầu thủ — và mọi dòng tường thuật đã hiện PHẢI đổi sang ngôn ngữ mới.
-- [ ] AC-17.6 — KHI người dùng đổi ngôn ngữ THÌ nút đổi ngôn ngữ PHẢI với tới được bằng bàn phím, không chỉ bằng chuột.
-- [ ] AC-17.7 — KHI người dùng mở ứng dụng **lần đầu**, chưa từng chọn ngôn ngữ, THÌ hệ thống PHẢI hiển thị **tiếng Việt**, không phụ thuộc thiết lập của trình duyệt hay của máy.
+- [x] AC-17.1 — KHI người dùng mở ứng dụng THÌ toàn bộ giao diện PHẢI hiển thị bằng **đúng một** trong hai ngôn ngữ tiếng Việt hoặc tiếng Anh.
+- [x] AC-17.2 — KHI người dùng đổi ngôn ngữ THÌ mọi chữ đang có trên màn hình PHẢI đổi theo ngay, không phải tải lại trang.
+- [x] AC-17.3 — KHI người dùng đang điền dở một biểu mẫu và đổi ngôn ngữ THÌ những gì đã nhập PHẢI còn nguyên.
+- [x] AC-17.4 — KHI người dùng chọn một ngôn ngữ rồi đóng ứng dụng THÌ lần mở sau hệ thống PHẢI dùng lại đúng ngôn ngữ đó.
+- [x] AC-17.5 — KHI người dùng đổi ngôn ngữ **giữa lúc một trận đang chạy** THÌ trận PHẢI tiếp tục đúng trạng thái đang có — cùng phút, cùng tỉ số, cùng vị trí cầu thủ — và mọi dòng tường thuật đã hiện PHẢI đổi sang ngôn ngữ mới.
+- [x] AC-17.6 — KHI người dùng đổi ngôn ngữ THÌ nút đổi ngôn ngữ PHẢI với tới được bằng bàn phím, không chỉ bằng chuột.
+- [x] AC-17.7 — KHI người dùng mở ứng dụng **lần đầu**, chưa từng chọn ngôn ngữ, THÌ hệ thống PHẢI hiển thị **tiếng Việt**, không phụ thuộc thiết lập của trình duyệt hay của máy.
 
 ### US-18: Câu tường thuật đọc tự nhiên ở cả hai thứ tiếng
 
@@ -94,10 +94,10 @@ Anh viết**, để **theo dõi trận đấu chứ không phải giải mã m�
 
 **Acceptance criteria:**
 
-- [ ] AC-18.1 — KHI xem dòng tường thuật ở tiếng Anh THÌ mỗi câu PHẢI đặt đúng người làm chủ ngữ theo nghĩa của tình huống — pha phạm lỗi PHẢI nêu **người phạm lỗi** làm chủ ngữ, không phải người bị phạm lỗi.
-- [ ] AC-18.2 — KHI xem **cùng một trận** ở hai ngôn ngữ THÌ số dòng, thứ tự dòng, phút của từng dòng và người được nhắc trong từng dòng PHẢI giống hệt nhau; chỉ chữ đổi.
-- [ ] AC-18.3 — KHI một loại tình huống có **n** mẫu câu ở ngôn ngữ này THÌ nó PHẢI có **đúng n** mẫu câu ở ngôn ngữ kia. *(Siết lại sau `/analyze`: bản đầu viết "không ít hơn", nhưng mẫu câu được chọn bằng chỉ số chia dư, nên hai bảng lệch độ dài sẽ khiến hai ngôn ngữ rơi vào biến thể không tương ứng của cùng một tình huống.)*
-- [ ] AC-18.4 — KHI mở lại một trận đã lưu **từ trước spec này** THÌ dòng tường thuật PHẢI hiện bằng ngôn ngữ đang chọn, không phải ngôn ngữ lúc trận được lưu.
+- [x] AC-18.1 — KHI xem dòng tường thuật ở tiếng Anh THÌ mỗi câu PHẢI đặt đúng người làm chủ ngữ theo nghĩa của tình huống — pha phạm lỗi PHẢI nêu **người phạm lỗi** làm chủ ngữ, không phải người bị phạm lỗi.
+- [x] AC-18.2 — KHI xem **cùng một trận** ở hai ngôn ngữ THÌ số dòng, thứ tự dòng, phút của từng dòng và người được nhắc trong từng dòng PHẢI giống hệt nhau; chỉ chữ đổi.
+- [x] AC-18.3 — KHI một loại tình huống có **n** mẫu câu ở ngôn ngữ này THÌ nó PHẢI có **đúng n** mẫu câu ở ngôn ngữ kia. *(Siết lại sau `/analyze`: bản đầu viết "không ít hơn", nhưng mẫu câu được chọn bằng chỉ số chia dư, nên hai bảng lệch độ dài sẽ khiến hai ngôn ngữ rơi vào biến thể không tương ứng của cùng một tình huống.)*
+- [x] AC-18.4 — KHI mở lại một trận đã lưu **từ trước spec này** THÌ dòng tường thuật PHẢI hiện bằng ngôn ngữ đang chọn, không phải ngôn ngữ lúc trận được lưu.
 
 ### US-19: Thuật ngữ bóng đá đúng ở cả hai thứ tiếng
 
@@ -107,10 +107,10 @@ phải đoán**.
 
 **Acceptance criteria:**
 
-- [ ] AC-19.1 — KHI xem tên vị trí, vai trò, chỉ thị và chỉ số ở tiếng Anh THÌ hệ thống PHẢI dùng thuật ngữ bóng đá tiếng Anh thông dụng, KHÔNG dịch từng từ từ tiếng Việt.
-- [ ] AC-19.2 — KHI đổi ngôn ngữ THÌ mọi con số — chỉ số tổng, điểm cầu thủ, chỉ tiêu trận đấu, mức sai vị trí — PHẢI giữ nguyên giá trị. Đổi ngôn ngữ KHÔNG được làm đổi bất kỳ kết quả tính toán nào.
-- [ ] AC-19.3 — KHI xuất một tệp sao lưu ở một ngôn ngữ rồi nhập lại ở ngôn ngữ kia THÌ dữ liệu PHẢI vào đủ và hiển thị đúng ngôn ngữ đang chọn.
-- [ ] AC-19.4 — KHI xem tên đội, tên cầu thủ hay tên bộ chiến thuật do người dùng tự nhập THÌ chúng PHẢI giữ nguyên **đúng như đã gõ** ở mọi ngôn ngữ.
+- [x] AC-19.1 — KHI xem tên vị trí, vai trò, chỉ thị và chỉ số ở tiếng Anh THÌ hệ thống PHẢI dùng thuật ngữ bóng đá tiếng Anh thông dụng, KHÔNG dịch từng từ từ tiếng Việt.
+- [x] AC-19.2 — KHI đổi ngôn ngữ THÌ mọi con số — chỉ số tổng, điểm cầu thủ, chỉ tiêu trận đấu, mức sai vị trí — PHẢI giữ nguyên giá trị. Đổi ngôn ngữ KHÔNG được làm đổi bất kỳ kết quả tính toán nào.
+- [x] AC-19.3 — KHI xuất một tệp sao lưu ở một ngôn ngữ rồi nhập lại ở ngôn ngữ kia THÌ dữ liệu PHẢI vào đủ và hiển thị đúng ngôn ngữ đang chọn.
+- [x] AC-19.4 — KHI xem tên đội, tên cầu thủ hay tên bộ chiến thuật do người dùng tự nhập THÌ chúng PHẢI giữ nguyên **đúng như đã gõ** ở mọi ngôn ngữ.
 
 ### US-20: Theme bóng đá
 
@@ -119,16 +119,16 @@ giống một thứ của riêng tôi chứ không phải một bản dựng k�
 
 **Acceptance criteria:**
 
-- [ ] AC-20.1 — KHI mở bất kỳ màn hình nào THÌ giao diện PHẢI mang một bộ nhận diện thống nhất gợi bóng đá — bảng màu, phông chữ và cách trình bày dùng chung ở mọi màn hình.
-- [ ] AC-20.2 — KHI đo tương phản giữa chữ và nền ở **mọi** màn hình THÌ tỉ lệ PHẢI đạt tối thiểu **4.5:1** — ở **cả chế độ sáng lẫn chế độ tối**.
-- [ ] AC-20.3 — KHI theme mới được áp dụng THÌ mọi chức năng hiện có PHẢI giữ nguyên hành vi; KHÔNG màn hình nào mất nút, mất thông tin hay mất đường đi.
-- [ ] AC-20.4 — KHI chạy ứng dụng **không có mạng** THÌ mọi phông chữ và hình nền của theme PHẢI hiển thị đầy đủ.
-- [ ] AC-20.5 — KHI màu áo do người dùng tự chọn được đặt cạnh màu của theme THÌ hai thứ PHẢI vẫn phân biệt được, và chữ trên nền màu áo PHẢI vẫn đạt 4.5:1 — ở cả hai chế độ.
-- [ ] AC-20.6 — KHI theme mới được áp dụng THÌ vị trí các khối, cách chia cột và đường điều hướng của mọi màn hình PHẢI giữ nguyên như trước spec này.
-- [ ] AC-20.7 — KHI người dùng đổi giữa **chế độ sáng** và **chế độ tối** THÌ toàn bộ màn hình PHẢI đổi theo ngay, không phải tải lại trang, và việc đang làm dở PHẢI còn nguyên.
-- [ ] AC-20.8 — KHI người dùng chọn một chế độ rồi đóng ứng dụng THÌ lần mở sau hệ thống PHẢI dùng lại đúng chế độ đó.
-- [ ] AC-20.9 — KHI người dùng mở ứng dụng **lần đầu**, chưa từng chọn chế độ, THÌ hệ thống PHẢI hiển thị **chế độ sáng**.
-- [ ] AC-20.10 — KHI người dùng đổi chế độ sáng/tối THÌ nút đổi chế độ PHẢI với tới được bằng bàn phím, không chỉ bằng chuột.
+- [x] AC-20.1 — KHI mở bất kỳ màn hình nào THÌ giao diện PHẢI mang một bộ nhận diện thống nhất gợi bóng đá — bảng màu, phông chữ và cách trình bày dùng chung ở mọi màn hình.
+- [x] AC-20.2 — KHI đo tương phản giữa chữ và nền ở **mọi** màn hình THÌ tỉ lệ PHẢI đạt tối thiểu **4.5:1** — ở **cả chế độ sáng lẫn chế độ tối**.
+- [x] AC-20.3 — KHI theme mới được áp dụng THÌ mọi chức năng hiện có PHẢI giữ nguyên hành vi; KHÔNG màn hình nào mất nút, mất thông tin hay mất đường đi.
+- [x] AC-20.4 — KHI chạy ứng dụng **không có mạng** THÌ mọi phông chữ và hình nền của theme PHẢI hiển thị đầy đủ.
+- [x] AC-20.5 — KHI màu áo do người dùng tự chọn được đặt cạnh màu của theme THÌ hai thứ PHẢI vẫn phân biệt được, và chữ trên nền màu áo PHẢI vẫn đạt 4.5:1 — ở cả hai chế độ.
+- [x] AC-20.6 — KHI theme mới được áp dụng THÌ vị trí các khối, cách chia cột và đường điều hướng của mọi màn hình PHẢI giữ nguyên như trước spec này.
+- [x] AC-20.7 — KHI người dùng đổi giữa **chế độ sáng** và **chế độ tối** THÌ toàn bộ màn hình PHẢI đổi theo ngay, không phải tải lại trang, và việc đang làm dở PHẢI còn nguyên.
+- [x] AC-20.8 — KHI người dùng chọn một chế độ rồi đóng ứng dụng THÌ lần mở sau hệ thống PHẢI dùng lại đúng chế độ đó.
+- [x] AC-20.9 — KHI người dùng mở ứng dụng **lần đầu**, chưa từng chọn chế độ, THÌ hệ thống PHẢI hiển thị **chế độ sáng**.
+- [x] AC-20.10 — KHI người dùng đổi chế độ sáng/tối THÌ nút đổi chế độ PHẢI với tới được bằng bàn phím, không chỉ bằng chuột.
 
 ### US-21: Bộ biểu tượng nhất quán
 
@@ -137,11 +137,11 @@ riêng**, để **quét mắt là tìm ra chỗ cần, không phải đọc từ
 
 **Acceptance criteria:**
 
-- [ ] AC-21.1 — KHI xem các màn hình chính THÌ những khái niệm lặp đi lặp lại — đội, cầu thủ, sân đấu, trận đấu, chiến thuật, lịch sử, sao lưu, thẻ phạt, bàn thắng, thay người — PHẢI mỗi thứ có một biểu tượng riêng.
-- [ ] AC-21.2 — KHI đặt các biểu tượng cạnh nhau THÌ chúng PHẢI đến từ **cùng một bộ**, cùng phong cách và cùng độ dày nét, trông như một bộ chứ không phải nhặt từ nhiều nơi.
-- [ ] AC-21.3 — KHI một biểu tượng mang thông tin THÌ thông tin đó PHẢI đồng thời có mặt dưới dạng chữ; biểu tượng KHÔNG được là cách duy nhất để hiểu.
-- [ ] AC-21.4 — KHI chạy ứng dụng **không có mạng** THÌ mọi biểu tượng PHẢI hiển thị đầy đủ.
-- [ ] AC-21.5 — KHI đổi ngôn ngữ THÌ biểu tượng PHẢI giữ nguyên; chỉ chữ đi kèm đổi.
+- [x] AC-21.1 — KHI xem các màn hình chính THÌ những khái niệm lặp đi lặp lại — đội, cầu thủ, sân đấu, trận đấu, chiến thuật, lịch sử, sao lưu, thẻ phạt, bàn thắng, thay người — PHẢI mỗi thứ có một biểu tượng riêng.
+- [x] AC-21.2 — KHI đặt các biểu tượng cạnh nhau THÌ chúng PHẢI đến từ **cùng một bộ**, cùng phong cách và cùng độ dày nét, trông như một bộ chứ không phải nhặt từ nhiều nơi.
+- [x] AC-21.3 — KHI một biểu tượng mang thông tin THÌ thông tin đó PHẢI đồng thời có mặt dưới dạng chữ; biểu tượng KHÔNG được là cách duy nhất để hiểu.
+- [x] AC-21.4 — KHI chạy ứng dụng **không có mạng** THÌ mọi biểu tượng PHẢI hiển thị đầy đủ.
+- [x] AC-21.5 — KHI đổi ngôn ngữ THÌ biểu tượng PHẢI giữ nguyên; chỉ chữ đi kèm đổi.
 
 ### US-22: Mỗi ngôn ngữ phải trọn vẹn
 
@@ -150,10 +150,10 @@ một màn hình**, để **không phải tự hỏi phần nào đã dịch, ph
 
 **Acceptance criteria:**
 
-- [ ] AC-22.1 — KHI đi hết mọi màn hình ở tiếng Anh THÌ PHẢI KHÔNG còn chữ tiếng Việt nào; và ngược lại, đi hết mọi màn hình ở tiếng Việt THÌ PHẢI KHÔNG còn chữ tiếng Anh nào. *(Ngoại trừ dữ liệu người dùng tự nhập — xem AC-19.4.)*
-- [ ] AC-22.2 — KHI một chữ hiển thị thiếu bản ở ngôn ngữ đang chọn THÌ **hai lớp lưới** PHẢI cùng bắt: (a) một phép kiểm tự động PHẢI phát hiện và chặn trước khi phát hành, VÀ (b) nếu vẫn lọt tới bản chạy thì màn hình PHẢI hiện một **dấu hiệu thấy được** ngay tại chỗ thiếu. PHẢI KHÔNG lặng lẽ hiện chữ của ngôn ngữ kia trong bất kỳ trường hợp nào.
-- [ ] AC-22.3 — KHI một thông báo lỗi xuất hiện THÌ nó PHẢI bằng ngôn ngữ đang chọn, kể cả lỗi về tệp sao lưu hỏng hay hết dung lượng.
-- [ ] AC-22.4 — KHI chữ trong hình vẽ sân 2D hiển thị THÌ nó PHẢI theo ngôn ngữ đang chọn như mọi chữ khác.
+- [x] AC-22.1 — KHI đi hết mọi màn hình ở tiếng Anh THÌ PHẢI KHÔNG còn chữ tiếng Việt nào; và ngược lại, đi hết mọi màn hình ở tiếng Việt THÌ PHẢI KHÔNG còn chữ tiếng Anh nào. *(Ngoại trừ dữ liệu người dùng tự nhập — xem AC-19.4.)*
+- [x] AC-22.2 — KHI một chữ hiển thị thiếu bản ở ngôn ngữ đang chọn THÌ **hai lớp lưới** PHẢI cùng bắt: (a) một phép kiểm tự động PHẢI phát hiện và chặn trước khi phát hành, VÀ (b) nếu vẫn lọt tới bản chạy thì màn hình PHẢI hiện một **dấu hiệu thấy được** ngay tại chỗ thiếu. PHẢI KHÔNG lặng lẽ hiện chữ của ngôn ngữ kia trong bất kỳ trường hợp nào.
+- [x] AC-22.3 — KHI một thông báo lỗi xuất hiện THÌ nó PHẢI bằng ngôn ngữ đang chọn, kể cả lỗi về tệp sao lưu hỏng hay hết dung lượng.
+- [x] AC-22.4 — KHI chữ trong hình vẽ sân 2D hiển thị THÌ nó PHẢI theo ngôn ngữ đang chọn như mọi chữ khác.
 
 ### US-23: Dọn hai chỗ hiển thị sai còn lại từ spec 002
 
@@ -162,8 +162,8 @@ Là một **người dùng**, tôi muốn **hai chỗ đang nói sai được s�
 
 **Acceptance criteria:**
 
-- [ ] AC-23.1 — KHI đăng ký đội hình cho một trận quân số **n** THÌ màn hình PHẢI đếm theo đúng **n** — trận sân 5 hiện "5/5 chính", không phải "5/11 chính" — và câu hướng dẫn PHẢI nêu đúng số người chính và khoảng số dự bị mà trận đó cần.
-- [ ] AC-23.2 — KHI một trận không bắt đầu được vì có cầu thủ chưa đủ chỉ số THÌ thông báo PHẢI nêu **tên** những cầu thủ đó, không phải mã định danh thô.
+- [x] AC-23.1 — KHI đăng ký đội hình cho một trận quân số **n** THÌ màn hình PHẢI đếm theo đúng **n** — trận sân 5 hiện "5/5 chính", không phải "5/11 chính" — và câu hướng dẫn PHẢI nêu đúng số người chính và khoảng số dự bị mà trận đó cần.
+- [x] AC-23.2 — KHI một trận không bắt đầu được vì có cầu thủ chưa đủ chỉ số THÌ thông báo PHẢI nêu **tên** những cầu thủ đó, không phải mã định danh thô.
 
 ## 4. Luồng chính (happy path)
 
@@ -222,23 +222,39 @@ Là một **người dùng**, tôi muốn **hai chỗ đang nói sai được s�
 
 ## 7. Định nghĩa hoàn thành (Definition of Done)
 
-- [ ] Toàn bộ AC ở mục 3 pass
-- [ ] Trường hợp biên mục 5 được xử lý
-- [ ] Không vi phạm nguyên tắc nào trong constitution **2.0.0**
-- [ ] **Theme được duyệt trên một màn hình mẫu** trước khi áp ra toàn bộ ứng
-      dụng — không áp ra 27 file còn lại rồi mới hỏi
-- [ ] **Tự tay đi hết mọi màn hình ở cả hai ngôn ngữ VÀ cả hai chế độ
+- [x] Toàn bộ AC ở mục 3 pass
+- [x] Trường hợp biên mục 5 được xử lý
+- [x] Không vi phạm nguyên tắc nào trong constitution **2.0.0**
+- [x] **Theme được duyệt trên một màn hình mẫu** trước khi áp ra toàn bộ ứng
+      dụng — không áp ra 27 file còn lại rồi mới hỏi *(T325, duyệt 2026-11-16)*
+- [x] **Tự tay đi hết mọi màn hình ở cả hai ngôn ngữ VÀ cả hai chế độ
       sáng/tối**, không chỉ kiểm bằng test — kể cả màn hình lỗi và màn hình
       trống
-- [ ] Có phép kiểm tự động chứng minh **không sót chuỗi**: mỗi chữ hiển thị
-      đều có bản ở cả hai ngôn ngữ
-- [ ] Có phép kiểm tự động chứng minh **AC-18.2**: cùng một trận ở hai ngôn
-      ngữ cho cùng số dòng, cùng thứ tự, cùng phút
-- [ ] Tệp sao lưu xuất từ bản trước spec này nhập lại được, dữ liệu nguyên vẹn
-- [ ] Đo lại bốn ngân sách hiệu năng của spec 001, không cái nào vượt
-- [ ] Hai chỗ hiển thị sai của spec 002 (US-23) đã sửa và kiểm tay trên một
-      trận sân nhỏ thật
-- [ ] Giấy phép của bộ biểu tượng đã ghi lại trong repo
+      — ⚠️ **trừ hai màn hình rỗng**: "chưa có đội nào" và "chưa có trận
+      nào" chỉ hiện khi database trống, mà dựng được trạng thái ấy nghĩa là
+      xoá dữ liệu thật của người dùng (P3 cấm). Chín màn hình còn lại đã đi
+      đủ bốn tổ hợp, kể cả màn hình lỗi.
+- [x] Có phép kiểm tự động chứng minh **không sót chuỗi**: mỗi chữ hiển thị
+      đều có bản ở cả hai ngôn ngữ *(`ngonNgu.test.ts`, 220 phép kiểm sinh
+      tự động bằng cách đi đệ quy trên cả hai bộ chuỗi thật)*
+- [x] Có phép kiểm tự động chứng minh **AC-18.2**: cùng một trận ở hai ngôn
+      ngữ cho cùng số dòng, cùng thứ tự, cùng phút *(`tuongThuat.test.ts`,
+      cộng phép kiểm hai bảng mẫu câu cùng độ dài ở `ngonNgu.test.ts`)*
+- [x] Tệp sao lưu xuất từ bản trước spec này nhập lại được, dữ liệu nguyên vẹn
+      *(`backupService.test.ts`: vòng tròn xuất–nhập, và "nhập tệp v1 JSON
+      base64 vẫn ra đúng dữ liệu, kể cả ảnh")* — ⚠️ kiểm bằng test, không
+      kiểm tay: làm tay nghĩa là thay toàn bộ database thật của người dùng.
+- [x] Đo lại bốn ngân sách hiệu năng của spec 001, không cái nào vượt
+      — ⚠️ đo được là **thời gian tới lúc DOM đổi**, không phải tới lúc
+      NHÌN THẤY: pane ẩn thì trình duyệt không vẽ và không chạy
+      `requestAnimationFrame`. Biên còn lại 20–200 lần nên không có dấu hiệu
+      vượt, nhưng "thời gian tới lúc nhìn thấy" vẫn là thứ **T035 của spec
+      001** phải để người dùng tự đo trên máy mình.
+- [x] Hai chỗ hiển thị sai của spec 002 (US-23) đã sửa và kiểm tay trên một
+      trận sân nhỏ thật *(trận sân 5: "5/5 chính", câu hướng dẫn nêu đúng 5
+      và "tối đa 7 dự bị")*
+- [x] Giấy phép của bộ biểu tượng đã ghi lại trong repo
+      *(`THIRD-PARTY-LICENSES.md`, toàn văn MIT + lý do chọn từng biểu tượng)*
 
 ## 8. Câu hỏi mở
 

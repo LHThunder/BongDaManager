@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | 36 AC (US-17 → US-23) |
-| **Tiến độ** | 43/45 |
+| **Tiến độ** | 45/45 — **xong** |
 | **Sửa đổi** | 2026-11-16 — chẻ lần đầu từ plan, rồi sửa theo cả 8 phát hiện của `/analyze`; thêm T341–T342 lúc làm Phase 23; thêm T343–T344 lúc làm Phase 25 |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -372,7 +372,7 @@ duyệt theme**. Không có nó thì T326 áp theme ra 27 file còn lại rồi 
     Biên còn lại là 23 lần và 33 lần, nên không có dấu hiệu vượt; nhưng đó
     là suy luận, không phải phép đo.
 
-- [ ] **T335** — Tick 36 AC và đóng spec
+- [x] **T335** — Tick 36 AC và đóng spec
   - File: sửa `specs/003-bilingual-ui-theme/spec.md`
   - Xong khi: mọi AC ở mục 3 được tick có căn cứ; Definition of Done đủ chín mục; `Status` đổi thành **Done**.
   - AC: toàn bộ
