@@ -1,7 +1,7 @@
 # Constitution — Ứng dụng tạo đội bóng & giả lập trận đấu
 
 > Hiến pháp kỹ thuật của dự án. Mọi spec / plan / task đều phải tuân thủ.
-> Version: 1.0.1 · Ratified: 2026-10-26 · Last amended: 2026-10-29
+> Version: 2.0.0 · Ratified: 2026-10-26 · Last amended: 2026-11-16
 
 ## 1. Mục đích & phạm vi
 
@@ -12,7 +12,7 @@ Dự án là một ứng dụng web chạy trên máy cá nhân, cho một ngư�
 - Giải đấu: lịch thi đấu, bảng xếp hạng, thống kê cả mùa.
 - Backend, máy chủ, tài khoản, đăng nhập, đồng bộ nhiều máy, chơi nhiều người.
 - Đồ hoạ 3D; mọi hiển thị sân là 2D dạng điểm.
-- Đa ngôn ngữ. Ứng dụng chỉ có tiếng Việt.
+- Ngôn ngữ thứ ba ngoài tiếng Việt và tiếng Anh (xem P8).
 - Bản cho điện thoại và máy tính bảng.
 
 ## 2. Nguyên tắc bất di bất dịch (Principles)
@@ -52,10 +52,18 @@ Tệp xuất ra MUST mang số phiên bản dữ liệu. Khi một giai đoạn 
 *Lý do:* người dùng sẽ nhập đội ở Giai đoạn 1 và còn dùng dữ liệu đó ở Giai đoạn 4.
 *Câu hỏi review:* lấy tệp xuất từ bản cũ, nhập vào bản mới — có vào được không?
 
-### P8. Giao diện và thuật ngữ bằng tiếng Việt
-Mọi chữ người dùng nhìn thấy MUST bằng tiếng Việt, kể cả tên chỉ số, tên vị trí, tên vai trò, tên chỉ thị, câu tường thuật và thông báo lỗi. MUST NOT trộn tiếng Anh vào giao diện. Tên biến và tên file trong code không chịu ràng buộc này.
-*Lý do:* người dùng đã chốt tiếng Việt, và dự án cố tình không làm hạ tầng đa ngôn ngữ nên không có chỗ để "sau này dịch".
-*Câu hỏi review:* quét toàn bộ chuỗi hiển thị — còn chuỗi tiếng Anh nào không?
+### P8. Song ngữ Việt–Anh, và mỗi ngôn ngữ phải trọn vẹn
+Ứng dụng MUST hỗ trợ đủ **hai** ngôn ngữ — tiếng Việt và tiếng Anh — chuyển qua lại bằng một thao tác của người dùng. Mọi chữ người dùng nhìn thấy MUST đi qua lớp tra cứu ngôn ngữ: tên chỉ số, tên vị trí, tên vai trò, tên chỉ thị, câu tường thuật, thông báo lỗi, nhãn nút, chữ trong ảnh SVG. MUST NOT viết thẳng một chuỗi hiển thị vào component, kể cả chuỗi "tạm để đó".
+
+Một màn hình MUST NOT trộn hai ngôn ngữ. Thiếu bản dịch MUST lộ ra lúc phát triển và MUST NOT lặng lẽ rơi về ngôn ngữ kia — rơi về âm thầm là cách chắc chắn nhất để một nửa giao diện ở lại tiếng Việt mãi mãi mà không ai biết. Thêm một chuỗi hiển thị mới MUST kèm cả hai ngôn ngữ trong **cùng một commit**.
+
+Câu tường thuật trận đấu MUST được **viết riêng** cho từng ngôn ngữ theo ngữ pháp của chính ngôn ngữ đó, MUST NOT dựng bằng cách ghép mảnh dùng chung: "A bị B phạm lỗi" và "B fouls A" đảo chủ–vị, nên mọi lối ghép mảnh đều sẽ cho ra câu sai ở ít nhất một thứ tiếng.
+
+Nhãn hiển thị MUST NOT nằm trong `domain/`. Lớp `domain` chỉ giữ mã định danh; phần chữ thuộc về lớp ngôn ngữ.
+
+Tên biến, tên file và mã định danh trong code không chịu ràng buộc này — chúng vẫn bằng tiếng Việt như từ đầu dự án.
+*Lý do:* ngày 2026-11-16 người dùng đổi ý và muốn dùng được ứng dụng bằng cả hai thứ tiếng. Bản P8 cũ cấm luôn hạ tầng đa ngôn ngữ với lý lẽ "không có chỗ để sau này dịch" — và cái giá của lựa chọn đó bây giờ đã đo được: ~459 chuỗi tiếng Việt nằm rải trong 74 file sản phẩm, ~62 mẫu câu tường thuật, cộng 99 nhãn vị trí/vai trò/chỉ thị/chỉ số nằm ngay trong `domain/`. Đổi P8 là chấp nhận trả món nợ ấy một lần, bằng một đợt quét toàn bộ, thay vì để nó lớn thêm.
+*Câu hỏi review:* đổi sang tiếng Anh rồi đi hết mọi màn hình — còn sót chữ tiếng Việt nào không? Đổi ngược lại — còn sót chữ tiếng Anh nào không? Và: có chuỗi hiển thị nào còn nằm trong `domain/` không?
 
 ### P9. Không bắt buộc phải dùng chuột, và chữ phải đọc được
 Việc xếp và đổi chỗ cầu thủ trên sơ đồ MUST làm được hoàn toàn bằng bàn phím, không chỉ bằng kéo-thả. Tương phản giữa chữ và nền MUST đạt tối thiểu 4.5:1 ở mọi màn hình, kể cả khi nền dùng màu áo do người dùng tự chọn. Thông tin quan trọng — mức sai vị trí, tình trạng kiệt sức, thẻ — MUST NOT được truyền đạt chỉ bằng màu sắc.
@@ -87,8 +95,8 @@ Việc xếp và đổi chỗ cầu thủ trên sơ đồ MUST làm được ho�
 - **Test:** unit test là **bắt buộc** cho lớp `engine` và lớp đọc/ghi dữ liệu (bao gồm nhập/xuất tệp sao lưu). Một task thuộc hai lớp này chưa có test thì **chưa được coi là xong**. Test cho giao diện **không bắt buộc** — giao diện được xác nhận bằng cách người dùng bấm thử. Ngoài ra, các AC ở P5 phải có test riêng cho đúng phép so sánh.
 - **Kiểu dữ liệu:** TypeScript ở chế độ `strict`. Cấm `any`. Mọi thực thể trong miền (đội, cầu thủ, chiến thuật, trận đấu, sự kiện) phải có kiểu khai báo tường minh, không suy ra từ dữ liệu mẫu.
 - **Validation:** mọi dữ liệu đến từ bên ngoài bộ nhớ ứng dụng — tệp sao lưu người dùng nhập, dữ liệu đọc lại từ lưu trữ trình duyệt, tệp ảnh — MUST được kiểm tra hợp lệ trước khi đưa vào ứng dụng. Dữ liệu không hợp lệ bị từ chối kèm lý do, không được đi tiếp dưới dạng nửa vời.
-- **Xử lý lỗi:** lỗi do người dùng gây ra (nhập sai, tệp hỏng, hết dung lượng) MUST hiện thông báo tiếng Việt nói rõ chuyện gì xảy ra và cần làm gì. MUST NOT im lặng bỏ qua một lỗi, và MUST NOT hiện thông báo kỹ thuật thô cho người dùng. Lỗi do lập trình sai thì phải lộ ra ngay khi phát triển, không được che.
-- **Accessibility / i18n:** theo P9 (bàn phím, tương phản 4.5:1, không chỉ dựa vào màu) và P8 (chỉ tiếng Việt, không dựng hạ tầng đa ngôn ngữ).
+- **Xử lý lỗi:** lỗi do người dùng gây ra (nhập sai, tệp hỏng, hết dung lượng) MUST hiện thông báo bằng **ngôn ngữ đang chọn**, nói rõ chuyện gì xảy ra và cần làm gì. MUST NOT im lặng bỏ qua một lỗi, và MUST NOT hiện thông báo kỹ thuật thô cho người dùng. Lỗi do lập trình sai thì phải lộ ra ngay khi phát triển, không được che.
+- **Accessibility / i18n:** theo P9 (bàn phím, tương phản 4.5:1, không chỉ dựa vào màu) và P8 (song ngữ Việt–Anh, mọi chuỗi hiển thị đi qua lớp tra cứu, không nhãn hiển thị nào nằm trong `domain/`).
 - **Git:** dự án dùng git. Mỗi task trong `tasks.md` hoàn thành là một commit, thông điệp commit nêu rõ task nào. Không commit khi ứng dụng không build được.
 
 ## 5. Quy trình (Workflow)
@@ -115,6 +123,14 @@ Việc xếp và đổi chỗ cầu thủ trên sơ đồ MUST làm được ho�
 - Sửa hiến pháp phải bump version (semver: MAJOR = bỏ/đổi nguyên tắc, MINOR = thêm nguyên tắc, PATCH = làm rõ câu chữ).
 - Khi hiến pháp đổi, rà lại các spec đang mở còn hiệu lực không.
 - Khi conflict: Constitution > Spec > Plan > Tasks > code hiện có.
+
+**Lịch sử sửa đổi:**
+
+| Version | Ngày | Đổi gì |
+|---|---|---|
+| 1.0.0 | 2026-10-26 | Lập hiến pháp |
+| 1.0.1 | 2026-10-29 | Chốt hai điểm cần xác nhận ở mục 7 |
+| **2.0.0** | **2026-11-16** | **P8 đổi từ "chỉ tiếng Việt, cấm hạ tầng đa ngôn ngữ" sang "song ngữ Việt–Anh". MAJOR vì đổi nghĩa một nguyên tắc. Kéo theo: bỏ "đa ngôn ngữ" khỏi non-goals, sửa mục xử lý lỗi và mục i18n ở Chuẩn chất lượng** |
 
 ## 7. Điểm cần xác nhận
 
