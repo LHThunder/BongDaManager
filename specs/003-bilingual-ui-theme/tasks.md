@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | 36 AC (US-17 → US-23) |
-| **Tiến độ** | 27/45 |
+| **Tiến độ** | 29/45 |
 | **Sửa đổi** | 2026-11-16 — chẻ lần đầu từ plan, rồi sửa theo cả 8 phát hiện của `/analyze`; thêm T341–T342 lúc làm Phase 23; thêm T343–T344 lúc làm Phase 25 |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -207,13 +207,13 @@ duyệt theme**. Không có nó thì T326 áp theme ra 27 file còn lại rồi 
 
 ## Phase 26 — Lát 26: Theme và chế độ tối
 
-- [ ] **T323** — Token màu và phông, cấu hình `darkMode`
-  - File: sửa `tailwind.config.js`, sửa `src/index.css`; thêm phông vào `public/`
+- [x] **T323** — Token màu và phông, cấu hình `darkMode`
+  - File: sửa `tailwind.config.js`, sửa `src/index.css`; thêm `public/phong/` (4 tệp woff2 + GIAY-PHEP.md)
   - Xong khi: biến CSS khai ở `:root` và `:root[data-che-do='toi']`; token Tailwind trỏ tới biến (D70); phông nhúng trong repo, **chạy offline không mất chữ**.
   - AC: AC-20.4
   - Phụ thuộc: —
 
-- [ ] **T324** — Áp theme lên **một** màn hình mẫu
+- [x] **T324** — Áp theme lên **một** màn hình mẫu
   - File: sửa `src/ui/pages/TrangLichSu.tsx`
   - Xong khi: trang Lịch sử mang trọn theme mới — bảng, nút, chữ phụ, trạng thái rỗng, khối chi tiết mở ra (D74). Bố cục **không xê dịch** so với trước.
   - AC: AC-20.1, AC-20.6

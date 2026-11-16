@@ -88,20 +88,20 @@ export function TrangLichSu({ onQuayLai, onDauLai }: Props) {
       <button
         type="button"
         onClick={onQuayLai}
-        className="text-sm text-blue-700 underline hover:text-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-400"
+        className="text-sm text-chinh underline hover:text-chinh-dam"
       >
         {CHUNG.quayLai}
       </button>
 
-      <h2 className="mt-4 text-2xl font-bold text-slate-900">
+      <h2 className="mt-4 font-tieuDe text-2xl font-bold uppercase tracking-wide text-chu">
         {LICH_SU.tieuDe}
       </h2>
-      <p className="mt-1 text-sm text-slate-500">
+      <p className="mt-1 text-sm text-chu-phu">
         {LICH_SU.moTa(matchRepo.SO_TRAN_GIU_LAI)}
       </p>
 
       {lichSu.length === 0 ? (
-        <p className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700">
+        <p className="mt-4 rounded-lg border border-vien bg-nen-nhan p-3 text-sm text-chu-phu">
           {LICH_SU.chuaCoTran}
         </p>
       ) : (
@@ -112,41 +112,41 @@ export function TrangLichSu({ onQuayLai, onDauLai }: Props) {
             return (
               <li
                 key={t.id}
-                className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-slate-100 py-2 text-sm"
+                className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded border-b border-vien py-2 text-sm hover:bg-nen-nhan"
               >
-                <span className="w-40 shrink-0 text-slate-500">
+                <span className="w-40 shrink-0 text-chu-phu">
                   {ngayGio(t.ketThucLuc)}
                 </span>
-                <span className="flex-1 text-slate-900">
+                <span className="flex-1 text-chu">
                   {nha.ten}
                   {nha.daXoa && (
-                    <span className="ml-1 text-xs text-amber-800">
+                    <span className="ml-1 text-xs text-canh-bao-chu">
                       ({LICH_SU.doiDaXoa})
                     </span>
                   )}{' '}
-                  <span className="font-mono font-semibold">
+                  <span className="font-tieuDe text-base font-bold tracking-wide text-chu">
                     {t.tiSo.nha} – {t.tiSo.khach}
                   </span>{' '}
                   {khach.ten}
                   {khach.daXoa && (
-                    <span className="ml-1 text-xs text-amber-800">
+                    <span className="ml-1 text-xs text-canh-bao-chu">
                       ({LICH_SU.doiDaXoa})
                     </span>
                   )}
                 </span>
-                <span className="shrink-0 text-xs text-slate-500">
+                <span className="shrink-0 text-xs text-chu-phu">
                   {LICH_SU.dinhDangTran(
                     matchRepo.quanSoCua(t),
                     matchRepo.thoiLuongCua(t),
                   )}
                 </span>
-                <code className="font-mono text-xs text-slate-500">
+                <code className="font-mono text-xs text-chu-phu">
                   {t.maTran}
                 </code>
                 <button
                   type="button"
                   onClick={() => void moTran(t)}
-                  className="text-blue-700 underline hover:text-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  className="text-chinh underline hover:text-chinh-dam"
                 >
                   {LICH_SU.moLink}
                 </button>
@@ -157,12 +157,12 @@ export function TrangLichSu({ onQuayLai, onDauLai }: Props) {
       )}
 
       {dangMo && (
-        <section className="mt-6 rounded-lg border border-slate-200 bg-white p-4">
+        <section className="mt-6 rounded-lg border border-vien bg-nen-the p-4 shadow-sm">
           <div className="flex items-start justify-between">
-            <h3 className="text-lg font-semibold text-slate-900">
+            <h3 className="font-tieuDe text-lg font-bold uppercase tracking-wide text-chu">
               {tenDoiCua(dangMo.doiChuNha).ten} {dangMo.tiSo.nha} –{' '}
               {dangMo.tiSo.khach} {tenDoiCua(dangMo.doiKhach).ten}
-              <span className="ml-2 text-sm font-normal text-slate-500">
+              <span className="ml-2 font-chinh text-sm font-normal normal-case tracking-normal text-chu-phu">
                 {LICH_SU.dinhDangTran(
                   matchRepo.quanSoCua(dangMo),
                   matchRepo.thoiLuongCua(dangMo),
@@ -172,7 +172,7 @@ export function TrangLichSu({ onQuayLai, onDauLai }: Props) {
             <button
               type="button"
               onClick={() => datDangMo(null)}
-              className="text-sm text-blue-700 underline hover:text-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="text-sm text-chinh underline hover:text-chinh-dam"
             >
               {LICH_SU.dong}
             </button>
@@ -196,7 +196,7 @@ export function TrangLichSu({ onQuayLai, onDauLai }: Props) {
             return (
               <div className="mt-2">
                 {lyDo && (
-                  <p className="rounded border border-amber-300 bg-amber-50 p-2 text-sm text-amber-900">
+                  <p className="rounded border border-vien-dam bg-canh-bao-nen p-2 text-sm text-canh-bao-chu">
                     {LICH_SU.lyDoKhongDauLai[lyDo] ?? lyDo}
                   </p>
                 )}
@@ -204,7 +204,7 @@ export function TrangLichSu({ onQuayLai, onDauLai }: Props) {
                   type="button"
                   onClick={() => onDauLai(dangMo)}
                   disabled={lyDo !== null}
-                  className="mt-2 rounded-md bg-blue-700 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:cursor-not-allowed disabled:bg-slate-300"
+                  className="mt-2 rounded-md bg-chinh px-3 py-1.5 text-sm font-medium text-chu-tren-chinh hover:bg-chinh-dam disabled:cursor-not-allowed disabled:bg-vien-dam disabled:text-chu-phu"
                 >
                   {LICH_SU.dauLai}
                 </button>
@@ -213,7 +213,7 @@ export function TrangLichSu({ onQuayLai, onDauLai }: Props) {
           })()}
 
           <div className="mt-4">
-            <h4 className="text-base font-semibold text-slate-900">
+            <h4 className="font-tieuDe text-base font-bold uppercase tracking-wide text-chu">
               {BAO_CAO_SAU_TRAN.tieuDeGhiBan}
             </h4>
             <div className="mt-2">
@@ -231,7 +231,7 @@ export function TrangLichSu({ onQuayLai, onDauLai }: Props) {
 
           {(['nha', 'khach'] as const).map((doi) => (
             <div key={doi} className="mt-4">
-              <h4 className="text-base font-semibold text-slate-900">
+              <h4 className="font-tieuDe text-base font-bold uppercase tracking-wide text-chu">
                 {BAO_CAO_SAU_TRAN.tieuDeDiem} —{' '}
                 {tenDoiCua(doi === 'nha' ? dangMo.doiChuNha : dangMo.doiKhach)
                   .ten}
@@ -248,7 +248,7 @@ export function TrangLichSu({ onQuayLai, onDauLai }: Props) {
           ))}
 
           <div className="mt-4">
-            <h4 className="text-base font-semibold text-slate-900">
+            <h4 className="font-tieuDe text-base font-bold uppercase tracking-wide text-chu">
               {LICH_SU.tieuDeDienBien}
             </h4>
             <div className="mt-2">
