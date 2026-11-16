@@ -204,7 +204,7 @@ export function TrangLichSu({ onQuayLai, onDauLai }: Props) {
                   type="button"
                   onClick={() => onDauLai(dangMo)}
                   disabled={lyDo !== null}
-                  className="mt-2 rounded-md bg-chinh px-3 py-1.5 text-sm font-medium text-chu-tren-chinh hover:bg-chinh-dam disabled:cursor-not-allowed disabled:bg-vien-dam disabled:text-chu-phu"
+                  className="mt-2 rounded-md bg-chinh px-3 py-1.5 text-sm font-medium text-chu-tren-chinh hover:bg-chinh-dam disabled:cursor-not-allowed disabled:bg-nen-nhan disabled:text-chu-phu"
                 >
                   {LICH_SU.dauLai}
                 </button>

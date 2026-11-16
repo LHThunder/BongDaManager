@@ -34,20 +34,20 @@ export function DanhSachDoi({ onMoDoi }: Props) {
   }, [napDanhSachDoi])
 
   if (dangTai && teams.length === 0) {
-    return <p className="text-slate-500">{CHUNG.dangTai}</p>
+    return <p className="text-chu-phu">{CHUNG.dangTai}</p>
   }
 
   return (
     <div>
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold text-slate-900">
+        <h2 className="text-xl font-semibold text-chu">
           {DANH_SACH_DOI.tieuDe}
         </h2>
         {teams.length > 0 && (
           <button
             type="button"
             onClick={() => datHop({ loai: 'tao' })}
-            className="rounded-md bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="rounded-md bg-chinh px-4 py-2 text-sm font-medium text-chu-tren-chinh hover:bg-chinh-dam"
           >
             {DANH_SACH_DOI.taoDoi}
           </button>
@@ -55,17 +55,17 @@ export function DanhSachDoi({ onMoDoi }: Props) {
       </div>
 
       {teams.length === 0 ? (
-        <div className="mt-8 rounded-lg border border-dashed border-slate-300 bg-white p-10 text-center">
-          <h3 className="text-lg font-medium text-slate-900">
+        <div className="mt-8 rounded-lg border border-dashed border-vien-dam bg-nen-the p-10 text-center">
+          <h3 className="text-lg font-medium text-chu">
             {DANH_SACH_DOI.trongTieuDe}
           </h3>
-          <p className="mx-auto mt-2 max-w-md text-sm text-slate-600">
+          <p className="mx-auto mt-2 max-w-md text-sm text-chu-phu">
             {DANH_SACH_DOI.trongMoTa}
           </p>
           <button
             type="button"
             onClick={() => datHop({ loai: 'tao' })}
-            className="mt-6 rounded-md bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="mt-6 rounded-md bg-chinh px-5 py-2.5 text-sm font-medium text-chu-tren-chinh hover:bg-chinh-dam"
           >
             {DANH_SACH_DOI.taoDoiDauTien}
           </button>
@@ -75,7 +75,7 @@ export function DanhSachDoi({ onMoDoi }: Props) {
           {teams.map((doi) => (
             <li
               key={doi.id}
-              className="flex items-center gap-4 rounded-lg border border-slate-200 bg-white p-4"
+              className="flex items-center gap-4 rounded-lg border border-vien bg-nen-the p-4"
             >
               <AnhThayThe
                 anhId={doi.logoImageId}
@@ -85,8 +85,8 @@ export function DanhSachDoi({ onMoDoi }: Props) {
               />
 
               <div className="min-w-0 flex-1">
-                <p className="truncate font-medium text-slate-900">{doi.name}</p>
-                <p className="text-sm text-slate-500">
+                <p className="truncate font-medium text-chu">{doi.name}</p>
+                <p className="text-sm text-chu-phu">
                   {doi.soCauThu === 0
                     ? DANH_SACH_DOI.chuaCoCauThu
                     : DANH_SACH_DOI.soCauThu(doi.soCauThu)}
@@ -97,21 +97,21 @@ export function DanhSachDoi({ onMoDoi }: Props) {
                 <button
                   type="button"
                   onClick={() => onMoDoi(doi.id)}
-                  className="rounded-md border border-slate-300 px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-400"
+                  className="rounded-md border border-vien-dam px-3 py-1.5 text-sm text-chu hover:bg-nen-nhan"
                 >
                   {DANH_SACH_DOI.moDoi}
                 </button>
                 <button
                   type="button"
                   onClick={() => datHop({ loai: 'sua', doi })}
-                  className="rounded-md border border-slate-300 px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-400"
+                  className="rounded-md border border-vien-dam px-3 py-1.5 text-sm text-chu hover:bg-nen-nhan"
                 >
                   {CHUNG.suaTen}
                 </button>
                 <button
                   type="button"
                   onClick={() => datHop({ loai: 'xoa', doi })}
-                  className="rounded-md border border-red-300 px-3 py-1.5 text-sm text-red-700 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-400"
+                  className="rounded-md border border-loi-chu px-3 py-1.5 text-sm text-loi-chu hover:bg-loi-nen"
                 >
                   {CHUNG.xoa}
                 </button>

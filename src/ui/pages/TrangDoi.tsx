@@ -75,7 +75,7 @@ export function TrangDoi({ teamId, onQuayLai, onMoChienThuat }: Props) {
   const daSapXep = useMemo(() => sapXep(cauThu, khoa), [cauThu, khoa])
 
   if (!doi) {
-    return <p className="text-slate-500">{CHUNG.dangTai}</p>
+    return <p className="text-chu-phu">{CHUNG.dangTai}</p>
   }
 
   return (
@@ -83,7 +83,7 @@ export function TrangDoi({ teamId, onQuayLai, onMoChienThuat }: Props) {
       <button
         type="button"
         onClick={onQuayLai}
-        className="text-sm text-blue-700 underline hover:text-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-400"
+        className="text-sm text-chinh underline hover:text-chinh-dam"
       >
         {CHUNG.quayLai}
       </button>
@@ -97,34 +97,34 @@ export function TrangDoi({ teamId, onQuayLai, onMoChienThuat }: Props) {
             kichThuoc="lon"
           />
           <div>
-            <p className="text-sm uppercase tracking-wide text-slate-500">
+            <p className="text-sm uppercase tracking-wide text-chu-phu">
               {TRANG_DOI.doiNay}
             </p>
-            <h2 className="text-2xl font-bold text-slate-900">{doi.name}</h2>
+            <h2 className="text-2xl font-bold text-chu">{doi.name}</h2>
           </div>
         </div>
 
         <button
           type="button"
           onClick={() => onMoChienThuat(teamId)}
-          className="rounded-md border border-blue-700 px-4 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="rounded-md border border-chinh px-4 py-2 text-sm font-medium text-chinh hover:bg-chinh-nhat"
         >
           {TRANG_CHIEN_THUAT.moChienThuat}
         </button>
       </div>
 
       <div className="mt-8 flex flex-wrap items-center justify-between gap-3">
-        <h3 className="text-lg font-semibold text-slate-900">
+        <h3 className="text-lg font-semibold text-chu">
           {TRANG_DOI.danhSachCauThu}
         </h3>
         <div className="flex items-center gap-3">
           {cauThu.length > 0 && (
-            <label className="flex items-center gap-2 text-sm text-slate-600">
+            <label className="flex items-center gap-2 text-sm text-chu-phu">
               {TRANG_DOI.sapXepTheo}
               <select
                 value={khoa}
                 onChange={(e) => datKhoa(e.target.value as KhoaSapXep)}
-                className="rounded border border-slate-300 px-2 py-1 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                className="rounded border border-vien-dam px-2 py-1"
               >
                 <option value="soAo">{TRANG_DOI.sapXep.soAo}</option>
                 <option value="ten">{TRANG_DOI.sapXep.ten}</option>
@@ -136,7 +136,7 @@ export function TrangDoi({ teamId, onQuayLai, onMoChienThuat }: Props) {
           <button
             type="button"
             onClick={() => datHop({ loai: 'them' })}
-            className="rounded-md bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="rounded-md bg-chinh px-4 py-2 text-sm font-medium text-chu-tren-chinh hover:bg-chinh-dam"
           >
             {TRANG_DOI.themCauThu}
           </button>
@@ -144,25 +144,25 @@ export function TrangDoi({ teamId, onQuayLai, onMoChienThuat }: Props) {
       </div>
 
       {cauThu.length === 0 ? (
-        <div className="mt-4 rounded-lg border border-dashed border-slate-300 bg-white p-10 text-center">
-          <h4 className="text-base font-medium text-slate-900">
+        <div className="mt-4 rounded-lg border border-dashed border-vien-dam bg-nen-the p-10 text-center">
+          <h4 className="text-base font-medium text-chu">
             {TRANG_DOI.chuaCoCauThuTieuDe}
           </h4>
-          <p className="mx-auto mt-2 max-w-lg text-sm text-slate-600">
+          <p className="mx-auto mt-2 max-w-lg text-sm text-chu-phu">
             {TRANG_DOI.chuaCoCauThuMoTa}
           </p>
           <button
             type="button"
             onClick={() => datHop({ loai: 'them' })}
-            className="mt-6 rounded-md bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="mt-6 rounded-md bg-chinh px-5 py-2.5 text-sm font-medium text-chu-tren-chinh hover:bg-chinh-dam"
           >
             {TRANG_DOI.themCauThuDauTien}
           </button>
         </div>
       ) : (
-        <div className="mt-4 overflow-x-auto rounded-lg border border-slate-200 bg-white">
+        <div className="mt-4 overflow-x-auto rounded-lg border border-vien bg-nen-the">
           <table className="w-full text-sm">
-            <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
+            <thead className="bg-nen-nhan text-left text-xs uppercase tracking-wide text-chu-phu">
               <tr>
                 <th className="px-3 py-2">{TRANG_DOI.cotSoAo}</th>
                 <th className="px-3 py-2">{TRANG_DOI.cotTen}</th>
@@ -186,8 +186,8 @@ export function TrangDoi({ teamId, onQuayLai, onMoChienThuat }: Props) {
                 )
 
                 return (
-                  <tr key={p.id} className="border-t border-slate-100">
-                    <td className="px-3 py-2 font-medium text-slate-900">
+                  <tr key={p.id} className="border-t border-vien">
+                    <td className="px-3 py-2 font-medium text-chu">
                       {p.shirtNumber}
                     </td>
                     <td className="px-3 py-2">
@@ -198,35 +198,35 @@ export function TrangDoi({ teamId, onQuayLai, onMoChienThuat }: Props) {
                           mauNen={doi.primaryColor}
                           kichThuoc="nho"
                         />
-                        <span className="font-medium text-slate-900">
+                        <span className="font-medium text-chu">
                           {p.name}
                         </span>
                       </span>
                       {!tinhTrang.hoanTat && (
-                        <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-900">
+                        <span className="ml-2 rounded-full bg-canh-bao-nen px-2 py-0.5 text-xs text-canh-bao-chu">
                           {TRANG_DOI.chuaHoanTat}
                           {' · '}
                           {TRANG_DOI.chuaHoanTatChiTiet(tinhTrang.soChiSoThieu)}
                         </span>
                       )}
                     </td>
-                    <td className="px-3 py-2 text-slate-600">{p.age}</td>
-                    <td className="px-3 py-2 text-slate-600">
+                    <td className="px-3 py-2 text-chu-phu">{p.age}</td>
+                    <td className="px-3 py-2 text-chu-phu">
                       {p.positions.map((v) => NHAN_VI_TRI[v].vietTat).join(', ')}
                     </td>
-                    <td className="px-3 py-2 text-slate-600">
+                    <td className="px-3 py-2 text-chu-phu">
                       {CHAN_THUAN[p.preferredFoot]}
                     </td>
                     <td className="px-3 py-2">
                       {totNhat ? (
-                        <span className="font-semibold text-slate-900">
+                        <span className="font-semibold text-chu">
                           {totNhat.diem}
-                          <span className="ml-1 text-xs font-normal text-slate-500">
+                          <span className="ml-1 text-xs font-normal text-chu-phu">
                             {NHAN_VI_TRI[totNhat.viTri].vietTat}
                           </span>
                         </span>
                       ) : (
-                        <span className="text-xs text-slate-400">
+                        <span className="text-xs text-chu-phu">
                           {TRANG_DOI.chuaTinhDuocChiSoTong}
                         </span>
                       )}
@@ -236,14 +236,14 @@ export function TrangDoi({ teamId, onQuayLai, onMoChienThuat }: Props) {
                         <button
                           type="button"
                           onClick={() => datHop({ loai: 'sua', cauThu: p })}
-                          className="rounded-md border border-slate-300 px-2.5 py-1 text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-400"
+                          className="rounded-md border border-vien-dam px-2.5 py-1 text-chu hover:bg-nen-nhan"
                         >
                           {TRANG_DOI.suaCauThu}
                         </button>
                         <button
                           type="button"
                           onClick={() => datHop({ loai: 'xoa', cauThu: p })}
-                          className="rounded-md border border-red-300 px-2.5 py-1 text-red-700 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-400"
+                          className="rounded-md border border-loi-chu px-2.5 py-1 text-loi-chu hover:bg-loi-nen"
                         >
                           {TRANG_DOI.xoaCauThu}
                         </button>

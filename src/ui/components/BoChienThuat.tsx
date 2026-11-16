@@ -23,8 +23,8 @@ export function BoChienThuat({
   const tenGon = ten.trim()
 
   return (
-    <section className="rounded-lg border border-slate-200 bg-white p-4">
-      <h3 className="text-lg font-semibold text-slate-900">
+    <section className="rounded-lg border border-vien bg-nen-the p-4">
+      <h3 className="text-lg font-semibold text-chu">
         {BO_CHIEN_THUAT.tieuDe}
       </h3>
 
@@ -37,31 +37,31 @@ export function BoChienThuat({
           datTen('')
         }}
       >
-        <label className="flex-1 text-sm text-slate-700">
+        <label className="flex-1 text-sm text-chu">
           <span className="block">{BO_CHIEN_THUAT.nhanTenBo}</span>
           <input
             type="text"
             value={ten}
             onChange={(e) => datTen(e.target.value)}
             placeholder={BO_CHIEN_THUAT.gidanhTenBo}
-            className="mt-1 w-full rounded border border-slate-300 px-2 py-1 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300"
+            className="mt-1 w-full rounded border border-vien-dam px-2 py-1"
           />
         </label>
         <button
           type="submit"
           disabled={tenGon === ''}
-          className="rounded-md bg-blue-700 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:cursor-not-allowed disabled:bg-slate-300"
+          className="rounded-md bg-chinh px-3 py-1.5 text-sm font-medium text-chu-tren-chinh hover:bg-chinh-dam disabled:cursor-not-allowed disabled:bg-nen-nhan"
         >
           {BO_CHIEN_THUAT.luuThanhBo}
         </button>
       </form>
 
       {cacBo.length === 0 ? (
-        <p className="mt-3 text-sm text-slate-500">
+        <p className="mt-3 text-sm text-chu-phu">
           {BO_CHIEN_THUAT.chuaCoBo}
         </p>
       ) : (
-        <ul className="mt-3 divide-y divide-slate-200">
+        <ul className="mt-3 divide-y divide-vien">
           {cacBo.map((bo) => {
             const dangDung = bo.id === idDangDung
             return (
@@ -70,23 +70,23 @@ export function BoChienThuat({
                 className="flex items-center gap-3 py-2 first:pt-0"
               >
                 <span className="flex-1">
-                  <span className="block text-sm font-medium text-slate-900">
+                  <span className="block text-sm font-medium text-chu">
                     {bo.ten}
                   </span>
-                  <span className="block text-xs text-slate-500">
+                  <span className="block text-xs text-chu-phu">
                     {TEN_SO_DO[bo.formationId]}
                   </span>
                 </span>
 
                 {dangDung ? (
-                  <span className="rounded bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-900">
+                  <span className="rounded bg-tot-nen px-2 py-0.5 text-xs font-medium text-tot-chu">
                     {BO_CHIEN_THUAT.dangDung}
                   </span>
                 ) : (
                   <button
                     type="button"
                     onClick={() => onApDung(bo.id)}
-                    className="rounded-md border border-blue-700 px-2 py-1 text-xs font-medium text-blue-700 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    className="rounded-md border border-chinh px-2 py-1 text-xs font-medium text-chinh hover:bg-chinh-nhat"
                   >
                     {BO_CHIEN_THUAT.apDung}
                   </button>

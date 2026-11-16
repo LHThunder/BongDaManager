@@ -47,7 +47,7 @@ function MucNgoaiSan({ cauThu, mauAo }: MucProps) {
               }
             : undefined
         }
-        className={`flex w-full touch-none items-center gap-3 px-3 py-2 text-left focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-400 ${
+        className={`flex w-full touch-none items-center gap-3 px-3 py-2 text-left ${
           isDragging ? 'relative z-10 opacity-80 shadow-lg' : ''
         }`}
       >
@@ -57,10 +57,10 @@ function MucNgoaiSan({ cauThu, mauAo }: MucProps) {
           mauNen={mauAo}
           kichThuoc="nho"
         />
-        <span className="flex-1 truncate text-sm text-slate-900">
+        <span className="flex-1 truncate text-sm text-chu">
           {cauThu.name}
         </span>
-        <span className="text-xs text-slate-500">
+        <span className="text-xs text-chu-phu">
           {TRANG_CHIEN_THUAT.soAo(cauThu.shirtNumber)}
         </span>
       </button>
@@ -87,26 +87,26 @@ export function DanhSachNgoaiSan({ cauThu, mauAo, doiRong }: Props) {
 
   return (
     <section>
-      <h3 className="text-lg font-semibold text-slate-900">
+      <h3 className="text-lg font-semibold text-chu">
         {TRANG_CHIEN_THUAT.tieuDeNgoaiSan}
       </h3>
 
       <div
         ref={setNodeRef}
-        className={`mt-2 rounded-lg border bg-white ${
-          isOver ? 'border-blue-500 ring-2 ring-blue-200' : 'border-slate-200'
+        className={`mt-2 rounded-lg border bg-nen-the ${
+          isOver ? 'border-chinh ring-2 ring-chinh' : 'border-vien'
         }`}
       >
         {doiRong ? (
-          <p className="px-3 py-4 text-sm text-slate-500">
+          <p className="px-3 py-4 text-sm text-chu-phu">
             {TRANG_CHIEN_THUAT.chuaCoCauThu}
           </p>
         ) : cauThu.length === 0 ? (
-          <p className="px-3 py-4 text-sm text-slate-500">
+          <p className="px-3 py-4 text-sm text-chu-phu">
             {TRANG_CHIEN_THUAT.ngoaiSanTrong}
           </p>
         ) : (
-          <ul className="divide-y divide-slate-200">
+          <ul className="divide-y divide-vien">
             {cauThu.map((p) => (
               <MucNgoaiSan key={p.id} cauThu={p} mauAo={mauAo} />
             ))}

@@ -4,6 +4,7 @@ import {
   CHUNG_EN,
   DANH_SACH_DOI_EN,
   NGON_NGU_EN,
+  CHE_DO_EN,
   CANH_BAO_XUNG_DOT_EN,
   MUC_SAI_VI_TRI_EN,
   TRANG_CHIEN_THUAT_EN,
@@ -49,6 +50,7 @@ import {
   CHUNG_VI,
   DANH_SACH_DOI_VI,
   NGON_NGU_VI,
+  CHE_DO_VI,
   CANH_BAO_XUNG_DOT_VI,
   TEN_SO_DO_VI,
   MUC_SAI_VI_TRI_VI,
@@ -104,6 +106,7 @@ import {
 export interface BoChuoi {
   readonly CHUNG: BanDich<typeof CHUNG_VI>
   readonly NGON_NGU: BanDich<typeof NGON_NGU_VI>
+  readonly CHE_DO: BanDich<typeof CHE_DO_VI>
   readonly DANH_SACH_DOI: BanDich<typeof DANH_SACH_DOI_VI>
   readonly XOA_DOI: BanDich<typeof XOA_DOI_VI>
   readonly NHAN_VI_TRI: typeof NHAN_VI_TRI_VI
@@ -149,6 +152,7 @@ export interface BoChuoi {
 const VI: BoChuoi = {
   CHUNG: CHUNG_VI,
   NGON_NGU: NGON_NGU_VI,
+  CHE_DO: CHE_DO_VI,
   DANH_SACH_DOI: DANH_SACH_DOI_VI,
   XOA_DOI: XOA_DOI_VI,
   NHAN_VI_TRI: NHAN_VI_TRI_VI,
@@ -193,6 +197,7 @@ const VI: BoChuoi = {
 const EN: BoChuoi = {
   CHUNG: CHUNG_EN,
   NGON_NGU: NGON_NGU_EN,
+  CHE_DO: CHE_DO_EN,
   DANH_SACH_DOI: DANH_SACH_DOI_EN,
   XOA_DOI: XOA_DOI_EN,
   NHAN_VI_TRI: NHAN_VI_TRI_EN,

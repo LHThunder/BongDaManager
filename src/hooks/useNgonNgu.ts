@@ -52,6 +52,25 @@ export function useTuyChonHienThi(): TuyChonHienThi {
     void tuyChonRepo.docCheDo().then(datCheDoTrongStore)
   }, [datNgonNguTrongStore, datCheDoTrongStore])
 
+  /*
+    Bảng màu nằm trên `<html>`, tức NGOÀI cây React, nên phải đặt lại mỗi
+    khi `cheDo` đổi — cả khi người dùng bấm nút lẫn khi giá trị vừa đọc từ
+    đĩa về lúc mở ứng dụng (AC-20.8).
+
+    Đổi một thuộc tính thì trình duyệt chỉ tính lại màu; React không vẽ lại
+    gì cả, nên "đổi ngay, không tải lại trang, việc đang làm dở còn nguyên"
+    (AC-20.7) đạt được theo cấu trúc chứ không nhờ cẩn thận.
+
+    Chế độ sáng KHÔNG đặt thuộc tính: nó là mặc định ở `:root`, và vắng
+    thuộc tính cũng là cách `index.html` khởi đầu — lần mở đầu luôn là chế
+    độ sáng (AC-20.9), không hỏi hệ điều hành.
+  */
+  useEffect(() => {
+    const goc = document.documentElement
+    if (cheDo === 'toi') goc.setAttribute('data-che-do', 'toi')
+    else goc.removeAttribute('data-che-do')
+  }, [cheDo])
+
   const doiNgonNgu = useCallback(
     (moi: NgonNgu) => {
       datNgonNguTrongStore(moi)

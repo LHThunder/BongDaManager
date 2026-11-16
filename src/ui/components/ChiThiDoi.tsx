@@ -41,11 +41,11 @@ export function ChiThiDoi({ chiThi, onDoi }: Props) {
   const chiThiCoXungDot = new Set(xungDot.flatMap((x) => x.cacChiThi))
 
   return (
-    <section className="rounded-lg border border-slate-200 bg-white p-4">
-      <h3 className="text-lg font-semibold text-slate-900">
+    <section className="rounded-lg border border-vien bg-nen-the p-4">
+      <h3 className="text-lg font-semibold text-chu">
         {CHI_THI_DOI.tieuDe}
       </h3>
-      <p className="mt-0.5 text-sm text-slate-500">{CHI_THI_DOI.moTa}</p>
+      <p className="mt-0.5 text-sm text-chu-phu">{CHI_THI_DOI.moTa}</p>
 
       <div className="mt-4 space-y-5">
         {THU_TU_CHI_THI.map((id) => {
@@ -63,7 +63,7 @@ export function ChiThiDoi({ chiThi, onDoi }: Props) {
             <fieldset key={id}>
               <legend
                 className={`text-sm font-medium ${
-                  chiThiCoXungDot.has(id) ? 'text-amber-800' : 'text-slate-900'
+                  chiThiCoXungDot.has(id) ? 'text-canh-bao-chu' : 'text-chu'
                 }`}
               >
                 {nhan.ten}
@@ -75,10 +75,10 @@ export function ChiThiDoi({ chiThi, onDoi }: Props) {
                   return (
                     <label
                       key={m.muc}
-                      className={`cursor-pointer rounded-md border px-3 py-1.5 text-sm focus-within:ring-2 focus-within:ring-blue-400 ${
+                      className={`cursor-pointer rounded-md border px-3 py-1.5 text-sm focus-within:ring-2 focus-within:ring-chinh ${
                         dangChon
-                          ? 'border-blue-600 bg-blue-50 font-medium text-blue-900'
-                          : 'border-slate-200 text-slate-700 hover:bg-slate-50'
+                          ? 'border-chinh bg-chinh-nhat font-medium text-chinh-dam'
+                          : 'border-vien text-chu hover:bg-nen-nhan'
                       }`}
                     >
                       <input
@@ -96,7 +96,7 @@ export function ChiThiDoi({ chiThi, onDoi }: Props) {
               </div>
 
               {/* Câu đánh đổi của ĐÚNG mức đang chọn (AC-7.2). */}
-              <p className="mt-1.5 text-sm text-slate-600">
+              <p className="mt-1.5 text-sm text-chu-phu">
                 {nhanMuc.danhDoi}
               </p>
             </fieldset>
@@ -105,16 +105,16 @@ export function ChiThiDoi({ chiThi, onDoi }: Props) {
       </div>
 
       {xungDot.length > 0 && (
-        <div role="status" className="mt-4 rounded-md bg-amber-50 p-3">
-          <p className="text-sm font-medium text-amber-900">
+        <div role="status" className="mt-4 rounded-md bg-canh-bao-nen p-3">
+          <p className="text-sm font-medium text-canh-bao-chu">
             {CHI_THI_DOI.tieuDeXungDot}
           </p>
-          <ul className="mt-1 space-y-1 text-sm text-amber-900">
+          <ul className="mt-1 space-y-1 text-sm text-canh-bao-chu">
             {xungDot.map((x) => (
               <li key={x.cacChiThi.join('+')}>{CANH_BAO_XUNG_DOT[x.ma]}</li>
             ))}
           </ul>
-          <p className="mt-1 text-sm text-amber-800">
+          <p className="mt-1 text-sm text-canh-bao-chu">
             {CHI_THI_DOI.ghiChuXungDot}
           </p>
         </div>

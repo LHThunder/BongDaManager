@@ -42,7 +42,7 @@ export function BangDieuKhienTran({
         type="button"
         onClick={dangChay ? onTamDung : onTiepTuc}
         disabled={daKetThuc}
-        className="rounded-md bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:cursor-not-allowed disabled:bg-slate-300"
+        className="rounded-md bg-chinh px-4 py-2 text-sm font-medium text-chu-tren-chinh hover:bg-chinh-dam disabled:cursor-not-allowed disabled:bg-nen-nhan"
       >
         {dangChay ? TRAN_DAU.tamDung : TRAN_DAU.tiepTuc}
       </button>
@@ -51,21 +51,21 @@ export function BangDieuKhienTran({
         type="button"
         onClick={onChayHet}
         disabled={daKetThuc}
-        className="rounded-md border border-blue-700 px-4 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:cursor-not-allowed disabled:border-slate-300 disabled:text-slate-400"
+        className="rounded-md border border-chinh px-4 py-2 text-sm font-medium text-chinh hover:bg-chinh-nhat disabled:cursor-not-allowed disabled:border-vien disabled:text-chu-phu"
       >
         {TRAN_DAU.chayHet}
       </button>
 
       <fieldset className="flex items-center gap-2">
         <legend className="sr-only">{TRAN_DAU.nhanTocDo}</legend>
-        <span className="text-sm text-slate-600">{TRAN_DAU.nhanTocDo}</span>
+        <span className="text-sm text-chu-phu">{TRAN_DAU.nhanTocDo}</span>
         {CAC_MUC_TOC_DO.map((m) => (
           <label
             key={m}
-            className={`cursor-pointer rounded-md border px-2 py-1 text-sm focus-within:ring-2 focus-within:ring-blue-400 ${
+            className={`cursor-pointer rounded-md border px-2 py-1 text-sm focus-within:ring-2 focus-within:ring-chinh ${
               m === tocDo
-                ? 'border-blue-600 bg-blue-50 font-medium text-blue-900'
-                : 'border-slate-200 text-slate-700 hover:bg-slate-50'
+                ? 'border-chinh bg-chinh-nhat font-medium text-chinh-dam'
+                : 'border-vien text-chu hover:bg-nen-nhan'
             }`}
           >
             <input

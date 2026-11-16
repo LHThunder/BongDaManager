@@ -61,6 +61,13 @@ export const NGON_NGU_VI = {
   en: 'English',
 } as const
 
+/** Chế độ sáng/tối (AC-20.7 → AC-20.10). */
+export const CHE_DO_VI = {
+  nhan: 'Chế độ hiển thị',
+  sang: 'Sáng',
+  toi: 'Tối',
+} as const
+
 export const DANH_SACH_DOI_VI = {
   tieuDe: 'Các đội của tôi',
   trongTieuDe: 'Chưa có đội nào',

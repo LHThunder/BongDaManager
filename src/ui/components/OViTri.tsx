@@ -35,10 +35,10 @@ export interface DuLieuO {
   (P9: không truyền thông tin chỉ bằng màu).
 */
 const VIEN_THEO_MUC: Readonly<Record<MucSai, string>> = {
-  dung: 'border-white/70',
-  nhe: 'border-amber-300',
-  vua: 'border-orange-400',
-  nang: 'border-red-500',
+  dung: 'border-co-vien',
+  nhe: 'border-sai-nhe',
+  vua: 'border-sai-vua',
+  nang: 'border-sai-nang',
 }
 
 /** Một ô trong đội hình trên sân (AC-5.1, AC-5.3, AC-5.4, AC-5.5). */
@@ -96,7 +96,7 @@ export function OViTri({
         )
 
   const vien =
-    mucSai === null ? 'border-white/40 border-dashed' : VIEN_THEO_MUC[mucSai]
+    mucSai === null ? 'border-co-vien-mo border-dashed' : VIEN_THEO_MUC[mucSai]
 
   return (
     <div ref={datNodeTha} className="flex w-20 flex-col items-center gap-1">
@@ -116,19 +116,19 @@ export function OViTri({
             : undefined
         }
         className={`flex h-16 w-16 touch-none flex-col items-center justify-center gap-0.5 rounded-full border-2 ${vien} ${
-          isOver ? 'ring-2 ring-sky-200 ring-offset-2 ring-offset-emerald-700' : ''
+          isOver ? 'ring-2 ring-co-noi-bat ring-offset-2 ring-offset-co-nen' : ''
         } ${
           dangChon
-            ? 'ring-2 ring-sky-300 ring-offset-2 ring-offset-emerald-700'
+            ? 'ring-2 ring-co-noi-bat ring-offset-2 ring-offset-co-nen'
             : ''
         } ${
           isDragging ? 'z-10 opacity-80' : ''
-        } bg-emerald-900/70 px-1 text-white focus:outline-none focus:ring-2 focus:ring-sky-300 focus:ring-offset-2 focus:ring-offset-emerald-700`}
+        } bg-co-o px-1 text-co-chu focus:ring-co-noi-bat focus:ring-offset-2 focus:ring-offset-co-nen`}
       >
         {cauThu === null ? (
           <>
             <span className="text-sm font-bold">{nhanViTri.vietTat}</span>
-            <span className="text-[10px] leading-none text-white/70">
+            <span className="text-[10px] leading-none text-co-chu-phu">
               {TRANG_CHIEN_THUAT.oTrong}
             </span>
           </>
@@ -148,23 +148,23 @@ export function OViTri({
       </button>
 
       {cauThu !== null && (
-        <span className="max-w-full truncate text-center text-[11px] font-medium text-white">
+        <span className="max-w-full truncate text-center text-[11px] font-medium text-co-chu">
           {cauThu.name}
         </span>
       )}
 
-      <span className="max-w-full truncate text-center text-[10px] leading-tight text-white/80">
+      <span className="max-w-full truncate text-center text-[10px] leading-tight text-co-chu-phu">
         {NHAN_VAI_TRO[roleId].ten}
       </span>
 
       {chuaDat.length > 0 && (
-        <span className="rounded bg-amber-200/90 px-1 text-center text-[10px] leading-tight text-amber-950">
+        <span className="rounded bg-co-canh-bao-nen px-1 text-center text-[10px] leading-tight text-co-canh-bao-chu">
           {VAI_TRO.canhBaoNganTaiO(chuaDat.length)}
         </span>
       )}
 
       {mucSai !== null && mucSai !== 'dung' && (
-        <span className="rounded bg-slate-900/80 px-1 text-center text-[10px] leading-tight text-amber-200">
+        <span className="rounded bg-co-nhan-nen px-1 text-center text-[10px] leading-tight text-co-nhan-chu">
           {SAI_VI_TRI.nhan(mucSai, Math.round(MUC_TRU_HIEU_SUAT[mucSai] * 100))}
         </span>
       )}

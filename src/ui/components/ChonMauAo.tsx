@@ -62,29 +62,29 @@ export function ChonMauAo({
   return (
     <div className="mt-4">
       <div className="grid gap-3 sm:grid-cols-2">
-        <label className="block text-sm font-medium text-slate-700">
+        <label className="block text-sm font-medium text-chu">
           {CHON_MAU_AO.nhanMauChinh}
           <input
             type="color"
             value={laMauHopLe(mauChinh) ? mauChinh : '#1E40AF'}
             onChange={(e) => onDoi(e.target.value.toUpperCase(), mauPhu)}
-            className="mt-1 block h-10 w-full cursor-pointer rounded-md border border-slate-300"
+            className="mt-1 block h-10 w-full cursor-pointer rounded-md border border-vien-dam"
           />
         </label>
 
-        <label className="block text-sm font-medium text-slate-700">
+        <label className="block text-sm font-medium text-chu">
           {CHON_MAU_AO.nhanMauPhu}
           <input
             type="color"
             value={laMauHopLe(mauPhu) ? mauPhu : '#F8FAFC'}
             onChange={(e) => onDoi(mauChinh, e.target.value.toUpperCase())}
-            className="mt-1 block h-10 w-full cursor-pointer rounded-md border border-slate-300"
+            className="mt-1 block h-10 w-full cursor-pointer rounded-md border border-vien-dam"
           />
         </label>
       </div>
 
       <div className="mt-3">
-        <p className="text-xs uppercase tracking-wide text-slate-500">
+        <p className="text-xs uppercase tracking-wide text-chu-phu">
           {CHON_MAU_AO.xemTruoc}
         </p>
         <div className="mt-1.5 flex flex-wrap gap-2">
@@ -94,7 +94,7 @@ export function ChonMauAo({
       </div>
 
       {doiTrungMau.length > 0 && (
-        <p role="alert" className="mt-3 text-sm text-amber-800">
+        <p role="alert" className="mt-3 text-sm text-canh-bao-chu">
           {CHON_MAU_AO.canhBaoTrungMauDoiKhac(
             doiTrungMau.map((d) => d.name).join(', '),
           )}
@@ -102,13 +102,13 @@ export function ChonMauAo({
       )}
 
       {chinhVaPhuGiongNhau && (
-        <p role="alert" className="mt-2 text-sm text-amber-800">
+        <p role="alert" className="mt-2 text-sm text-canh-bao-chu">
           {CHON_MAU_AO.canhBaoChinhVaPhuGiongNhau}
         </p>
       )}
 
       {nenDaDieuChinh && (
-        <p className="mt-2 text-xs text-slate-500">
+        <p className="mt-2 text-xs text-chu-phu">
           {CHON_MAU_AO.canhBaoNenDaDieuChinh}
         </p>
       )}

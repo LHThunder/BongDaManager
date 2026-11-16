@@ -108,7 +108,7 @@ export function ChonAnh({ loai, anhId, ten, mauNen, onDaChon }: Props) {
 
   return (
     <div>
-      <p className="text-sm font-medium text-slate-700">
+      <p className="text-sm font-medium text-chu">
         {loai === 'logo' ? CHON_ANH.nhanLogoDoi : CHON_ANH.nhanAnhCauThu}
       </p>
 
@@ -130,7 +130,7 @@ export function ChonAnh({ loai, anhId, ten, mauNen, onDaChon }: Props) {
           type="button"
           disabled={dangXuLy}
           onClick={() => oTep.current?.click()}
-          className="rounded-md border border-slate-300 px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-400 disabled:opacity-50"
+          className="rounded-md border border-vien-dam px-3 py-1.5 text-sm text-chu hover:bg-nen-nhan disabled:opacity-50"
         >
           {anhId ? CHON_ANH.doiAnh : CHON_ANH.chonAnh}
         </button>
@@ -140,34 +140,34 @@ export function ChonAnh({ loai, anhId, ten, mauNen, onDaChon }: Props) {
             type="button"
             disabled={dangXuLy}
             onClick={() => onDaChon(null)}
-            className="rounded-md border border-slate-300 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-400 disabled:opacity-50"
+            className="rounded-md border border-vien-dam px-3 py-1.5 text-sm text-chu-phu hover:bg-nen-nhan disabled:opacity-50"
           >
             {CHON_ANH.xoaAnh}
           </button>
         )}
 
         {dangXuLy && (
-          <span className="text-sm text-slate-500">{CHON_ANH.dangXuLy}</span>
+          <span className="text-sm text-chu-phu">{CHON_ANH.dangXuLy}</span>
         )}
       </div>
 
       {loi !== null && (
-        <p role="alert" className="mt-2 text-sm text-red-700">
+        <p role="alert" className="mt-2 text-sm text-loi-chu">
           {loi}
         </p>
       )}
 
       {tepDangCat && urlXemTruoc && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/70 p-4">
-          <div className="w-full max-w-lg rounded-lg bg-white p-5 shadow-xl">
-            <h3 className="text-base font-semibold text-slate-900">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-lop-phu p-4">
+          <div className="w-full max-w-lg rounded-lg bg-nen-the p-5 shadow-xl">
+            <h3 className="text-base font-semibold text-chu">
               {CHON_ANH.tieuDeCat}
             </h3>
-            <p className="mt-1 text-xs text-slate-500">
+            <p className="mt-1 text-xs text-chu-phu">
               {CHON_ANH.huongDanCat}
             </p>
 
-            <div className="relative mt-3 h-72 w-full overflow-hidden rounded-md bg-slate-900">
+            <div className="relative mt-3 h-72 w-full overflow-hidden rounded-md bg-lop-phu">
               <Cropper
                 image={urlXemTruoc}
                 crop={viTriCat}
@@ -183,7 +183,7 @@ export function ChonAnh({ loai, anhId, ten, mauNen, onDaChon }: Props) {
               />
             </div>
 
-            <label className="mt-3 block text-sm text-slate-700">
+            <label className="mt-3 block text-sm text-chu">
               {CHON_ANH.phongTo}
               <input
                 type="range"
@@ -197,7 +197,7 @@ export function ChonAnh({ loai, anhId, ten, mauNen, onDaChon }: Props) {
             </label>
 
             {loi !== null && (
-              <p role="alert" className="mt-2 text-sm text-red-700">
+              <p role="alert" className="mt-2 text-sm text-loi-chu">
                 {loi}
               </p>
             )}
@@ -206,7 +206,7 @@ export function ChonAnh({ loai, anhId, ten, mauNen, onDaChon }: Props) {
               <button
                 type="button"
                 onClick={dong}
-                className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-400"
+                className="rounded-md border border-vien-dam px-4 py-2 text-sm font-medium text-chu hover:bg-nen-nhan"
               >
                 {CHUNG.huy}
               </button>
@@ -214,7 +214,7 @@ export function ChonAnh({ loai, anhId, ten, mauNen, onDaChon }: Props) {
                 type="button"
                 disabled={dangXuLy}
                 onClick={() => void xacNhanCat()}
-                className="rounded-md bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:opacity-50"
+                className="rounded-md bg-chinh px-4 py-2 text-sm font-medium text-chu-tren-chinh hover:bg-chinh-dam disabled:opacity-50"
               >
                 {CHON_ANH.xacNhanCat}
               </button>

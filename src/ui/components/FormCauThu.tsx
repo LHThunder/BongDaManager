@@ -202,20 +202,20 @@ export function FormCauThu({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-900/50 p-4">
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-lop-phu p-4">
       <form
-        className="my-8 w-full max-w-3xl rounded-lg bg-white p-6 shadow-xl"
+        className="my-8 w-full max-w-3xl rounded-lg bg-nen-the p-6 shadow-xl"
         onSubmit={(e) => {
           e.preventDefault()
           void gui()
         }}
       >
-        <h2 className="text-lg font-semibold text-slate-900">
+        <h2 className="text-lg font-semibold text-chu">
           {dangSua ? FORM_CAU_THU.tieuDeSua : FORM_CAU_THU.tieuDeThem}
         </h2>
 
         <div className="mt-4 grid gap-3 sm:grid-cols-4">
-          <label className="block text-sm font-medium text-slate-700 sm:col-span-2">
+          <label className="block text-sm font-medium text-chu sm:col-span-2">
             {FORM_CAU_THU.nhanTen}
             <input
               ref={oTen}
@@ -226,11 +226,11 @@ export function FormCauThu({
                 datLoi(null)
               }}
               placeholder={FORM_CAU_THU.gidanhTen}
-              className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-slate-900 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300"
+              className="mt-1 block w-full rounded-md border border-vien-dam px-3 py-2 text-chu"
             />
           </label>
 
-          <label className="block text-sm font-medium text-slate-700">
+          <label className="block text-sm font-medium text-chu">
             {FORM_CAU_THU.nhanSoAo}
             <input
               type="number"
@@ -240,18 +240,18 @@ export function FormCauThu({
                 datSoAo(e.target.value)
                 datLoi(null)
               }}
-              className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-slate-900 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300"
+              className="mt-1 block w-full rounded-md border border-vien-dam px-3 py-2 text-chu"
             />
           </label>
 
-          <label className="block text-sm font-medium text-slate-700">
+          <label className="block text-sm font-medium text-chu">
             {FORM_CAU_THU.nhanTuoi}
             <input
               type="number"
               inputMode="numeric"
               value={tuoi}
               onChange={(e) => datTuoi(e.target.value)}
-              className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-slate-900 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300"
+              className="mt-1 block w-full rounded-md border border-vien-dam px-3 py-2 text-chu"
             />
           </label>
         </div>
@@ -267,7 +267,7 @@ export function FormCauThu({
         </div>
 
         <fieldset className="mt-4">
-          <legend className="text-sm font-medium text-slate-700">
+          <legend className="text-sm font-medium text-chu">
             {FORM_CAU_THU.nhanChanThuan}
           </legend>
           <div className="mt-1 flex gap-4">
@@ -286,7 +286,7 @@ export function FormCauThu({
         </fieldset>
 
         <fieldset className="mt-4">
-          <legend className="text-sm font-medium text-slate-700">
+          <legend className="text-sm font-medium text-chu">
             {FORM_CAU_THU.nhanViTri}
           </legend>
           <div className="mt-2 flex flex-wrap gap-2">
@@ -302,10 +302,10 @@ export function FormCauThu({
                   onClick={() => doiViTri(p.id)}
                   className={
                     daChon
-                      ? 'rounded-full bg-blue-700 px-3 py-1.5 text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-blue-400'
+                      ? 'rounded-full bg-chinh px-3 py-1.5 text-sm font-medium text-chu-tren-chinh   '
                       : voHieu
-                        ? 'cursor-not-allowed rounded-full border border-slate-200 px-3 py-1.5 text-sm text-slate-400'
-                        : 'rounded-full border border-slate-300 px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-400'
+                        ? 'cursor-not-allowed rounded-full border border-vien px-3 py-1.5 text-sm text-chu-phu'
+                        : 'rounded-full border border-vien-dam px-3 py-1.5 text-sm text-chu hover:bg-nen-nhan   '
                   }
                 >
                   {NHAN_VI_TRI[p.id].ten}
@@ -315,36 +315,36 @@ export function FormCauThu({
           </div>
 
           {viTri.length > 0 && (
-            <p className="mt-2 text-xs text-slate-500">
+            <p className="mt-2 text-xs text-chu-phu">
               {laThuMon(viTri)
                 ? FORM_CAU_THU.giaiThichThuMon
                 : FORM_CAU_THU.giaiThichViTriSan}
             </p>
           )}
           {nhacChonViTri && (
-            <p role="alert" className="mt-2 text-sm text-amber-800">
+            <p role="alert" className="mt-2 text-sm text-canh-bao-chu">
               {FORM_CAU_THU.canChonViTriTruoc}
             </p>
           )}
         </fieldset>
 
         {canhBaoDoiSangThuMon && (
-          <div className="mt-4 rounded-md bg-amber-50 p-3">
-            <p className="text-sm text-amber-900">
+          <div className="mt-4 rounded-md bg-canh-bao-nen p-3">
+            <p className="text-sm text-canh-bao-chu">
               {FORM_CAU_THU.canhBaoDoiSangThuMon}
             </p>
             <div className="mt-2 flex gap-2">
               <button
                 type="button"
                 onClick={xacNhanDoiSangThuMon}
-                className="rounded-md bg-amber-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                className="rounded-md bg-canh-bao-manh px-3 py-1.5 text-sm font-medium text-chu-tren-canh-bao hover:bg-canh-bao-manh-dam"
               >
                 {FORM_CAU_THU.xacNhanDoiSangThuMon}
               </button>
               <button
                 type="button"
                 onClick={() => datCanhBaoDoiSangThuMon(false)}
-                className="rounded-md border border-amber-300 px-3 py-1.5 text-sm text-amber-900 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                className="rounded-md border border-vien-dam px-3 py-1.5 text-sm text-canh-bao-chu"
               >
                 {CHUNG.huy}
               </button>
@@ -352,11 +352,11 @@ export function FormCauThu({
           </div>
         )}
 
-        <div className="mt-4 rounded-md border border-slate-200 p-3">
-          <p className="text-sm font-medium text-slate-700">
+        <div className="mt-4 rounded-md border border-vien p-3">
+          <p className="text-sm font-medium text-chu">
             {FORM_CAU_THU.sinhNhanh}
           </p>
-          <p className="mt-0.5 text-xs text-slate-500">
+          <p className="mt-0.5 text-xs text-chu-phu">
             {FORM_CAU_THU.sinhNhanhMoTa}
           </p>
           <div className="mt-2 flex flex-wrap gap-2">
@@ -365,7 +365,7 @@ export function FormCauThu({
                 key={m.id}
                 type="button"
                 onClick={() => sinhNhanh(m.id)}
-                className="rounded-md border border-slate-300 px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-400"
+                className="rounded-md border border-vien-dam px-3 py-1.5 text-sm text-chu hover:bg-nen-nhan"
               >
                 {NHAN_MUC_DO[m.id]}
               </button>
@@ -386,13 +386,13 @@ export function FormCauThu({
         {tinhTrangHoSo !== null && (
           <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
             {tinhTrangHoSo.hoanTat ? (
-              <span className="rounded-full bg-emerald-100 px-3 py-1 text-emerald-800">
+              <span className="rounded-full bg-tot-nen px-3 py-1 text-tot-chu">
                 {TRANG_DOI.cotChiSoTong}
                 {': '}
                 {diemTaiViTri?.tinhDuoc ? diemTaiViTri.diem : '—'}
               </span>
             ) : (
-              <span className="rounded-full bg-amber-100 px-3 py-1 text-amber-900">
+              <span className="rounded-full bg-canh-bao-nen px-3 py-1 text-canh-bao-chu">
                 {TRANG_DOI.chuaHoanTat}
                 {' · '}
                 {TRANG_DOI.chuaHoanTatChiTiet(tinhTrangHoSo.soChiSoThieu)}
@@ -400,14 +400,14 @@ export function FormCauThu({
             )}
 
             {viTri.length > 0 && (
-              <label className="flex items-center gap-2 text-slate-700">
+              <label className="flex items-center gap-2 text-chu">
                 {FORM_CAU_THU.chiSoTongTaiViTri(
                   viTriXem ? NHAN_VI_TRI[viTriXem].ten : '',
                 )}
                 <select
                   value={viTriXem ?? ''}
                   onChange={(e) => datViTriXem(e.target.value as PositionId)}
-                  className="rounded border border-slate-300 px-2 py-1 text-sm focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  className="rounded border border-vien-dam px-2 py-1 text-sm"
                 >
                   {viTri.map((v) => (
                     <option key={v} value={v}>
@@ -415,7 +415,7 @@ export function FormCauThu({
                     </option>
                   ))}
                 </select>
-                <strong className="text-slate-900">
+                <strong className="text-chu">
                   {diemTaiViTri?.tinhDuoc
                     ? diemTaiViTri.diem
                     : TRANG_DOI.chuaTinhDuocChiSoTong}
@@ -426,7 +426,7 @@ export function FormCauThu({
         )}
 
         {loi !== null && (
-          <p role="alert" className="mt-3 text-sm text-red-700">
+          <p role="alert" className="mt-3 text-sm text-loi-chu">
             {loi}
           </p>
         )}
@@ -435,14 +435,14 @@ export function FormCauThu({
           <button
             type="button"
             onClick={onHuy}
-            className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-400"
+            className="rounded-md border border-vien-dam px-4 py-2 text-sm font-medium text-chu hover:bg-nen-nhan"
           >
             {CHUNG.huy}
           </button>
           <button
             type="submit"
             disabled={dangGui}
-            className="rounded-md bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:opacity-50"
+            className="rounded-md bg-chinh px-4 py-2 text-sm font-medium text-chu-tren-chinh hover:bg-chinh-dam disabled:opacity-50"
           >
             {dangSua ? FORM_CAU_THU.nutLuuSua : FORM_CAU_THU.nutThem}
           </button>

@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | 36 AC (US-17 → US-23) |
-| **Tiến độ** | 29/45 |
+| **Tiến độ** | 35/45 |
 | **Sửa đổi** | 2026-11-16 — chẻ lần đầu từ plan, rồi sửa theo cả 8 phát hiện của `/analyze`; thêm T341–T342 lúc làm Phase 23; thêm T343–T344 lúc làm Phase 25 |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -219,43 +219,44 @@ duyệt theme**. Không có nó thì T326 áp theme ra 27 file còn lại rồi 
   - AC: AC-20.1, AC-20.6
   - Phụ thuộc: T323
 
-- [ ] **T325** — 🚦 **CỔNG CHẶN: người dùng duyệt màn hình mẫu**
+- [x] **T325** — 🚦 **CỔNG CHẶN: người dùng duyệt màn hình mẫu**
   - File: — *(không sửa file nào)*
   - Xong khi: người dùng xem trang Lịch sử với theme mới và **nói rõ là được**, hoặc nêu chỗ cần sửa và tôi sửa rồi hỏi lại. Chưa có câu trả lời thì **không được làm T326**.
+  - **Đã duyệt 2026-11-16**: "Duyệt, áp ra toàn bộ". Cả bảng màu, hai phông, và việc dời viền bàn phím về `:focus-visible` khai một lần đều được chấp nhận.
   - AC: AC-20.1
   - Phụ thuộc: T324
 
-- [ ] **T326** — Áp theme: nhóm đội và cầu thủ
+- [x] **T326** — Áp theme: nhóm đội và cầu thủ
   - File: sửa `src/ui/pages/TrangDoi.tsx`, `src/ui/components/{FormDoi,FormCauThu,ChonMauAo,ChonAnh,AnhThayThe,DanhSachNgoaiSan,BangChiSo}.tsx`
   - Xong khi: nhóm này dùng token màu chung, **không còn một màu viết cứng nào**; bố cục không xê dịch; chức năng giữ nguyên.
   - AC: AC-20.1, AC-20.3, AC-20.6
   - Phụ thuộc: **T325**
 
-- [ ] **T338** [P] — Áp theme: nhóm trận đấu
+- [x] **T338** [P] — Áp theme: nhóm trận đấu
   - File: sửa `src/ui/pages/{ChonCapDau,TrangTran}.tsx`, `src/ui/components/{DangKyDoiHinh,BangDieuKhienTran,ThayNguoi,BaoCaoSauTran,BangDiemCauThu,DanhSachGhiBan,DongTuongThuat}.tsx`
   - Xong khi: như T326, cho nhóm này.
   - AC: AC-20.1, AC-20.3, AC-20.6
   - Phụ thuộc: **T325**
 
-- [ ] **T339** [P] — Áp theme: sân 2D, sao lưu, hộp thoại
+- [x] **T339** [P] — Áp theme: sân 2D, sao lưu, hộp thoại
   - File: sửa `src/ui/components/{San2D,SanBong,SaoLuu,HopXacNhan,OViTri}.tsx`
   - Xong khi: như T326. Riêng sân 2D: màu cỏ và màu vạch theo token, **nhưng màu áo người dùng chọn giữ nguyên** — nó là dữ liệu, không phải theme.
   - AC: AC-20.1, AC-20.3, AC-20.6
   - Phụ thuộc: **T325**
 
-- [ ] **T340** — Áp theme: các trang còn lại, và quét màu viết cứng
+- [x] **T340** — Áp theme: các trang còn lại, và quét màu viết cứng
   - File: sửa `src/ui/pages/{DanhSachDoi,TrangChienThuat}.tsx`, `src/App.tsx`, `src/ui/components/{BoChienThuat,ChiThiDoi,ChonVaiTro}.tsx`
   - Xong khi: grep toàn bộ `src/ui` và `src/App.tsx` **không còn mã màu viết cứng nào** ngoài token; cả 28 file đã qua theme.
   - AC: AC-20.1, AC-20.3, AC-20.6
   - Phụ thuộc: T326, T338, T339
 
-- [ ] **T327** — Nút đổi chế độ sáng/tối
+- [x] **T327** — Nút đổi chế độ sáng/tối
   - File: tạo `src/ui/components/ChonCheDo.tsx`, sửa `src/App.tsx`
   - Xong khi: bấm nút thì cả ứng dụng đổi bảng màu **không tải lại trang** và việc đang làm dở còn nguyên; Tab tới được bằng bàn phím; đóng mở lại vẫn giữ chế độ vừa chọn; lần đầu mở là chế độ sáng.
   - AC: AC-20.7, AC-20.8, AC-20.9, AC-20.10
   - Phụ thuộc: T340
 
-- [ ] **T328** — Test tương phản cho cả hai bảng màu
+- [x] **T328** — Test tương phản cho cả hai bảng màu
   - File: tạo `src/ui/theme.test.ts`
   - Xong khi: test xanh — mọi cặp (chữ, nền) trong cả hai bảng đạt ≥ 4.5:1; và màu áo do người dùng chọn đặt trên nền của **cả hai** chế độ vẫn cho chữ đạt 4.5:1, dùng lại `mauChuTuongPhan` đã có.
   - AC: AC-20.2, AC-20.5
@@ -420,6 +421,24 @@ duyệt theme**. Không có nó thì T326 áp theme ra 27 file còn lại rồi 
      hiện kiểu Việt (16:28:13 16/11/2026). Không AC nào nói về định dạng
      ngày, nhưng trộn hai ngôn ngữ trên một màn hình là đúng cái P8 cấm.
      → **T344**.
+- **Phase 26 — ba thứ phát sinh, đều đã làm và ghi lại:**
+  1. **Nhóm token RIÊNG cho mặt cỏ.** Sân bóng là một VẬT ĐƯỢC VẼ, không
+     phải khung giao diện: cỏ vẫn xanh trong chế độ tối, y như màu áo người
+     dùng chọn vẫn giữ nguyên. Nhóm `--co-*` vì thế khai một lần ở `:root`
+     và KHÔNG có bản cho chế độ tối — `theme.test.ts` tách chúng theo tiền
+     tố tên nên phép kiểm "chế độ tối không sót token nào" không đòi chúng.
+  2. **Tiêu đề khai ở `index.css`, không rải class.** Ban đầu chỉ màn hình
+     mẫu có phông tiêu đề, nên 27 màn còn lại vẫn phông thường — tức AC-20.1
+     ("bộ nhận diện thống nhất ở MỌI màn hình") trượt. Khai `h1..h4` một lần
+     ở `@layer base` là cách duy nhất để điều ấy đúng theo cấu trúc chứ
+     không phụ thuộc việc có nhớ thêm class hay không.
+  3. **Nút tắt đổi nền.** `disabled:bg-vien-dam` cho giống nút xám cũ, nhưng
+     T328 đo ra chữ trên nền ấy chỉ 3.90:1 ở chế độ sáng. Đổi nền sang
+     `nen-nhan` (6.28:1), **không hạ ngưỡng** của phép kiểm.
+- **`css: true` trong `vite.config.ts`.** Mặc định Vitest trả chuỗi RỖNG cho
+  mọi tệp CSS, nên `import '../index.css?raw'` của T328 sẽ "xanh" mà không
+  đo gì cả. Bật xử lý CSS là cách để phép kiểm đọc đúng bảng màu thật; không
+  test nào khác nhập CSS nên bật lên không tốn gì.
 - **`coTep()` KHÔNG qua lớp ngôn ngữ, có chủ ý.** Nó chỉ sinh KÝ HIỆU đơn
   vị (B/KB/MB), viết y hệt ở hai ngôn ngữ — cùng lý do đã cho tên sơ đồ
   (D75) và dấu "▲" của sân 2D. T343 chuyển nó sang `ngonNgu/soLieu.ts` để

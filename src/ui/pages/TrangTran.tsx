@@ -172,7 +172,7 @@ export function TrangTran({ onRoiTran }: Props) {
   }, [idNha, idKhach])
 
   if (!tran) {
-    return <p className="text-slate-500">{CHUNG.dangTai}</p>
+    return <p className="text-chu-phu">{CHUNG.dangTai}</p>
   }
 
   const doiNha = teams.find((d) => d.id === tran.ben.nha.teamId)
@@ -261,13 +261,13 @@ export function TrangTran({ onRoiTran }: Props) {
           roiTran()
           onRoiTran()
         }}
-        className="text-sm text-blue-700 underline hover:text-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-400"
+        className="text-sm text-chinh underline hover:text-chinh-dam"
       >
         {TRAN_DAU.quayLai}
       </button>
 
       {/* Tỉ số và phút luôn nhìn thấy được (AC-9.1). */}
-      <div className="mt-4 flex flex-wrap items-center justify-center gap-6 rounded-lg border border-slate-200 bg-white p-4">
+      <div className="mt-4 flex flex-wrap items-center justify-center gap-6 rounded-lg border border-vien bg-nen-the p-4">
         <div className="flex items-center gap-3">
           {doiNha && (
             <AnhThayThe
@@ -277,16 +277,16 @@ export function TrangTran({ onRoiTran }: Props) {
               kichThuoc="vua"
             />
           )}
-          <span className="text-lg font-semibold text-slate-900">
+          <span className="text-lg font-semibold text-chu">
             {tenDoi('nha')}
           </span>
         </div>
 
         <div className="text-center">
-          <p className="font-mono text-3xl font-bold text-slate-900">
+          <p className="font-mono text-3xl font-bold text-chu">
             {tran.tiSo.nha} – {tran.tiSo.khach}
           </p>
-          <p className="font-mono text-sm text-slate-600">
+          <p className="font-mono text-sm text-chu-phu">
             {tran.phut === 0
               ? TRAN_DAU.chuaBatDau
               : tran.ketThuc
@@ -296,7 +296,7 @@ export function TrangTran({ onRoiTran }: Props) {
         </div>
 
         <div className="flex items-center gap-3">
-          <span className="text-lg font-semibold text-slate-900">
+          <span className="text-lg font-semibold text-chu">
             {tenDoi('khach')}
           </span>
           {doiKhach && (
@@ -310,7 +310,7 @@ export function TrangTran({ onRoiTran }: Props) {
         </div>
       </div>
 
-      <p className="mt-2 text-center text-xs text-slate-500">
+      <p className="mt-2 text-center text-xs text-chu-phu">
         {CHON_CAP_DAU.nhanMaTran}:{' '}
         <code className="font-mono">{tran.maTran}</code>
       </p>
@@ -334,13 +334,13 @@ export function TrangTran({ onRoiTran }: Props) {
       {daLoaiTranCu !== null && (
         <div
           role="status"
-          className="mt-4 flex items-start gap-3 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900"
+          className="mt-4 flex items-start gap-3 rounded-lg border border-vien-dam bg-canh-bao-nen p-3 text-sm text-canh-bao-chu"
         >
           <span className="flex-1">{LICH_SU.daLoaiTranCu(daLoaiTranCu)}</span>
           <button
             type="button"
             onClick={xoaBaoDaLoai}
-            className="shrink-0 font-medium underline focus:outline-none focus:ring-2 focus:ring-amber-400"
+            className="shrink-0 font-medium underline"
           >
             {LICH_SU.dongBaoDaLoai}
           </button>
@@ -365,20 +365,20 @@ export function TrangTran({ onRoiTran }: Props) {
       )}
 
       {soSanh && (
-        <section className="mt-4 rounded-lg border border-slate-200 bg-white p-4">
-          <h3 className="text-base font-semibold text-slate-900">
+        <section className="mt-4 rounded-lg border border-vien bg-nen-the p-4">
+          <h3 className="text-base font-semibold text-chu">
             {SO_SANH_TRAN.tieuDe}
           </h3>
-          <p className="mt-0.5 text-sm text-slate-500">{SO_SANH_TRAN.moTa}</p>
+          <p className="mt-0.5 text-sm text-chu-phu">{SO_SANH_TRAN.moTa}</p>
           <table className="mt-2 w-full max-w-md text-sm">
             <thead>
-              <tr className="text-left text-slate-600">
+              <tr className="text-left text-chu-phu">
                 <th className="font-medium">{SO_SANH_TRAN.cotChiTieu}</th>
                 <th className="font-medium">{SO_SANH_TRAN.cotLanTruoc}</th>
                 <th className="font-medium">{SO_SANH_TRAN.cotLanNay}</th>
               </tr>
             </thead>
-            <tbody className="text-slate-900">
+            <tbody className="text-chu">
               {soSanh.map((d) => (
                 <tr key={d.ten}>
                   <td className="py-0.5">{d.ten}</td>
@@ -394,14 +394,14 @@ export function TrangTran({ onRoiTran }: Props) {
       {/* Sân 2D, ẩn/hiện được và nhớ lựa chọn (AC-10.1 → AC-10.6). */}
       <section className="mt-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-base font-semibold text-slate-900">
+          <h3 className="text-base font-semibold text-chu">
             {SAN_2D.tieuDe}
           </h3>
           <button
             type="button"
             onClick={doiHienSan}
             aria-pressed={hienSan ?? true}
-            className="text-sm text-blue-700 underline hover:text-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="text-sm text-chinh underline hover:text-chinh-dam"
           >
             {(hienSan ?? true) ? SAN_2D.an : SAN_2D.hien}
           </button>
@@ -446,37 +446,37 @@ export function TrangTran({ onRoiTran }: Props) {
             thủ sân đang chữa cháy và thủ môn dự bị đã vào sân chờ nhận găng.
           */}
           {!tran.ketThuc && !khungThanhCoThuMon(benCuaNguoiDung) && (
-            <section className="rounded-lg border-2 border-amber-400 bg-amber-50 p-4">
-              <h3 className="text-base font-semibold text-amber-950">
+            <section className="rounded-lg border-2 border-vien-dam bg-canh-bao-nen p-4">
+              <h3 className="text-base font-semibold text-canh-bao-chu">
                 {dangBatGon === null
                   ? VAO_BAT_GON.tieuDeTrong
                   : VAO_BAT_GON.tieuDeChuaChay(
                       tenTheoId.get(dangBatGon) ?? dangBatGon,
                     )}
               </h3>
-              <p className="mt-0.5 text-sm text-amber-900">
+              <p className="mt-0.5 text-sm text-canh-bao-chu">
                 {VAO_BAT_GON.moTa}
               </p>
-              <p className="mt-1 text-sm text-amber-900">
+              <p className="mt-1 text-sm text-canh-bao-chu">
                 {conLuotThay > 0
                   ? VAO_BAT_GON.conLuotThay(conLuotThay)
                   : VAO_BAT_GON.hetLuotThay}
               </p>
 
               {!dangTamDung && (
-                <p className="mt-2 text-sm text-amber-800">
+                <p className="mt-2 text-sm text-canh-bao-chu">
                   {VAO_BAT_GON.canTamDung}
                 </p>
               )}
 
               <div className="mt-3 flex flex-wrap items-end gap-2">
-                <label className="text-sm text-amber-950">
+                <label className="text-sm text-canh-bao-chu">
                   <span className="block">{VAO_BAT_GON.nhanChon}</span>
                   <select
                     value={nguoiVaoGon}
                     onChange={(e) => datNguoiVaoGon(e.target.value)}
                     disabled={!dangTamDung}
-                    className="mt-1 rounded border border-amber-400 px-2 py-1 disabled:bg-slate-100 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                    className="mt-1 rounded border border-vien-dam px-2 py-1 disabled:bg-nen-nhan"
                   >
                     <option value="">{VAO_BAT_GON.chonCauThu}</option>
                     {benCuaNguoiDung.trenSan
@@ -499,7 +499,7 @@ export function TrangTran({ onRoiTran }: Props) {
                     datNguoiVaoGon('')
                   }}
                   disabled={!dangTamDung || nguoiVaoGon === ''}
-                  className="rounded-md bg-amber-700 px-3 py-1.5 text-sm font-medium text-white hover:bg-amber-800 focus:outline-none focus:ring-2 focus:ring-amber-400 disabled:cursor-not-allowed disabled:bg-slate-300"
+                  className="rounded-md bg-canh-bao-manh px-3 py-1.5 text-sm font-medium text-chu-tren-canh-bao hover:bg-canh-bao-manh-dam disabled:cursor-not-allowed disabled:bg-nen-nhan disabled:text-chu-phu"
                 >
                   {VAO_BAT_GON.thucHien}
                 </button>
@@ -517,11 +517,11 @@ export function TrangTran({ onRoiTran }: Props) {
             }
           />
 
-          <section className="rounded-lg border border-slate-200 bg-white p-4">
-            <h3 className="text-base font-semibold text-slate-900">
+          <section className="rounded-lg border border-vien bg-nen-the p-4">
+            <h3 className="text-base font-semibold text-chu">
               {CAN_THIEP_GIUA_TRAN.tieuDeChiThi}
             </h3>
-            <p className="mt-0.5 text-sm text-slate-500">
+            <p className="mt-0.5 text-sm text-chu-phu">
               {CAN_THIEP_GIUA_TRAN.moTa}
             </p>
             <div className="mt-3">

@@ -83,19 +83,19 @@ export function FormDoi({ doiDangSua, onXong, onHuy }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-900/50 p-4">
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-lop-phu p-4">
       <form
-        className="my-8 w-full max-w-lg rounded-lg bg-white p-6 shadow-xl"
+        className="my-8 w-full max-w-lg rounded-lg bg-nen-the p-6 shadow-xl"
         onSubmit={(e) => {
           e.preventDefault()
           void luu(false)
         }}
       >
-        <h2 className="text-lg font-semibold text-slate-900">
+        <h2 className="text-lg font-semibold text-chu">
           {dangSua ? FORM_DOI.tieuDeSua : FORM_DOI.tieuDeTao}
         </h2>
 
-        <label className="mt-4 block text-sm font-medium text-slate-700">
+        <label className="mt-4 block text-sm font-medium text-chu">
           {FORM_DOI.nhanTen}
           <input
             ref={oTen}
@@ -108,7 +108,7 @@ export function FormDoi({ doiDangSua, onXong, onHuy }: Props) {
             }}
             placeholder={FORM_DOI.gidanhTen}
             aria-invalid={loi !== null}
-            className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-slate-900 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300"
+            className="mt-1 block w-full rounded-md border border-vien-dam px-3 py-2 text-chu"
           />
         </label>
 
@@ -134,20 +134,20 @@ export function FormDoi({ doiDangSua, onXong, onHuy }: Props) {
         />
 
         {loi !== null && (
-          <p role="alert" className="mt-3 text-sm text-red-700">
+          <p role="alert" className="mt-3 text-sm text-loi-chu">
             {loi}
           </p>
         )}
 
         {canhBaoTrungTen !== null && (
-          <div className="mt-3 rounded-md bg-amber-50 p-3">
-            <p className="text-sm text-amber-900">
+          <div className="mt-3 rounded-md bg-canh-bao-nen p-3">
+            <p className="text-sm text-canh-bao-chu">
               {FORM_DOI.canhBaoTrungTen(canhBaoTrungTen)}
             </p>
             <button
               type="button"
               onClick={() => void luu(true)}
-              className="mt-2 rounded-md bg-amber-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-400"
+              className="mt-2 rounded-md bg-canh-bao-manh px-3 py-1.5 text-sm font-medium text-chu-tren-canh-bao hover:bg-canh-bao-manh-dam"
             >
               {FORM_DOI.xacNhanTrungTen}
             </button>
@@ -158,14 +158,14 @@ export function FormDoi({ doiDangSua, onXong, onHuy }: Props) {
           <button
             type="button"
             onClick={onHuy}
-            className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-400"
+            className="rounded-md border border-vien-dam px-4 py-2 text-sm font-medium text-chu hover:bg-nen-nhan"
           >
             {CHUNG.huy}
           </button>
           <button
             type="submit"
             disabled={dangGui}
-            className="rounded-md bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:opacity-50"
+            className="rounded-md bg-chinh px-4 py-2 text-sm font-medium text-chu-tren-chinh hover:bg-chinh-dam disabled:opacity-50"
           >
             {dangSua ? FORM_DOI.nutDoiTen : FORM_DOI.nutTao}
           </button>

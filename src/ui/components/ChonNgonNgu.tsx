@@ -29,7 +29,7 @@ export function ChonNgonNgu() {
       <div
         role="group"
         aria-labelledby="nhan-ngon-ngu"
-        className="flex overflow-hidden rounded-md border border-slate-300"
+        className="flex overflow-hidden rounded-md border border-vien-dam"
       >
         {CAC_NGON_NGU.map((n) => {
           const dangChon = n === ngonNgu
@@ -39,10 +39,10 @@ export function ChonNgonNgu() {
               type="button"
               onClick={() => doiNgonNgu(n)}
               aria-pressed={dangChon}
-              className={`px-2 py-1 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-400 ${
+              className={`px-2 py-1 text-xs font-medium ${
                 dangChon
-                  ? 'bg-blue-700 text-white'
-                  : 'bg-white text-slate-700 hover:bg-slate-100'
+                  ? 'bg-chinh text-chu-tren-chinh'
+                  : 'bg-nen-the text-chu hover:bg-nen-nhan'
               }`}
             >
               {NGON_NGU[n]}

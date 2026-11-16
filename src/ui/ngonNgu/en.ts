@@ -36,6 +36,7 @@ import type {
   FORM_CAU_THU_VI,
   DANH_SACH_DOI_VI,
   NGON_NGU_VI,
+  CHE_DO_VI,
   CANH_BAO_XUNG_DOT_VI,
   NHAN_CHI_SO_VI,
   NHAN_MUC_DO_VI,
@@ -88,6 +89,12 @@ export const NGON_NGU_EN: BanDich<typeof NGON_NGU_VI> = {
   nhan: 'Language',
   vi: 'Tiếng Việt',
   en: 'English',
+}
+
+export const CHE_DO_EN: BanDich<typeof CHE_DO_VI> = {
+  nhan: 'Display mode',
+  sang: 'Light',
+  toi: 'Dark',
 }
 
 export const DANH_SACH_DOI_EN: BanDich<typeof DANH_SACH_DOI_VI> = {

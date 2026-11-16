@@ -314,17 +314,17 @@ export function ChonCapDau({ onQuayLai, onDaBatDau }: Props) {
       <button
         type="button"
         onClick={onQuayLai}
-        className="text-sm text-blue-700 underline hover:text-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-400"
+        className="text-sm text-chinh underline hover:text-chinh-dam"
       >
         {CHUNG.quayLai}
       </button>
 
-      <h2 className="mt-4 text-2xl font-bold text-slate-900">
+      <h2 className="mt-4 text-2xl font-bold text-chu">
         {CHON_CAP_DAU.tieuDe}
       </h2>
 
       {teams.length < 2 ? (
-        <p className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+        <p className="mt-4 rounded-lg border border-vien-dam bg-canh-bao-nen p-3 text-sm text-canh-bao-chu">
           {CHON_CAP_DAU.canHaiDoi}
         </p>
       ) : (
@@ -342,7 +342,7 @@ export function ChonCapDau({ onQuayLai, onDaBatDau }: Props) {
                 ],
               ] as const
             ).map(([ben, nhan, giaTri, dat, doi]) => (
-              <label key={ben} className="text-sm text-slate-700">
+              <label key={ben} className="text-sm text-chu">
                 <span className="block font-medium">{nhan}</span>
                 <span className="mt-1 flex items-center gap-2">
                   {doi && (
@@ -356,7 +356,7 @@ export function ChonCapDau({ onQuayLai, onDaBatDau }: Props) {
                   <select
                     value={giaTri}
                     onChange={(e) => dat(e.target.value)}
-                    className="flex-1 rounded border border-slate-300 px-2 py-1 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                    className="flex-1 rounded border border-vien-dam px-2 py-1"
                   >
                     <option value="">{CHON_CAP_DAU.chonDoi}</option>
                     {teams.map((d) => (
@@ -371,20 +371,20 @@ export function ChonCapDau({ onQuayLai, onDaBatDau }: Props) {
           </div>
 
           {mauAo?.doiDoiAo && (
-            <p className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700">
+            <p className="mt-3 rounded-lg border border-vien bg-nen-nhan p-3 text-sm text-chu">
               {CHON_CAP_DAU.doiTrungMauAo(mauAo.doiDoiAo)}
             </p>
           )}
 
           <div className="mt-4 flex flex-wrap items-end gap-4">
-            <label className="text-sm text-slate-700">
+            <label className="text-sm text-chu">
               <span className="block font-medium">
                 {CHON_CAP_DAU.nhanQuanSo}
               </span>
               <select
                 value={quanSo}
                 onChange={(e) => datQuanSo(Number(e.target.value))}
-                className="mt-1 rounded border border-slate-300 px-2 py-1 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                className="mt-1 rounded border border-vien-dam px-2 py-1"
               >
                 {CAC_QUAN_SO.map((n) => (
                   <option key={n} value={n}>
@@ -392,19 +392,19 @@ export function ChonCapDau({ onQuayLai, onDaBatDau }: Props) {
                   </option>
                 ))}
               </select>
-              <span className="mt-1 block text-xs text-slate-500">
+              <span className="mt-1 block text-xs text-chu-phu">
                 {CHON_CAP_DAU.moTaQuanSo}
               </span>
             </label>
 
-            <label className="text-sm text-slate-700">
+            <label className="text-sm text-chu">
               <span className="block font-medium">
                 {CHON_CAP_DAU.nhanThoiLuong}
               </span>
               <select
                 value={thoiLuong}
                 onChange={(e) => datThoiLuong(Number(e.target.value))}
-                className="mt-1 rounded border border-slate-300 px-2 py-1 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                className="mt-1 rounded border border-vien-dam px-2 py-1"
               >
                 {CAC_THOI_LUONG.map((t) => (
                   <option key={t} value={t}>
@@ -412,12 +412,12 @@ export function ChonCapDau({ onQuayLai, onDaBatDau }: Props) {
                   </option>
                 ))}
               </select>
-              <span className="mt-1 block text-xs text-slate-500">
+              <span className="mt-1 block text-xs text-chu-phu">
                 {CHON_CAP_DAU.moTaThoiLuong}
               </span>
             </label>
 
-            <label className="flex items-center gap-2 text-sm text-slate-700">
+            <label className="flex items-center gap-2 text-sm text-chu">
               <input
                 type="checkbox"
                 checked={sanTrungLap}
@@ -428,13 +428,13 @@ export function ChonCapDau({ onQuayLai, onDaBatDau }: Props) {
                 <span className="block font-medium">
                   {CHON_CAP_DAU.sanTrungLap}
                 </span>
-                <span className="block text-xs text-slate-500">
+                <span className="block text-xs text-chu-phu">
                   {CHON_CAP_DAU.moTaSanTrungLap}
                 </span>
               </span>
             </label>
 
-            <div className="text-sm text-slate-700">
+            <div className="text-sm text-chu">
               <span className="block font-medium">
                 {CHON_CAP_DAU.nhanMaTran}
               </span>
@@ -452,27 +452,27 @@ export function ChonCapDau({ onQuayLai, onDaBatDau }: Props) {
                   autoComplete="off"
                   aria-label={CHON_CAP_DAU.nhanMaTran}
                   aria-invalid={!maHopLe}
-                  className={`w-32 rounded border px-2 py-1 font-mono text-sm uppercase focus:outline-none focus:ring-2 focus:ring-blue-300 ${
+                  className={`w-32 rounded border px-2 py-1 font-mono text-sm uppercase ${
                     maHopLe
-                      ? 'border-slate-300 focus:border-blue-600'
-                      : 'border-red-400 bg-red-50'
+                      ? 'border-vien-dam'
+                      : 'border-loi-chu bg-loi-nen'
                   }`}
                 />
                 <button
                   type="button"
                   onClick={() => datMaTran(taoMaTran(RNG_THAT))}
-                  className="text-xs text-blue-700 underline focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  className="text-xs text-chinh underline"
                 >
                   {CHON_CAP_DAU.maTranMoi}
                 </button>
               </span>
-              <span className="mt-1 block text-xs text-slate-500">
+              <span className="mt-1 block text-xs text-chu-phu">
                 {CHON_CAP_DAU.moTaMaTran}
               </span>
               {!maHopLe && (
                 <span
                   role="status"
-                  className="mt-1 block text-xs font-medium text-red-700"
+                  className="mt-1 block text-xs font-medium text-loi-chu"
                 >
                   {CHON_CAP_DAU.maTranKhongHopLe}
                 </span>
@@ -502,12 +502,12 @@ export function ChonCapDau({ onQuayLai, onDaBatDau }: Props) {
           {lyDoKhongBatDau.length > 0 && (
             <div
               role="status"
-              className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3"
+              className="mt-4 rounded-lg border border-vien-dam bg-canh-bao-nen p-3"
             >
-              <p className="text-sm font-medium text-amber-900">
+              <p className="text-sm font-medium text-canh-bao-chu">
                 {CHON_CAP_DAU.tieuDeChuaBatDauDuoc}
               </p>
-              <ul className="mt-1 space-y-0.5 text-sm text-amber-900">
+              <ul className="mt-1 space-y-0.5 text-sm text-canh-bao-chu">
                 {lyDoKhongBatDau.map((ly, i) => (
                   <li key={`${ly.loai}-${i}`}>
                     {cauLyDo(
@@ -527,7 +527,7 @@ export function ChonCapDau({ onQuayLai, onDaBatDau }: Props) {
             type="button"
             onClick={batDau}
             disabled={idNha === '' || idKhach === '' || !maHopLe}
-            className="mt-4 rounded-md bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:cursor-not-allowed disabled:bg-slate-300"
+            className="mt-4 rounded-md bg-chinh px-4 py-2 text-sm font-medium text-chu-tren-chinh hover:bg-chinh-dam disabled:cursor-not-allowed disabled:bg-nen-nhan"
           >
             {CHON_CAP_DAU.batDau}
           </button>

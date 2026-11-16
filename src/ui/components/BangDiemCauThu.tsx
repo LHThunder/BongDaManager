@@ -50,7 +50,7 @@ export function BangDiemCauThu({ diemCauThu, tenCauThu }: Props) {
 
   return (
     <div className="space-y-1">
-      <div className="flex gap-2 border-b border-slate-200 pb-1 text-xs font-medium text-slate-600">
+      <div className="flex gap-2 border-b border-vien pb-1 text-xs font-medium text-chu-phu">
         <span className="flex-1">{BAO_CAO_SAU_TRAN.cotCauThu}</span>
         <span className="w-16">{BAO_CAO_SAU_TRAN.cotViTri}</span>
         <span className="w-12 text-right">{BAO_CAO_SAU_TRAN.cotDiem}</span>
@@ -59,30 +59,30 @@ export function BangDiemCauThu({ diemCauThu, tenCauThu }: Props) {
       {theoDiem.map((x) => {
         const moRa = dangMo === x.playerId
         return (
-          <div key={x.playerId} className="border-b border-slate-100 pb-1">
+          <div key={x.playerId} className="border-b border-vien pb-1">
             <button
               type="button"
               onClick={() => datDangMo(moRa ? null : x.playerId)}
               aria-expanded={moRa}
-              className="flex w-full gap-2 rounded px-1 py-1 text-left text-sm hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="flex w-full gap-2 rounded px-1 py-1 text-left text-sm hover:bg-nen-nhan"
             >
-              <span className="flex-1 text-slate-900">
+              <span className="flex-1 text-chu">
                 {tenCauThu(x.playerId)}
-                <span className="ml-2 text-xs text-slate-500">
+                <span className="ml-2 text-xs text-chu-phu">
                   {khoangThoiGian(x, BAO_CAO_SAU_TRAN)}
                 </span>
               </span>
-              <span className="w-16 text-slate-600">
+              <span className="w-16 text-chu-phu">
                 {NHAN_VI_TRI[x.viTriDaDa].vietTat}
               </span>
-              <span className="w-12 text-right font-mono font-semibold text-slate-900">
+              <span className="w-12 text-right font-mono font-semibold text-chu">
                 {x.diem.toFixed(1)}
               </span>
             </button>
 
             {moRa && (
-              <div className="mt-1 rounded bg-slate-50 p-2 text-xs">
-                <div className="flex gap-2 text-slate-600">
+              <div className="mt-1 rounded bg-nen-nhan p-2 text-xs">
+                <div className="flex gap-2 text-chu-phu">
                   <span className="flex-1">{BAO_CAO_SAU_TRAN.diemNen}</span>
                   <span className="w-16" />
                   <span className="w-16 text-right font-mono">
@@ -91,12 +91,12 @@ export function BangDiemCauThu({ diemCauThu, tenCauThu }: Props) {
                 </div>
 
                 {x.cacThanhPhan.length === 0 ? (
-                  <p className="mt-1 text-slate-500">
+                  <p className="mt-1 text-chu-phu">
                     {BAO_CAO_SAU_TRAN.khongCoSoLieu}
                   </p>
                 ) : (
                   <>
-                    <div className="mt-1 flex gap-2 font-medium text-slate-600">
+                    <div className="mt-1 flex gap-2 font-medium text-chu-phu">
                       <span className="flex-1">
                         {BAO_CAO_SAU_TRAN.cotChiTieu}
                       </span>
@@ -110,7 +110,7 @@ export function BangDiemCauThu({ diemCauThu, tenCauThu }: Props) {
                     {x.cacThanhPhan.map((tp) => (
                       <div
                         key={tp.tieuChi}
-                        className="flex gap-2 text-slate-900"
+                        className="flex gap-2 text-chu"
                       >
                         <span className="flex-1">
                           {BAO_CAO_SAU_TRAN.tieuChi[tp.tieuChi] ?? tp.tieuChi}

@@ -99,12 +99,59 @@
   --tot-nen: #e3f3e8;
   --tot-chu: #10542c;
 
-  /* Mặt sân trong ảnh SVG — màu cỏ và vạch kẻ, không phải màu áo. */
-  --san-co: #d9e7d3;
-  --san-vach: #ffffff;
-  --san-vien: #b7c0b3;
+  /* Nút đặc cho hai hành động nặng: xoá/thay thế, và việc cần cân nhắc. */
+  --loi-manh: #b3261e;
+  --loi-manh-dam: #8c1d16;
+  --chu-tren-loi: #ffffff;
+  --canh-bao-manh: #8a5a06;
+  --canh-bao-manh-dam: #6b4a05;
+  --chu-tren-canh-bao: #ffffff;
+
+  /* Lớp phủ sau hộp thoại. */
+  --lop-phu: rgba(13, 26, 18, 0.55);
 
   color-scheme: light;
+}
+
+/*
+  ---------------------------------------------------------------------------
+  Sân chiến thuật — bảng màu RIÊNG, không đổi theo chế độ
+  ---------------------------------------------------------------------------
+
+  Sân bóng trong hình là một VẬT ĐƯỢC VẼ, không phải khung giao diện: cỏ vẫn
+  xanh dù người xem đang để chế độ tối, y như màu áo do người dùng chọn vẫn
+  giữ nguyên (spec mục Non-goals). Vì thế nhóm token này khai một lần ở
+  `:root` và KHÔNG có bản cho chế độ tối.
+
+  Chúng vẫn là token chứ không phải màu viết cứng, vì hai lý do: để
+  `grep` màu viết cứng ở T340 ra kết quả rỗng thật, và để sau này đổi gam cỏ
+  chỉ sửa một chỗ.
+
+  Chữ trên sân luôn là trắng trên nền cỏ đậm — cặp này đo được 7.4:1.
+*/
+:root {
+  --co-nen: #15663a;
+  /* Sân 2D dùng cỏ đậm hơn: điểm cầu thủ mang màu áo nên nền phải lùi lại. */
+  --co-nen-dam: #065f46;
+  --co-o: rgba(5, 46, 25, 0.72);
+  --co-chu: #ffffff;
+  --co-chu-phu: rgba(255, 255, 255, 0.78);
+  --co-vien: rgba(255, 255, 255, 0.7);
+  --co-vien-mo: rgba(255, 255, 255, 0.4);
+  /* Vàng cho bóng, đường bóng và người đang tham gia tình huống. */
+  --co-vang: #fde047;
+  --co-net: #111827;
+  --co-net-mo: rgba(17, 24, 39, 0.7);
+  --co-noi-bat: #bae6fd;
+  --co-nhan-nen: rgba(8, 20, 13, 0.84);
+  --co-nhan-chu: #fde68a;
+  --co-canh-bao-nen: rgba(253, 230, 138, 0.94);
+  --co-canh-bao-chu: #422006;
+
+  /* Ba mức sai vị trí. Viền chỉ là dấu hiệu PHỤ — chữ mới là chính (P9). */
+  --sai-nhe: #fcd34d;
+  --sai-vua: #fb923c;
+  --sai-nang: #f87171;
 }
 
 :root[data-che-do='toi'] {
@@ -126,9 +173,14 @@
   --tot-nen: #10291a;
   --tot-chu: #8fdcaa;
 
-  --san-co: #162a1f;
-  --san-vach: #46604f;
-  --san-vien: #2c3b33;
+  --loi-manh: #f0837a;
+  --loi-manh-dam: #f6b3ad;
+  --chu-tren-loi: #2a0b08;
+  --canh-bao-manh: #e8c069;
+  --canh-bao-manh-dam: #f5d98a;
+  --chu-tren-canh-bao: #241a03;
+
+  --lop-phu: rgba(0, 0, 0, 0.66);
 
   /*
     Nói cho trình duyệt biết đang là bảng màu tối, để thanh cuộn và những
@@ -147,6 +199,26 @@
     background-color: var(--nen);
     color: var(--chu);
     -webkit-font-smoothing: antialiased;
+  }
+
+  /*
+    Mọi tiêu đề dùng phông hẹp viết hoa — chữ của bảng tỉ số và áo đấu.
+
+    Khai ở đây MỘT lần thay vì thêm class vào từng tiêu đề của 28 file: đó
+    là cách duy nhất để AC-20.1 ("bộ nhận diện thống nhất ở mọi màn hình")
+    đúng theo cấu trúc, chứ không phụ thuộc việc có nhớ thêm class hay
+    không. Chỗ nào cần chữ thường trong tiêu đề thì ghi đè bằng
+    `font-chinh normal-case` ngay tại đó.
+
+    Cỡ chữ KHÔNG đụng tới: bố cục phải giữ nguyên (AC-20.6).
+  */
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: 'Barlow Condensed', Impact, Haettenschweiler, sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
   }
 
   /*

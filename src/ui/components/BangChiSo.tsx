@@ -108,13 +108,13 @@ export function BangChiSo({
 
   return (
     <fieldset className="mt-4">
-      <legend className="text-sm font-semibold text-slate-900">
+      <legend className="text-sm font-semibold text-chu">
         {BANG_CHI_SO.tieuDe}
       </legend>
-      <p className="mt-1 text-xs text-slate-500">{BANG_CHI_SO.khoangHopLe}</p>
+      <p className="mt-1 text-xs text-chu-phu">{BANG_CHI_SO.khoangHopLe}</p>
 
       {loiO !== null && (
-        <p role="alert" className="mt-2 text-sm text-red-700">
+        <p role="alert" className="mt-2 text-sm text-loi-chu">
           {loiO}
         </p>
       )}
@@ -127,8 +127,8 @@ export function BangChiSo({
           if (trongNhom.length === 0) return null
 
           return (
-            <div key={nhom} className="rounded-md border border-slate-200 p-3">
-              <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <div key={nhom} className="rounded-md border border-vien p-3">
+              <h4 className="text-xs font-semibold uppercase tracking-wide text-chu-phu">
                 {BANG_CHI_SO.nhomTen[nhom]}
               </h4>
               <div className="mt-2 space-y-1.5">
@@ -137,7 +137,7 @@ export function BangChiSo({
                     key={a.id}
                     className="flex items-center justify-between gap-3 text-sm"
                   >
-                    <span className="text-slate-700">{NHAN_CHI_SO[a.id]}</span>
+                    <span className="text-chu">{NHAN_CHI_SO[a.id]}</span>
                     <input
                       type="number"
                       inputMode="numeric"
@@ -146,7 +146,7 @@ export function BangChiSo({
                       step={1}
                       value={attributes[a.id] ?? ''}
                       onChange={(e) => doiChung(a.id, e.target.value)}
-                      className="w-16 rounded border border-slate-300 px-2 py-1 text-right text-slate-900 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                      className="w-16 rounded border border-vien-dam px-2 py-1 text-right text-chu"
                     />
                   </label>
                 ))}
@@ -156,8 +156,8 @@ export function BangChiSo({
         })}
 
         {canCo.gkAttributes.length > 0 && (
-          <div className="rounded-md border border-blue-200 bg-blue-50/40 p-3">
-            <h4 className="text-xs font-semibold uppercase tracking-wide text-blue-800">
+          <div className="rounded-md border border-chinh bg-chinh-nhat p-3">
+            <h4 className="text-xs font-semibold uppercase tracking-wide text-chinh-dam">
               {BANG_CHI_SO.nhomTen['thu-mon']}
             </h4>
             <div className="mt-2 space-y-1.5">
@@ -166,7 +166,7 @@ export function BangChiSo({
                   key={a.id}
                   className="flex items-center justify-between gap-3 text-sm"
                 >
-                  <span className="text-slate-700">{NHAN_CHI_SO[a.id]}</span>
+                  <span className="text-chu">{NHAN_CHI_SO[a.id]}</span>
                   <input
                     type="number"
                     inputMode="numeric"
@@ -175,7 +175,7 @@ export function BangChiSo({
                     step={1}
                     value={gkAttributes?.[a.id] ?? ''}
                     onChange={(e) => doiThuMon(a.id, e.target.value)}
-                    className="w-16 rounded border border-slate-300 px-2 py-1 text-right text-slate-900 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                    className="w-16 rounded border border-vien-dam px-2 py-1 text-right text-chu"
                   />
                 </label>
               ))}

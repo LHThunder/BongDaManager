@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { ngheBiChanNangCap, ngheNhuongDuongNangCap } from './storage/db'
 import { useAppStore } from './store/appStore'
 import { useChuoi, useTuyChonHienThi } from './hooks/useNgonNgu'
+import { ChonCheDo } from './ui/components/ChonCheDo'
 import { ChonNgonNgu } from './ui/components/ChonNgonNgu'
 
 import { ChonCapDau } from './ui/pages/ChonCapDau'
@@ -100,11 +101,12 @@ export default function App() {
 
   return (
     <div className="min-h-screen">
-      <header className="border-b border-slate-200 bg-white">
+      <header className="border-b border-vien bg-nen-the">
         <div className="mx-auto flex max-w-5xl items-center gap-4 px-4 py-4">
-          <h1 className="flex-1 text-lg font-bold tracking-tight text-slate-900">
+          <h1 className="flex-1 text-lg font-bold tracking-tight text-chu">
             {CHUNG.tenUngDung}
           </h1>
+          <ChonCheDo />
           <ChonNgonNgu />
         </div>
       </header>
@@ -116,15 +118,15 @@ export default function App() {
         lại là lấy mất thứ đang xem mà không hỏi.
       */}
       {daNhuongKetNoi && (
-        <div role="alert" className="border-b border-red-300 bg-red-100">
+        <div role="alert" className="border-b border-loi-chu bg-loi-nen">
           <div className="mx-auto flex max-w-5xl items-start gap-4 px-4 py-3">
-            <p className="flex-1 text-sm font-medium text-red-900">
+            <p className="flex-1 text-sm font-medium text-loi-chu">
               {CHUNG.daNhuongKetNoi}
             </p>
             <button
               type="button"
               onClick={() => window.location.reload()}
-              className="shrink-0 rounded-md border border-red-700 px-3 py-1 text-sm font-medium text-red-900 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500"
+              className="shrink-0 rounded-md border border-loi-chu px-3 py-1 text-sm font-medium text-loi-chu hover:bg-loi-nen"
             >
               {CHUNG.taiLaiTrang}
             </button>
@@ -138,15 +140,15 @@ export default function App() {
         lại, để người dùng đóng tab cũ xong là xử lý được ngay tại chỗ.
       */}
       {biChanNangCap && (
-        <div role="alert" className="border-b border-amber-300 bg-amber-100">
+        <div role="alert" className="border-b border-vien-dam bg-canh-bao-nen">
           <div className="mx-auto flex max-w-5xl items-start gap-4 px-4 py-3">
-            <p className="flex-1 text-sm font-medium text-amber-900">
+            <p className="flex-1 text-sm font-medium text-canh-bao-chu">
               {CHUNG.chanNangCapDuLieu}
             </p>
             <button
               type="button"
               onClick={() => window.location.reload()}
-              className="shrink-0 rounded-md border border-amber-700 px-3 py-1 text-sm font-medium text-amber-900 hover:bg-amber-200 focus:outline-none focus:ring-2 focus:ring-amber-500"
+              className="shrink-0 rounded-md border border-canh-bao-chu px-3 py-1 text-sm font-medium text-canh-bao-chu hover:bg-canh-bao-nen"
             >
               {CHUNG.taiLaiTrang}
             </button>
@@ -159,13 +161,13 @@ export default function App() {
         T031 nối thêm phần xử lý tập trung khi lưu thất bại giữa lúc nhập liệu.
       */}
       {loiLuuTru !== null && (
-        <div role="alert" className="border-b border-amber-200 bg-amber-50">
+        <div role="alert" className="border-b border-vien-dam bg-canh-bao-nen">
           <div className="mx-auto flex max-w-5xl items-start gap-4 px-4 py-3">
-            <p className="flex-1 text-sm text-amber-900">{LOI.cau(loiLuuTru)}</p>
+            <p className="flex-1 text-sm text-canh-bao-chu">{LOI.cau(loiLuuTru)}</p>
             <button
               type="button"
               onClick={() => datLoiLuuTru(null)}
-              className="shrink-0 text-sm font-medium text-amber-900 underline focus:outline-none focus:ring-2 focus:ring-amber-400"
+              className="shrink-0 text-sm font-medium text-canh-bao-chu underline"
             >
               {CHUNG.dong}
             </button>
@@ -180,14 +182,14 @@ export default function App() {
               <button
                 type="button"
                 onClick={moLichSu}
-                className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="rounded-md border border-vien-dam px-4 py-2 text-sm font-medium text-chu hover:bg-nen-nhan"
               >
                 {LICH_SU.tieuDe}
               </button>
               <button
                 type="button"
                 onClick={moChonCapDau}
-                className="rounded-md bg-emerald-700 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                className="rounded-md bg-chinh px-4 py-2 text-sm font-medium text-chu-tren-chinh hover:bg-chinh-dam"
               >
                 {CHON_CAP_DAU.tieuDe}
               </button>

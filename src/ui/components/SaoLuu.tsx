@@ -98,14 +98,14 @@ export function SaoLuu({ onDaNhap }: Props) {
   }
 
   return (
-    <section className="mt-10 rounded-lg border border-slate-200 bg-white p-5">
-      <h3 className="text-base font-semibold text-slate-900">
+    <section className="mt-10 rounded-lg border border-vien bg-nen-the p-5">
+      <h3 className="text-base font-semibold text-chu">
         {SAO_LUU.tieuDe}
       </h3>
-      <p className="mt-1 max-w-2xl text-sm text-slate-600">{SAO_LUU.moTa}</p>
+      <p className="mt-1 max-w-2xl text-sm text-chu-phu">{SAO_LUU.moTa}</p>
 
       {luuTruKhongBen && (
-        <p role="alert" className="mt-3 rounded-md bg-amber-50 p-3 text-sm text-amber-900">
+        <p role="alert" className="mt-3 rounded-md bg-canh-bao-nen p-3 text-sm text-canh-bao-chu">
           {SAO_LUU.canhBaoKhongBen}
         </p>
       )}
@@ -115,13 +115,13 @@ export function SaoLuu({ onDaNhap }: Props) {
           type="button"
           disabled={dangXuat}
           onClick={() => void xuat()}
-          className="rounded-md bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:opacity-50"
+          className="rounded-md bg-chinh px-4 py-2 text-sm font-medium text-chu-tren-chinh hover:bg-chinh-dam disabled:opacity-50"
         >
           {dangXuat ? SAO_LUU.dangDungTep : SAO_LUU.nutXuat}
         </button>
 
         {kichThuoc !== null && (
-          <span className="text-sm text-slate-500">
+          <span className="text-sm text-chu-phu">
             {SAO_LUU.kichThuocUocTinh(coTep(kichThuoc))}
           </span>
         )}
@@ -141,56 +141,56 @@ export function SaoLuu({ onDaNhap }: Props) {
           type="button"
           disabled={dangDoc}
           onClick={() => oTep.current?.click()}
-          className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-400 disabled:opacity-50"
+          className="rounded-md border border-vien-dam px-4 py-2 text-sm font-medium text-chu hover:bg-nen-nhan disabled:opacity-50"
         >
           {dangDoc ? SAO_LUU.dangDocTep : SAO_LUU.nutNhap}
         </button>
       </div>
 
       {loi !== null && (
-        <p role="alert" className="mt-3 text-sm text-red-700">
+        <p role="alert" className="mt-3 text-sm text-loi-chu">
           {loi}
         </p>
       )}
 
       {thongBao !== null && (
-        <p role="status" className="mt-3 text-sm text-emerald-800">
+        <p role="status" className="mt-3 text-sm text-tot-chu">
           {thongBao}
         </p>
       )}
 
       {tomTat !== null && tepDangCho !== null && (
-        <div className="mt-4 rounded-md border border-blue-200 bg-blue-50/50 p-4">
-          <p className="text-sm text-slate-800">
+        <div className="mt-4 rounded-md border border-chinh bg-chinh-nhat p-4">
+          <p className="text-sm text-chu">
             {SAO_LUU.tomTatTep(tomTat.soDoi, tomTat.soCauThu, tomTat.soAnh)}
           </p>
-          <p className="mt-2 text-sm font-medium text-slate-900">
+          <p className="mt-2 text-sm font-medium text-chu">
             {SAO_LUU.hoiCheDo}
           </p>
 
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
-            <div className="rounded-md border border-slate-200 bg-white p-3">
+            <div className="rounded-md border border-vien bg-nen-the p-3">
               <button
                 type="button"
                 onClick={() => void nhap('thay-the')}
-                className="rounded-md bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400"
+                className="rounded-md bg-loi-manh px-3 py-1.5 text-sm font-medium text-chu-tren-loi hover:bg-loi-manh-dam"
               >
                 {SAO_LUU.nutThayThe}
               </button>
-              <p className="mt-2 text-xs text-slate-600">
+              <p className="mt-2 text-xs text-chu-phu">
                 {SAO_LUU.moTaThayThe}
               </p>
             </div>
 
-            <div className="rounded-md border border-slate-200 bg-white p-3">
+            <div className="rounded-md border border-vien bg-nen-the p-3">
               <button
                 type="button"
                 onClick={() => void nhap('gop')}
-                className="rounded-md bg-blue-700 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="rounded-md bg-chinh px-3 py-1.5 text-sm font-medium text-chu-tren-chinh hover:bg-chinh-dam"
               >
                 {SAO_LUU.nutGop}
               </button>
-              <p className="mt-2 text-xs text-slate-600">{SAO_LUU.moTaGop}</p>
+              <p className="mt-2 text-xs text-chu-phu">{SAO_LUU.moTaGop}</p>
             </div>
           </div>
 
@@ -200,7 +200,7 @@ export function SaoLuu({ onDaNhap }: Props) {
               datTepDangCho(null)
               datTomTat(null)
             }}
-            className="mt-3 text-sm text-slate-600 underline focus:outline-none focus:ring-2 focus:ring-slate-400"
+            className="mt-3 text-sm text-chu-phu underline"
           >
             {CHUNG.huy}
           </button>

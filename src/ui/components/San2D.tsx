@@ -416,7 +416,7 @@ export function San2D(props: Props) {
     <figure className="m-0">
       <svg
         viewBox={`0 0 ${RONG} ${CAO}`}
-        className="w-full rounded-lg border border-slate-300 bg-slate-200"
+        className="w-full rounded-lg border border-vien-dam bg-nen-nhan"
         role="img"
         aria-label={SAN_2D.moTaSan(nha.ten, khach.ten)}
       >
@@ -430,7 +430,7 @@ export function San2D(props: Props) {
           y={leY}
           width={khung.rong}
           height={khung.cao}
-          fill="#065f46"
+          fill="var(--co-nen-dam)"
           aria-hidden="true"
         />
 
@@ -468,7 +468,7 @@ export function San2D(props: Props) {
           <polyline
             points={duongBong.map((p) => `${p.x},${p.y}`).join(' ')}
             fill="none"
-            stroke="#fde047"
+            stroke="var(--co-vang)"
             strokeWidth={0.8 * tiLe}
             strokeDasharray={`${2 * tiLe} ${1.5 * tiLe}`}
             aria-hidden="true"
@@ -479,8 +479,8 @@ export function San2D(props: Props) {
             cx={bong.x}
             cy={bong.y}
             r={1.5 * tiLe}
-            fill="#fde047"
-            stroke="#111827"
+            fill="var(--co-vang)"
+            stroke="var(--co-net)"
             strokeWidth={0.3 * tiLe}
             aria-hidden="true"
           />
@@ -496,7 +496,7 @@ export function San2D(props: Props) {
             <circle
               r={banKinh}
               fill={d.mauNen}
-              stroke={d.noiBat ? '#fde047' : 'rgba(17,24,39,0.7)'}
+              stroke={d.noiBat ? 'var(--co-vang)' : 'var(--co-net-mo)'}
               strokeWidth={(d.noiBat ? 1.4 : 0.5) * tiLe}
             />
             <text
@@ -522,8 +522,8 @@ export function San2D(props: Props) {
                 textAnchor="middle"
                 fontSize={3.6 * tiLe}
                 fontWeight={800}
-                fill="#fde047"
-                stroke="#111827"
+                fill="var(--co-vang)"
+                stroke="var(--co-net)"
                 strokeWidth={0.25 * tiLe}
               >
                 {SAN_2D.dauThamGia}

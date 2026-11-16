@@ -21,7 +21,7 @@ interface Props {
 */
 export function SanBong({ soDo, renderO }: Props) {
   return (
-    <div className="relative aspect-[68/105] w-full overflow-hidden rounded-lg bg-emerald-700">
+    <div className="relative aspect-[68/105] w-full overflow-hidden rounded-lg bg-co-nen">
       {/* Vạch sân. aria-hidden vì đây là hình trang trí: thông tin thật
           nằm trong từng ô, dạng chữ. */}
       <svg

@@ -39,32 +39,32 @@ export function ThayNguoi({ ben, tenCauThu, tamDung, onThay, loi }: Props) {
   const khongCoGhe = tongLuot === 0
 
   return (
-    <section className="rounded-lg border border-slate-200 bg-white p-4">
-      <h3 className="text-base font-semibold text-slate-900">
+    <section className="rounded-lg border border-vien bg-nen-the p-4">
+      <h3 className="text-base font-semibold text-chu">
         {THAY_NGUOI.tieuDe}
       </h3>
       {khongCoGhe ? (
-        <p role="status" className="mt-0.5 text-sm text-slate-700">
+        <p role="status" className="mt-0.5 text-sm text-chu">
           {THAY_NGUOI.khongCoDuBi}
         </p>
       ) : (
-        <p className="mt-0.5 text-sm text-slate-500">
+        <p className="mt-0.5 text-sm text-chu-phu">
           {THAY_NGUOI.conLuot(conLuot, tongLuot)}
         </p>
       )}
 
       {!tamDung && !khongCoGhe && (
-        <p className="mt-2 text-sm text-amber-800">{THAY_NGUOI.canTamDung}</p>
+        <p className="mt-2 text-sm text-canh-bao-chu">{THAY_NGUOI.canTamDung}</p>
       )}
 
       <div className="mt-3 flex flex-wrap items-end gap-2">
-        <label className="text-sm text-slate-700">
+        <label className="text-sm text-chu">
           <span className="block">{THAY_NGUOI.nhanRa}</span>
           <select
             value={ra}
             onChange={(e) => datRa(e.target.value)}
             disabled={!tamDung || hetLuot}
-            className="mt-1 rounded border border-slate-300 px-2 py-1 disabled:bg-slate-100 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300"
+            className="mt-1 rounded border border-vien-dam px-2 py-1 disabled:bg-nen-nhan"
           >
             <option value="">{THAY_NGUOI.chonCauThu}</option>
             {ben.trenSan.map((id) => (
@@ -75,13 +75,13 @@ export function ThayNguoi({ ben, tenCauThu, tamDung, onThay, loi }: Props) {
           </select>
         </label>
 
-        <label className="text-sm text-slate-700">
+        <label className="text-sm text-chu">
           <span className="block">{THAY_NGUOI.nhanVao}</span>
           <select
             value={vao}
             onChange={(e) => datVao(e.target.value)}
             disabled={!tamDung || hetLuot}
-            className="mt-1 rounded border border-slate-300 px-2 py-1 disabled:bg-slate-100 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300"
+            className="mt-1 rounded border border-vien-dam px-2 py-1 disabled:bg-nen-nhan"
           >
             <option value="">{THAY_NGUOI.chonCauThu}</option>
             {ben.duBi.map((id) => (
@@ -100,20 +100,20 @@ export function ThayNguoi({ ben, tenCauThu, tamDung, onThay, loi }: Props) {
             datVao('')
           }}
           disabled={!tamDung || hetLuot || ra === '' || vao === ''}
-          className="rounded-md bg-blue-700 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:cursor-not-allowed disabled:bg-slate-300"
+          className="rounded-md bg-chinh px-3 py-1.5 text-sm font-medium text-chu-tren-chinh hover:bg-chinh-dam disabled:cursor-not-allowed disabled:bg-nen-nhan"
         >
           {THAY_NGUOI.thucHien}
         </button>
       </div>
 
       {hetLuot && !khongCoGhe && (
-        <p role="status" className="mt-2 text-sm font-medium text-amber-900">
+        <p role="status" className="mt-2 text-sm font-medium text-canh-bao-chu">
           {THAY_NGUOI.hetLuot}
         </p>
       )}
 
       {loi && (
-        <p role="status" className="mt-2 text-sm font-medium text-amber-900">
+        <p role="status" className="mt-2 text-sm font-medium text-canh-bao-chu">
           {loi}
         </p>
       )}

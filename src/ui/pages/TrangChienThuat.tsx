@@ -330,12 +330,12 @@ export function TrangChienThuat({ teamId, onQuayLai }: Props) {
   )
 
   if (!chienThuat) {
-    return <p className="text-slate-500">{CHUNG.dangTai}</p>
+    return <p className="text-chu-phu">{CHUNG.dangTai}</p>
   }
 
   const soDo = FORMATIONS.find((s) => s.id === chienThuat.formationId)
   if (!soDo) {
-    return <p className="text-slate-500">{CHUNG.dangTai}</p>
+    return <p className="text-chu-phu">{CHUNG.dangTai}</p>
   }
 
   const nguoiTheoSlot = new Map<string, Player | null>(
@@ -364,7 +364,7 @@ export function TrangChienThuat({ teamId, onQuayLai }: Props) {
       <button
         type="button"
         onClick={onQuayLai}
-        className="text-sm text-blue-700 underline hover:text-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-400"
+        className="text-sm text-chinh underline hover:text-chinh-dam"
       >
         {CHUNG.quayLai}
       </button>
@@ -378,16 +378,16 @@ export function TrangChienThuat({ teamId, onQuayLai }: Props) {
             kichThuoc="lon"
           />
           <div>
-            <p className="text-sm uppercase tracking-wide text-slate-500">
+            <p className="text-sm uppercase tracking-wide text-chu-phu">
               {TRANG_CHIEN_THUAT.tieuDe}
             </p>
-            <h2 className="text-2xl font-bold text-slate-900">
+            <h2 className="text-2xl font-bold text-chu">
               {tenDoi ?? CHUNG.dangTai}
             </h2>
           </div>
         </div>
 
-        <label className="flex items-center gap-2 text-sm text-slate-600">
+        <label className="flex items-center gap-2 text-sm text-chu-phu">
           {TRANG_CHIEN_THUAT.nhanChonQuanSo}
           <select
             value={quanSo}
@@ -395,7 +395,7 @@ export function TrangChienThuat({ teamId, onQuayLai }: Props) {
               datQuanSo(Number(e.target.value))
               datBaoDoiSoDo([])
             }}
-            className="rounded border border-slate-300 px-2 py-1 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300"
+            className="rounded border border-vien-dam px-2 py-1"
           >
             {CAC_QUAN_SO.map((n) => (
               <option key={n} value={n}>
@@ -405,14 +405,14 @@ export function TrangChienThuat({ teamId, onQuayLai }: Props) {
           </select>
         </label>
 
-        <label className="flex items-center gap-2 text-sm text-slate-600">
+        <label className="flex items-center gap-2 text-sm text-chu-phu">
           {TRANG_CHIEN_THUAT.nhanChonSoDo}
           <select
             value={chienThuat.formationId}
             onChange={(e) => {
               void khiDoiSoDo(e.target.value as FormationId)
             }}
-            className="rounded border border-slate-300 px-2 py-1 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300"
+            className="rounded border border-vien-dam px-2 py-1"
           >
             {/*
               Chỉ những sơ đồ CÙNG QUÂN SỐ với bộ đang mở (AC-13.1). Bảng sơ
@@ -433,20 +433,20 @@ export function TrangChienThuat({ teamId, onQuayLai }: Props) {
         role="status"
         className={`mt-4 rounded-lg border p-3 ${
           tinhTrang.duDieuKien
-            ? 'border-emerald-200 bg-emerald-50'
-            : 'border-amber-200 bg-amber-50'
+            ? 'border-vien bg-tot-nen'
+            : 'border-vien-dam bg-canh-bao-nen'
         }`}
       >
         {tinhTrang.duDieuKien ? (
-          <p className="text-sm text-emerald-900">
+          <p className="text-sm text-tot-chu">
             {TINH_TRANG_DOI_HINH.sanSang}
           </p>
         ) : (
           <>
-            <p className="text-sm font-medium text-amber-900">
+            <p className="text-sm font-medium text-canh-bao-chu">
               {TINH_TRANG_DOI_HINH.tieuDeChuaDu}
             </p>
-            <ul className="mt-1 space-y-0.5 text-sm text-amber-900">
+            <ul className="mt-1 space-y-0.5 text-sm text-canh-bao-chu">
               {tinhTrang.cacLyDo.map((ly) => (
                 <li key={ly.loai}>{cauLyDo(ly, cauThu, soDo.oVien.length, TINH_TRANG_DOI_HINH)}</li>
               ))}
@@ -458,17 +458,17 @@ export function TrangChienThuat({ teamId, onQuayLai }: Props) {
       {baoDoiSoDo.length > 0 && (
         <div
           role="status"
-          className="mt-3 rounded-lg border border-slate-200 bg-white p-3"
+          className="mt-3 rounded-lg border border-vien bg-nen-the p-3"
         >
           {baoDoiSoDo.map((c) => (
-            <p key={c} className="text-sm text-slate-700">
+            <p key={c} className="text-sm text-chu">
               {c}
             </p>
           ))}
         </div>
       )}
 
-      <p className="mt-4 text-sm text-slate-500">
+      <p className="mt-4 text-sm text-chu-phu">
         {TRANG_CHIEN_THUAT.huongDanBanPhim}
       </p>
 

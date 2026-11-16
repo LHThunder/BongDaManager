@@ -31,18 +31,18 @@ export function ChonVaiTro({
   const cacVaiTro = vaiTroChoViTri(viTri)
 
   return (
-    <section className="rounded-lg border border-slate-200 bg-white p-4">
+    <section className="rounded-lg border border-vien bg-nen-the p-4">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h3 className="text-lg font-semibold text-slate-900">
+          <h3 className="text-lg font-semibold text-chu">
             {VAI_TRO.tieuDe}
           </h3>
-          <p className="text-sm text-slate-500">{NHAN_VI_TRI[viTri].ten}</p>
+          <p className="text-sm text-chu-phu">{NHAN_VI_TRI[viTri].ten}</p>
         </div>
         <button
           type="button"
           onClick={onDong}
-          className="text-sm text-blue-700 underline hover:text-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="text-sm text-chinh underline hover:text-chinh-dam"
         >
           {CHUNG.dong}
         </button>
@@ -57,19 +57,19 @@ export function ChonVaiTro({
                 type="button"
                 onClick={() => onChon(v.id)}
                 aria-current={dangChon ? 'true' : undefined}
-                className={`w-full rounded-md border p-3 text-left focus:outline-none focus:ring-2 focus:ring-blue-400 ${
+                className={`w-full rounded-md border p-3 text-left ${
                   dangChon
-                    ? 'border-blue-600 bg-blue-50'
-                    : 'border-slate-200 hover:bg-slate-50'
+                    ? 'border-chinh bg-chinh-nhat'
+                    : 'border-vien hover:bg-nen-nhan'
                 }`}
               >
-                <span className="block font-medium text-slate-900">
+                <span className="block font-medium text-chu">
                   {NHAN_VAI_TRO[v.id].ten}
                 </span>
-                <span className="mt-0.5 block text-sm text-slate-600">
+                <span className="mt-0.5 block text-sm text-chu-phu">
                   {NHAN_VAI_TRO[v.id].moTa}
                 </span>
-                <span className="mt-1 block text-xs text-slate-500">
+                <span className="mt-1 block text-xs text-chu-phu">
                   {VAI_TRO.chiSoQuanTrong}:{' '}
                   {v.chiSoQuanTrong.map((id) => NHAN_CHI_SO[id]).join(', ')}
                 </span>
@@ -106,20 +106,20 @@ function CanhBaoChuaDat({ cauThu, vaiTroId }: CanhBaoProps) {
 
   if (chuaDat.length === 0) {
     return (
-      <p className="mt-3 rounded-md bg-emerald-50 p-3 text-sm text-emerald-900">
+      <p className="mt-3 rounded-md bg-tot-nen p-3 text-sm text-tot-chu">
         {VAI_TRO.datHet}
       </p>
     )
   }
 
   return (
-    <div className="mt-3 rounded-md bg-amber-50 p-3">
-      <p className="text-sm font-medium text-amber-900">
+    <div className="mt-3 rounded-md bg-canh-bao-nen p-3">
+      <p className="text-sm font-medium text-canh-bao-chu">
         {chuaDien.length > 0 && thapHon.length === 0
           ? VAI_TRO.chuaDanhGiaDuoc
           : VAI_TRO.tieuDeChuaDat}
       </p>
-      <ul className="mt-1 space-y-0.5 text-sm text-amber-900">
+      <ul className="mt-1 space-y-0.5 text-sm text-canh-bao-chu">
         {thapHon.map((c) => (
           <li key={c.chiSo}>{VAI_TRO.chiSoChuaDat(NHAN_CHI_SO[c.chiSo], c.giaTri ?? 0)}</li>
         ))}
