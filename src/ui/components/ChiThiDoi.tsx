@@ -6,6 +6,8 @@ import {
   type ChiThiId,
   type MucTheoChiThi,
 } from '../../domain/instructions'
+import { useChuoi } from '../../hooks/useNgonNgu'
+import { nhanMucChiThi } from '../ngonNgu'
 import { CHI_THI_DOI } from '../strings'
 
 interface Props {
@@ -34,6 +36,7 @@ function datMuc<K extends ChiThiId>(
  * vẫn bật bẫy việt vị là một lựa chọn tồi, nhưng là lựa chọn của người dùng.
  */
 export function ChiThiDoi({ chiThi, onDoi }: Props) {
+  const { NHAN_CHI_THI } = useChuoi()
   const xungDot = cacXungDot(chiThi)
   const chiThiCoXungDot = new Set(xungDot.flatMap((x) => x.cacChiThi))
 
@@ -47,8 +50,14 @@ export function ChiThiDoi({ chiThi, onDoi }: Props) {
       <div className="mt-4 space-y-5">
         {THU_TU_CHI_THI.map((id) => {
           const mo = CHI_THI[id]
+          const nhan = NHAN_CHI_THI[id]
           const mucDangChon = chiThi[id]
-          const mucHienTai = mo.cacMuc.find((m) => m.muc === mucDangChon)
+          /*
+            Nhãn tra theo MÃ MỨC, không tìm trong mảng nữa: kiểu
+            `NhanChiThi` đã bảo đảm mọi mức của mọi chỉ thị đều có nhãn, nên
+            ở đây không còn khả năng "không tìm thấy" để phải phòng.
+          */
+          const nhanMuc = nhanMucChiThi(NHAN_CHI_THI, id, mucDangChon)
 
           return (
             <fieldset key={id}>
@@ -57,7 +66,7 @@ export function ChiThiDoi({ chiThi, onDoi }: Props) {
                   chiThiCoXungDot.has(id) ? 'text-amber-800' : 'text-slate-900'
                 }`}
               >
-                {mo.ten}
+                {nhan.ten}
               </legend>
 
               <div className="mt-1.5 flex flex-wrap gap-2">
@@ -80,7 +89,7 @@ export function ChiThiDoi({ chiThi, onDoi }: Props) {
                         onChange={() => onDoi(datMuc(chiThi, id, m.muc))}
                         className="sr-only"
                       />
-                      {m.ten}
+                      {nhanMucChiThi(NHAN_CHI_THI, id, m.muc).ten}
                     </label>
                   )
                 })}
@@ -88,7 +97,7 @@ export function ChiThiDoi({ chiThi, onDoi }: Props) {
 
               {/* Câu đánh đổi của ĐÚNG mức đang chọn (AC-7.2). */}
               <p className="mt-1.5 text-sm text-slate-600">
-                {mucHienTai?.danhDoi}
+                {nhanMuc.danhDoi}
               </p>
             </fieldset>
           )

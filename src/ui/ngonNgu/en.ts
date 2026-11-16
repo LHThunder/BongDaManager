@@ -6,6 +6,7 @@ import type {
   NHAN_VI_TRI_VI,
   XOA_DOI_VI,
 } from './vi'
+import type { NhanChiThi } from './vi'
 
 /*
   Bảng chuỗi tiếng Anh.
@@ -95,4 +96,122 @@ export const NHAN_VI_TRI_EN: typeof NHAN_VI_TRI_VI = {
   AM: { ten: 'Attacking midfielder', vietTat: 'AM' },
   AMR: { ten: 'Right winger', vietTat: 'RW' },
   ST: { ten: 'Striker', vietTat: 'ST' },
+}
+
+export const NHAN_CHI_THI_EN: NhanChiThi = {
+  'do-cao-doi-hinh': {
+    ten: 'Defensive line',
+    cacMuc: {
+      thap: {
+        ten: 'Deep',
+        danhDoi:
+          'Seals the space behind the back line, but hands the middle third to whoever has the ball.',
+      },
+      'trung-binh': {
+        ten: 'Standard',
+        danhDoi:
+          'Balances the space behind against the distance to the opposition goal, favouring neither.',
+      },
+      cao: {
+        ten: 'High',
+        danhDoi:
+          'Pins the opposition back and wins the ball near their goal, but leaves room behind for the long ball.',
+      },
+    },
+  },
+  'do-rong-doi-hinh': {
+    ten: 'Width',
+    cacMuc: {
+      hep: {
+        ten: 'Narrow',
+        danhDoi:
+          'Locks up the middle and makes covering for each other easy, but leaves both flanks open.',
+      },
+      'trung-binh': {
+        ten: 'Standard',
+        danhDoi:
+          'Covers the middle and the flanks evenly, closing off neither completely.',
+      },
+      rong: {
+        ten: 'Wide',
+        danhDoi:
+          'Stretches their back line and opens the flanks, but leaves gaps between players in midfield.',
+      },
+    },
+  },
+  'toc-do-chuyen-bong': {
+    ten: 'Tempo',
+    cacMuc: {
+      cham: {
+        ten: 'Slow',
+        danhDoi:
+          'Keeps the ball securely and loses it rarely, but gives the opposition time to get back into shape.',
+      },
+      'trung-binh': {
+        ten: 'Standard',
+        danhDoi:
+          'Moves the ball at a steady rhythm: never rushed, never missing the obvious chance.',
+      },
+      nhanh: {
+        ten: 'Fast',
+        danhDoi:
+          'Exploits the moment before they recover, but the riskier passes mean losing the ball more often.',
+      },
+    },
+  },
+  'cuong-do-pressing': {
+    ten: 'Pressing intensity',
+    cacMuc: {
+      thap: {
+        ten: 'Low',
+        danhDoi:
+          'Holds shape and saves legs, but lets the opposition pass at will.',
+      },
+      'trung-binh': {
+        ten: 'Standard',
+        danhDoi:
+          'Presses selectively, keeping the shape intact without draining stamina.',
+      },
+      cao: {
+        ten: 'High',
+        danhDoi:
+          'Wins the ball back early and forces mistakes, but costs stamina and leaves space when a press is beaten.',
+      },
+    },
+  },
+  'huong-tan-cong': {
+    ten: 'Attacking focus',
+    cacMuc: {
+      bien: {
+        ten: 'Down the flanks',
+        danhDoi:
+          'Avoids the crowd in the middle and creates plenty of crosses, but depends on someone finishing in the box.',
+      },
+      'can-bang': {
+        ten: 'Balanced',
+        danhDoi:
+          'Hard to read because the angle keeps changing, but never commits to where the side is strongest.',
+      },
+      'trung-lo': {
+        ten: 'Through the middle',
+        danhDoi:
+          'Takes the shortest route to goal, but has to go through where the opposition is most crowded.',
+      },
+    },
+  },
+  'bay-viet-vi': {
+    ten: 'Offside trap',
+    cacMuc: {
+      tat: {
+        ten: 'Off',
+        danhDoi:
+          'The back line drops with the ball so it is rarely played through, but long balls from deep go uncut.',
+      },
+      bat: {
+        ten: 'On',
+        danhDoi:
+          'Steps up together to catch runners offside and cut out balls from deep, but one mistimed step lets a striker clean through.',
+      },
+    },
+  },
 }

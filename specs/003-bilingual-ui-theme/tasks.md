@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | 36 AC (US-17 → US-23) |
-| **Tiến độ** | 7/41 |
+| **Tiến độ** | 8/41 |
 | **Sửa đổi** | 2026-11-16 — chẻ lần đầu từ plan, rồi sửa theo cả 8 phát hiện của `/analyze` |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -76,7 +76,7 @@ duyệt theme**. Không có nó thì T326 áp theme ra 27 file còn lại rồi 
   - AC: AC-19.1, AC-19.2
   - Phụ thuộc: T302
 
-- [ ] **T308** [P] — Nhãn chỉ thị rời khỏi domain (23 nhãn)
+- [x] **T308** [P] — Nhãn chỉ thị rời khỏi domain (23 nhãn)
   - File: sửa `src/domain/instructions.ts`, sửa `src/ui/ngonNgu/vi.ts`, sửa `src/ui/ngonNgu/en.ts`
   - Xong khi: như T306, phủ đủ 6 chỉ thị và mọi mức của chúng; `tsc` sạch.
   - AC: AC-19.1, AC-19.2

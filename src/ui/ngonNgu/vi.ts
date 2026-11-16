@@ -1,3 +1,4 @@
+import type { ChiThiId, MucTheoChiThi } from '../../domain/instructions'
 import type { PositionId } from '../../domain/types'
 /*
   Bảng chuỗi tiếng Việt (hiến pháp P8, bản 2.0.0).
@@ -95,4 +96,141 @@ export const NHAN_VI_TRI_VI: Readonly<
   AM: { ten: 'Tiền vệ tấn công', vietTat: 'TVTC' },
   AMR: { ten: 'Chạy cánh phải', vietTat: 'CCP' },
   ST: { ten: 'Tiền đạo', vietTat: 'TĐ' },
+}
+
+/*
+  Nhãn 6 chỉ thị, 17 mức, và 17 câu đánh đổi (T308, quyết định D68).
+
+  Câu đánh đổi là thứ AC-7.2 đòi — mỗi mức phải nói rõ ĐƯỢC gì và MẤT gì —
+  nên nó là chữ hiển thị chứ không phải dữ liệu, và nó thuộc về đây.
+*/
+/** Nhãn một chỉ thị và mọi mức của nó, phủ đủ theo kiểu. */
+export type NhanChiThi = {
+  readonly [K in ChiThiId]: {
+    readonly ten: string
+    readonly cacMuc: {
+      readonly [M in MucTheoChiThi[K]]: {
+        readonly ten: string
+        readonly danhDoi: string
+      }
+    }
+  }
+}
+
+export const NHAN_CHI_THI_VI: NhanChiThi = {
+  'do-cao-doi-hinh': {
+    ten: 'Độ cao đội hình',
+    cacMuc: {
+      'thap': {
+        ten: 'Thấp',
+        danhDoi:
+          'Bịt kín khoảng trống sau lưng hàng phòng ngự, nhưng nhường hẳn phần sân giữa cho đối thủ cầm bóng.',
+      },
+      'trung-binh': {
+        ten: 'Trung bình',
+        danhDoi:
+          'Cân giữa khoảng trống phía sau và khoảng cách tới khung thành đối phương, không nghiêng về bên nào.',
+      },
+      'cao': {
+        ten: 'Cao',
+        danhDoi:
+          'Dồn đối thủ về sân họ và giành lại bóng gần khung thành họ, nhưng hở khoảng trống sau lưng cho bóng dài.',
+      },
+    },
+  },
+  'do-rong-doi-hinh': {
+    ten: 'Độ rộng đội hình',
+    cacMuc: {
+      'hep': {
+        ten: 'Hẹp',
+        danhDoi:
+          'Khoá chặt trung lộ và dễ bọc lót cho nhau, nhưng bỏ trống hai hành lang biên.',
+      },
+      'trung-binh': {
+        ten: 'Trung bình',
+        danhDoi:
+          'Phủ được cả trung lộ và biên ở mức vừa phải, không bịt kín hướng nào.',
+      },
+      'rong': {
+        ten: 'Rộng',
+        danhDoi:
+          'Kéo giãn hàng phòng ngự đối thủ và mở đường ra biên, nhưng để lộ khoảng cách giữa các cầu thủ ở giữa sân.',
+      },
+    },
+  },
+  'toc-do-chuyen-bong': {
+    ten: 'Tốc độ chuyển bóng',
+    cacMuc: {
+      'cham': {
+        ten: 'Chậm',
+        danhDoi:
+          'Giữ bóng chắc và ít mất bóng, nhưng cho đối thủ thời gian về kịp vị trí.',
+      },
+      'trung-binh': {
+        ten: 'Trung bình',
+        danhDoi:
+          'Luân chuyển vừa nhịp: không hối bóng, cũng không bỏ lỡ cơ hội rõ ràng.',
+      },
+      'nhanh': {
+        ten: 'Nhanh',
+        danhDoi:
+          'Khai thác được lúc đối thủ chưa kịp lùi, nhưng đường chuyền mạo hiểm nên mất bóng nhiều hơn.',
+      },
+    },
+  },
+  'cuong-do-pressing': {
+    ten: 'Cường độ pressing',
+    cacMuc: {
+      'thap': {
+        ten: 'Thấp',
+        danhDoi:
+          'Giữ được vị trí và tiết kiệm thể lực, nhưng để đối thủ chuyền bóng thoải mái.',
+      },
+      'trung-binh': {
+        ten: 'Trung bình',
+        danhDoi:
+          'Gây áp lực có chọn lọc, giữ hình hài đội hình và không rút cạn thể lực.',
+      },
+      'cao': {
+        ten: 'Cao',
+        danhDoi:
+          'Giành lại bóng sớm và ép đối thủ sai, nhưng tốn thể lực và để lại khoảng trống khi vồ bóng không thành.',
+      },
+    },
+  },
+  'huong-tan-cong': {
+    ten: 'Hướng tấn công',
+    cacMuc: {
+      'bien': {
+        ten: 'Qua hai biên',
+        danhDoi:
+          'Tránh được chỗ đông người ở giữa và tạo nhiều quả tạt, nhưng phụ thuộc vào người dứt điểm trong vòng cấm.',
+      },
+      'can-bang': {
+        ten: 'Cân bằng',
+        danhDoi:
+          'Khó bị bắt bài vì đổi hướng liên tục, nhưng không dồn sức vào hướng mạnh nhất của đội.',
+      },
+      'trung-lo': {
+        ten: 'Qua trung lộ',
+        danhDoi:
+          'Đi đường ngắn nhất tới khung thành, nhưng phải xuyên qua nơi đối thủ đông người nhất.',
+      },
+    },
+  },
+  'bay-viet-vi': {
+    ten: 'Bẫy việt vị',
+    cacMuc: {
+      'tat': {
+        ten: 'Tắt',
+        danhDoi:
+          'Hàng phòng ngự lùi theo bóng nên ít bị xuyên phá, nhưng không cắt được những đường phát động từ xa.',
+      },
+      'bat': {
+        ten: 'Bật',
+        danhDoi:
+          'Dâng lên cùng lúc để bắt việt vị và chặn bóng từ xa, nhưng một nhịp lệch là đối thủ thoát xuống một mình.',
+      },
+    },
+  },
 }

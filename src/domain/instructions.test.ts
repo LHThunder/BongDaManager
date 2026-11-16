@@ -3,8 +3,6 @@ import {
   cacXungDot,
   CHI_THI,
   CHI_THI_MAC_DINH,
-  danhDoiCuaMuc,
-  tenMucChiThi,
   THU_TU_CHI_THI,
   type BoChiThi,
   type ChiThiId,
@@ -37,10 +35,9 @@ describe('bảng 6 chỉ thị (AC-7.1)', () => {
     }
   })
 
-  it('mỗi chỉ thị có tên tiếng Việt và từ 2 mức trở lên', () => {
+  it('mỗi chỉ thị có từ 2 mức trở lên, không mức nào trùng', () => {
     for (const id of THU_TU_CHI_THI) {
       const chiThi = CHI_THI[id]
-      expect(chiThi.ten.trim().length, id).toBeGreaterThan(0)
       expect(chiThi.cacMuc.length, id).toBeGreaterThanOrEqual(2)
       expect(new Set(chiThi.cacMuc.map((m) => m.muc)).size, id).toBe(
         chiThi.cacMuc.length,
@@ -49,28 +46,11 @@ describe('bảng 6 chỉ thị (AC-7.1)', () => {
   })
 })
 
-describe('câu đánh đổi của từng mức (AC-7.2)', () => {
-  it('mọi mức của mọi chỉ thị đều có tên và câu đánh đổi không rỗng', () => {
-    for (const id of THU_TU_CHI_THI) {
-      for (const m of CHI_THI[id].cacMuc) {
-        expect(m.ten.trim().length, `${id}/${m.muc}`).toBeGreaterThan(0)
-        expect(m.danhDoi.trim().length, `${id}/${m.muc}`).toBeGreaterThan(0)
-      }
-    }
-  })
-
-  it('câu đánh đổi không trùng nhau giữa các mức của cùng chỉ thị', () => {
-    for (const id of THU_TU_CHI_THI) {
-      const cau = CHI_THI[id].cacMuc.map((m) => m.danhDoi)
-      expect(new Set(cau).size, id).toBe(cau.length)
-    }
-  })
-
-  it('tra được tên mức và câu đánh đổi của mức đang chọn', () => {
-    expect(tenMucChiThi('bay-viet-vi', 'bat')).toBe('Bật')
-    expect(danhDoiCuaMuc('do-cao-doi-hinh', 'cao').length).toBeGreaterThan(0)
-  })
-})
+/*
+  Khối "câu đánh đổi của từng mức (AC-7.2)" đã chuyển sang
+  `ui/ngonNgu/nhan.test.ts` cùng với chính những câu ấy (T308, T310).
+  Nó không bị xoá — ở chỗ mới nó còn chạy cho cả hai ngôn ngữ.
+*/
 
 describe('bộ chỉ thị mặc định (AC-7.3, AC-7.4)', () => {
   it('có đủ 6 khoá, mỗi khoá là một mức hợp lệ của chỉ thị đó', () => {
