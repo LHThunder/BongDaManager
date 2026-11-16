@@ -82,12 +82,10 @@ describe('bảng vai trò (AC-6.1)', () => {
     }
   })
 
-  it('mỗi vai trò có tên và moTa không rỗng', () => {
-    for (const v of ROLES) {
-      expect(v.ten.trim().length, v.id).toBeGreaterThan(0)
-      expect(v.moTa.trim().length, v.id).toBeGreaterThan(0)
-    }
-  })
+  /*
+    Phép "mỗi vai trò có tên và mô tả không rỗng" đã đi theo nhãn sang
+    `ui/ngonNgu/nhan.test.ts` (T307, T310), nơi nó chạy cho cả hai ngôn ngữ.
+  */
 
   it('chiSoQuanTrong của mọi vai trò đều là chỉ số hợp lệ, không trùng', () => {
     for (const v of ROLES) {
@@ -178,7 +176,6 @@ describe('cảnh báo chỉ số chưa đạt (AC-6.5)', () => {
     )
     for (const c of chuaDat) {
       expect(c.giaTri).toBe(7)
-      expect(c.ten.trim().length).toBeGreaterThan(0)
     }
   })
 
@@ -209,8 +206,9 @@ describe('cảnh báo chỉ số chưa đạt (AC-6.5)', () => {
       gkAttributes: null,
     })
 
+    // Kết quả chỉ mang mã chỉ số, không mang tên (T337, quyết định D76).
     expect(chuaDat).toEqual([
-      { chiSo: 'dut-diem', ten: 'Dứt điểm', giaTri: null },
+      { chiSo: 'dut-diem', giaTri: null },
     ])
   })
 

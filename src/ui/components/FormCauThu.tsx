@@ -46,7 +46,7 @@ export function FormCauThu({
   onXong,
   onHuy,
 }: Props) {
-  const { NHAN_VI_TRI } = useChuoi()
+  const { NHAN_VI_TRI, NHAN_CHI_SO } = useChuoi()
   const { luuCauThu } = usePlayers(teamId)
   const dangSua = cauThuDangSua !== undefined
 
@@ -180,7 +180,14 @@ export function FormCauThu({
       })
       onXong()
     } catch (e) {
-      datLoi(laLoiUngDung(e) ? cauLoi(e) : String(e))
+      /*
+        Truyền bảng tra nhãn vào `cauLoi`: payload lỗi nay mang MÃ chỉ số
+        (D76), nên chỉ chỗ này mới dựng được câu có tên chỉ số. Đây cũng
+        là nơi duy nhất sinh ra `InvalidAttributeValue`.
+      */
+      datLoi(
+        laLoiUngDung(e) ? cauLoi(e, (id) => NHAN_CHI_SO[id]) : String(e),
+      )
       datDangGui(false)
     }
   }

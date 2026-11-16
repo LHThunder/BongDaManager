@@ -3,6 +3,8 @@ import type {
   CHUNG_VI,
   DANH_SACH_DOI_VI,
   NGON_NGU_VI,
+  NHAN_CHI_SO_VI,
+  NHAN_VAI_TRO_VI,
   NHAN_VI_TRI_VI,
   XOA_DOI_VI,
 } from './vi'
@@ -214,4 +216,131 @@ export const NHAN_CHI_THI_EN: NhanChiThi = {
       },
     },
   },
+}
+
+/*
+  Tên vai trò theo cách gọi quen thuộc của bóng đá Anh. Vài chỗ không có từ
+  một-đối-một nên dịch theo NGHĨA chứ không theo chữ: "tiền vệ mỏ neo" là
+  anchor man, "tiền vệ con thoi" là box-to-box, "tiền đạo cắt mặt" là
+  poacher — dịch sát chữ sẽ ra những cụm không ai dùng.
+*/
+export const NHAN_VAI_TRO_EN: typeof NHAN_VAI_TRO_VI = {
+  'thu-mon-truyen-thong': {
+    ten: 'Traditional keeper',
+    moTa: 'Guards the line, rarely leaves his area, values safe handling above all.',
+  },
+  'thu-mon-quet': {
+    ten: 'Sweeper keeper',
+    moTa: 'Plays high behind the back line and joins the build-up from deep.',
+  },
+  'hau-ve-bien-phong-ngu': {
+    ten: 'Defensive full back',
+    moTa: 'Holds the line, marks the flank tightly, rarely joins the attack.',
+  },
+  'hau-ve-bien-tan-cong': {
+    ten: 'Attacking full back',
+    moTa: 'Goes up and back with the play, delivering crosses from the flank.',
+  },
+  'hau-ve-canh-dang-cao': {
+    ten: 'Wing back',
+    moTa: 'Plays almost as a wide midfielder, covering the whole flank.',
+  },
+  'trung-ve-kem-nguoi': {
+    ten: 'Man-marking centre back',
+    moTa: 'Shadows the opposing striker and takes him on one against one.',
+  },
+  'trung-ve-don-dep': {
+    ten: 'Sweeper',
+    moTa: 'Plays behind the line, covering and reading balls played through.',
+  },
+  'trung-ve-phat-dong': {
+    ten: 'Ball-playing centre back',
+    moTa: 'Carries the ball forward and opens play from the back.',
+  },
+  'tien-ve-mo-neo': {
+    ten: 'Anchor man',
+    moTa: 'Screens the back line and never leaves his position.',
+  },
+  'tien-ve-pha-loi-choi': {
+    ten: 'Ball winner',
+    moTa: 'Goes looking for the tackle and breaks up their build-up.',
+  },
+  'tien-ve-mo-bong': {
+    ten: 'Deep-lying playmaker',
+    moTa: 'Drops deep to receive, circulates the ball and opens attacking angles.',
+  },
+  'tien-ve-canh-tat-canh': {
+    ten: 'Wide crosser',
+    moTa: 'Hugs the touchline and puts the ball into the box with crosses.',
+  },
+  'tien-ve-canh-ho-thu': {
+    ten: 'Defensive wide midfielder',
+    moTa: 'Tucks back to cover the full back and goes forward only in measure.',
+  },
+  'tien-ve-con-thoi': {
+    ten: 'Box-to-box midfielder',
+    moTa: 'Runs between both penalty areas for the whole match.',
+  },
+  'tien-ve-kien-thiet': {
+    ten: 'Playmaker',
+    moTa: 'Sets the rhythm and looks for the pass that opens a chance.',
+  },
+  'tien-ve-thu-hoi': {
+    ten: 'Holding midfielder',
+    moTa: 'Sits deep in midfield, wins the ball back and passes it safely.',
+  },
+  'chay-canh-bam-bien': {
+    ten: 'Touchline winger',
+    moTa: 'Keeps the width, beats his full back and pulls the ball back.',
+  },
+  'chay-canh-bo-vao': {
+    ten: 'Inverted winger',
+    moTa: 'Cuts inside from the flank to shoot.',
+  },
+  'tien-ve-tan-cong-kien-tao': {
+    ten: 'Creative number ten',
+    moTa: 'Plays between their lines, receives the ball and makes chances.',
+  },
+  'tien-ve-tan-cong-bong-ma': {
+    ten: 'Late-arriving number ten',
+    moTa: 'Breaks forward from deep to finish rather than to set the rhythm.',
+  },
+  'tien-dao-muc-tieu': {
+    ten: 'Target man',
+    moTa: 'Holds the ball up for the long pass, backs into defenders and wins it in the air.',
+  },
+  'tien-dao-cat-mat': {
+    ten: 'Poacher',
+    moTa: 'Lurks in the box and times his run to score.',
+  },
+  'tien-dao-lui-sau': {
+    ten: 'Deep-lying forward',
+    moTa: 'Drops out of the box to receive, dragging their centre backs out of position.',
+  },
+}
+
+/*
+  Tên chỉ số theo bộ từ quen thuộc của game quản lý bóng đá tiếng Anh —
+  "Finishing", "First touch", "Anticipation" — chứ không dịch sát từng chữ.
+  "Đọc tình huống" dịch sát sẽ ra "reading the situation", không ai gọi thế.
+*/
+export const NHAN_CHI_SO_EN: typeof NHAN_CHI_SO_VI = {
+  'dut-diem': 'Finishing',
+  'sut-xa': 'Long shots',
+  'chuyen-ngan': 'Short passing',
+  'tat-chuyen-dai': 'Crossing & long passing',
+  're-dat': 'Dribbling',
+  'khong-che-bong': 'First touch',
+  'tac-bong': 'Tackling',
+  'kem-nguoi': 'Marking',
+  'doc-tinh-huong': 'Anticipation',
+  'toc-do': 'Pace',
+  'suc-manh': 'Strength',
+  'khong-chien': 'Heading',
+  'the-luc': 'Stamina',
+  'nhan-quan': 'Vision',
+  'quyet-doan': 'Decisions',
+  'phan-xa': 'Reflexes',
+  'bat-bong': 'Handling',
+  'phat-dong': 'Distribution',
 }

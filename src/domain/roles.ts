@@ -1,4 +1,4 @@
-import { GK_ATTRIBUTES, GK_CHI_SO_CHUNG, tenChiSo } from './attributes'
+import { GK_ATTRIBUTES, GK_CHI_SO_CHUNG } from './attributes'
 import type {
   AttributeId,
   AttributeValues,
@@ -57,71 +57,51 @@ export type RoleId =
 
 export interface Role {
   readonly id: RoleId
-  /** Tên hiển thị, tiếng Việt (P8). */
-  readonly ten: string
   readonly viTriApDung: readonly PositionId[]
-  /** Một câu nói vai trò này làm gì trên sân. */
-  readonly moTa: string
   readonly chiSoQuanTrong: readonly (AttributeId | GkAttributeId)[]
 }
 
 export const ROLES: readonly Role[] = [
   {
     id: 'thu-mon-truyen-thong',
-    ten: 'Thủ môn truyền thống',
     viTriApDung: ['GK'],
-    moTa: 'Giữ khung thành, hạn chế rời vị trí, ưu tiên bắt chắc.',
     chiSoQuanTrong: ['phan-xa', 'bat-bong', 'quyet-doan'],
   },
   {
     id: 'thu-mon-quet',
-    ten: 'Thủ môn quét',
     viTriApDung: ['GK'],
-    moTa: 'Dâng cao sau hàng phòng ngự, tham gia phát động từ tuyến dưới.',
     chiSoQuanTrong: ['phan-xa', 'phat-dong', 'chuyen-ngan', 'toc-do'],
   },
 
   {
     id: 'hau-ve-bien-phong-ngu',
-    ten: 'Hậu vệ biên phòng ngự',
     viTriApDung: ['DL', 'DR'],
-    moTa: 'Giữ nguyên tuyến, kèm chặt cánh, ít tham gia tấn công.',
     chiSoQuanTrong: ['tac-bong', 'kem-nguoi', 'doc-tinh-huong'],
   },
   {
     id: 'hau-ve-bien-tan-cong',
-    ten: 'Hậu vệ biên tấn công',
     viTriApDung: ['DL', 'DR'],
-    moTa: 'Lên công về thủ theo nhịp bóng, tạt bóng từ biên.',
     chiSoQuanTrong: ['tat-chuyen-dai', 'toc-do', 'the-luc'],
   },
   {
     id: 'hau-ve-canh-dang-cao',
-    ten: 'Hậu vệ cánh dâng cao',
     viTriApDung: ['DL', 'DR'],
-    moTa: 'Chơi gần như tiền vệ cánh, phủ cả hành lang biên.',
     chiSoQuanTrong: ['the-luc', 'toc-do', 'tat-chuyen-dai', 're-dat'],
   },
 
   {
     id: 'trung-ve-kem-nguoi',
-    ten: 'Trung vệ kèm người',
     viTriApDung: ['DC'],
-    moTa: 'Theo sát tiền đạo đối phương, tranh chấp tay đôi.',
     chiSoQuanTrong: ['tac-bong', 'kem-nguoi', 'suc-manh'],
   },
   {
     id: 'trung-ve-don-dep',
-    ten: 'Trung vệ dọn dẹp',
     viTriApDung: ['DC'],
-    moTa: 'Chơi lùi sau, bọc lót và đọc đường bóng xuyên tuyến.',
     chiSoQuanTrong: ['doc-tinh-huong', 'toc-do', 'tac-bong'],
   },
   {
     id: 'trung-ve-phat-dong',
-    ten: 'Trung vệ phát động',
     viTriApDung: ['DC'],
-    moTa: 'Cầm bóng dâng lên, mở bóng từ hàng phòng ngự.',
     chiSoQuanTrong: [
       'chuyen-ngan',
       'tat-chuyen-dai',
@@ -132,23 +112,17 @@ export const ROLES: readonly Role[] = [
 
   {
     id: 'tien-ve-mo-neo',
-    ten: 'Tiền vệ mỏ neo',
     viTriApDung: ['DM'],
-    moTa: 'Đứng chắn trước hàng phòng ngự, không rời vị trí.',
     chiSoQuanTrong: ['kem-nguoi', 'doc-tinh-huong', 'suc-manh'],
   },
   {
     id: 'tien-ve-pha-loi-choi',
-    ten: 'Tiền vệ phá lối chơi',
     viTriApDung: ['DM'],
-    moTa: 'Chủ động lao vào tranh chấp, cắt nhịp lên bóng của đối thủ.',
     chiSoQuanTrong: ['tac-bong', 'kem-nguoi', 'the-luc'],
   },
   {
     id: 'tien-ve-mo-bong',
-    ten: 'Tiền vệ mở bóng',
     viTriApDung: ['DM'],
-    moTa: 'Lùi sâu nhận bóng, luân chuyển và mở hướng tấn công.',
     chiSoQuanTrong: [
       'chuyen-ngan',
       'tat-chuyen-dai',
@@ -159,90 +133,66 @@ export const ROLES: readonly Role[] = [
 
   {
     id: 'tien-ve-canh-tat-canh',
-    ten: 'Tiền vệ cánh tạt cánh',
     viTriApDung: ['ML', 'MR'],
-    moTa: 'Bám biên, đưa bóng vào vòng cấm bằng những quả tạt.',
     chiSoQuanTrong: ['tat-chuyen-dai', 'the-luc', 'toc-do'],
   },
   {
     id: 'tien-ve-canh-ho-thu',
-    ten: 'Tiền vệ cánh hỗ trợ phòng ngự',
     viTriApDung: ['ML', 'MR'],
-    moTa: 'Lùi về che cánh cho hậu vệ, lên bóng chừng mực.',
     chiSoQuanTrong: ['the-luc', 'kem-nguoi', 'doc-tinh-huong'],
   },
 
   {
     id: 'tien-ve-con-thoi',
-    ten: 'Tiền vệ con thoi',
     viTriApDung: ['MC'],
-    moTa: 'Lên xuống cả hai vòng cấm suốt trận.',
     chiSoQuanTrong: ['the-luc', 'chuyen-ngan', 'tac-bong', 'sut-xa'],
   },
   {
     id: 'tien-ve-kien-thiet',
-    ten: 'Tiền vệ kiến thiết',
     viTriApDung: ['MC'],
-    moTa: 'Cầm nhịp, tìm đường chuyền mở ra cơ hội.',
     chiSoQuanTrong: ['nhan-quan', 'chuyen-ngan', 'khong-che-bong'],
   },
   {
     id: 'tien-ve-thu-hoi',
-    ten: 'Tiền vệ thu hồi bóng',
     viTriApDung: ['MC'],
-    moTa: 'Đứng thấp giữa sân, thu bóng rồi chuyền an toàn.',
     chiSoQuanTrong: ['doc-tinh-huong', 'chuyen-ngan', 'tac-bong'],
   },
 
   {
     id: 'chay-canh-bam-bien',
-    ten: 'Chạy cánh bám biên',
     viTriApDung: ['AML', 'AMR'],
-    moTa: 'Giữ chiều rộng, rê bóng vượt hậu vệ rồi căng ngang.',
     chiSoQuanTrong: ['toc-do', 're-dat', 'tat-chuyen-dai'],
   },
   {
     id: 'chay-canh-bo-vao',
-    ten: 'Chạy cánh bó vào trong',
     viTriApDung: ['AML', 'AMR'],
-    moTa: 'Từ biên bó vào trung lộ để dứt điểm.',
     chiSoQuanTrong: ['re-dat', 'dut-diem', 'sut-xa', 'khong-che-bong'],
   },
 
   {
     id: 'tien-ve-tan-cong-kien-tao',
-    ten: 'Tiền vệ tấn công kiến tạo',
     viTriApDung: ['AM'],
-    moTa: 'Chơi giữa hai tuyến đối thủ, nhận bóng và tạo cơ hội.',
     chiSoQuanTrong: ['nhan-quan', 'chuyen-ngan', 'khong-che-bong', 're-dat'],
   },
   {
     id: 'tien-ve-tan-cong-bong-ma',
-    ten: 'Tiền vệ tấn công bóng ma',
     viTriApDung: ['AM'],
-    moTa: 'Băng lên từ tuyến hai, dứt điểm thay vì cầm nhịp.',
     chiSoQuanTrong: ['dut-diem', 'sut-xa', 'quyet-doan', 'toc-do'],
   },
 
   {
     id: 'tien-dao-muc-tieu',
-    ten: 'Tiền đạo mục tiêu',
     viTriApDung: ['ST'],
-    moTa: 'Làm điểm tựa cho bóng dài, tì đè và tranh bóng trên không.',
     chiSoQuanTrong: ['khong-chien', 'suc-manh', 'dut-diem'],
   },
   {
     id: 'tien-dao-cat-mat',
-    ten: 'Tiền đạo cắt mặt',
     viTriApDung: ['ST'],
-    moTa: 'Rình trong vòng cấm, chọn thời điểm băng vào ghi bàn.',
     chiSoQuanTrong: ['dut-diem', 'toc-do', 'quyet-doan'],
   },
   {
     id: 'tien-dao-lui-sau',
-    ten: 'Tiền đạo lùi sâu',
     viTriApDung: ['ST'],
-    moTa: 'Rời vòng cấm nhận bóng, kéo trung vệ đối thủ ra khỏi vị trí.',
     chiSoQuanTrong: ['khong-che-bong', 'chuyen-ngan', 'nhan-quan', 'dut-diem'],
   },
 ]
@@ -297,9 +247,16 @@ export function vaiTroMacDinh(positionId: PositionId): RoleId {
 /** Dưới mức này thì coi là chưa đáp ứng chỉ số quan trọng của vai trò. */
 export const NGUONG_DAT_VAI_TRO = 10
 
+/*
+  Kết quả chỉ mang **mã chỉ số**, không mang tên (T337, quyết định D76).
+
+  Bản đầu trả thêm `ten: tenChiSo(chiSo)` — tức một hàm của `domain` **sinh
+  ra** chữ hiển thị tiếng Việt rồi đẩy lên giao diện. P8 cấm chuyện đó, và
+  nó cũng là chỗ `/analyze` bắt được: ở chế độ tiếng Anh, cảnh báo vai trò
+  sẽ hiện tên chỉ số bằng tiếng Việt.
+*/
 export interface ChiSoChuaDat {
   readonly chiSo: AttributeId | GkAttributeId
-  readonly ten: string
   /** `null` nghĩa là chưa điền — cũng tính là chưa đạt. */
   readonly giaTri: number | null
 }
@@ -328,9 +285,9 @@ export function chiSoChuaDat(
       : hoSo.attributes[chiSo as AttributeId]
 
     if (giaTri === undefined) {
-      ketQua.push({ chiSo, ten: tenChiSo(chiSo), giaTri: null })
+      ketQua.push({ chiSo, giaTri: null })
     } else if (giaTri < NGUONG_DAT_VAI_TRO) {
-      ketQua.push({ chiSo, ten: tenChiSo(chiSo), giaTri })
+      ketQua.push({ chiSo, giaTri })
     }
   }
 

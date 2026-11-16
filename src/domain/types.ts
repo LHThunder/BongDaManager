@@ -82,10 +82,12 @@ export type AttributeGroup =
   | 'tinh-than'
   | 'thu-mon'
 
+/*
+  Chỉ số chỉ còn **mã và nhóm** (quyết định D68). Tên hiển thị nằm ở lớp
+  ngôn ngữ, tra theo `id`.
+*/
 export interface AttributeMeta<Id extends string> {
   readonly id: Id
-  /** Tên hiển thị, tiếng Việt (P8). */
-  readonly ten: string
   readonly nhom: AttributeGroup
 }
 

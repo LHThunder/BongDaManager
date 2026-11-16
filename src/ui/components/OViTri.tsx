@@ -2,7 +2,7 @@ import { useDraggable, useDroppable } from '@dnd-kit/core'
 import type { OViTriSoDo } from '../../domain/formations'
 import { MUC_TRU_HIEU_SUAT, type MucSai } from '../../domain/misplacement'
 import { useChuoi } from '../../hooks/useNgonNgu'
-import { chiSoChuaDat, layVaiTro, type RoleId } from '../../domain/roles'
+import { chiSoChuaDat, type RoleId } from '../../domain/roles'
 import type { Player } from '../../domain/types'
 import { SAI_VI_TRI, TRANG_CHIEN_THUAT, VAI_TRO } from '../strings'
 import { AnhThayThe } from './AnhThayThe'
@@ -51,9 +51,8 @@ export function OViTri({
   dangChon = false,
   onChon,
 }: Props) {
-  const { NHAN_VI_TRI } = useChuoi()
+  const { NHAN_VI_TRI, NHAN_VAI_TRO } = useChuoi()
   const nhanViTri = NHAN_VI_TRI[o.viTri]
-  const vaiTro = layVaiTro(roleId)
 
   // Cảnh báo ngay tại ô khi cầu thủ chưa đáp ứng vai trò (AC-6.4); chi tiết
   // từng chỉ số nằm trong bảng chọn vai trò.
@@ -155,7 +154,7 @@ export function OViTri({
       )}
 
       <span className="max-w-full truncate text-center text-[10px] leading-tight text-white/80">
-        {vaiTro.ten}
+        {NHAN_VAI_TRO[roleId].ten}
       </span>
 
       {chuaDat.length > 0 && (

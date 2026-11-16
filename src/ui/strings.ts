@@ -1,4 +1,4 @@
-import { tenChiSo } from '../domain/attributes'
+import { laChiSoHopLe } from '../domain/attributes'
 import { CHUNG_VI, DANH_SACH_DOI_VI, XOA_DOI_VI } from './ngonNgu/vi'
 import type { FormationId } from '../domain/formations'
 import type { MucSai } from '../domain/misplacement'
@@ -336,15 +336,13 @@ export const BO_CHIEN_THUAT = {
   chuaCoBo: 'Bạn chưa lưu bộ chiến thuật nào.',
 } as const
 
-export function nhanChiSo(id: AttributeId | GkAttributeId): string {
-  return tenChiSo(id)
-}
-
 /**
  * Dịch một lỗi của lớp services thành câu tiếng Việt nói rõ chuyện gì xảy ra
  * và cần làm gì (hiến pháp mục 4, phần Xử lý lỗi).
  */
-export function cauLoi(loi: LoiUngDung): string {
+export function cauLoi(loi: LoiUngDung,
+  nhanChiSo?: (id: AttributeId | GkAttributeId) => string,
+): string {
   switch (loi.ma) {
     case 'EmptyName':
       return 'Tên đội không được để trống.'
@@ -353,7 +351,14 @@ export function cauLoi(loi: LoiUngDung): string {
     case 'DuplicateShirtNumber':
       return `Số áo ${loi.chiTiet.giaTri ?? ''} đã có cầu thủ khác trong đội dùng. Hãy chọn số khác.`.trim()
     case 'InvalidAttributeValue':
-      return `Chỉ số ${loi.chiTiet.truong ?? ''} phải là số nguyên từ 1 đến 20.`.trim()
+      /*
+        `truong` nay là **mã chỉ số**, không còn là tên tiếng Việt (D76).
+        Gọi kèm `nhanChiSo` thì câu nêu đúng tên; không kèm thì câu vẫn
+        đúng nghĩa mà không in mã thô ra cho người dùng đọc.
+      */
+      return nhanChiSo && loi.chiTiet.truong && laChiSoHopLe(loi.chiTiet.truong)
+        ? `Chỉ số ${nhanChiSo(loi.chiTiet.truong)} phải là số nguyên từ 1 đến 20.`
+        : 'Chỉ số này phải là số nguyên từ 1 đến 20.'
     case 'InvalidPositions':
       return 'Thủ môn dùng bộ chỉ số riêng nên không kiêm vị trí sân. Hãy chọn Thủ môn một mình, hoặc chỉ chọn các vị trí sân.'
     case 'NotAnImage':

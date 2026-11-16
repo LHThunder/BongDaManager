@@ -146,10 +146,18 @@ describe('giá trị chỉ số ngoài khoảng (AC-2.4)', () => {
     }
   })
 
-  it('lỗi nêu tên chỉ số bằng tiếng Việt để giao diện chỉ đúng ô', async () => {
+  /*
+    Lỗi nêu **mã** chỉ số, không nêu tên (T336, quyết định D76).
+
+    Bản cũ của phép này đòi `truong: 'Dứt điểm'` — tức đòi lớp `services`
+    sinh ra chữ tiếng Việt. Đó chính là đường mà nhãn lọt ra khỏi `ui`, và
+    ở chế độ tiếng Anh nó làm câu lỗi lẫn hai thứ tiếng. Ý định không đổi:
+    lỗi vẫn phải chỉ ĐÚNG Ô nào sai — chỉ là chỉ bằng mã, và `ui` tra tên.
+  */
+  it('lỗi nêu mã chỉ số để giao diện chỉ đúng ô', async () => {
     await expect(
       playerRepo.save(input({ attributes: { 'dut-diem': 99 } })),
-    ).rejects.toMatchObject({ chiTiet: { truong: 'Dứt điểm' } })
+    ).rejects.toMatchObject({ chiTiet: { truong: 'dut-diem' } })
   })
 
   it('từ chối chỉ số riêng của thủ môn ngoài khoảng', async () => {

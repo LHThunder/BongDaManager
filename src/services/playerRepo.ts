@@ -1,5 +1,4 @@
 import { chiSoCanCo, daDien } from '../domain/completeness'
-import { tenChiSo } from '../domain/attributes'
 import { kiemTraToHopViTri } from '../domain/positions'
 import type {
   AttributeId,
@@ -72,8 +71,16 @@ function kiemTraGiaTriChiSo(
 ): void {
   for (const [id, v] of Object.entries(attributes) as [AttributeId, number][]) {
     if (v !== undefined && !daDien(v)) {
+      /*
+        Payload mang **mã chỉ số**, không mang tên (T336, quyết định D76).
+
+        Mọi chỗ khác trong repo đã làm đúng như vậy từ đầu — `truong` là
+        `'playerId'`, `'shirtNumber'`, và `kiemTraToHopViTri` trả mã
+        `'thu-mon-kiem-vi-tri-san'`. Hai dòng này là ngoại lệ duy nhất, và
+        là đường mà tên tiếng Việt lọt ra khỏi `ui`.
+      */
       throw new LoiUngDung('InvalidAttributeValue', {
-        truong: tenChiSo(id),
+        truong: id,
         giaTri: v,
       })
     }
@@ -84,8 +91,16 @@ function kiemTraGiaTriChiSo(
     number,
   ][]) {
     if (v !== undefined && !daDien(v)) {
+      /*
+        Payload mang **mã chỉ số**, không mang tên (T336, quyết định D76).
+
+        Mọi chỗ khác trong repo đã làm đúng như vậy từ đầu — `truong` là
+        `'playerId'`, `'shirtNumber'`, và `kiemTraToHopViTri` trả mã
+        `'thu-mon-kiem-vi-tri-san'`. Hai dòng này là ngoại lệ duy nhất, và
+        là đường mà tên tiếng Việt lọt ra khỏi `ui`.
+      */
       throw new LoiUngDung('InvalidAttributeValue', {
-        truong: tenChiSo(id),
+        truong: id,
         giaTri: v,
       })
     }

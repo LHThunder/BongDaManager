@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
+import { ATTRIBUTES, GK_ATTRIBUTES } from '../../domain/attributes'
 import { CHI_THI, THU_TU_CHI_THI } from '../../domain/instructions'
+import { ROLES } from '../../domain/roles'
 import { POSITIONS } from '../../domain/positions'
 import type { NgonNgu } from '../../services/tuyChonRepo'
 import { BO_CHUOI } from './index'
@@ -100,6 +102,60 @@ describe('nhãn chỉ thị và câu đánh đổi (AC-7.2), ở cả hai ngôn 
         BO_CHUOI.en.NHAN_CHI_THI[id].ten,
         `chỉ thị ${id} chưa được dịch`,
       ).not.toBe(BO_CHUOI.vi.NHAN_CHI_THI[id].ten)
+    }
+  })
+})
+
+describe('nhãn vai trò, ở cả hai ngôn ngữ', () => {
+  it('mỗi vai trò có tên và mô tả không rỗng', () => {
+    for (const ngonNgu of CAC_NGON_NGU) {
+      const bang = BO_CHUOI[ngonNgu].NHAN_VAI_TRO
+      for (const v of ROLES) {
+        expect(bang[v.id], `${ngonNgu}: thiếu vai trò ${v.id}`).toBeDefined()
+        expect(bang[v.id].ten.trim(), `${ngonNgu}: ${v.id}`).not.toBe('')
+        expect(bang[v.id].moTa.trim(), `${ngonNgu}: ${v.id}`).not.toBe('')
+      }
+    }
+  })
+
+  it('tên vai trò tiếng Anh khác tiếng Việt', () => {
+    for (const v of ROLES) {
+      expect(
+        BO_CHUOI.en.NHAN_VAI_TRO[v.id].ten,
+        `vai trò ${v.id} chưa được dịch`,
+      ).not.toBe(BO_CHUOI.vi.NHAN_VAI_TRO[v.id].ten)
+    }
+  })
+})
+
+describe('nhãn chỉ số, ở cả hai ngôn ngữ', () => {
+  it('mỗi chỉ số có tên không rỗng', () => {
+    for (const ngonNgu of CAC_NGON_NGU) {
+      const bang = BO_CHUOI[ngonNgu].NHAN_CHI_SO
+      for (const a of [...ATTRIBUTES, ...GK_ATTRIBUTES]) {
+        expect(bang[a.id], `${ngonNgu}: thiếu chỉ số ${a.id}`).toBeDefined()
+        expect(bang[a.id].trim(), `${ngonNgu}: ${a.id}`).not.toBe('')
+      }
+    }
+  })
+
+  /*
+    18 chỉ số, 18 tên khác nhau. Hai chỉ số trùng tên thì bảng chỉ số của
+    cầu thủ có hai dòng không phân biệt được.
+  */
+  it('không hai chỉ số nào trùng tên, trong cùng một ngôn ngữ', () => {
+    for (const ngonNgu of CAC_NGON_NGU) {
+      const ten = Object.values(BO_CHUOI[ngonNgu].NHAN_CHI_SO)
+      expect(new Set(ten).size, ngonNgu).toBe(ten.length)
+    }
+  })
+
+  it('tên chỉ số tiếng Anh khác tiếng Việt', () => {
+    for (const a of [...ATTRIBUTES, ...GK_ATTRIBUTES]) {
+      expect(
+        BO_CHUOI.en.NHAN_CHI_SO[a.id],
+        `chỉ số ${a.id} chưa được dịch`,
+      ).not.toBe(BO_CHUOI.vi.NHAN_CHI_SO[a.id])
     }
   })
 })

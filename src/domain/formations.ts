@@ -92,6 +92,17 @@ function o(
   return { slotId, viTri, dai, x, y }
 }
 
+/*
+  `ten` của sơ đồ Ở LẠI `domain` một cách có chủ ý (quyết định D75).
+
+  P8 đòi mọi nhãn hiển thị rời khỏi `domain`, và 99 nhãn khác đã rời đi.
+  Nhưng 4-4-2 là một KÝ HIỆU, không phải nhãn cần dịch: nó viết y hệt
+  trong cả hai ngôn ngữ. Dời nó sang lớp ngôn ngữ là tạo một bảng tra có
+  hai cột giống hệt nhau, và thêm một chỗ nữa để quên cập nhật.
+
+  Nếu lần soát P8 sau này thấy dòng `ten` ở đây và định gỡ: đọc lại chú
+  thích này trước.
+*/
 export const FORMATIONS: readonly Formation[] = [
   /*
     Sơ đồ 5 người (AC-13.2). Hai hậu vệ, hai người trên — đúng cách gọi "2-2"

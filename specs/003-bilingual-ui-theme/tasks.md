@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | 36 AC (US-17 → US-23) |
-| **Tiến độ** | 8/41 |
+| **Tiến độ** | 15/41 |
 | **Sửa đổi** | 2026-11-16 — chẻ lần đầu từ plan, rồi sửa theo cả 8 phát hiện của `/analyze` |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -70,7 +70,7 @@ duyệt theme**. Không có nó thì T326 áp theme ra 27 file còn lại rồi 
   - AC: AC-19.1, AC-19.2
   - Phụ thuộc: T302
 
-- [ ] **T307** [P] — Nhãn vai trò rời khỏi domain (46 nhãn)
+- [x] **T307** [P] — Nhãn vai trò rời khỏi domain (46 nhãn)
   - File: sửa `src/domain/roles.ts`, sửa `src/ui/ngonNgu/vi.ts`, sửa `src/ui/ngonNgu/en.ts`
   - Xong khi: như T306, phủ đủ 23 vai trò × (tên + mô tả); `tsc` sạch.
   - AC: AC-19.1, AC-19.2
@@ -82,38 +82,38 @@ duyệt theme**. Không có nó thì T326 áp theme ra 27 file còn lại rồi 
   - AC: AC-19.1, AC-19.2
   - Phụ thuộc: T302
 
-- [ ] **T309** [P] — Nhãn chỉ số rời khỏi domain (18 nhãn)
+- [x] **T309** [P] — Nhãn chỉ số rời khỏi domain (18 nhãn)
   - File: sửa `src/domain/attributes.ts`, sửa `src/ui/ngonNgu/vi.ts`, sửa `src/ui/ngonNgu/en.ts`
   - Xong khi: như T306; `strings.ts` **thôi import** `tenChiSo` từ `domain` — đây là mối nối cuối cùng giữa hai lớp.
   - AC: AC-19.1, AC-19.2
   - Phụ thuộc: T302
 
-- [ ] **T310** — Dời các phép kiểm nhãn sang lớp ngôn ngữ
+- [x] **T310** — Dời các phép kiểm nhãn sang lớp ngôn ngữ
   - File: sửa `src/domain/positions.test.ts`, `src/domain/roles.test.ts`, `src/domain/instructions.test.ts`, `src/domain/attributes.test.ts`; tạo `src/ui/ngonNgu/nhan.test.ts`
   - Xong khi: không test nào trong `domain/` còn khẳng định trên `.ten`; test mới khẳng định mỗi bảng nhãn phủ đủ id **ở cả hai ngôn ngữ** và không nhãn nào rỗng. Rủi ro R31 nói những phép kiểm này **đi theo nhãn**, không bị xoá.
   - AC: AC-19.1
   - Phụ thuộc: T306, T307, T308, T309
 
-- [ ] **T311** — Trang chiến thuật và trang cầu thủ dùng nhãn mới
+- [x] **T311** — Trang chiến thuật và trang cầu thủ dùng nhãn mới
   - File: sửa `src/ui/pages/TrangChienThuat.tsx`, `src/ui/pages/TrangDoi.tsx`, `src/ui/components/FormCauThu.tsx`, `src/ui/components/OViTri.tsx`, `src/ui/components/ChiThiDoi.tsx`, `src/ui/components/ChonVaiTro.tsx`
   - Xong khi: mở hai trang này ở cả hai ngôn ngữ, mọi tên vị trí/vai trò/chỉ thị/chỉ số đều đúng thuật ngữ bóng đá của ngôn ngữ đó; **chỉ số tổng và mức sai vị trí không đổi một con số nào** khi đổi ngôn ngữ.
   - AC: AC-19.1, AC-19.2
   - Phụ thuộc: T310
 
-- [ ] **T312** — Giữ nguyên `FORMATIONS.ten`, ghi rõ vì sao
+- [x] **T312** — Giữ nguyên `FORMATIONS.ten`, ghi rõ vì sao
   - File: sửa `src/domain/formations.ts` *(chỉ thêm chú thích)*
   - Xong khi: có chú thích nói rõ "4-4-2" là **ký hiệu, không phải nhãn cần dịch** (D75), nên nó ở lại `domain/` một cách có chủ ý; lần soát P8 sau này không ai gỡ nhầm nó.
   - AC: —
   - Phụ thuộc: T306
 
 
-- [ ] **T336** — Payload lỗi thôi mang nhãn tiếng Việt
+- [x] **T336** — Payload lỗi thôi mang nhãn tiếng Việt
   - File: sửa `src/services/playerRepo.ts`, sửa `src/services/errors.ts` *(chú thích)*, sửa `src/ui/ngonNgu/{vi,en}.ts`, sửa `src/services/playerRepo.test.ts`
   - Xong khi: `InvalidAttributeValue` mang **mã chỉ số** (`'dut-diem'`) thay cho tên tiếng Việt; lớp `ui` tra chữ khi dựng câu lỗi; test xanh — ném lỗi với một chỉ số sai thì `chiTiet.truong` là mã, không phải chữ. Đây là khôi phục quy ước sẵn có: mọi chỗ khác trong repo đã dùng mã máy (D76).
   - AC: AC-22.1, AC-22.3
   - Phụ thuộc: T309
 
-- [ ] **T337** — `chiSoThieuChoVaiTro` thôi trả nhãn
+- [x] **T337** — `chiSoThieuChoVaiTro` thôi trả nhãn
   - File: sửa `src/domain/roles.ts`, sửa `src/domain/roles.test.ts`, sửa nơi dùng trong `src/ui/components/`
   - Xong khi: hàm trả `{ chiSo, giaTri }` — **bỏ trường `ten`**; giao diện tra nhãn từ lớp ngôn ngữ; không hàm nào trong `domain/` còn **sinh ra** chữ hiển thị, không chỉ là không **chứa** chữ.
   - AC: AC-19.1, AC-19.2

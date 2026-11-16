@@ -3,10 +3,10 @@ import {
   ATTRIBUTES,
   chiSoQuanTrong,
   GK_ATTRIBUTES,
+  laChiSoHopLe,
   GK_CHI_SO_CHUNG,
   NGUONG_QUAN_TRONG,
   POSITION_WEIGHTS,
-  tenChiSo,
 } from './attributes'
 import { POSITIONS } from './positions'
 import type { AttributeId, GkAttributeId } from './types'
@@ -32,11 +32,10 @@ describe('bảng chỉ số (AC-2.2, AC-2.3)', () => {
     expect(new Set(tatCa).size).toBe(18)
   })
 
-  it('mỗi chỉ số có tên tiếng Việt không rỗng', () => {
-    for (const a of [...ATTRIBUTES, ...GK_ATTRIBUTES]) {
-      expect(a.ten.trim(), `chỉ số ${a.id} thiếu tên`).not.toBe('')
-    }
-  })
+  /*
+    Phép "mỗi chỉ số có tên không rỗng" đã đi theo nhãn sang
+    `ui/ngonNgu/nhan.test.ts` (T309, T310).
+  */
 
   it('15 chỉ số chung chia đúng 4 nhóm', () => {
     const nhom = new Set(ATTRIBUTES.map((a) => a.nhom))
@@ -45,10 +44,14 @@ describe('bảng chỉ số (AC-2.2, AC-2.3)', () => {
     )
   })
 
-  it('tenChiSo trả tên cho cả chỉ số chung và chỉ số thủ môn', () => {
-    expect(tenChiSo('dut-diem')).toBe('Dứt điểm')
-    expect(tenChiSo('phan-xa')).toBe('Phản xạ')
-    expect(() => tenChiSo('khong-ton-tai' as AttributeId)).toThrow()
+  /*
+    `tenChiSo` đã được gỡ (D76) nên phép kiểm nó cũng đi theo. Thay vào đó
+    là phép kiểm `laChiSoHopLe` — phần duy nhất của hàm cũ không phải chữ.
+  */
+  it('laChiSoHopLe nhận mã thật và từ chối mã lạ', () => {
+    expect(laChiSoHopLe('dut-diem')).toBe(true)
+    expect(laChiSoHopLe('phan-xa')).toBe(true)
+    expect(laChiSoHopLe('khong-ton-tai')).toBe(false)
   })
 })
 

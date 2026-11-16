@@ -7,31 +7,31 @@ import type {
 
 /** 15 chỉ số của cầu thủ sân, theo đúng thứ tự và nhóm ở AC-2.2. */
 export const ATTRIBUTES: readonly AttributeMeta<AttributeId>[] = [
-  { id: 'dut-diem', ten: 'Dứt điểm', nhom: 'ky-thuat' },
-  { id: 'sut-xa', ten: 'Sút xa', nhom: 'ky-thuat' },
-  { id: 'chuyen-ngan', ten: 'Chuyền ngắn', nhom: 'ky-thuat' },
-  { id: 'tat-chuyen-dai', ten: 'Tạt/Chuyền dài', nhom: 'ky-thuat' },
-  { id: 're-dat', ten: 'Rê dắt', nhom: 'ky-thuat' },
-  { id: 'khong-che-bong', ten: 'Khống chế bóng', nhom: 'ky-thuat' },
+  { id: 'dut-diem', nhom: 'ky-thuat' },
+  { id: 'sut-xa', nhom: 'ky-thuat' },
+  { id: 'chuyen-ngan', nhom: 'ky-thuat' },
+  { id: 'tat-chuyen-dai', nhom: 'ky-thuat' },
+  { id: 're-dat', nhom: 'ky-thuat' },
+  { id: 'khong-che-bong', nhom: 'ky-thuat' },
 
-  { id: 'tac-bong', ten: 'Tắc bóng', nhom: 'phong-ngu' },
-  { id: 'kem-nguoi', ten: 'Kèm người', nhom: 'phong-ngu' },
-  { id: 'doc-tinh-huong', ten: 'Đọc tình huống', nhom: 'phong-ngu' },
+  { id: 'tac-bong', nhom: 'phong-ngu' },
+  { id: 'kem-nguoi', nhom: 'phong-ngu' },
+  { id: 'doc-tinh-huong', nhom: 'phong-ngu' },
 
-  { id: 'toc-do', ten: 'Tốc độ', nhom: 'the-chat' },
-  { id: 'suc-manh', ten: 'Sức mạnh', nhom: 'the-chat' },
-  { id: 'khong-chien', ten: 'Không chiến', nhom: 'the-chat' },
-  { id: 'the-luc', ten: 'Thể lực', nhom: 'the-chat' },
+  { id: 'toc-do', nhom: 'the-chat' },
+  { id: 'suc-manh', nhom: 'the-chat' },
+  { id: 'khong-chien', nhom: 'the-chat' },
+  { id: 'the-luc', nhom: 'the-chat' },
 
-  { id: 'nhan-quan', ten: 'Nhãn quan', nhom: 'tinh-than' },
-  { id: 'quyet-doan', ten: 'Quyết đoán', nhom: 'tinh-than' },
+  { id: 'nhan-quan', nhom: 'tinh-than' },
+  { id: 'quyet-doan', nhom: 'tinh-than' },
 ]
 
 /** 3 chỉ số chỉ thủ môn mới có (AC-2.3). */
 export const GK_ATTRIBUTES: readonly AttributeMeta<GkAttributeId>[] = [
-  { id: 'phan-xa', ten: 'Phản xạ', nhom: 'thu-mon' },
-  { id: 'bat-bong', ten: 'Bắt bóng', nhom: 'thu-mon' },
-  { id: 'phat-dong', ten: 'Phát động', nhom: 'thu-mon' },
+  { id: 'phan-xa', nhom: 'thu-mon' },
+  { id: 'bat-bong', nhom: 'thu-mon' },
+  { id: 'phat-dong', nhom: 'thu-mon' },
 ]
 
 /**
@@ -221,18 +221,21 @@ export const POSITION_WEIGHTS: Readonly<Record<PositionId, PositionWeights>> = {
 // Tra cứu
 // ---------------------------------------------------------------------------
 
-const TEN_CHI_SO = new Map<string, string>([
-  ...ATTRIBUTES.map((a) => [a.id, a.ten] as const),
-  ...GK_ATTRIBUTES.map((a) => [a.id, a.ten] as const),
-])
+/*
+  `tenChiSo` đã được gỡ (T309, quyết định D68 và D76).
 
-/** Tên hiển thị tiếng Việt của một chỉ số, dùng cho thông báo (P8). */
-export function tenChiSo(id: AttributeId | GkAttributeId): string {
-  const ten = TEN_CHI_SO.get(id)
-  if (!ten) {
-    throw new Error(`Chỉ số không tồn tại: ${id}`)
-  }
-  return ten
+  Nó TRẢ VỀ chữ hiển thị tiếng Việt, và chính nó là đường mà nhãn lọt ra
+  khỏi `ui`: `playerRepo` gọi nó để nhét tên chỉ số vào payload lỗi, rồi
+  giao diện in thẳng vào câu — nên ở chế độ tiếng Anh câu lỗi sẽ lẫn tiếng
+  Việt. Lớp ngôn ngữ tra `NHAN_CHI_SO[id]` thay cho nó.
+
+  `laChiSoHopLe` ở dưới giữ lại phần duy nhất không phải chữ: một mã có
+  thuộc bộ chỉ số hay không.
+*/
+export function laChiSoHopLe(id: string): id is AttributeId | GkAttributeId {
+  return (
+    ATTRIBUTES.some((a) => a.id === id) || GK_ATTRIBUTES.some((a) => a.id === id)
+  )
 }
 
 export interface ChiSoQuanTrong {

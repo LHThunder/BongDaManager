@@ -1,5 +1,4 @@
 import { useChuoi } from '../../hooks/useNgonNgu'
-import { tenChiSo } from '../../domain/attributes'
 import {
   chiSoChuaDat,
   vaiTroChoViTri,
@@ -28,7 +27,7 @@ export function ChonVaiTro({
   onChon,
   onDong,
 }: Props) {
-  const { NHAN_VI_TRI } = useChuoi()
+  const { NHAN_VAI_TRO, NHAN_CHI_SO, NHAN_VI_TRI } = useChuoi()
   const cacVaiTro = vaiTroChoViTri(viTri)
 
   return (
@@ -65,14 +64,14 @@ export function ChonVaiTro({
                 }`}
               >
                 <span className="block font-medium text-slate-900">
-                  {v.ten}
+                  {NHAN_VAI_TRO[v.id].ten}
                 </span>
                 <span className="mt-0.5 block text-sm text-slate-600">
-                  {v.moTa}
+                  {NHAN_VAI_TRO[v.id].moTa}
                 </span>
                 <span className="mt-1 block text-xs text-slate-500">
                   {VAI_TRO.chiSoQuanTrong}:{' '}
-                  {v.chiSoQuanTrong.map((id) => tenChiSo(id)).join(', ')}
+                  {v.chiSoQuanTrong.map((id) => NHAN_CHI_SO[id]).join(', ')}
                 </span>
               </button>
             </li>
@@ -100,6 +99,7 @@ interface CanhBaoProps {
  * nói sai về chính dữ liệu của họ.
  */
 function CanhBaoChuaDat({ cauThu, vaiTroId }: CanhBaoProps) {
+  const { NHAN_CHI_SO } = useChuoi()
   const chuaDat = chiSoChuaDat(vaiTroId, cauThu)
   const chuaDien = chuaDat.filter((c) => c.giaTri === null)
   const thapHon = chuaDat.filter((c) => c.giaTri !== null)
@@ -121,10 +121,10 @@ function CanhBaoChuaDat({ cauThu, vaiTroId }: CanhBaoProps) {
       </p>
       <ul className="mt-1 space-y-0.5 text-sm text-amber-900">
         {thapHon.map((c) => (
-          <li key={c.chiSo}>{VAI_TRO.chiSoChuaDat(c.ten, c.giaTri ?? 0)}</li>
+          <li key={c.chiSo}>{VAI_TRO.chiSoChuaDat(NHAN_CHI_SO[c.chiSo], c.giaTri ?? 0)}</li>
         ))}
         {chuaDien.map((c) => (
-          <li key={c.chiSo}>{VAI_TRO.chiSoChuaDien(c.ten)}</li>
+          <li key={c.chiSo}>{VAI_TRO.chiSoChuaDien(NHAN_CHI_SO[c.chiSo])}</li>
         ))}
       </ul>
     </div>

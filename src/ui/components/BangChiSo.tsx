@@ -1,8 +1,8 @@
+import { useChuoi } from '../../hooks/useNgonNgu'
 import { useState } from 'react'
 import {
   ATTRIBUTES,
   GK_ATTRIBUTES,
-  tenChiSo,
 } from '../../domain/attributes'
 import { chiSoCanCo } from '../../domain/completeness'
 import type {
@@ -65,6 +65,7 @@ export function BangChiSo({
   onDoiChiSo,
   onDoiChiSoThuMon,
 }: Props) {
+  const { NHAN_CHI_SO } = useChuoi()
   const [loiO, datLoiO] = useState<string | null>(null)
 
   const canCo = chiSoCanCo(positions)
@@ -74,7 +75,7 @@ export function BangChiSo({
     const doc = docGiaTri(thoVao)
     if (!doc.hopLe) {
       // Bỏ qua giá trị sai, giữ nguyên giá trị hợp lệ trước đó (AC-2.4).
-      datLoiO(BANG_CHI_SO.loiNgoaiKhoang(tenChiSo(id)))
+      datLoiO(BANG_CHI_SO.loiNgoaiKhoang(NHAN_CHI_SO[id]))
       return
     }
 
@@ -91,7 +92,7 @@ export function BangChiSo({
   function doiThuMon(id: GkAttributeId, thoVao: string) {
     const doc = docGiaTri(thoVao)
     if (!doc.hopLe) {
-      datLoiO(BANG_CHI_SO.loiNgoaiKhoang(tenChiSo(id)))
+      datLoiO(BANG_CHI_SO.loiNgoaiKhoang(NHAN_CHI_SO[id]))
       return
     }
 
@@ -136,7 +137,7 @@ export function BangChiSo({
                     key={a.id}
                     className="flex items-center justify-between gap-3 text-sm"
                   >
-                    <span className="text-slate-700">{a.ten}</span>
+                    <span className="text-slate-700">{NHAN_CHI_SO[a.id]}</span>
                     <input
                       type="number"
                       inputMode="numeric"
@@ -165,7 +166,7 @@ export function BangChiSo({
                   key={a.id}
                   className="flex items-center justify-between gap-3 text-sm"
                 >
-                  <span className="text-slate-700">{a.ten}</span>
+                  <span className="text-slate-700">{NHAN_CHI_SO[a.id]}</span>
                   <input
                     type="number"
                     inputMode="numeric"
