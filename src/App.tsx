@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
 import { ngheBiChanNangCap, ngheNhuongDuongNangCap } from './storage/db'
 import { useAppStore } from './store/appStore'
-import { CHON_CAP_DAU, CHUNG, LICH_SU, cauLoi } from './ui/strings'
+import { useChuoi, useTuyChonHienThi } from './hooks/useNgonNgu'
+import { ChonNgonNgu } from './ui/components/ChonNgonNgu'
+import { CHON_CAP_DAU, LICH_SU, cauLoi } from './ui/strings'
 import { ChonCapDau } from './ui/pages/ChonCapDau'
 import { DanhSachDoi } from './ui/pages/DanhSachDoi'
 import { TrangChienThuat } from './ui/pages/TrangChienThuat'
@@ -20,6 +22,14 @@ type Khung =
   | { readonly loai: 'lich-su' }
 
 export default function App() {
+  /*
+    Hai tuỳ chọn hiển thị được nạp ở ĐÂY, một lần, chỗ cao nhất của cây
+    (T301, T304). Gọi `useTuyChonHienThi` ở nhiều chỗ thì mỗi chỗ lại đọc
+    đĩa một lần mà chẳng được gì thêm.
+  */
+  useTuyChonHienThi()
+  const { CHUNG } = useChuoi()
+
   const [khung, datKhung] = useState<Khung>({ loai: 'danh-sach-doi' })
   const loiLuuTru = useAppStore((s) => s.loiLuuTru)
   const datLoiLuuTru = useAppStore((s) => s.datLoiLuuTru)
@@ -91,10 +101,11 @@ export default function App() {
   return (
     <div className="min-h-screen">
       <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-5xl items-center px-4 py-4">
-          <h1 className="text-lg font-bold tracking-tight text-slate-900">
+        <div className="mx-auto flex max-w-5xl items-center gap-4 px-4 py-4">
+          <h1 className="flex-1 text-lg font-bold tracking-tight text-slate-900">
             {CHUNG.tenUngDung}
           </h1>
+          <ChonNgonNgu />
         </div>
       </header>
 

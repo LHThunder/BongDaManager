@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { coTranDangDien, useTeams } from '../../hooks/useTeams'
 import type { TeamSummary } from '../../services/teamRepo'
 import { useAppStore } from '../../store/appStore'
-import { CHUNG, DANH_SACH_DOI, XOA_DOI } from '../strings'
+import { useChuoi } from '../../hooks/useNgonNgu'
 import { AnhThayThe } from '../components/AnhThayThe'
 import { FormDoi } from '../components/FormDoi'
 import { HopXacNhan } from '../components/HopXacNhan'
@@ -23,6 +23,8 @@ type HopDangMo =
  * tên và xoá đội.
  */
 export function DanhSachDoi({ onMoDoi }: Props) {
+  const { CHUNG, DANH_SACH_DOI, XOA_DOI } = useChuoi()
+
   const { teams, dangTai, napDanhSachDoi, xoaDoi } = useTeams()
   const tran = useAppStore((s) => s.tran)
   const [hop, datHop] = useState<HopDangMo>({ loai: 'khong' })

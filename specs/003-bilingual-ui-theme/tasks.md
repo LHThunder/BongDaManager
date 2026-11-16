@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | 36 AC (US-17 → US-23) |
-| **Tiến độ** | 0/41 |
+| **Tiến độ** | 6/41 |
 | **Sửa đổi** | 2026-11-16 — chẻ lần đầu từ plan, rồi sửa theo cả 8 phát hiện của `/analyze` |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -24,37 +24,37 @@ duyệt theme**. Không có nó thì T326 áp theme ra 27 file còn lại rồi 
 
 ## Phase 22 — Lát 22: Hạ tầng ngôn ngữ và một màn hình chạy thật
 
-- [ ] **T300** — Hai tuỳ chọn mới trong `tuyChonRepo`
+- [x] **T300** — Hai tuỳ chọn mới trong `tuyChonRepo`
   - File: sửa `src/services/tuyChonRepo.ts`, sửa `src/services/tuyChonRepo.test.ts`
   - Xong khi: test xanh — chưa có giá trị thì đọc ra `'vi'` và `'sang'`; ghi rồi đọc lại ra đúng thứ vừa ghi; đọc lỗi thì rơi về mặc định **không ném**, còn ghi lỗi thì ném. Bám đúng pattern `docHienSan2D`/`datHienSan2D` đã có (D71).
   - AC: AC-17.4, AC-17.7, AC-20.8, AC-20.9
   - Phụ thuộc: —
 
-- [ ] **T301** — Ngôn ngữ và chế độ vào store
+- [x] **T301** — Ngôn ngữ và chế độ vào store
   - File: sửa `src/store/appStore.ts`
   - Xong khi: store giữ `ngonNgu` và `cheDo`, nạp từ `tuyChonRepo` lúc mở ứng dụng; đổi giá trị thì mọi component đang đọc được vẽ lại.
   - AC: AC-17.2
   - Phụ thuộc: T300
 
-- [ ] **T302** — Khung bảng chuỗi hai bản, chuyển **một** khối
+- [x] **T302** — Khung bảng chuỗi hai bản, chuyển **một** khối
   - File: tạo `src/ui/ngonNgu/vi.ts`, `src/ui/ngonNgu/en.ts`, `src/ui/ngonNgu/index.ts`; sửa `src/ui/strings.ts`
   - Xong khi: khối `CHUNG` có đủ hai bản, bản EN khai kiểu `typeof` bản VI (D66); `tsc` sạch; **xoá thử một khoá khỏi `en.ts` thì `tsc` đỏ** — đây là phép chứng minh lớp lưới thứ nhất hoạt động.
   - AC: AC-22.2 *(lớp 1)*
   - Phụ thuộc: —
 
-- [ ] **T303** — Hook `useChuoi()`
+- [x] **T303** — Hook `useChuoi()`
   - File: tạo `src/hooks/useNgonNgu.ts`, sửa `src/ui/ngonNgu/index.ts`
   - Xong khi: component gọi `useChuoi()` nhận đúng bộ chuỗi của ngôn ngữ đang chọn; đổi ngôn ngữ trong store thì giá trị trả về đổi theo.
   - AC: AC-17.1
   - Phụ thuộc: T301, T302
 
-- [ ] **T304** — Nút đổi ngôn ngữ
+- [x] **T304** — Nút đổi ngôn ngữ
   - File: tạo `src/ui/components/ChonNgonNgu.tsx`, sửa `src/App.tsx`
   - Xong khi: bấm nút thì chữ của khối `CHUNG` đổi ngay **không tải lại trang**; Tab tới được nút bằng bàn phím; đóng mở lại ứng dụng vẫn giữ ngôn ngữ vừa chọn.
   - AC: AC-17.2, AC-17.3, AC-17.4, AC-17.6
   - Phụ thuộc: T303
 
-- [ ] **T305** — Trang danh sách đội chuyển trọn sang `useChuoi()`
+- [x] **T305** — Trang danh sách đội chuyển trọn sang `useChuoi()`
   - File: sửa `src/ui/pages/DanhSachDoi.tsx`
   - Xong khi: đi hết trang danh sách đội ở cả hai ngôn ngữ, **không sót một chữ nào** của ngôn ngữ kia; tên đội do người dùng nhập giữ nguyên.
   - AC: AC-19.4

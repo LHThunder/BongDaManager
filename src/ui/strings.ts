@@ -1,4 +1,5 @@
 import { tenChiSo } from '../domain/attributes'
+import { CHUNG_VI, DANH_SACH_DOI_VI, XOA_DOI_VI } from './ngonNgu/vi'
 import type { FormationId } from '../domain/formations'
 import type { MucSai } from '../domain/misplacement'
 import type { AttributeId, GkAttributeId } from '../domain/types'
@@ -15,45 +16,16 @@ import type { LoiUngDung } from '../services/errors'
   thay đổi (AC-4.1), nên một nút tên "Lưu" sẽ nói sai về cách ứng dụng hoạt
   động. Nút trên form được đặt tên theo HÀNH ĐỘNG nó thực hiện.
 */
-export const CHUNG = {
-  tenUngDung: 'Quản lý đội bóng',
-  huy: 'Huỷ',
-  xoa: 'Xoá',
-  dong: 'Đóng',
-  suaTen: 'Sửa tên',
-  quayLai: 'Quay lại',
-  tiepTuc: 'Tiếp tục',
-  dangTai: 'Đang tải…',
-  taiLaiTrang: 'Tải lại trang',
-  /*
-    Câu cho đường chết lặng ở T131: nâng cấp kho dữ liệu phải chờ các tab cũ
-    đóng. Phải nói rõ ba điều — vì sao đang đứng im, người dùng cần làm gì, và
-    rằng dữ liệu không việc gì — chứ "Đang tải…" thì người dùng chỉ biết ngồi
-    chờ một thứ không bao giờ tới.
-  */
-  chanNangCapDuLieu:
-    'Ứng dụng cần nâng cấp kho dữ liệu, nhưng một tab khác của ứng dụng đang mở và giữ phiên bản cũ. Hãy đóng những tab đó rồi tải lại trang này. Dữ liệu của bạn vẫn nguyên vẹn.',
-  /*
-    Mặt kia của câu trên (T133): tab NÀY vừa nhường đường. Phải nói đủ ba
-    điều — tab này đã ngừng ghi, dữ liệu đã lưu vẫn còn, và việc cần làm là
-    tải lại — vì người dùng không có cách nào tự đoán ra chuyện vừa xảy ra ở
-    một tab khác.
-  */
-  daNhuongKetNoi:
-    'Một tab khác vừa nâng cấp kho dữ liệu, nên tab này đã ngừng ghi để nhường đường. Những gì đã lưu vẫn nguyên vẹn, nhưng thao tác mới ở đây sẽ không lưu được. Hãy tải lại trang để dùng tiếp.',
-} as const
+/*
+  `CHUNG` nay lay tu lop ngon ngu (T302).
 
-export const DANH_SACH_DOI = {
-  tieuDe: 'Các đội của tôi',
-  trongTieuDe: 'Chưa có đội nào',
-  trongMoTa:
-    'Hãy tạo đội đầu tiên: đặt tên, chọn màu áo, rồi thêm cầu thủ của bạn.',
-  taoDoiDauTien: 'Tạo đội đầu tiên',
-  taoDoi: 'Tạo đội mới',
-  moDoi: 'Mở đội',
-  soCauThu: (n: number) => `${n} cầu thủ`,
-  chuaCoCauThu: 'Chưa có cầu thủ',
-} as const
+  Giu lai export o day de 28 file giao dien chua chuyen van bien dich duoc.
+  Moi file chuyen sang `useChuoi()` thi bo dan, va khi khoi cuoi cung roi di
+  thi dong nay bien mat.
+*/
+export const CHUNG = CHUNG_VI
+
+export const DANH_SACH_DOI = DANH_SACH_DOI_VI
 
 export const FORM_DOI = {
   tieuDeTao: 'Tạo đội mới',
@@ -69,21 +41,7 @@ export const FORM_DOI = {
   xacNhanTrungTen: 'Vẫn tạo',
 } as const
 
-export const XOA_DOI = {
-  tieuDe: 'Xoá đội này?',
-  moTa: (tenDoi: string, soCauThu: number) =>
-    soCauThu === 0
-      ? `Đội "${tenDoi}" sẽ bị xoá. Đội này chưa có cầu thủ nào.`
-      : `Đội "${tenDoi}" và toàn bộ ${soCauThu} cầu thủ của đội sẽ bị xoá. Không hoàn tác được.`,
-  /*
-    Chỉ nói thêm câu này khi đội đang có trận CHẠY TRONG BỘ NHỚ (spec mục 5).
-    Đội chỉ có trận trong lịch sử thì không nói gì về trận đang diễn ra, vì
-    lịch sử không bị đụng tới.
-  */
-  tranDangDien:
-    ' Đội này đang có một trận dở; xoá đội thì trận đang diễn ra bị bỏ và không vào lịch sử.',
-  xacNhan: 'Xoá đội',
-} as const
+export const XOA_DOI = XOA_DOI_VI
 
 export const TRANG_DOI = {
   doiNay: 'Đội',

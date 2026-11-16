@@ -10,6 +10,11 @@ export interface KetQuaDaChay {
   readonly coHoi: { readonly nha: number; readonly khach: number }
 }
 import type { Player, Tactic } from '../domain/types'
+import type { CheDo, NgonNgu } from '../services/tuyChonRepo'
+import {
+  CHE_DO_MAC_DINH,
+  NGON_NGU_MAC_DINH,
+} from '../services/tuyChonRepo'
 import type { LoiUngDung } from '../services/errors'
 import type { TeamSummary } from '../services/teamRepo'
 
@@ -34,6 +39,20 @@ function theoSoAo(a: Player, b: Player): number {
 }
 
 export interface AppState {
+  /*
+    Ngôn ngữ và chế độ sáng/tối (AC-17.2, AC-20.7).
+
+    Chúng nằm ở store chứ không ở state của một component, vì mọi màn hình
+    đều đọc chúng — để trong một component thì phải truyền prop xuyên 28
+    file. Giá trị thật được nạp từ `tuyChonRepo` lúc mở ứng dụng; cho tới
+    lúc ấy store giữ mặc định, nên không có khoảnh khắc nào giao diện không
+    có ngôn ngữ để tra.
+  */
+  readonly ngonNgu: NgonNgu
+  datNgonNguTrongStore(ngonNgu: NgonNgu): void
+  readonly cheDo: CheDo
+  datCheDoTrongStore(cheDo: CheDo): void
+
   readonly teams: readonly TeamSummary[]
   readonly dangTaiDanhSachDoi: boolean
   /** Lỗi lưu trữ cần báo cho người dùng ở một chỗ duy nhất (AC-4.7). */
@@ -109,6 +128,11 @@ export interface AppState {
 }
 
 export const useAppStore = create<AppState>((set) => ({
+  ngonNgu: NGON_NGU_MAC_DINH,
+  datNgonNguTrongStore: (ngonNgu) => set({ ngonNgu }),
+  cheDo: CHE_DO_MAC_DINH,
+  datCheDoTrongStore: (cheDo) => set({ cheDo }),
+
   teams: [],
   dangTaiDanhSachDoi: false,
   loiLuuTru: null,
@@ -193,6 +217,8 @@ export const useAppStore = create<AppState>((set) => ({
 /** Trạng thái ban đầu, dùng để test dọn store giữa các lần chạy. */
 export function datLaiStore(): void {
   useAppStore.setState({
+    ngonNgu: NGON_NGU_MAC_DINH,
+    cheDo: CHE_DO_MAC_DINH,
     teams: [],
     dangTaiDanhSachDoi: false,
     loiLuuTru: null,
