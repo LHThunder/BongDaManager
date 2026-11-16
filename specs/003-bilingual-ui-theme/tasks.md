@@ -170,11 +170,12 @@ duyệt theme**. Không có nó thì T326 áp theme ra 27 file còn lại rồi 
   - AC: AC-22.4
   - Phụ thuộc: T303
 
-- [ ] **T320** [P] — Sao lưu và thông báo lỗi
-  - File: sửa `src/ui/components/{SaoLuu,HopXacNhan}.tsx`, sửa `src/ui/ngonNgu/{vi,en}.ts` phần câu lỗi
-  - Xong khi: mọi thông báo lỗi — tệp hỏng, sai sơ đồ, hết dung lượng — hiện bằng ngôn ngữ đang chọn; xuất tệp ở một ngôn ngữ rồi nhập lại ở ngôn ngữ kia vẫn vào đủ.
+- [ ] **T320** [P] — Sao lưu, thông báo lỗi, và khung ứng dụng
+  - File: sửa `src/ui/components/{SaoLuu,HopXacNhan}.tsx`, sửa `src/App.tsx`, sửa `src/ui/ngonNgu/{vi,en}.ts` phần câu lỗi và hai nhãn điều hướng
+  - Xong khi: mọi thông báo lỗi — tệp hỏng, sai sơ đồ, hết dung lượng — hiện bằng ngôn ngữ đang chọn; xuất tệp ở một ngôn ngữ rồi nhập lại ở ngôn ngữ kia vẫn vào đủ; **hai nút điều hướng ở đầu trang** ("Lịch sử trận đấu", "Bắt đầu một trận") và dải báo lỗi lưu trữ cũng theo ngôn ngữ đang chọn.
   - Ghi chú: câu "hết dung lượng" nằm trong nhóm này chính là đường mà **AC-4.7 của spec 001** phủ. Dịch nó sang tiếng Anh **không** làm AC-4.7 tick được — nó vẫn không quan sát được đầu-cuối.
-  - AC: AC-19.3, AC-22.3
+  - Ghi chú: `src/App.tsx` được thêm vào đây lúc làm Phase 22 — nó là file duy nhất có chữ hiển thị mà **không task nào nhận**, và chữ của nó nằm trên *mọi* màn hình nên bỏ sót là AC-22.1 trượt ở khắp nơi. `cauLoi` vốn đã thuộc nhóm này nên đây là chỗ đúng của nó.
+  - AC: AC-19.3, AC-22.1, AC-22.3
   - Phụ thuộc: T303
 
 - [ ] **T321** — Lớp lưới 1: test quét khoá toàn bộ
@@ -334,7 +335,7 @@ duyệt theme**. Không có nó thì T326 áp theme ra 27 file còn lại rồi 
 | AC-21.3 | T330 |
 | AC-21.4 | T329 |
 | AC-21.5 | T330 |
-| AC-22.1 | T317, T318, T321, T333, T336 |
+| AC-22.1 | T317, T318, T320, T321, T333, T336 |
 | AC-22.2 | T302, T321, T322 |
 | AC-22.3 | T320, T336 |
 | AC-22.4 | T319 |
@@ -358,3 +359,7 @@ duyệt theme**. Không có nó thì T326 áp theme ra 27 file còn lại rồi 
 - **Hiến pháp mục 4:** T300 chạm lớp đọc/ghi dữ liệu nên **chưa có test là
   chưa xong**. T315, T321, T322, T328 là test, không phải việc phụ.
 - **Rủi ro R31** đã thành T310: test nhãn **đi theo nhãn**, không bị xoá.
+- **Sửa lúc làm Phase 22:** `src/App.tsx` có ba chuỗi hiển thị mà không task
+  nào nhận — hai nhãn điều hướng và dải báo lỗi lưu trữ. Đã thêm vào T320.
+  Lỗ hổng loại này không lộ ra ở bảng phủ AC, vì bảng ấy soát theo **AC**
+  chứ không theo **file**; nó chỉ lộ khi mở ứng dụng lên nhìn.
