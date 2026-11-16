@@ -1,5 +1,6 @@
 import type { SuKien } from '../../engine/suKien'
 import { TRAN_DAU } from '../strings'
+import { useAppStore } from '../../store/appStore'
 import { dungCauTuongThuat } from '../tuongThuat'
 
 interface Props {
@@ -30,6 +31,12 @@ const MAU_NHAN: Partial<Record<SuKien['loai'], string>> = {
  * Anh mà chỉ chạy thử mới lộ ra.
  */
 export function DongTuongThuat({ cacSuKien, tenCauThu, tenDoi }: Props) {
+  /*
+    Đọc ngôn ngữ từ store chứ không nhận qua prop: dòng tường thuật được
+    dựng LẠI mỗi lần vẽ, nên đổi ngôn ngữ giữa trận là mọi dòng đã hiện
+    được kể lại bằng thứ tiếng mới (AC-17.5).
+  */
+  const ngonNgu = useAppStore((s) => s.ngonNgu)
   return (
     <section>
       <h3 className="text-lg font-semibold text-slate-900">
@@ -63,7 +70,7 @@ export function DongTuongThuat({ cacSuKien, tenCauThu, tenDoi }: Props) {
                   {NHAN_THEO_LOAI[sk.loai]}
                 </span>
               )}
-              {dungCauTuongThuat(sk, tenCauThu, tenDoi)}
+              {dungCauTuongThuat(sk, tenCauThu, tenDoi, ngonNgu)}
             </span>
             {sk.loai === 'ban-thang' && (
               <span className="shrink-0 font-mono text-xs font-semibold text-emerald-800">

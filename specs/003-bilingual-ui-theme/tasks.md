@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | 36 AC (US-17 → US-23) |
-| **Tiến độ** | 17/43 |
+| **Tiến độ** | 21/43 |
 | **Sửa đổi** | 2026-11-16 — chẻ lần đầu từ plan, rồi sửa theo cả 8 phát hiện của `/analyze`; thêm T341–T342 lúc làm Phase 23 |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -136,26 +136,26 @@ duyệt theme**. Không có nó thì T326 áp theme ra 27 file còn lại rồi 
 
 ## Phase 24 — Lát 24: Câu tường thuật hai ngôn ngữ
 
-- [ ] **T313** — Tách `MAU` thành hai bảng
+- [x] **T313** — Tách `MAU` thành hai bảng
   - File: tạo `src/ui/ngonNgu/mauCau.vi.ts`, `src/ui/ngonNgu/mauCau.en.ts`; sửa `src/ui/tuongThuat.ts`
   - Xong khi: `MAU_VI` mang nguyên 62 mẫu hiện có; `MAU_EN` khai kiểu buộc **cùng khoá và cùng độ dài mỗi loại** với `MAU_VI` (D69); `tsc` đỏ nếu một loại lệch số mẫu.
   - Ghi chú: `SO_MAU_CAU` hiện là export **chết** — chú thích nói "dùng cho test" nhưng không test nào dùng. Task này quyết định số phận nó: cho test đếm độ dài hai bảng dùng, hoặc xoá.
   - AC: AC-18.3
   - Phụ thuộc: T302
 
-- [ ] **T314** — Viết 62 mẫu câu tiếng Anh
+- [x] **T314** — Viết 62 mẫu câu tiếng Anh
   - File: sửa `src/ui/ngonNgu/mauCau.en.ts`
   - Xong khi: mỗi mẫu viết theo ngữ pháp tiếng Anh, **không dịch tại chỗ**; pha phạm lỗi đặt người phạm lỗi làm chủ ngữ (`B fouls A`), không phải người bị phạm lỗi.
   - AC: AC-18.1
   - Phụ thuộc: T313
 
-- [ ] **T315** — Test so sánh hai ngôn ngữ trên cùng một trận
+- [x] **T315** — Test so sánh hai ngôn ngữ trên cùng một trận
   - File: tạo `src/ui/tuongThuat.songNgu.test.ts`
   - Xong khi: test xanh — cùng một mã trận dựng dòng tường thuật ở hai ngôn ngữ cho **cùng số dòng, cùng thứ tự, cùng phút, cùng danh sách cầu thủ**; chỉ trường chữ khác. Đây là AC dạng so sánh duy nhất của spec, hiến pháp P5 đòi nó có test riêng.
   - AC: AC-18.2, AC-18.3
   - Phụ thuộc: T314
 
-- [ ] **T316** — Trang trận đấu và trang lịch sử kể bằng ngôn ngữ đang chọn
+- [x] **T316** — Trang trận đấu và trang lịch sử kể bằng ngôn ngữ đang chọn
   - File: sửa `src/ui/pages/TrangTran.tsx`, `src/ui/pages/TrangLichSu.tsx`, `src/ui/components/DongTuongThuat.tsx`
   - Xong khi: đá một trận ở tiếng Anh, đọc được trọn dòng tường thuật; **đổi ngôn ngữ giữa lúc trận đang chạy** thì trận chạy tiếp đúng phút và mọi dòng đã hiện được kể lại bằng ngôn ngữ mới; mở một trận cũ trong lịch sử cũng theo ngôn ngữ đang chọn.
   - AC: AC-17.5, AC-18.4
