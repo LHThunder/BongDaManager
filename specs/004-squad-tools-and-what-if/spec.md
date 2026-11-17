@@ -111,9 +111,20 @@ chạy**, để **theo được diễn biến bằng mắt chứ không phải g
 - [ ] AC-25.4 — KHI mở một trận đã lưu **từ trước spec này** và đấu lại bằng cùng mã trận THÌ kết quả và từng dòng sự kiện PHẢI giống hệt trận cũ.
 - [ ] AC-25.5 — KHI chuyển động liên tục đang bật THÌ tỉ số, dòng tường thuật, chỉ tiêu hai đội và điểm từng cầu thủ PHẢI không đổi so với trước spec này.
 - [ ] AC-25.6 — KHI hệ điều hành của người dùng bật chế độ giảm chuyển động THÌ sân PHẢI tôn trọng lựa chọn đó và không chuyển động liên tục nữa, mà vẫn hiển thị đúng vị trí tại từng mốc.
-- [ ] AC-25.7 — KHI một cầu thủ đã xuống thể lực **trong trận đang chạy** THÌ điểm của anh ta trên sân PHẢI di chuyển **chậm hơn rõ rệt** so với lúc còn sung sức, và chậm hơn một người cùng lúc đó còn đủ thể lực.
+- [ ] AC-25.7 — KHI một cầu thủ đã xuống thể lực **trong trận đang chạy** THÌ điểm của anh ta trên sân PHẢI **trễ hơn rõ rệt** một người cùng lúc đó còn đủ thể lực: xuất phát muộn hơn và đi phần lớn quãng đường sau người kia, đủ để nhận ra bằng mắt mà không phải đọc số. Nhưng **thời lượng** một cú chuyển chỗ KHÔNG được dài ra theo thể lực: mọi điểm, khoẻ hay kiệt, PHẢI tới đúng vị trí mốc trước khi tình huống kế tiếp tới (AC-25.3).
 - [ ] AC-25.8 — KHI tốc độ di chuyển phản ánh thể lực THÌ tình trạng thể lực đó PHẢI **đồng thời** có mặt dưới dạng chữ; chuyển động KHÔNG được là cách duy nhất để biết một người đã kiệt sức.
-- [ ] AC-25.9 — KHI sân 2D đang bật với chuyển động theo đường cong và 22 điểm cùng di chuyển THÌ giả lập trọn một trận ở chế độ chạy ngay PHẢI vẫn xong trong dưới 3 giây.
+- [ ] AC-25.9 — KHI sân 2D đang bật với chuyển động theo đường cong và 22 điểm cùng di chuyển THÌ **hai** ngân sách PHẢI cùng đạt: giả lập trọn một trận ở chế độ **chạy ngay** vẫn xong trong dưới 3 giây, **và** khi trận **đang phát theo đồng hồ** thì công việc mỗi khung vẽ PHẢI gọn trong một nhịp đồng hồ ở mức Thường và không làm rơi nhịp ở mức Nhanh. Đây là hai đường code khác nhau: chế độ chạy ngay không vẽ gì trong lúc chạy, nên một mình nó KHÔNG chứng minh được điều gì về chi phí của đường cong.
+
+> **Sửa ngày 2026-11-17 lúc `/analyze`: AC-25.3 và AC-25.7 từng đánh nhau.**
+> Bản chốt `/clarify` viết AC-25.7 là "di chuyển chậm hơn", và đo trên code
+> thì nó không thể cùng đúng với AC-25.3: một cú chuyển chỗ hiện dài đúng
+> 90% một nhịp đồng hồ — 180ms ở mức Thường, 63ms ở Nhanh, **18ms** ở Rất
+> nhanh — nên bất kỳ hệ số chậm hơn 1,11 lần cũng đẩy điểm sang quá tình
+> huống kế tiếp. Ở mức Rất nhanh chỉ còn 2ms dư. Lối ra đã chốt: thể lực đổi
+> **dáng** chuyển động trong đúng thời lượng cũ, không đổi thời lượng — xem
+> quyết định **D88** ở `plan.md`. AC-25.9 được nói rõ thêm cùng lúc, vì ngân
+> sách cũ chỉ đo đường "chạy ngay" — đường duy nhất mà chuyển động không
+> chạy, nên nó sẽ xanh mà không chứng minh gì.
 
 ### US-26: Dựng đội nhanh hơn
 
@@ -204,6 +215,12 @@ Là một **người dùng**, tôi muốn **quay lại một phút trong trận 
     áp lực nhất của spec, vì người dùng đã chọn phương án chuyển động đắt
     nhất; nếu lúc lập plan thấy không đạt thì phải quay lại bàn, chứ không
     âm thầm hạ chất lượng chuyển động.
+  - Và ngân sách ấy PHẢI đo cả ở đường **đang phát theo đồng hồ**, không chỉ
+    ở chế độ chạy ngay: 22 điểm đang nội suy thì công việc mỗi khung vẽ
+    **gọn trong một nhịp** ở mức Thường (200ms một phút trận) và **không rơi
+    nhịp** ở mức Nhanh (70ms). Sửa ngày 2026-11-17 lúc `/analyze`: chế độ
+    chạy ngay chạy engine một lèo rồi mới vẽ một lần, nên đo riêng nó là đo
+    đúng con đường mà chuyển động mới không hề đi qua.
   - Chạy tiếp một trận rẽ nhánh: **< 3 giây**, như một trận thường.
 - **Bảo mật/quyền riêng tư:** không đổi. Dữ liệu vẫn chỉ nằm trên máy người
   dùng, không gọi mạng, nên kho tên dùng để sinh ngẫu nhiên phải nằm trong

@@ -6,7 +6,7 @@
 | **Plan** | `./plan.md` |
 | **Phạm vi** | 37 AC (US-24 → US-27) |
 | **Tiến độ** | 0/40 |
-| **Sửa đổi** | 2026-11-17 — chẻ lần đầu từ plan |
+| **Sửa đổi** | 2026-11-17 — chẻ lần đầu từ plan; cùng ngày sửa theo `/analyze` (1 CRITICAL + 4 HIGH) |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
 > Mỗi task phải: chạm file cụ thể + có cách kiểm chứng + đủ nhỏ để làm trong một lần.
@@ -74,7 +74,14 @@ lát cắt dọc ở `plan.md` mục 9; mỗi phase kết thúc là một ứng 
 
 - [ ] **T407** — Lưu đội sinh ra trong MỘT transaction
   - File: sửa `src/services/teamRepo.ts`
-  - Xong khi: hàm lưu đội sinh ra ghi `teams` + `players` + `tactics` trong **một** `db.transaction([...], 'readwrite')` theo đúng nếp `create` đang có (D82); bộ chiến thuật kèm theo đã xếp đủ ô của sơ đồ, dùng lại lớp xếp của `domain/lineup.ts` chứ không viết thuật toán xếp thứ hai (D83); **`DB_VERSION` không đổi**.
+  - Xong khi: hàm lưu đội sinh ra ghi `teams` + `players` + `tactics` trong **một** `db.transaction([...], 'readwrite')` theo đúng nếp `create` đang có (D82); bộ chiến thuật kèm theo đã xếp đủ ô của sơ đồ, dùng lại `xepLaiKhiDoiSoDo` chứ không viết thuật toán xếp thứ hai (D83); **`DB_VERSION` không đổi**.
+  - Cách dùng lại cho đúng (D83, đã kiểm trên code): `xepLaiKhiDoiSoDo` lấy
+    danh sách người **từ tham số `oVienCu`**, không từ `cacCauThu` — truyền
+    `[]` như `tacticRepo.ts:171` làm khi đội chưa có bộ chiến thuật thì nhận
+    về đội hình **toàn ô trống**. Nên phải truyền cả đội vừa sinh vào làm
+    `oVienCu` giả. Ô nào thuật toán từ chối xếp (mức sai `nang`) thì **lấp
+    bằng người còn lại**, đúng cách `chonTheoSoDo` ở `ChonCapDau.tsx:65` làm
+    — đội sinh ra phải đá được ngay (AC-24.4), không được để ô trống.
   - AC: AC-24.4, AC-24.7
   - Phụ thuộc: T405
 
@@ -136,13 +143,26 @@ lát cắt dọc ở `plan.md` mục 9; mỗi phase kết thúc là một ứng 
 
 - [ ] **T416** — Lớp chọn trả thêm mã lý do
   - File: sửa `src/domain/lineup.ts`
-  - Xong khi: kết quả xếp đội hình kèm **mã lý do** cho từng ô (ví dụ `'dung-so-truong'`, `'chi-so-cao-nhat'`, `'lap-cho-trong'`) và mã cho trường hợp thiếu người; **không một chuỗi hiển thị nào** nằm trong `domain` (P8, D84).
+  - Xong khi: `KetQuaXepLai` mang thêm **mã lý do** cho từng ô — đúng bộ mã
+    mà thuật toán hiện tại phân biệt được: `'dung-so-truong'`,
+    `'xep-sai-nhe'`, `'xep-sai-vua'`, `'lap-cho-trong'`, `'thieu-nguoi'`;
+    **không một chuỗi hiển thị nào** nằm trong `domain` (P8, D84).
+  - ⚠️ **Thêm trường, KHÔNG đổi hành vi.** Luật phá hoà hiện tại là "giữ
+    người đứng trước trong danh sách" và có test khẳng định
+    (`lineup.test.ts`); `chiPhi()` **không đọc chỉ số** và `lineup.ts`
+    không import `rating.ts`. Vì thế mã `'chi-so-cao-nhat'` của bản plan đầu
+    đã bị bỏ (D84): sinh được nó là đổi luật phá hoà, tức đổi kết quả của
+    **ba** nơi gọi — `useTactic.ts:129`, `tacticRepo.ts:171`,
+    `ChonCapDau.tsx:258`. Muốn đổi thì quay lại `/specify`.
+  - ⚠️ **Không đổi engine.** `tinhTrangDoiHinh` cùng file này **được
+    `src/engine/batDau.ts` import**. Chỉ thêm trường vào `KetQuaXepLai`;
+    `tinhTrangDoiHinh` giữ nguyên chữ ký và `PHIEN_BAN_ENGINE` vẫn là 5.
   - AC: AC-26.8, AC-26.9
   - Phụ thuộc: —
 
 - [ ] **T417** — Test mã lý do
   - File: sửa `src/domain/lineup.test.ts`
-  - Xong khi: test xanh — người đá đúng sở trường nhận mã khác người được lấp chỗ trống; đội thiếu người thì số ô điền được đúng bằng số người có và phần thiếu có mã riêng.
+  - Xong khi: test xanh — người đá đúng sở trường nhận mã khác người được lấp chỗ trống; đội thiếu người thì số ô điền được đúng bằng số người có và phần thiếu có mã riêng; và **mọi test cũ của `lineup.test.ts` vẫn xanh không phải sửa một dòng** — đó là bằng chứng luật phá hoà chưa bị đụng (xem cảnh báo ở T416).
   - AC: AC-26.8, AC-26.9
   - Phụ thuộc: T416
 
@@ -183,9 +203,21 @@ lát cắt dọc ở `plan.md` mục 9; mỗi phase kết thúc là một ứng 
   - AC: AC-25.1, AC-25.2
   - Phụ thuộc: T421
 
-- [ ] **T423** — Tốc độ theo thể lực
-  - File: sửa `src/ui/components/San2D.tsx`
-  - Xong khi: điểm của người đã xuống thể lực di chuyển chậm hơn rõ rệt so với người còn sung sức cùng lúc; thể lực đọc từ `ben.theLuc` của trạng thái trận đang chạy; **không** thêm trường nào vào `SuKien` và **không đụng engine**.
+- [ ] **T423** — Dáng chuyển động theo thể lực
+  - File: sửa `src/ui/components/San2D.tsx`, sửa `src/ui/noiSuy.ts`
+  - Xong khi: điểm của người đã xuống thể lực **trễ hơn rõ rệt** một người
+    cùng lúc còn sung sức — xuất phát muộn hơn, đi phần lớn quãng đường sau
+    người kia — nhưng **cả hai cùng tới đích đúng một lúc**; thể lực đọc từ
+    `ben.theLuc` của trạng thái trận đang chạy; **không** thêm trường nào vào
+    `SuKien` và **không đụng engine**.
+  - ⚠️ **Thời lượng là bất biến, không phải tham số.** D88: thể lực đổi hàm
+    giảm tốc, **không** đổi `thoiGianChuyen`. Kéo dài thời lượng theo thể lực
+    là phá AC-25.3 — `thoiGianChuyen` đã bằng 90% một nhịp đồng hồ (180ms ở
+    mức Thường, 63ms ở Nhanh, **18ms** ở Rất nhanh), nên mọi hệ số lớn hơn
+    1,11 lần là điểm còn bay dở khi tình huống kế tiếp tới. T425 là lưới bắt
+    lỗi này.
+  - Xong khi (phần kiểm): ở **cả ba** mức tốc độ, điểm kiệt sức vẫn tới đúng
+    toạ độ mốc trước nhịp kế tiếp — không có mức nào được miễn.
   - AC: AC-25.7
   - Phụ thuộc: T422
 
@@ -197,9 +229,12 @@ lát cắt dọc ở `plan.md` mục 9; mỗi phase kết thúc là một ứng 
 
 - [ ] **T425** — Theo kịp khi đổi tốc độ trận
   - File: sửa `src/ui/components/San2D.tsx`
-  - Xong khi: đổi tốc độ ở cả ba mức, không điểm nào còn đang di chuyển dở khi tình huống kế tiếp tới; dùng lại `thoiGianChuyen` đã có chứ không đặt cứng con số mới.
+  - Xong khi: đổi tốc độ ở cả ba mức, không điểm nào còn đang di chuyển dở
+    khi tình huống kế tiếp tới — **kể cả điểm của người đã kiệt sức**, là chỗ
+    duy nhất mà AC-25.3 và AC-25.7 có thể đánh nhau (D88); dùng lại
+    `thoiGianChuyen` đã có chứ không đặt cứng con số mới.
   - AC: AC-25.3
-  - Phụ thuộc: T422
+  - Phụ thuộc: T423 *(làm sau T423 có chủ đích: đây là lưới bắt đúng cái lỗi mà T423 dễ gây ra)*
 
 - [ ] **T426** — Tôn trọng chế độ giảm chuyển động
   - File: sửa `src/ui/components/San2D.tsx`
@@ -279,13 +314,24 @@ lát cắt dọc ở `plan.md` mục 9; mỗi phase kết thúc là một ứng 
 
 - [ ] **T437** — Kiểm tay 2 ngôn ngữ × 2 chế độ
   - File: — *(kiểm trên ứng dụng đang chạy)*
-  - Xong khi: đi hết mọi màn hình mới ở bốn tổ hợp, kể cả màn hình lỗi và trạng thái rỗng của phần lọc; không sót chữ, không chỗ nào tương phản dưới 4.5:1, không dấu hiệu thiếu bản dịch.
-  - AC: AC-24.8, AC-26.3, AC-26.7
-  - Phụ thuộc: T409, T412, T414, T418, T426, T436
+  - Xong khi: đi hết mọi màn hình mới ở bốn tổ hợp, kể cả màn hình lỗi và trạng thái rỗng của phần lọc; không sót chữ, không chỗ nào tương phản dưới 4.5:1, không dấu hiệu thiếu bản dịch. Và với sân 2D đang nội suy: tỉ số, dòng tường thuật, chỉ tiêu hai đội và điểm từng cầu thủ **không đổi** so với trước spec này (AC-25.5 — T420 chứng minh engine không đổi, nhưng chỉ phép kiểm tay này nhìn thấy màn hình có nội suy).
+  - AC: AC-24.8, AC-25.5, AC-26.3, AC-26.7
+  - Phụ thuộc: T404, T409, T412, T414, T415, T419, T425, T426, T434, T435, T436
+  - *Sửa theo `/analyze`: danh sách cũ (T409, T412, T414, T418, T426, T436) bỏ sót sáu task tạo màn hình mới — T404, T415, T419, T425, T434, T435. T434 và T435 là **em** của T433 chứ không phải tổ tiên của T436, nên chúng không nằm trong cây phụ thuộc cũ.*
 
 - [ ] **T438** — Đo lại các ngân sách ở spec mục 6
   - File: — *(đo trên bản build)*
-  - Xong khi: sinh một đội < 2 giây; nhân bản đội 30 cầu thủ < 2 giây; gõ ô lọc cập nhật < 100ms; chạy hết một trận < 3 giây **với sân 2D bật và 22 điểm chạy đường cong** (AC-25.9); chạy tiếp một trận rẽ nhánh < 3 giây. Ghi số đo vào mô tả commit, và nói rõ số đo là thời gian tới lúc DOM đổi hay tới lúc nhìn thấy.
+  - Xong khi: sinh một đội < 2 giây; nhân bản đội 30 cầu thủ < 2 giây; gõ ô lọc cập nhật < 100ms; chạy hết một trận < 3 giây **với sân 2D bật** (AC-25.9, phép đo 1); chạy tiếp một trận rẽ nhánh < 3 giây. Ghi số đo vào mô tả commit, và nói rõ số đo là thời gian tới lúc DOM đổi hay tới lúc nhìn thấy.
+  - **Phép đo 2 — đang phát theo đồng hồ, bắt buộc.** 22 điểm đang nội suy
+    thì công việc mỗi khung vẽ **gọn trong một nhịp** ở mức Thường (200ms một
+    phút trận) và **không rơi nhịp** ở mức Nhanh (70ms). Đây mới là phép đo
+    cái giá của đường cong: chế độ chạy ngay gọi `chayHetTran` một lèo rồi
+    vẽ một lần (`useMatch.ts:151`), nên phép đo 1 đi đúng con đường mà nội
+    suy **không** chạy — bản plan đầu kết luận "đạt theo cấu trúc" chính vì
+    lẽ đó, và `/analyze` đã bắt chỗ ấy (D86).
+  - Vật cản đã biết: `requestAnimationFrame` **không chạy khi pane trình
+    duyệt bị ẩn** — đúng vật cản của T035 spec 001. Đo với pane đang hiện,
+    và ghi rõ điều kiện đo vào mô tả commit.
   - AC: AC-25.9
   - Phụ thuộc: T437
 
@@ -313,7 +359,7 @@ lát cắt dọc ở `plan.md` mục 9; mỗi phase kết thúc là một ứng 
 | AC-25.2 | T421, T422 |
 | AC-25.3 | T425 |
 | AC-25.4 | T420 |
-| AC-25.5 | T420 |
+| AC-25.5 | T420, T437 |
 | AC-25.6 | T426 |
 | AC-25.7 | T423 |
 | AC-25.8 | T424 |
@@ -343,7 +389,8 @@ lát cắt dọc ở `plan.md` mục 9; mỗi phase kết thúc là một ứng 
 
 - **Chuỗi phụ thuộc dài nhất** nằm ở Phase 34: T427 → T428 → T431 → T433 →
   T434/T435/T436 → T437 → T438 → T439, tức **9 mắt**. Phase 29–32 chuỗi dài
-  nhất chỉ 3 mắt.
+  nhất chỉ 3 mắt; Phase 33 là 4 mắt (T421 → T422 → T423 → T425) sau khi
+  `/analyze` xếp T425 xuống sau T423.
 - **Chạy song song được:** ba nhánh gần như độc lập — Phase 29→30 (sinh),
   Phase 31+32 (dựng đội nhanh), Phase 33 (chuyển động), Phase 34 (rẽ nhánh).
   Trong từng phase, T410 và T413 độc lập nhau; T420, T421 và T427 độc lập
@@ -362,3 +409,31 @@ lát cắt dọc ở `plan.md` mục 9; mỗi phase kết thúc là một ứng 
 - **P8 lặp lại ở 7 task** (T404, T409, T412, T413, T414, T418, T432, T433,
   T434, T435, T436): chuỗi mới phải có đủ hai ngôn ngữ **trong cùng commit**.
   Đây là cái giá cố định của mọi tính năng kể từ hiến pháp 2.0.0.
+
+## Sửa theo `/analyze` ngày 2026-11-17
+
+`/analyze` ra 15 phát hiện; năm mục nặng đã sửa vào ba tài liệu, mười mục
+còn lại (7 MEDIUM + 3 LOW) **chưa sửa** và còn mở.
+
+| Mức | Sửa ở đâu | Việc gì |
+|---|---|---|
+| CRITICAL | spec AC-25.7 + AC-25.9 + mục 6, plan **D88**, T423, T425 | AC-25.3 và AC-25.7 không thể cùng đúng: `thoiGianChuyen` đã bằng 90% một nhịp (180/63/**18**ms), nên "di chuyển chậm hơn" đẩy điểm vượt tình huống kế tiếp. Chốt: thể lực đổi **dáng** chuyển động, không đổi thời lượng |
+| HIGH | plan D84, T416, T417 | Bỏ mã lý do `'chi-so-cao-nhat'` — thuật toán không đọc chỉ số nên không sinh ra được nó; sinh được là đổi luật phá hoà của ba nơi gọi. Thêm cảnh báo `lineup.ts` được `engine/batDau.ts` import |
+| HIGH | spec AC-25.9 + mục 6, plan D86, T438 | Ngân sách cũ chỉ đo chế độ chạy ngay — đúng con đường mà nội suy không chạy. Thêm phép đo thứ hai lúc đang phát theo đồng hồ |
+| HIGH | T437 | Phụ thuộc bỏ sót sáu task tạo màn hình mới: T404, T415, T419, T425, T434, T435 |
+| HIGH | plan mục 0 + D83, T407 | `xepLaiKhiDoiSoDo` lấy người từ `oVienCu` chứ không từ `cacCauThu`; "dùng lại lớp xếp" chỉ chạy nếu truyền cả đội vào làm `oVienCu` giả |
+
+**Mười mục còn mở** — xử lý được lúc làm đúng task đó, không chặn `/implement`:
+T420 trùng với `src/engine/tuongThichV5.test.ts` đã có (508 dòng, từ T223);
+T413 chưa nói xử lý người **không tính được** chỉ số tổng (`chiSoTongTheoViTri`
+trả `{tinhDuoc:false}`); T405 cần `SO_CAU_THU_DU_BI_TOI_DA` mà hằng số ấy nằm
+ở `engine/batDau.ts:28`, phải truyền vào qua tham số chứ không import
+(`domain` → `engine` là phụ thuộc vòng, và `domain/boundaries.test.ts` **không**
+chặn nên không test nào bắt được); T433 chưa nói làm gì khi engine **từ chối**
+can thiệp mới (`LyDoTuChoiCanThiep`); T402 chưa nói cách rút số áo (vòng bốc
+tới khi chưa trùng sẽ treo khi hết số) và trường hợp biên "hết số áo hợp lệ"
+chưa có task; T411 chưa kiểm nhân bản **thất bại trọn vẹn** và nhân bản đội
+rỗng; cộng ba mục LOW (số đếm "7 task" ở trên thật ra là 11; `RNG_THAT` là
+const cục bộ trong `FormCauThu.tsx:47`, nên export một lần thay vì chép lần
+thứ ba; `prefers-reduced-motion` chưa có ở đâu trong `src/` và `theme.test.ts`
+tự phân tích `index.css`).

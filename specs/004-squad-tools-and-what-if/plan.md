@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` (Clarified 2026-11-17, 4 user story, 37 AC) |
 | **Status** | Approved (2026-11-17) |
 | **Hiến pháp** | 3.0.1 |
-| **Quyết định** | D77 → D87 |
+| **Quyết định** | D77 → D88 |
 | **Phase** | 29 → 35 (tiếp sau Phase 22–28 của spec 003) |
 
 > Tài liệu này mô tả **HOW**. Hành vi quan sát được nằm ở `spec.md`.
@@ -24,6 +24,8 @@ Kết quả, kiểm ngày **2026-11-17**:
 | Lớp sinh chỉ số đã đúng P1 chưa? | **Rồi** | `sinhChiSo(muc, positions, rng)` nhận nguồn ngẫu nhiên qua tham số, và chú thích của nó đã cam kết thứ tự lấy số cố định |
 | Lưu nhiều bản ghi nguyên khối được không? | **Được, đã có nếp** | `teamRepo.create` đang ghi `teams` + `tactics` trong **một** `db.transaction([...], 'readwrite')` |
 | Chỉ số tổng tính theo gì? | **Theo VỊ TRÍ** | `domain/rating.ts: chiSoTongTheoViTri(hoSo, positionId)`; bảng trọng số là `POSITION_WEIGHTS` |
+| Lớp xếp đội hình có chọn được 11 người từ một đội 18 không? | **Không trực tiếp** | `xepLaiKhiDoiSoDo(soDoMoi, oVienCu, cacCauThu)` lấy danh sách người **từ `oVienCu`**, không từ `cacCauThu` — `tacticRepo.ts:171` ở tình huống đội chưa có bộ chiến thuật truyền `[]` và nhận về đội hình toàn ô trống. Xem D83 |
+| Lớp xếp có đọc chỉ số để phá hoà không? | **Không** | `chiPhi()` trong `lineup.ts` chỉ đọc `mucSaiViTri` + `MUC_TRU_HIEU_SUAT`; file không import `rating.ts`. Luật phá hoà là "giữ người đứng trước trong danh sách", có test khẳng định (`lineup.test.ts`). Xem D84 |
 
 **Hệ quả quan trọng nhất:** US-27 — thứ nghe có vẻ khó nhất của spec — là
 phần **không cần code mới ở tầng sâu**. Nó là một vòng lặp gọi ba hàm thuần
@@ -46,7 +48,7 @@ chính tôi lúc `/clarify`, không phải đổi phạm vi.
 | P6. Mỗi lát cắt tự chạy được | ✅ | Bảy lát ở mục 9, lát nào xong cũng dùng thử được ngay |
 | P7. Sao lưu mở lại được | ✅ | **Không đổi định dạng tệp sao lưu.** Đội nhân bản là đội bình thường; trận rẽ nhánh không vào tệp. Đây là hệ quả trực tiếp của quyết định "không lưu rẽ nhánh" ở `/clarify` |
 | P8. Song ngữ, mỗi ngôn ngữ trọn vẹn | ⚠️ *có một chỗ phải cẩn thận* | Mọi chuỗi mới đi qua lớp ngôn ngữ như thường. Nhưng **kho tên KHÔNG phải nhãn giao diện** — nó là dữ liệu sinh ra, và tên đã sinh thì giữ nguyên khi đổi ngôn ngữ (AC-24.8). Vì thế nó không vào `ui/ngonNgu`. Xem D80 |
-| P9. Bàn phím và tương phản | ⚠️ *rủi ro thật, có phương án bù* | Chuyển động theo thể lực là **thông tin truyền bằng chuyển động** — đúng thứ P9 cấm làm kênh duy nhất. Phương án bù đã thành AC-25.8, và ứng dụng vốn đã có nhãn chữ "kiệt sức" trong dòng tường thuật |
+| P9. Bàn phím và tương phản | ⚠️ *rủi ro thật, có phương án bù* | Chuyển động theo thể lực là **thông tin truyền bằng chuyển động** — đúng thứ P9 cấm làm kênh duy nhất. Phương án bù đã thành AC-25.8, và ứng dụng vốn đã có nhãn chữ "kiệt sức" trong dòng tường thuật. D88 làm kênh chuyển động **yếu đi** so với ý ban đầu (độ trễ chứ không phải tốc độ), nên nhãn chữ càng là kênh chính, không phải kênh bù |
 | P10. Quy mô sự nghiệp | — | Không áp dụng: spec này thuộc vòng lặp huấn luyện viên |
 
 ## 2. Bối cảnh kỹ thuật
@@ -73,11 +75,12 @@ chính tôi lúc `/clarify`, không phải đổi phạm vi.
 | **D80** | Kho tên hư cấu nằm ở đâu | `src/domain/tenNgauNhien.ts`, hai kho tách theo thứ tiếng, hàm `sinhTen(kho, rng)` nhận kho làm **tham số** | (a) Đặt trong `ui/ngonNgu`; (b) đặt trong `domain` nhưng tự đọc ngôn ngữ đang chọn | Kho tên **không phải nhãn giao diện**: tên đã sinh thì giữ nguyên khi đổi ngôn ngữ (AC-24.8), nên nó là *dữ liệu*, không phải *bản dịch*. (b) bắt `domain` import `services/tuyChonRepo` — ngược luồng phụ thuộc. Truyền kho vào giữ `domain` thuần và vẫn cho `ui` chọn kho theo ngôn ngữ |
 | **D81** | Cách sinh tên | **Ghép từ hai danh sách** (họ + tên) theo từng thứ tiếng | (a) Ghép âm tiết tự do; (b) một danh sách tên đầy đủ viết sẵn | (a) cho ra tên lạ tai — chính phương án người dùng đã loại ở câu 2 của `/clarify`. (b) ít tổ hợp nên một đội 18 người sẽ trùng tên. Ghép hai danh sách cho hàng nghìn tổ hợp từ vài chục mục |
 | **D82** | Nhân bản đội | **Một** `db.transaction(['teams','players','tactics'],'readwrite')`, theo đúng nếp `teamRepo.create` | Gọi lần lượt `teamRepo.create` rồi vòng lặp `playerRepo.save` | Gọi lần lượt thì hỏng giữa chừng để lại đội có nửa số cầu thủ — vi phạm AC-24.7 và P3. Ảnh **không chép**: bản sao để trống `portraitImageId`/`logoImageId` (quyết định `/clarify` câu 6) |
-| **D83** | Sinh cả một đội | Sinh người bằng `sinhChiSo`, rồi **dùng lại** lớp xếp đội hình đã có để sinh bộ chiến thuật kèm theo, tất cả trong một transaction như D82 | Sinh người xong để người dùng tự xếp | `/clarify` câu 1 đã chốt "sinh xong đá được ngay". Dùng lại lớp xếp có sẵn rẻ hơn nhiều so với viết thuật toán xếp thứ hai, và tránh hai thuật toán xếp lệch nhau |
-| **D84** | "Lý do chọn" của đội hình tự chọn | Lớp chọn ở `domain` trả thêm **mã lý do** (ví dụ `'dung-so-truong'`, `'chi-so-cao-nhat'`, `'lap-cho-trong'`); `ui` tra chữ | Trả thẳng câu tiếng Việt từ `domain` | P8 cấm nhãn hiển thị nằm trong `domain` — đây đúng là cái bẫy mà D76 của spec 003 vừa dọn xong. Trả mã thì cả hai ngôn ngữ đều dựng câu được |
+| **D83** | Sinh cả một đội | Sinh người bằng `sinhChiSo`, rồi **dùng lại `xepLaiKhiDoiSoDo`** để sinh bộ chiến thuật kèm theo — truyền cả đội vừa sinh vào làm **`oVienCu` giả** (một phần tử một người), vì hàm ấy lấy danh sách người từ tham số đó chứ không từ `cacCauThu`. Ô nào thuật toán không xếp nổi thì **lấp bằng người còn lại**, đúng cách `chonTheoSoDo` đang làm, để đội sinh ra đá được ngay. Tất cả trong một transaction như D82 | (a) Sinh người xong để người dùng tự xếp; (b) truyền `oVienCu = []` như `tacticRepo.ts:171` làm khi đội chưa có bộ chiến thuật | `/clarify` câu 1 đã chốt "sinh xong đá được ngay", nên (a) hỏng. (b) hỏng theo một cách lặng lẽ hơn: hàm sẽ trả về đội hình **toàn ô trống** — đã kiểm ở mục 0. Repo vốn có hai lối chọn người (`xepLaiKhiDoiSoDo` từ chối xếp ai vào ô sai mức `nang`; `chonTheoSoDo` ở `ChonCapDau.tsx:65` vét cho đủ quân số), nên việc ở đây là **chọn một** rồi nói rõ, chứ không phải viết lối thứ ba |
+| **D84** | "Lý do chọn" của đội hình tự chọn | Lớp chọn ở `domain` trả thêm **mã lý do** cho từng ô; `ui` tra chữ. Bộ mã **đúng bằng** những gì thuật toán hiện tại phân biệt được: `'dung-so-truong'`, `'xep-sai-nhe'`, `'xep-sai-vua'`, `'lap-cho-trong'`, `'thieu-nguoi'` | (a) Trả thẳng câu tiếng Việt từ `domain`; (b) thêm mã `'chi-so-cao-nhat'` | (a) phạm P8 — nhãn hiển thị nằm trong `domain`, đúng cái bẫy mà D76 của spec 003 vừa dọn xong. (b) là mã **thuật toán không bao giờ sinh ra được**: `chiPhi()` chỉ đọc mức sai vị trí, không đọc chỉ số (mục 0). Sinh được nó đòi đổi luật phá hoà "giữ người đứng trước" — một luật có test khẳng định và có **ba** nơi gọi (`useTactic.ts:129`, `tacticRepo.ts:171`, `ChonCapDau.tsx:258`), nên đó là một spec khác, không phải một mã lý do |
 | **D85** | Nội suy chuyển động | Tự viết: đường cong trơn qua các mốc, chạy theo nhịp vẽ của trình duyệt trong `San2D`; tốc độ mỗi điểm giãn theo `ben.theLuc` của người đó | (a) Thư viện animation; (b) CSS transition như hiện nay | (a) là một phụ thuộc mới cho 22 điểm — không đáng. (b) chính là thứ đang gây giật: CSS chỉ nội suy **thẳng** giữa hai giá trị, không cho đường cong và không cho mỗi điểm một tốc độ riêng |
-| **D86** | Ngân sách 3 giây (AC-25.9) | **Đạt theo cấu trúc, không cần tối ưu** | — | `chayHetTran` là vòng lặp **thuần engine**, không vẽ gì. Nội suy chỉ tốn khi đang phát lại theo thời gian thực. Nên chi phí đường cong KHÔNG nằm trong đường đo của AC-25.9. Vẫn phải đo để chắc, nhưng không có lý do kiến trúc nào để nó trượt |
+| **D86** | Ngân sách của AC-25.9 | **Đo HAI đường, không một** | Chỉ đo đường "chạy ngay" như bản plan đầu | Bản đầu kết luận "đạt theo cấu trúc" vì `chayHetTran` là vòng lặp thuần engine, không vẽ gì ([useMatch.ts:151](../../src/hooks/useMatch.ts) gọi một lần rồi vẽ một lần) — kết luận ấy **đúng nhưng vô ích**: nó nói rằng con đường được đo là con đường duy nhất mà nội suy không chạy. `/analyze` ngày 2026-11-17 bắt chỗ này. Nên ngân sách thật gồm hai phép đo: (1) chạy ngay < 3 giây, giữ như cũ; (2) **đang phát theo đồng hồ** với 22 điểm nội suy — công việc mỗi khung gọn trong một nhịp ở mức Thường, không rơi nhịp ở mức Nhanh. Phép (2) mới là phép đo cái giá của phương án người dùng đã chọn |
 | **D87** | Lọc danh sách cầu thủ | Lọc ở **tầng giao diện** trên mảng đã nạp | Thêm chỉ mục IndexedDB và lọc ở tầng lưu trữ | Một đội tối đa 30 người, đã nằm sẵn trong bộ nhớ. Thêm chỉ mục là tăng `DB_VERSION` và viết migration cho một việc mà vòng lặp `filter` làm xong trong micro-giây |
+| **D88** | Thể lực thể hiện bằng gì trong chuyển động (AC-25.7) | Thể lực đổi **dáng** của cú chuyển chỗ, **không** đổi thời lượng: người kiệt sức xuất phát muộn hơn và đi phần lớn quãng đường sau người khoẻ, nhưng cả hai cùng tới đích đúng một lúc — tức đổi hàm giảm tốc (easing) chứ không đổi `thoiGianChuyen` | (a) Kéo dài thời lượng cú chuyển chỗ theo thể lực — cách đọc tự nhiên nhất của chữ "chậm hơn"; (b) rút ngắn quãng đường người kiệt sức đi được trong một nhịp | (a) **không khả thi**: `thoiGianChuyen` đã bằng 90% một nhịp đồng hồ, cụ thể 180ms / 63ms / **18ms** ở ba mức tốc độ, nên mọi hệ số lớn hơn 1,11 lần đều đẩy điểm sang quá tình huống kế tiếp và phá AC-25.3; ở mức Rất nhanh chỉ còn 2ms dư. (b) phá AC-25.2 — vị trí tại mốc phải đúng, không được "đi chưa tới". Lối còn lại là dáng chuyển động, và nó đủ: mắt đọc được độ trễ giữa hai điểm cùng xuất phát rõ hơn đọc được tốc độ tuyệt đối của một điểm |
 
 ## 4. Mô hình dữ liệu
 
@@ -111,7 +114,7 @@ Những chữ ký mới đáng chú ý (chi tiết thuộc về lúc code):
 |---|---|
 | AC-24.1, AC-24.2 | Lớp sinh một cầu thủ đầy đủ, dựng trên `sinhChiSo` sẵn có (D83) |
 | AC-24.3 | Lớp sinh nhận danh sách số áo đang dùng và loại trừ |
-| AC-24.4 | Sinh người + dùng lại lớp xếp đội hình để sinh bộ chiến thuật (D83) |
+| AC-24.4 | Sinh người + `xepLaiKhiDoiSoDo` với cả đội làm `oVienCu` giả, ô không xếp nổi thì lấp bằng người còn lại (D83) |
 | AC-24.5 | Nguồn ngẫu nhiên thật dựng ở `ui` mỗi lần bấm, đúng nếp `taoMaTran(RNG_THAT)` |
 | AC-24.6 | Không có cờ "sinh ra" trên bản ghi; mọi màn hình sửa hiện có dùng được ngay (mục 4) |
 | AC-24.7 | Một transaction duy nhất (D82, D83) |
@@ -121,9 +124,9 @@ Những chữ ký mới đáng chú ý (chi tiết thuộc về lúc code):
 | AC-25.3 | Thời lượng nội suy buộc theo nhịp đồng hồ trận, dùng lại `thoiGianChuyen` đã có |
 | AC-25.4, AC-25.5 | Engine không đổi; nội suy nằm hoàn toàn ở lớp vẽ (D85, D86) |
 | AC-25.6 | Kiểm thiết lập giảm chuyển động của hệ điều hành; bật thì bỏ nội suy, giữ nhảy theo mốc như hiện nay |
-| AC-25.7 | Giãn tốc độ mỗi điểm theo `ben.theLuc` của chính người đó (khảo sát mục 0) |
+| AC-25.7 | Đổi **dáng** chuyển động của mỗi điểm theo `ben.theLuc` của chính người đó, giữ nguyên thời lượng (D88; thể lực đọc được từ trạng thái trận — khảo sát mục 0) |
 | AC-25.8 | Nhãn chữ "kiệt sức" đã có sẵn trong dòng tường thuật; phương án bù của P9 |
-| AC-25.9 | Đạt theo cấu trúc (D86), vẫn đo ở lát cắt cuối |
+| AC-25.9 | Hai phép đo ở lát cắt cuối: chạy ngay, **và** đang phát theo đồng hồ với 22 điểm nội suy (D86) |
 | AC-26.1, AC-26.2 | Nhân bản tạo bản ghi **mới** hoàn toàn, không dùng chung id nào (D82) |
 | AC-26.3 | Bản sao để trống ảnh; câu giải thích nằm ở lớp ngôn ngữ |
 | AC-26.4, AC-26.6, AC-26.7 | Lọc ở tầng giao diện bằng `useMemo` (D87) |
