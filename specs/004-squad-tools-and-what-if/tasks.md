@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | 37 AC (US-24 → US-27) |
-| **Tiến độ** | 20/40 |
+| **Tiến độ** | 27/40 |
 | **Sửa đổi** | 2026-11-17 — chẻ lần đầu từ plan; cùng ngày sửa theo `/analyze` (1 CRITICAL + 4 HIGH) |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -185,25 +185,25 @@ lát cắt dọc ở `plan.md` mục 9; mỗi phase kết thúc là một ứng 
 > Lát này độc lập với 29–32. `San2D.tsx` hiện ~540 dòng và là file chịu
 > thay đổi nặng nhất của spec.
 
-- [ ] **T420** [P] — Lưới an toàn: trận cũ vẫn đấu lại đúng
+- [x] **T420** [P] — Lưới an toàn: trận cũ vẫn đấu lại đúng
   - File: tạo `src/engine/tuongThichV5.test.ts` *(hoặc nối vào test tương thích đã có nếu tên trùng)*
   - Xong khi: test xanh — một trận dựng từ cấu hình cố định, chạy hết, cho đúng tỉ số và đúng từng dòng sự kiện như bản ghi tham chiếu; `PHIEN_BAN_ENGINE` vẫn là 5. **Task này nằm SỚM có chủ đích**: nó là lưới duy nhất bắt được việc ai đó lỡ tay đụng engine ở Phase 33 hay 34 (rủi ro R33).
   - AC: AC-25.4, AC-25.5
   - Phụ thuộc: —
 
-- [ ] **T421** — Lớp nội suy đường cong
+- [x] **T421** — Lớp nội suy đường cong
   - File: tạo `src/ui/noiSuy.ts`, tạo `src/ui/noiSuy.test.ts`
   - Xong khi: hàm thuần nhận hai mốc và một tỉ lệ 0→1, trả toạ độ trên đường cong trơn; test xanh — tại tỉ lệ 0 và 1 trả **đúng** toạ độ hai mốc (đây là điều giữ AC-25.2); đường đi không vọt ra ngoài khung sân.
   - AC: AC-25.1, AC-25.2
   - Phụ thuộc: —
 
-- [ ] **T422** — Sân 2D vẽ theo nhịp, dùng lớp nội suy
+- [x] **T422** — Sân 2D vẽ theo nhịp, dùng lớp nội suy
   - File: sửa `src/ui/components/San2D.tsx`
   - Xong khi: các điểm di chuyển liên tục theo đường cong giữa hai tình huống, không nhảy; `hinhSan` **giữ nguyên chữ ký thuần** và vẫn là nơi quyết định toạ độ tại mốc; `src/ui/san2D.test.ts` vẫn xanh không phải sửa; **không đụng `src/engine/`**.
   - AC: AC-25.1, AC-25.2
   - Phụ thuộc: T421
 
-- [ ] **T423** — Dáng chuyển động theo thể lực
+- [x] **T423** — Dáng chuyển động theo thể lực
   - File: sửa `src/ui/components/San2D.tsx`, sửa `src/ui/noiSuy.ts`
   - Xong khi: điểm của người đã xuống thể lực **trễ hơn rõ rệt** một người
     cùng lúc còn sung sức — xuất phát muộn hơn, đi phần lớn quãng đường sau
@@ -221,13 +221,13 @@ lát cắt dọc ở `plan.md` mục 9; mỗi phase kết thúc là một ứng 
   - AC: AC-25.7
   - Phụ thuộc: T422
 
-- [ ] **T424** — Thể lực vẫn phải có mặt bằng CHỮ
+- [x] **T424** — Thể lực vẫn phải có mặt bằng CHỮ
   - File: — *(kiểm trên ứng dụng đang chạy)*
   - Xong khi: xác nhận nhãn chữ "kiệt sức" trong dòng tường thuật vẫn hiện đúng lúc, nên tốc độ di chuyển **không** phải kênh duy nhất báo thể lực (P9). Thiếu thì bổ sung nhãn chữ, không bỏ AC-25.7.
   - AC: AC-25.8
   - Phụ thuộc: T423
 
-- [ ] **T425** — Theo kịp khi đổi tốc độ trận
+- [x] **T425** — Theo kịp khi đổi tốc độ trận
   - File: sửa `src/ui/components/San2D.tsx`
   - Xong khi: đổi tốc độ ở cả ba mức, không điểm nào còn đang di chuyển dở
     khi tình huống kế tiếp tới — **kể cả điểm của người đã kiệt sức**, là chỗ
@@ -236,7 +236,7 @@ lát cắt dọc ở `plan.md` mục 9; mỗi phase kết thúc là một ứng 
   - AC: AC-25.3
   - Phụ thuộc: T423 *(làm sau T423 có chủ đích: đây là lưới bắt đúng cái lỗi mà T423 dễ gây ra)*
 
-- [ ] **T426** — Tôn trọng chế độ giảm chuyển động
+- [x] **T426** — Tôn trọng chế độ giảm chuyển động
   - File: sửa `src/ui/components/San2D.tsx`
   - Xong khi: bật giảm chuyển động ở hệ điều hành (hoặc giả lập trong trình duyệt) thì sân thôi nội suy mà vẫn hiển thị đúng vị trí tại từng mốc.
   - AC: AC-25.6
@@ -401,6 +401,19 @@ lát cắt dọc ở `plan.md` mục 9; mỗi phase kết thúc là một ứng 
 - **Hiến pháp mục 4:** T400, T402, T405 chạm `domain`; T407, T410, T427
   chạm lớp đọc/ghi dữ liệu — tất cả đều **chưa xong nếu chưa có test**
   (T401, T403, T406, T408, T411, T429/T430).
+- **Phase 33 — thứ KHÔNG kiểm được bằng mắt ở môi trường này.**
+  `requestAnimationFrame` không chạy khi pane trình duyệt bị ẩn, mà phiên
+  làm việc này không mở được pane — đúng vật cản đã chặn T035 của spec 001.
+  Vì thế **chuyển động** chưa được nhìn tận mắt: độ mềm của đường cong
+  (AC-25.1), độ trễ của người kiệt sức (AC-25.7), và sự KHÁC BIỆT khi bật
+  giảm chuyển động (AC-25.6) đều chỉ có bằng chứng từ test, không từ màn
+  hình. T437 phải xem lại ba điều ấy trên trình duyệt của người dùng.
+  Những thứ ĐÃ kiểm được trên ứng dụng đang chạy: trận chạy trọn vẹn với 22
+  điểm và không lỗi console; toạ độ dừng ĐÚNG mốc và đứng yên sau đó
+  (AC-25.2); nhãn chữ kiệt sức có mặt trong tường thuật, sáu dòng trong một
+  trận (AC-25.8); đường giảm chuyển động chạy không lỗi và vẫn cho đúng toạ
+  độ mốc. AC-25.3 và phần "thể lực không đụng vào thời lượng" của AC-25.7
+  chứng minh bằng SỐ trong `noiSuy.test.ts`, không cần mắt.
 - **Đổi tên một mã lý do khi làm T416.** Bộ mã ở T416 ghi `lap-cho-trong`,
   nhưng thuật toán không có trường hợp nào "lấp chỗ trống": người được xếp
   vào ô lệch đã có mã `xep-sai-nhe`/`xep-sai-vua` rồi. Trường hợp thật sự

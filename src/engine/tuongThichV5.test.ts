@@ -506,3 +506,71 @@ describe('engine v5 phát lại đúng trận 11 người của spec 001 (T223)'
     expect(PHIEN_BAN_ENGINE).toBe(5)
   })
 })
+
+/*
+  Lưới an toàn của spec 004 (T420, AC-25.4, AC-25.5).
+
+  Spec 004 đặt một ràng buộc cứng: engine KHÔNG đổi. Rủi ro R33 — ai đó sửa
+  engine để chiều một tính năng giao diện — là rủi ro có hậu quả cao nhất của
+  spec, vì đổi `PHIEN_BAN_ENGINE` là mọi trận đã lưu mất nút đấu lại.
+
+  Khối mốc phía trên đã là lưới cho AC-25.4: một trận dựng từ cấu hình cố
+  định phải cho đúng từng dòng của bảng đã đóng băng từ spec 002. File này
+  được GIỮ NGUYÊN và dùng lại chứ không tạo bản thứ hai — hai bảng mốc cùng
+  nói một điều là hai chỗ phải sửa khi engine đổi thật, và chỗ thứ hai sẽ là
+  chỗ bị quên.
+
+  Phần thêm dưới đây canh một đường khác mà Phase 33 và 34 có thể phá: tính
+  THUẦN của engine. Sân 2D vẽ lại mỗi khung hình và màn hình rẽ nhánh chạy
+  lại trận nhiều lần từ cùng một trạng thái — cả hai đều sai nếu `chayHetTran`
+  lén sửa trạng thái được truyền vào.
+*/
+describe('engine giữ nguyên khi spec 004 dựng trên nó (AC-25.4, AC-25.5)', () => {
+  const MA = 'K7M2R9XQ4B'
+
+  it('chayHetTran KHÔNG sửa trạng thái được truyền vào', () => {
+    const batDau = taoTran(cauHinhMau(MA))
+    const chupTruoc = JSON.stringify(batDau)
+
+    chayHetTran(batDau)
+
+    expect(
+      JSON.stringify(batDau),
+      'chayHetTran đã sửa trạng thái đầu vào — sân 2D vẽ lại mỗi khung hình, và màn hình rẽ nhánh chạy lại từ cùng một trạng thái nhiều lần',
+    ).toBe(chupTruoc)
+  })
+
+  it('cùng một trạng thái chạy hết hai lần cho kết quả giống hệt', () => {
+    const batDau = taoTran(cauHinhMau(MA))
+
+    const lan1 = chayHetTran(batDau)
+    const lan2 = chayHetTran(batDau)
+
+    expect(dongSuKien(lan2).map(rutGon)).toEqual(dongSuKien(lan1).map(rutGon))
+    expect(lan2.tiSo).toEqual(lan1.tiSo)
+  })
+
+  it('đọc dòng sự kiện nhiều lần không làm nó đổi', () => {
+    /*
+      Sân 2D gọi `dongSuKien` ở mỗi khung hình trong lúc phát. Nếu hàm ấy
+      lọc tại chỗ hay nhớ trạng thái giữa các lần gọi thì tường thuật sẽ
+      trôi dần đi trong khi trận đang chạy — và không ai nghĩ đó là lỗi của
+      engine.
+    */
+    const xong = chayHetTran(taoTran(cauHinhMau(MA)))
+    const a = dongSuKien(xong).map(rutGon)
+    const b = dongSuKien(xong).map(rutGon)
+    const c = dongSuKien(xong).map(rutGon)
+
+    expect(b).toEqual(a)
+    expect(c).toEqual(a)
+    expect(a.length).toBeGreaterThan(20)
+  })
+
+  it('phiên bản engine vẫn là 5 sau cả spec 004 (ràng buộc R33)', () => {
+    expect(
+      PHIEN_BAN_ENGINE,
+      'spec 004 cấm đổi engine; đổi là mọi trận đã lưu mất nút đấu lại',
+    ).toBe(5)
+  })
+})

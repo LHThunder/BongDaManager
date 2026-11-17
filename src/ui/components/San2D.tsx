@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useReducer, useRef, useState } from 'react'
 import { mauChuTuongPhan } from '../../domain/colors'
 import { laySoDo, soNguoiCuaSoDo } from '../../domain/formations'
 import type { PositionId } from '../../domain/types'
@@ -5,6 +6,12 @@ import type { BenDoi, SuKien } from '../../engine/suKien'
 import type { BenTran } from '../../engine/tran'
 import { latVung, vungCuaViTri, type VungSan } from '../../engine/vung'
 import { useChuoi } from '../../hooks/useNgonNgu'
+import {
+  doMetTuTheLuc,
+  huongRaKhoiMoc,
+  viTriTaiThoiDiem,
+  type Diem,
+} from '../noiSuy'
 import type { BoChuoi } from '../ngonNgu'
 
 /*
@@ -396,6 +403,35 @@ export function hinhSan({
   return { khung, banKinh: BAN_KINH * tiLe, cacDiem, duongBong }
 }
 
+/**
+ * Người dùng có bật chế độ giảm chuyển động của hệ điều hành không (AC-25.6).
+ *
+ * Bắt đầu bằng `false` rồi mới hỏi trong effect: `matchMedia` không tồn tại
+ * khi file này được một test chạy ở môi trường node import vào, và `hinhSan`
+ * thì đang được kiểm đúng kiểu ấy.
+ */
+function useGiamChuyenDong(): boolean {
+  const [giam, datGiam] = useState(false)
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return
+    const hoi = window.matchMedia('(prefers-reduced-motion: reduce)')
+    datGiam(hoi.matches)
+    const nghe = () => datGiam(hoi.matches)
+    hoi.addEventListener('change', nghe)
+    return () => hoi.removeEventListener('change', nghe)
+  }, [])
+
+  return giam
+}
+
+/** Một điểm đang đi từ đâu tới đâu, và nó vào mốc đầu theo hướng nào. */
+interface ChuyenDiemDang {
+  readonly tu: Diem
+  readonly den: Diem
+  readonly huongVao: Diem | null
+}
+
 export function San2D(props: Props) {
   const { SAN_2D } = useChuoi()
   const { nha, khach, msMoiPhut } = props
@@ -411,6 +447,114 @@ export function San2D(props: Props) {
   const sauVongTron = khung.cao / 8
   const sauVongCam = khung.rong * 0.12
   const caoVongCam = khung.cao * 0.4375
+
+  // -----------------------------------------------------------------------
+  // Chuyển động liên tục (T422, T423, T425, T426)
+  // -----------------------------------------------------------------------
+
+  const giamChuyenDong = useGiamChuyenDong()
+
+  /*
+    Mép mà điểm không được vượt qua, lấy đúng lề mà `hinhSan` đã dùng cho
+    toạ độ tại mốc. Đường cong có thể vòng ra ngoài mặt cỏ nếu không kẹp —
+    và một cầu thủ chạy ngoài vạch biên trông như một lỗi vẽ.
+  */
+  const le = LE_TOI_THIEU * tiLe
+  const gioiHan = {
+    xTu: leX + le,
+    xDen: leX + khung.rong - le,
+    yTu: leY + le,
+    yDen: leY + khung.cao - le,
+  }
+
+  /** Độ mệt của từng người, đọc từ trạng thái trận ĐANG CHẠY (AC-25.7). */
+  const doMetTheoNguoi = useMemo(() => {
+    const bang = new Map<string, number>()
+    for (const ben of [nha.ben, khach.ben]) {
+      for (const [playerId, theLuc] of Object.entries(ben.theLuc)) {
+        bang.set(playerId, doMetTuTheLuc(theLuc))
+      }
+    }
+    return bang
+  }, [nha.ben, khach.ben])
+
+  const dang = useRef(new Map<string, ChuyenDiemDang>())
+  const batDau = useRef(0)
+  const [, veLai] = useReducer((n: number) => n + 1, 0)
+
+  /*
+    Khoá của một bộ mốc: chỉ khi toạ độ ĐÍCH đổi mới bắt đầu một cú di
+    chuyển mới. Vẽ lại vì lý do khác — đổi ngôn ngữ, đổi chế độ màu — không
+    được làm các điểm chạy lại từ đầu.
+  */
+  const khoaMoc = cacDiem.map((d) => `${d.playerId}:${d.x},${d.y}`).join('|')
+
+  useEffect(() => {
+    const bayGio = performance.now()
+    const cu = dang.current
+    const troi = msChuyen <= 0 ? 1 : (bayGio - batDau.current) / msChuyen
+
+    const moi = new Map<string, ChuyenDiemDang>()
+    for (const d of cacDiem) {
+      const truoc = cu.get(d.playerId)
+      /*
+        Xuất phát từ chỗ điểm ĐANG ĐỨNG, không từ mốc trước: đổi tốc độ hay
+        có tình huống dồn dập thì cú trước có thể chưa đi hết, và bắt nó
+        quay về mốc cũ rồi đi lại là một cú giật (AC-25.3).
+      */
+      const tuDau = truoc
+        ? viTriTaiThoiDiem(truoc.tu, truoc.den, troi, {
+            huongVao: truoc.huongVao,
+            doMet: doMetTheoNguoi.get(d.playerId) ?? 0,
+            gioiHan,
+          })
+        : { x: d.x, y: d.y }
+
+      moi.set(d.playerId, {
+        tu: tuDau,
+        den: { x: d.x, y: d.y },
+        huongVao: truoc ? huongRaKhoiMoc(truoc.tu, truoc.den) : null,
+      })
+    }
+
+    dang.current = moi
+    batDau.current = bayGio
+
+    if (giamChuyenDong || msChuyen <= 0) {
+      veLai()
+      return
+    }
+
+    let yeuCau = 0
+    const buoc = () => {
+      veLai()
+      if (performance.now() - batDau.current < msChuyen) {
+        yeuCau = requestAnimationFrame(buoc)
+      }
+    }
+    yeuCau = requestAnimationFrame(buoc)
+    return () => cancelAnimationFrame(yeuCau)
+    // `gioiHan` và `cacDiem` dựng lại mỗi lần vẽ; `khoaMoc` mới là thứ quyết
+    // định có bắt đầu cú di chuyển mới hay không.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [khoaMoc, msChuyen, giamChuyenDong])
+
+  /*
+    Tỉ lệ đã đi được của cú di chuyển hiện tại — tính MỘT lần cho cả 22 điểm,
+    để chúng không lệch nhau vài phần nghìn giây chỉ vì thứ tự vòng lặp.
+  */
+  const troiQua = msChuyen <= 0 ? 1 : (performance.now() - batDau.current) / msChuyen
+
+  function viTriVe(d: DiemCauThu): Diem {
+    if (giamChuyenDong) return { x: d.x, y: d.y }
+    const tt = dang.current.get(d.playerId)
+    if (!tt) return { x: d.x, y: d.y }
+    return viTriTaiThoiDiem(tt.tu, tt.den, troiQua, {
+      huongVao: tt.huongVao,
+      doMet: doMetTheoNguoi.get(d.playerId) ?? 0,
+      gioiHan,
+    })
+  }
 
   return (
     <figure className="m-0">
@@ -486,11 +630,18 @@ export function San2D(props: Props) {
           />
         )}
 
-        {cacDiem.map((d) => (
+        {cacDiem.map((d) => {
+          /*
+            Toạ độ vẽ do lớp nội suy quyết định, KHÔNG còn do CSS transition.
+            CSS chỉ nội suy THẲNG giữa hai giá trị và cho mọi điểm đúng một
+            nhịp, nên nó không dựng được đường cong (AC-25.1) và cũng không
+            cho mỗi người một dáng riêng theo thể lực (AC-25.7).
+          */
+          const v = viTriVe(d)
+          return (
           <g
             key={d.playerId}
-            transform={`translate(${d.x} ${d.y})`}
-            style={{ transition: `transform ${msChuyen}ms ease-out` }}
+            transform={`translate(${v.x} ${v.y})`}
           >
             <title>{d.moTa}</title>
             <circle
@@ -530,7 +681,8 @@ export function San2D(props: Props) {
               </text>
             )}
           </g>
-        ))}
+          )
+        })}
       </svg>
     </figure>
   )
