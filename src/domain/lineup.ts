@@ -46,6 +46,34 @@ export interface NguoiXepSai {
   readonly mucSai: MucSai
 }
 
+/*
+  Mã lý do cho từng ô (T416, AC-26.8, AC-26.9, quyết định D84).
+
+  Trả MÃ, không trả câu: P8 cấm nhãn hiển thị nằm trong `domain`, và cùng một
+  mã phải dựng được câu ở cả hai thứ tiếng.
+
+  Bộ mã này đúng bằng những gì thuật toán **thật sự phân biệt được**. Nó chỉ
+  đọc mức sai vị trí (`chiPhi`), không đọc chỉ số, nên không có mã nào kiểu
+  "chọn vì chỉ số cao nhất" — sinh ra một mã như thế là nói với người dùng
+  một lý do mà máy không hề dùng để quyết định.
+*/
+export type MaLyDoXep =
+  /** Người ở ô này đá đúng vị trí sở trường. */
+  | 'dung-so-truong'
+  /** Lệch nhẹ: cùng tuyến, khác bên — không còn ai đúng sở trường. */
+  | 'xep-sai-nhe'
+  /** Lệch vừa: khác tuyến liền kề — lựa chọn ít tệ nhất còn lại. */
+  | 'xep-sai-vua'
+  /** Ô trống dù đội còn người: ai còn lại cũng lệch quá nặng cho ô này. */
+  | 'khong-ai-xep-duoc'
+  /** Ô trống vì đội đã hết người (AC-26.9). */
+  | 'thieu-nguoi'
+
+export interface LyDoXepO {
+  readonly slotId: string
+  readonly ma: MaLyDoXep
+}
+
 export interface KetQuaXepLai {
   /** Đúng số ô của sơ đồ MỚI, theo đúng thứ tự ô của nó. */
   readonly oVien: readonly OTrongDoiHinh[]
@@ -53,6 +81,14 @@ export interface KetQuaXepLai {
   readonly nguoiBiDayRa: readonly string[]
   /** Cầu thủ vẫn ở trên sân nhưng không đúng vị trí sở trường (AC-5.8). */
   readonly nguoiXepSai: readonly NguoiXepSai[]
+  /**
+   * Lý do của TỪNG ô, cùng thứ tự với `oVien` (AC-26.8).
+   *
+   * Trường THÊM, không thay thế gì: ba trường trên giữ nguyên ý nghĩa và
+   * giữ nguyên giá trị, nên bốn nơi đang gọi `xepLaiKhiDoiSoDo` không phải
+   * sửa một dòng.
+   */
+  readonly lyDo: readonly LyDoXepO[]
 }
 
 function chiPhi(o: OViTriSoDo, cauThu: CauThuDeXep): number {
@@ -173,7 +209,41 @@ export function xepLaiKhiDoiSoDo(
     }
   })
 
-  return { oVien, nguoiBiDayRa, nguoiXepSai }
+  /*
+    Lý do từng ô. Hai trường hợp ô TRỐNG được phân biệt, vì với người dùng
+    chúng là hai câu trả lời khác nhau:
+
+      - còn người chưa xếp mà ô vẫn trống ⇒ ai còn lại cũng lệch quá nặng,
+        và thuật toán thà để trống còn hơn xếp một tiền đạo vào khung thành
+        (luật đã ghi ở đầu file);
+      - không còn ai ⇒ đội thiếu người, đúng điều AC-26.9 đòi phải nói rõ.
+
+    Phân biệt bằng `daXep.size` so với số người có, không phải bằng việc đếm
+    ô trống: một đội đủ người vẫn có thể để trống ô, và một đội thiếu người
+    vẫn có thể lấp đầy những ô đầu.
+  */
+  const conNguoiChuaXep = daXep.size < nguoi.length
+  const lyDo: LyDoXepO[] = oMoi.map((o, i) => {
+    const iNguoi = xep[i]
+    if (iNguoi === -1) {
+      return {
+        slotId: o.slotId,
+        ma: conNguoiChuaXep ? 'khong-ai-xep-duoc' : 'thieu-nguoi',
+      }
+    }
+    const muc = mucSaiViTri(o.viTri, nguoi[iNguoi].positions)
+    return {
+      slotId: o.slotId,
+      ma:
+        muc === 'dung'
+          ? 'dung-so-truong'
+          : muc === 'nhe'
+            ? 'xep-sai-nhe'
+            : 'xep-sai-vua',
+    }
+  })
+
+  return { oVien, nguoiBiDayRa, nguoiXepSai, lyDo }
 }
 
 // ---------------------------------------------------------------------------

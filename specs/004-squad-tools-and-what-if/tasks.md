@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | 37 AC (US-24 → US-27) |
-| **Tiến độ** | 16/40 |
+| **Tiến độ** | 20/40 |
 | **Sửa đổi** | 2026-11-17 — chẻ lần đầu từ plan; cùng ngày sửa theo `/analyze` (1 CRITICAL + 4 HIGH) |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -141,7 +141,7 @@ lát cắt dọc ở `plan.md` mục 9; mỗi phase kết thúc là một ứng 
 
 ## Phase 32 — Lát 32: Tự chọn đội hình kèm LÝ DO
 
-- [ ] **T416** — Lớp chọn trả thêm mã lý do
+- [x] **T416** — Lớp chọn trả thêm mã lý do
   - File: sửa `src/domain/lineup.ts`
   - Xong khi: `KetQuaXepLai` mang thêm **mã lý do** cho từng ô — đúng bộ mã
     mà thuật toán hiện tại phân biệt được: `'dung-so-truong'`,
@@ -160,19 +160,19 @@ lát cắt dọc ở `plan.md` mục 9; mỗi phase kết thúc là một ứng 
   - AC: AC-26.8, AC-26.9
   - Phụ thuộc: —
 
-- [ ] **T417** — Test mã lý do
+- [x] **T417** — Test mã lý do
   - File: sửa `src/domain/lineup.test.ts`
   - Xong khi: test xanh — người đá đúng sở trường nhận mã khác người được lấp chỗ trống; đội thiếu người thì số ô điền được đúng bằng số người có và phần thiếu có mã riêng; và **mọi test cũ của `lineup.test.ts` vẫn xanh không phải sửa một dòng** — đó là bằng chứng luật phá hoà chưa bị đụng (xem cảnh báo ở T416).
   - AC: AC-26.8, AC-26.9
   - Phụ thuộc: T416
 
-- [ ] **T418** — Nút tự chọn đội hình trên trang chiến thuật
+- [x] **T418** — Nút tự chọn đội hình trên trang chiến thuật
   - File: sửa `src/hooks/useTactic.ts`, `src/ui/pages/TrangChienThuat.tsx`, `src/ui/ngonNgu/{vi,en,index}.ts`
   - Xong khi: một nút điền đủ các ô của sơ đồ đang dùng; mỗi ô đọc được lý do bằng chữ ở ngôn ngữ đang chọn; đội thiếu người thì điền được bao nhiêu hay bấy nhiêu và nói rõ còn thiếu mấy người.
   - AC: AC-26.8, AC-26.9
   - Phụ thuộc: T416
 
-- [ ] **T419** — Sửa lại từng ô sau khi tự chọn
+- [x] **T419** — Sửa lại từng ô sau khi tự chọn
   - File: sửa `src/ui/pages/TrangChienThuat.tsx`
   - Xong khi: sau khi tự chọn, kéo-thả và thao tác bàn phím đổi người ở từng ô vẫn chạy như trước; đổi xong thì lý do của ô ấy biến mất hoặc cập nhật, không để lại lý do cũ nói sai.
   - AC: AC-26.10
@@ -401,6 +401,13 @@ lát cắt dọc ở `plan.md` mục 9; mỗi phase kết thúc là một ứng 
 - **Hiến pháp mục 4:** T400, T402, T405 chạm `domain`; T407, T410, T427
   chạm lớp đọc/ghi dữ liệu — tất cả đều **chưa xong nếu chưa có test**
   (T401, T403, T406, T408, T411, T429/T430).
+- **Đổi tên một mã lý do khi làm T416.** Bộ mã ở T416 ghi `lap-cho-trong`,
+  nhưng thuật toán không có trường hợp nào "lấp chỗ trống": người được xếp
+  vào ô lệch đã có mã `xep-sai-nhe`/`xep-sai-vua` rồi. Trường hợp thật sự
+  cần một mã riêng là ô **trống dù đội còn người** — ai còn lại cũng lệch mức
+  `nang` nên thuật toán thà để trống. Mã ấy nay là `khong-ai-xep-duoc`, và nó
+  phân biệt với `thieu-nguoi` (ô trống vì hết người): hai câu trả lời khác
+  nhau, hai việc phải làm khác nhau. Vẫn đúng năm mã như T416 chốt.
 - **Phạm vi thật của Phase 29–30 so với danh sách file:** T404 và T409
   chạm thêm `src/store/appStore.ts` ở dạng ĐỌC (`useAppStore((s) => s.ngonNgu)`)
   để chọn kho tên — đúng nếp sáu file `ui` khác đang dùng, không sửa store.

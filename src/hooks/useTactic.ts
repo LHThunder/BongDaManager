@@ -19,6 +19,18 @@ import { ghiNhanLoiLuuTru } from './useBackup'
   `ghiNhanLoiLuuTru` đưa cảnh báo ra chỗ duy nhất của ứng dụng (AC-4.7).
 */
 
+/**
+ * Kết quả của một lần bấm "tự chọn đội hình".
+ *
+ * Phân biệt "đội rỗng" với "chưa sẵn sàng" vì chúng là hai câu khác nhau với
+ * người dùng: một cái bảo họ thêm cầu thủ, một cái chỉ là trang chưa nạp
+ * xong. Trường hợp đội rỗng là trường hợp biên ở spec mục 5.
+ */
+export type KetQuaTuChon =
+  | { readonly loai: 'xong'; readonly ketQua: KetQuaXepLai }
+  | { readonly loai: 'doi-rong' }
+  | { readonly loai: 'chua-san-sang' }
+
 export function useTactic(teamId: string, quanSo = QUAN_SO_MAC_DINH) {
   /*
     Selector trả `null` khi chiến thuật trong store thuộc đội khác. `null` là
@@ -155,6 +167,45 @@ export function useTactic(teamId: string, quanSo = QUAN_SO_MAC_DINH) {
   )
 
   /**
+   * Tự chọn đội hình cho sơ đồ đang dùng, kèm lý do từng ô (AC-26.8, AC-26.9).
+   *
+   * **Cân nhắc TOÀN ĐỘI, không chỉ người đang trên sân.** `xepLaiKhiDoiSoDo`
+   * lấy danh sách người từ tham số `oVienCu`, nên cả đội đi vào dưới dạng
+   * một `oVienCu` giả — truyền đội hình hiện tại thì nó chỉ xáo lại 11 người
+   * đang đứng đó, tức không phải "tự chọn" mà là "xếp lại".
+   *
+   * **Giữ nguyên vai trò của từng ô.** Vai trò là lựa chọn chiến thuật của
+   * người dùng và gắn với Ô, không gắn với cầu thủ (AC-6.6); tự chọn người
+   * thì không được tiện tay đặt lại vai trò.
+   */
+  const tuChonDoiHinh = useCallback(async (): Promise<KetQuaTuChon> => {
+    if (!chienThuat) return { loai: 'chua-san-sang' }
+
+    const { cauThu } = useAppStore.getState()
+    if (cauThu.length === 0) return { loai: 'doi-rong' }
+
+    const ketQua = xepLaiKhiDoiSoDo(
+      chienThuat.formationId,
+      cauThu.map((p, i) => ({ slotId: `ca-doi-${i}`, playerId: p.id })),
+      cauThu.map((p) => ({ id: p.id, positions: p.positions })),
+    )
+
+    const nguoiTheoSlot = new Map(
+      ketQua.oVien.map((o) => [o.slotId, o.playerId]),
+    )
+
+    await ghi({
+      ...chienThuat,
+      oVien: chienThuat.oVien.map((o) => ({
+        ...o,
+        playerId: nguoiTheoSlot.get(o.slotId) ?? null,
+      })),
+    })
+
+    return { loai: 'xong', ketQua }
+  }, [chienThuat, ghi])
+
+  /**
    * Gán vai trò cho một ô. Vai trò gắn với Ô, không gắn với cầu thủ, nên đổi
    * người ở ô không làm đổi vai trò (AC-6.6).
    */
@@ -228,6 +279,7 @@ export function useTactic(teamId: string, quanSo = QUAN_SO_MAC_DINH) {
     boKhoiSan,
     xoaNguoiKhoiO,
     doiSoDo,
+    tuChonDoiHinh,
     datVaiTroChoO,
     datChiThi,
     cacBo,

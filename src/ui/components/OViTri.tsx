@@ -1,5 +1,6 @@
 import { useDraggable, useDroppable } from '@dnd-kit/core'
 import type { OViTriSoDo } from '../../domain/formations'
+import type { MaLyDoXep } from '../../domain/lineup'
 import { MUC_TRU_HIEU_SUAT, type MucSai } from '../../domain/misplacement'
 import { useChuoi } from '../../hooks/useNgonNgu'
 import { chiSoChuaDat, type RoleId } from '../../domain/roles'
@@ -17,6 +18,14 @@ interface Props {
   readonly mucSai: MucSai | null
   /** Vai trò gắn với ô này (AC-6.2, AC-6.6). */
   readonly roleId: RoleId
+  /**
+   * Lý do ô này được xếp như vậy sau một lần tự chọn đội hình (AC-26.8).
+   *
+   * Nhận MÃ chứ không nhận câu: câu nằm ở lớp ngôn ngữ, và ô này vốn đã gọi
+   * `useChuoi()` nên nó tra lấy. `null`/vắng nghĩa là chưa tự chọn lần nào,
+   * hoặc người dùng đã sửa tay ô này nên lý do cũ không còn đúng (AC-26.10).
+   */
+  readonly lyDoXep?: MaLyDoXep | null
   readonly dangChon?: boolean
   readonly onChon?: () => void
 }
@@ -48,6 +57,7 @@ export function OViTri({
   mauAo,
   mucSai,
   roleId,
+  lyDoXep = null,
   dangChon = false,
   onChon,
 }: Props) {
@@ -160,6 +170,12 @@ export function OViTri({
       {chuaDat.length > 0 && (
         <span className="rounded bg-co-canh-bao-nen px-1 text-center text-[10px] leading-tight text-co-canh-bao-chu">
           {VAI_TRO.canhBaoNganTaiO(chuaDat.length)}
+        </span>
+      )}
+
+      {lyDoXep !== null && (
+        <span className="rounded bg-co-nhan-nen px-1 text-center text-[10px] leading-tight text-co-nhan-chu">
+          {TRANG_CHIEN_THUAT.lyDoXep[lyDoXep]}
         </span>
       )}
 

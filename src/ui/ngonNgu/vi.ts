@@ -668,6 +668,27 @@ export const TRANG_CHIEN_THUAT_VI = {
   tieuDeNgoaiSan: 'Ngoài sân',
   ngoaiSanTrong: 'Mọi cầu thủ đều đã ở trên sân.',
   chuaCoCauThu: 'Đội này chưa có cầu thủ nào để xếp đội hình.',
+  tuChonDoiHinh: 'Tự chọn đội hình',
+  tuChonDaXep: (soO: number) =>
+    `Đã xếp ${soO} ô. Mỗi ô ghi rõ vì sao người đó được chọn, và bạn vẫn đổi lại được từng ô.`,
+  tuChonConThieu: (n: number) =>
+    `Còn ${n} ô chưa có người vì đội không đủ cầu thủ.`,
+  tuChonKhongAiXepDuoc: (n: number) =>
+    `Còn ${n} ô để trống vì ai còn lại cũng lệch quá xa vị trí đó — xếp vào sẽ tệ hơn là để trống.`,
+  tuChonDoiRong:
+    'Đội chưa có cầu thủ nào, nên không có gì để xếp. Hãy thêm cầu thủ trước.',
+  /*
+    Lý do phải là LÝ DO CHỌN, không phải mô tả lại hậu quả: ô đã có nhãn mức
+    sai vị trí ngay bên dưới, nên "lệch nhẹ" lặp lại thì chẳng nói thêm gì.
+    Câu ở đây trả lời đúng câu hỏi "vì sao lại là người này" (AC-26.8).
+  */
+  lyDoXep: {
+    'dung-so-truong': 'Chọn vì đúng sở trường',
+    'xep-sai-nhe': 'Không còn ai đúng sở trường; đây là người lệch ít nhất',
+    'xep-sai-vua': 'Không còn ai gần sở trường; đây là lựa chọn ít tệ nhất',
+    'khong-ai-xep-duoc': 'Để trống: ai còn lại cũng lệch quá xa ô này',
+    'thieu-nguoi': 'Để trống: đội đã hết người',
+  },
   oTrong: 'Ô trống',
   nhanO: (tenViTri: string) => `Ô ${tenViTri}`,
   oCoNguoi: (tenViTri: string, tenCauThu: string, soAo: number) =>

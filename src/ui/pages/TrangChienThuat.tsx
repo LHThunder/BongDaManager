@@ -21,6 +21,7 @@ import {
 import {
   tinhTrangDoiHinh,
   type LyDoChuaDuDieuKien,
+  type MaLyDoXep,
 } from '../../domain/lineup'
 import { mucSaiViTri } from '../../domain/misplacement'
 import { vaiTroMacDinh } from '../../domain/roles'
@@ -172,6 +173,7 @@ export function TrangChienThuat({ teamId, onQuayLai }: Props) {
     chienThuat,
     napChienThuat,
     doiSoDo,
+    tuChonDoiHinh,
     datCauThuVaoO,
     boKhoiSan,
     datVaiTroChoO,
@@ -186,6 +188,35 @@ export function TrangChienThuat({ teamId, onQuayLai }: Props) {
   const [oDangChon, datODangChon] = useState<string | null>(null)
   /** Thông báo sau khi đổi sơ đồ (AC-5.8); tự mất khi đổi sơ đồ lần sau. */
   const [baoDoiSoDo, datBaoDoiSoDo] = useState<readonly string[]>([])
+  /**
+   * Lý do xếp của từng ô sau lần tự chọn gần nhất (AC-26.8).
+   *
+   * Giữ ở trang chứ không ghi vào bộ chiến thuật: nó là lời giải thích cho
+   * MỘT lần bấm nút, không phải một thuộc tính của đội hình. Ghi nó xuống
+   * lưu trữ là đổi schema cho một thứ hết phiên là vô nghĩa.
+   */
+  const [lyDoXep, datLyDoXep] = useState<ReadonlyMap<string, MaLyDoXep>>(
+    new Map(),
+  )
+  /** Thông báo sau khi tự chọn đội hình; cùng vòng đời với `lyDoXep`. */
+  const [baoTuChon, datBaoTuChon] = useState<readonly string[]>([])
+
+  /**
+   * Bỏ lý do của những ô vừa bị sửa tay (AC-26.10).
+   *
+   * Chỉ bỏ ô bị ĐỤNG TỚI, không bỏ cả bảng: lý do của chín ô người dùng
+   * không chạm vào vẫn còn đúng — người ở đó không đổi — nên xoá sạch là tự
+   * tay ném đi phần giải thích vẫn còn giá trị. Để lại lý do cũ ở ô vừa đổi
+   * người thì tệ hơn hẳn: nó nói sai.
+   */
+  const boLyDoCuaO = useCallback((...slotId: readonly string[]) => {
+    datLyDoXep((cu) => {
+      if (slotId.every((s) => !cu.has(s))) return cu
+      const moi = new Map(cu)
+      for (const s of slotId) moi.delete(s)
+      return moi
+    })
+  }, [])
 
   /*
     Ngưỡng 5px: không có nó thì mỗi cú bấm chuột đều bị tính là bắt đầu kéo,
@@ -275,22 +306,81 @@ export function TrangChienThuat({ teamId, onQuayLai }: Props) {
     [cauThu, doiSoDo],
   )
 
+  /**
+   * Tự chọn đội hình cho sơ đồ đang dùng (AC-26.8, AC-26.9).
+   *
+   * Thông báo nói đủ ba con số mà người dùng cần: xếp được bao nhiêu ô, còn
+   * mấy ô trống vì thiếu người, và mấy ô trống vì không ai đá nổi. Hai lý do
+   * ô-trống ấy là hai việc phải làm khác nhau — một cái cần thêm người, một
+   * cái cần thêm người Ở ĐÚNG VỊ TRÍ.
+   */
+  const khiTuChon = useCallback(async () => {
+    const kq = await tuChonDoiHinh()
+    datODangChon(null)
+    datBaoDoiSoDo([])
+
+    if (kq.loai === 'chua-san-sang') return
+    if (kq.loai === 'doi-rong') {
+      datLyDoXep(new Map())
+      datBaoTuChon([TRANG_CHIEN_THUAT.tuChonDoiRong])
+      return
+    }
+
+    datLyDoXep(new Map(kq.ketQua.lyDo.map((l) => [l.slotId, l.ma])))
+
+    const soODaXep = kq.ketQua.oVien.filter((o) => o.playerId !== null).length
+    const soThieuNguoi = kq.ketQua.lyDo.filter(
+      (l) => l.ma === 'thieu-nguoi',
+    ).length
+    const soKhongXepDuoc = kq.ketQua.lyDo.filter(
+      (l) => l.ma === 'khong-ai-xep-duoc',
+    ).length
+
+    const cau = [TRANG_CHIEN_THUAT.tuChonDaXep(soODaXep)]
+    if (soThieuNguoi > 0) {
+      cau.push(TRANG_CHIEN_THUAT.tuChonConThieu(soThieuNguoi))
+    }
+    if (soKhongXepDuoc > 0) {
+      cau.push(TRANG_CHIEN_THUAT.tuChonKhongAiXepDuoc(soKhongXepDuoc))
+    }
+    datBaoTuChon(cau)
+  }, [tuChonDoiHinh, TRANG_CHIEN_THUAT])
+
   const khiThaXong = useCallback(
     (su: DragEndEvent) => {
       const keo = su.active.data.current as DuLieuKeo | undefined
       if (!keo?.playerId || !su.over) return
 
+      /*
+        Ô mà người được kéo đang đứng — nếu có. Một cú thả vào ô khác là ĐỔI
+        CHỖ hai ô, nên lý do của cả hai ô đều hết đúng (AC-26.10).
+      */
+      const slotNguon = chienThuat?.oVien.find(
+        (o) => o.playerId === keo.playerId,
+      )?.slotId
+
       if (su.over.id === ID_NGOAI_SAN) {
+        if (slotNguon) boLyDoCuaO(slotNguon)
         void boKhoiSan(keo.playerId)
         return
       }
 
       const oDich = su.over.data.current as DuLieuO | undefined
-      if (oDich?.slotId) {
-        void datCauThuVaoO(oDich.slotId, keo.playerId)
-      }
+      if (!oDich?.slotId) return
+
+      /*
+        Thả lại vào ĐÚNG ô cũ thì không có gì đổi, nên lý do của ô ấy vẫn
+        đúng — không được xoá. Thao tác bàn phím rất dễ rơi vào trường hợp
+        này: một lần mũi tên có thể chưa đủ để đổi ô đích gần nhất, và cú thả
+        quay về chỗ cũ. `datCauThuVaoO` cũng tự bỏ qua, nên nếu xoá lý do ở
+        đây thì màn hình mất một dòng giải thích mà chẳng có gì thay đổi.
+      */
+      if (oDich.slotId === slotNguon) return
+
+      boLyDoCuaO(...(slotNguon ? [oDich.slotId, slotNguon] : [oDich.slotId]))
+      void datCauThuVaoO(oDich.slotId, keo.playerId)
     },
-    [boKhoiSan, datCauThuVaoO],
+    [boKhoiSan, datCauThuVaoO, chienThuat, boLyDoCuaO],
   )
 
   // Mở thẳng trang này (ví dụ sau khi tải lại) thì store có thể chưa có đội.
@@ -470,9 +560,31 @@ export function TrangChienThuat({ teamId, onQuayLai }: Props) {
         </div>
       )}
 
-      <p className="mt-4 text-sm text-chu-phu">
-        {TRANG_CHIEN_THUAT.huongDanBanPhim}
-      </p>
+      <div className="mt-4 flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          onClick={() => void khiTuChon()}
+          className="rounded-md border border-chinh px-4 py-2 text-sm font-medium text-chinh hover:bg-chinh-nhat"
+        >
+          {TRANG_CHIEN_THUAT.tuChonDoiHinh}
+        </button>
+        <p className="text-sm text-chu-phu">
+          {TRANG_CHIEN_THUAT.huongDanBanPhim}
+        </p>
+      </div>
+
+      {baoTuChon.length > 0 && (
+        <div
+          role="status"
+          className="mt-3 rounded-lg border border-vien bg-nen-the p-3"
+        >
+          {baoTuChon.map((c) => (
+            <p key={c} className="text-sm text-chu">
+              {c}
+            </p>
+          ))}
+        </div>
+      )}
 
       <DndContext
         sensors={boCamBien}
@@ -502,6 +614,7 @@ export function TrangChienThuat({ teamId, onQuayLai }: Props) {
                         : mucSaiViTri(o.viTri, nguoi.positions)
                     }
                     roleId={vaiTroTheoSlot.get(o.slotId) ?? vaiTroMacDinh(o.viTri)}
+                    lyDoXep={lyDoXep.get(o.slotId) ?? null}
                     dangChon={oDangChon === o.slotId}
                     onChon={() =>
                       datODangChon((hienTai) =>

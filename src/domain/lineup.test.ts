@@ -421,3 +421,167 @@ describe('tình trạng đội hình (AC-5.7)', () => {
     expect(cacLoai).toContain('ho-so-chua-hoan-tat')
   })
 })
+
+/*
+  Mã lý do cho từng ô (T417, AC-26.8, AC-26.9).
+
+  Khối này canh hai thứ khác nhau:
+
+  1. Mã nào đi với trường hợp nào — phần hiển thị dựa cả vào nó.
+  2. Rằng việc THÊM mã không làm đổi cách xếp. Bằng chứng mạnh nhất cho điều
+     thứ hai không nằm ở đây mà ở chỗ 20 test cũ phía trên **không phải sửa
+     một dòng nào**: luật phá hoà "giữ người đứng trước trong danh sách" vẫn
+     y nguyên, và `chiPhi` vẫn chỉ đọc mức sai vị trí chứ không đọc chỉ số.
+*/
+describe('mã lý do cho từng ô (AC-26.8, AC-26.9)', () => {
+  function maTheoSlot(kq: {
+    readonly lyDo: readonly { readonly slotId: string; readonly ma: string }[]
+  }): Map<string, string> {
+    return new Map(kq.lyDo.map((l) => [l.slotId, l.ma]))
+  }
+
+  it('có đúng một lý do cho mỗi ô của sơ đồ, cùng thứ tự với oVien', () => {
+    const nguoi = doiHinhKhop('4-4-2')
+    const kq = xepLaiKhiDoiSoDo('4-4-2', xepTheoSoDo('4-4-2', nguoi), nguoi)
+
+    expect(kq.lyDo).toHaveLength(kq.oVien.length)
+    expect(kq.lyDo.map((l) => l.slotId)).toEqual(
+      kq.oVien.map((o) => o.slotId),
+    )
+  })
+
+  it('đội khớp từng ô thì MỌI ô đều là dung-so-truong', () => {
+    const nguoi = doiHinhKhop('4-4-2')
+    const kq = xepLaiKhiDoiSoDo('4-4-2', xepTheoSoDo('4-4-2', nguoi), nguoi)
+
+    expect(kq.lyDo.map((l) => l.ma)).toEqual(
+      kq.oVien.map(() => 'dung-so-truong'),
+    )
+  })
+
+  it('người được lấp vào ô lệch nhận mã KHÁC người đúng sở trường', () => {
+    /*
+      Sơ đồ 4-4-2 cần hậu vệ trái; đội chỉ có hậu vệ phải. Lệch trái–phải
+      cùng tuyến là mức `nhe`, nên người ấy vẫn được xếp — nhưng lý do của ô
+      phải nói rõ đó không phải sở trường.
+    */
+    const nguoi = laySoDo('4-4-2').oVien.map((o, i) =>
+      ct(`p${i + 1}`, o.viTri === 'DL' ? 'DR' : o.viTri),
+    )
+    const kq = xepLaiKhiDoiSoDo('4-4-2', xepTheoSoDo('4-4-2', nguoi), nguoi)
+    const theoSlot = maTheoSlot(kq)
+
+    const slotDL = laySoDo('4-4-2').oVien.find((o) => o.viTri === 'DL')?.slotId
+    expect(slotDL).toBeDefined()
+    expect(theoSlot.get(slotDL as string)).toBe('xep-sai-nhe')
+
+    // Và những ô khớp đúng vẫn mang mã đúng sở trường.
+    const slotST = laySoDo('4-4-2').oVien.find((o) => o.viTri === 'ST')?.slotId
+    expect(theoSlot.get(slotST as string)).toBe('dung-so-truong')
+  })
+
+  it('lệch một tuyến cho mã xep-sai-vua', () => {
+    // Tiền vệ trung tâm vào ô trung vệ: khác tuyến liền kề ⇒ mức `vua`.
+    const nguoi = laySoDo('4-4-2').oVien.map((o, i) =>
+      ct(`p${i + 1}`, o.viTri === 'DC' ? 'MC' : o.viTri),
+    )
+    const kq = xepLaiKhiDoiSoDo('4-4-2', xepTheoSoDo('4-4-2', nguoi), nguoi)
+    const theoSlot = maTheoSlot(kq)
+
+    const cacSlotDC = laySoDo('4-4-2')
+      .oVien.filter((o) => o.viTri === 'DC')
+      .map((o) => o.slotId)
+    const maCuaDC = cacSlotDC.map((s) => theoSlot.get(s))
+    expect(maCuaDC.every((m) => m === 'xep-sai-vua'), maCuaDC.join(',')).toBe(
+      true,
+    )
+  })
+
+  it('đội THIẾU NGƯỜI: số ô điền được đúng bằng số người, phần thiếu có mã riêng (AC-26.9)', () => {
+    const soDo = laySoDo('4-4-2')
+    // Chỉ 7 người, mỗi người đúng sở trường của 7 ô đầu.
+    const nguoi = soDo.oVien.slice(0, 7).map((o, i) => ct(`p${i + 1}`, o.viTri))
+    const kq = xepLaiKhiDoiSoDo('4-4-2', xepTheoSoDo('4-4-2', nguoi), nguoi)
+
+    const soODaDien = kq.oVien.filter((o) => o.playerId !== null).length
+    expect(soODaDien).toBe(7)
+
+    const ma = kq.lyDo.map((l) => l.ma)
+    expect(ma.filter((m) => m === 'thieu-nguoi')).toHaveLength(
+      soDo.oVien.length - 7,
+    )
+    expect(ma.filter((m) => m === 'dung-so-truong')).toHaveLength(7)
+    // Thiếu người thì KHÔNG được báo là "không ai xếp nổi" — hai câu khác nhau.
+    expect(ma).not.toContain('khong-ai-xep-duoc')
+  })
+
+  it('đội RỖNG thì mọi ô đều là thieu-nguoi', () => {
+    const kq = xepLaiKhiDoiSoDo('4-4-2', [], [])
+    expect(kq.lyDo).toHaveLength(11)
+    expect(new Set(kq.lyDo.map((l) => l.ma))).toEqual(
+      new Set(['thieu-nguoi']),
+    )
+  })
+
+  it('còn người nhưng ai cũng lệch NẶNG: ô trống mang mã khong-ai-xep-duoc', () => {
+    /*
+      11 thủ môn cho sơ đồ 4-4-2: một người vào khung, mười người còn lại
+      lệch `nang` ở mọi ô sân nên thuật toán thà để trống. Đây đúng chỗ hai
+      mã ô-trống phải phân biệt được: đội KHÔNG thiếu người, nó thiếu người
+      ĐÁ ĐƯỢC.
+    */
+    const nguoi = Array.from({ length: 11 }, (_, i) => ct(`gk${i + 1}`, 'GK'))
+    const kq = xepLaiKhiDoiSoDo('4-4-2', xepTheoSoDo('4-4-2', nguoi), nguoi)
+
+    const soODaDien = kq.oVien.filter((o) => o.playerId !== null).length
+    expect(soODaDien).toBe(1)
+
+    const ma = kq.lyDo.map((l) => l.ma)
+    expect(ma.filter((m) => m === 'khong-ai-xep-duoc')).toHaveLength(10)
+    expect(ma).not.toContain('thieu-nguoi')
+    expect(ma.filter((m) => m === 'dung-so-truong')).toHaveLength(1)
+  })
+
+  it('lý do khớp với nguoiXepSai — hai trường không được nói ngược nhau', () => {
+    const nguoi = laySoDo('4-4-2').oVien.map((o, i) =>
+      ct(`p${i + 1}`, o.viTri === 'DL' ? 'DR' : o.viTri),
+    )
+    const kq = xepLaiKhiDoiSoDo('4-4-2', xepTheoSoDo('4-4-2', nguoi), nguoi)
+    const theoSlot = maTheoSlot(kq)
+
+    for (const sai of kq.nguoiXepSai) {
+      expect(
+        theoSlot.get(sai.slotId),
+        `${sai.slotId} mức ${sai.mucSai}`,
+      ).toBe(sai.mucSai === 'nhe' ? 'xep-sai-nhe' : 'xep-sai-vua')
+    }
+
+    // Ngược lại: ô mang mã đúng sở trường thì không có trong nguoiXepSai.
+    const slotXepSai = new Set(kq.nguoiXepSai.map((s) => s.slotId))
+    for (const l of kq.lyDo) {
+      if (l.ma === 'dung-so-truong') {
+        expect(slotXepSai.has(l.slotId), l.slotId).toBe(false)
+      }
+    }
+  })
+
+  it('cùng đầu vào cho cùng bộ lý do (P1)', () => {
+    const nguoi = doiHinhKhop('4-3-3')
+    const a = xepLaiKhiDoiSoDo('4-3-3', xepTheoSoDo('4-3-3', nguoi), nguoi)
+    const b = xepLaiKhiDoiSoDo('4-3-3', xepTheoSoDo('4-3-3', nguoi), nguoi)
+    expect(a.lyDo).toEqual(b.lyDo)
+  })
+
+  it('KHÔNG có mã nào nói về chỉ số, vì thuật toán không đọc chỉ số', () => {
+    /*
+      Phép kiểm bảo vệ một quyết định (D84): mã `'chi-so-cao-nhat'` của bản
+      plan đầu đã bị bỏ vì `chiPhi` chỉ đọc mức sai vị trí. Nếu ai đó thêm
+      lại một mã như thế mà không đổi thuật toán, nó sẽ là một lời nói sai
+      với người dùng — và `lineup.ts` cũng vẫn không được import `rating`.
+    */
+    const source = Object.values(NGUON_SOURCE)[0] ?? ''
+    expect(source, 'không đọc được source của lineup.ts').toBeTruthy()
+    expect(source).not.toContain('chi-so-cao-nhat')
+    expect(source).not.toContain("from './rating'")
+  })
+})

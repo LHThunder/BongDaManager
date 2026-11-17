@@ -615,6 +615,27 @@ export const TRANG_CHIEN_THUAT_EN: BanDich<typeof TRANG_CHIEN_THUAT_VI> = {
   tieuDeNgoaiSan: 'Off the pitch',
   ngoaiSanTrong: 'Every player is on the pitch.',
   chuaCoCauThu: 'This team has no players to put in a line-up yet.',
+  tuChonDoiHinh: 'Pick the line-up for me',
+  tuChonDaXep: (soO: number) =>
+    `${soO} slots filled. Each one says why that player was chosen, and you can still change any of them.`,
+  tuChonConThieu: (n: number) =>
+    n === 1
+      ? '1 slot is still empty because the squad does not have enough players.'
+      : `${n} slots are still empty because the squad does not have enough players.`,
+  tuChonKhongAiXepDuoc: (n: number) =>
+    n === 1
+      ? '1 slot was left empty because everyone still available is far too out of position for it — filling it would be worse than leaving it open.'
+      : `${n} slots were left empty because everyone still available is far too out of position for them — filling them would be worse than leaving them open.`,
+  tuChonDoiRong:
+    'This squad has no players, so there is nothing to arrange. Add players first.',
+  lyDoXep: {
+    'dung-so-truong': 'Chosen: this is their own position',
+    'xep-sai-nhe':
+      'Nobody left plays here naturally; this player is the closest fit',
+    'xep-sai-vua': 'Nobody left plays anywhere near here; this is the least bad option',
+    'khong-ai-xep-duoc': 'Left empty: everyone left is far too out of position',
+    'thieu-nguoi': 'Left empty: the squad has run out of players',
+  },
   oTrong: 'Empty slot',
   nhanO: (tenViTri: string) => `${tenViTri} slot`,
   oCoNguoi: (tenViTri: string, tenCauThu: string, soAo: number) =>
