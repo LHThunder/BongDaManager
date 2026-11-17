@@ -25,6 +25,7 @@ import type {
   SAO_LUU_VI,
   LUU_TRU_VI,
   LICH_SU_VI,
+  RE_PHAT_LAI_VI,
   LOI_VI,
   FORM_DOI_VI,
   TRANG_DOI_VI,
@@ -1006,7 +1007,57 @@ export const LICH_SU_EN: BanDich<typeof LICH_SU_VI> = {
       ? 'The history was full, so the oldest match has dropped off the list.'
       : `The history was full, so the ${so} oldest matches have dropped off the list.`,
   dongBaoDaLoai: 'Got it',
+  nutReNhanh: 'What if…',
+  moTaReNhanh:
+    'Pick a minute in the commentary below to replay the match from there with a different decision.',
+  reNhanhTuPhut: (phut: string) => `Replay from minute ${phut}`,
+  lyDoKhongReNhanh: {
+    'khac-phien-ban-engine':
+      'Cannot branch: this match ran on an older engine version, so a rerun would not match the old one even with nothing changed.',
+    'doi-da-bi-xoa':
+      'Cannot branch: one of the two teams has been deleted, so there is no profile left to rerun the match from.',
+  },
   tieuDeDienBien: 'Match commentary',
+}
+
+export const RE_PHAT_LAI_EN: BanDich<typeof RE_PHAT_LAI_VI> = {
+  tieuDe: 'Replay from a minute',
+  moTa: (phut: string) =>
+    `Branching from minute ${phut}. Everything up to that minute stays exactly as in the original match; only what follows can differ.`,
+  khongLuu:
+    'A branched match is NOT saved to the history. Leaving this screen loses the result; the original match stays intact.',
+  khongReTiep:
+    'Every branch starts from a match in the history, so you cannot branch again from this branched match.',
+  tieuDeQuyetDinh: 'Change one decision',
+  moTaQuyetDinh:
+    'Change the team instructions, or make one substitution — then play out the rest of the match.',
+  chuaDoiGi:
+    'Nothing changed yet. Running now gives you the original match back, line for line.',
+  daDoiChiThi: 'Team instructions changed at this minute.',
+  daChonThayNguoi: (ra: string, vao: string) => `${ra} off, ${vao} on.`,
+  boThayNguoi: 'Drop this substitution',
+  nutChay: 'Play out the match',
+  nutChayLai: 'Run again with the new decision',
+  nutDatLai: 'Discard all changes',
+  nutRoi: 'Leave the branch screen',
+  phutNgoaiKhoang: (tu: number, den: number) =>
+    `This minute cannot be branched from. Pick a minute between ${tu} and ${den} — the final minute is out because nothing is left to play after it.`,
+  tieuDeSoSanh: 'Original match vs branch',
+  moTaSoSanh:
+    'Same match code, same two teams; only one decision differs, at the minute you picked.',
+  cotChiTieu: 'Statistic',
+  cotGoc: 'Original',
+  cotNhanh: 'Branch',
+  hangTiSo: 'Score',
+  tiSo: (nha: number, khach: number) => `${nha} – ${khach}`,
+  giongTranGoc: 'Same as original',
+  khacTranGoc: 'Differs from original',
+  tieuDeDienBien: 'Branch commentary',
+  mocRe: (phut: string) => `From minute ${phut} on, this is a different branch`,
+  xacNhanRoiTieuDe: 'Leave the branch screen?',
+  xacNhanRoiMoTa:
+    'This branch result is not stored anywhere, so leaving loses it for good. The original match in the history is not affected.',
+  xacNhanRoiNhan: 'Leave and discard',
 }
 
 export const LY_DO_TU_CHOI_CAN_THIEP_EN: Readonly<Record<string, string>> = {

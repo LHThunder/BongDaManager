@@ -5,10 +5,36 @@ import type { SuKien } from '../../engine/suKien'
 import { useAppStore } from '../../store/appStore'
 import { dungCauTuongThuat } from '../tuongThuat'
 
+/**
+ * Lối chọn một phút từ dòng tường thuật (US-27, T432).
+ *
+ * Gom thành MỘT prop tuỳ chọn, và chữ đi vào từ ngoài: trang gọi quyết định
+ * nút ấy tên gì và phút nào chọn được, còn component này chỉ vẽ. Vắng prop
+ * thì dòng tường thuật hiện đúng như cũ — trang trận đang chạy không mọc
+ * thêm nút nào.
+ */
+export interface LoiChonPhut {
+  /** Chữ trên nút. */
+  readonly nhan: string
+  /** Nhãn cho trình đọc màn hình, nói rõ nút này thuộc dòng nào (P9). */
+  readonly nhanCuaDong: (phutHienThi: string) => string
+  readonly chonDuoc: (suKien: SuKien) => boolean
+  readonly onChon: (suKien: SuKien) => void
+}
+
 interface Props {
   readonly cacSuKien: readonly SuKien[]
   readonly tenCauThu: (playerId: string) => string
   readonly tenDoi: (ben: SuKien['doi']) => string
+  readonly chonPhut?: LoiChonPhut
+  /**
+   * Dòng mở đầu phần rẽ nhánh, chèn ngay trước sự kiện đầu tiên thoả nó
+   * (AC-27.2): người đọc phải thấy ranh giới "tới đây giống trận gốc".
+   */
+  readonly mocRe?: {
+    readonly nhan: string
+    readonly batDauTu: (suKien: SuKien) => boolean
+  }
 }
 
 /*
@@ -57,7 +83,13 @@ const MAU_NHAN: Partial<Record<SuKien['loai'], string>> = {
  * bài học từ Giai đoạn 2, khi phần đọc màn hình của @dnd-kit còn bằng tiếng
  * Anh mà chỉ chạy thử mới lộ ra.
  */
-export function DongTuongThuat({ cacSuKien, tenCauThu, tenDoi }: Props) {
+export function DongTuongThuat({
+  cacSuKien,
+  tenCauThu,
+  tenDoi,
+  chonPhut,
+  mocRe,
+}: Props) {
   const { TRAN_DAU } = useChuoi()
   const nhanLoai = (loai: SuKien['loai']): string | undefined => {
     const khoa = KHOA_NHAN[loai]
@@ -89,6 +121,13 @@ export function DongTuongThuat({ cacSuKien, tenCauThu, tenDoi }: Props) {
             key={`${sk.phut}-${sk.loai}-${i}`}
             className="flex gap-2 text-sm leading-relaxed"
           >
+            {mocRe && mocRe.batDauTu(sk) && (
+              <span className="mb-1 mt-2 flex w-full items-center gap-2 text-xs font-semibold uppercase tracking-wide text-chu-phu">
+                <span className="h-px flex-1 bg-vien-dam" />
+                {mocRe.nhan}
+                <span className="h-px flex-1 bg-vien-dam" />
+              </span>
+            )}
             <span className="w-10 shrink-0 font-mono text-xs text-chu-phu">
               {TRAN_DAU.phut(sk.phut, sk.buGio)}
             </span>
@@ -111,6 +150,18 @@ export function DongTuongThuat({ cacSuKien, tenCauThu, tenDoi }: Props) {
               <span className="shrink-0 font-mono text-xs font-semibold text-tot-chu">
                 {sk.tiSoSauDo.nha}-{sk.tiSoSauDo.khach}
               </span>
+            )}
+            {chonPhut && chonPhut.chonDuoc(sk) && (
+              <button
+                type="button"
+                onClick={() => chonPhut.onChon(sk)}
+                aria-label={chonPhut.nhanCuaDong(
+                  TRAN_DAU.phut(sk.phut, sk.buGio),
+                )}
+                className="shrink-0 rounded border border-vien-dam px-1.5 text-xs text-chinh hover:bg-nen-nhan"
+              >
+                {chonPhut.nhan}
+              </button>
             )}
           </li>
         ))}

@@ -1,14 +1,17 @@
 import { BieuTuong } from '../components/BieuTuong'
 import { useChuoi } from '../../hooks/useNgonNgu'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { PHIEN_BAN_ENGINE } from '../../engine/tran'
+import type { SuKien } from '../../engine/suKien'
 import * as matchRepo from '../../services/matchRepo'
+import * as phatLai from '../../services/phatLai'
 import * as playerRepo from '../../services/playerRepo'
 import { useAppStore } from '../../store/appStore'
 import type { AnhChupDoi, TomTatTran, TranDaLuu } from '../../storage/db'
 import { BangDiemCauThu } from '../components/BangDiemCauThu'
 import { DanhSachGhiBan } from '../components/DanhSachGhiBan'
 import { DongTuongThuat } from '../components/DongTuongThuat'
+import { RePhatLai } from '../components/RePhatLai'
 
 
 interface Props {
@@ -52,9 +55,47 @@ export function TrangLichSu({ onQuayLai, onDauLai }: Props) {
   const datLichSu = useAppStore((s) => s.datLichSu)
 
   const [dangMo, datDangMo] = useState<TranDaLuu | null>(null)
+  /** Phút người dùng đã chọn để rẽ nhánh; `null` là chưa rẽ (US-27). */
+  const [phutRe, datPhutRe] = useState<phatLai.PhutHienThi | null>(null)
   const [tenTheoId, datTenTheoId] = useState<ReadonlyMap<string, string>>(
     new Map(),
   )
+
+  /*
+    Vì sao trận đang mở không chạy lại được, nếu không chạy lại được (D35,
+    spec mục 5).
+
+    Tính MỘT lần ở đây rồi dùng cho cả hai lối — "đấu lại" và "rẽ nhánh" —
+    vì cả hai đều là chạy lại engine, nên hai lối không được phép có hai câu
+    trả lời khác nhau cho cùng một trận (AC-27.5, AC-27.6).
+  */
+  const lyDoKhongChayLai = dangMo
+    ? matchRepo.lyDoKhongDauLai(dangMo, PHIEN_BAN_ENGINE, (teamId) =>
+        teams.some((d) => d.id === teamId),
+      )
+    : null
+
+  /*
+    Khoảng phút rẽ nhánh được của trận đang mở.
+
+    Phải dựng trạng thái đầu trận mới biết bù giờ hai hiệp dài bao nhiêu, nên
+    nhớ lại theo bản ghi: một `taoTran` cho mỗi lần mở một trận, không phải
+    mỗi lần vẽ.
+  */
+  const tranDauCuaBanGhi = useMemo(
+    () =>
+      dangMo && lyDoKhongChayLai === null
+        ? phatLai.trangThaiDauTran(dangMo)
+        : null,
+    [dangMo, lyDoKhongChayLai],
+  )
+
+  const chonPhutDuoc = (sk: SuKien): boolean =>
+    tranDauCuaBanGhi !== null &&
+    phatLai.phutReDuoc(
+      tranDauCuaBanGhi,
+      phatLai.phutThucTe(tranDauCuaBanGhi, sk),
+    )
 
   useEffect(() => {
     let conHieuLuc = true
@@ -94,7 +135,13 @@ export function TrangLichSu({ onQuayLai, onDauLai }: Props) {
   }
 
   const moTran = async (tomTat: TomTatTran) => {
+    datPhutRe(null)
     datDangMo(await matchRepo.doc(tomTat.id))
+  }
+
+  const dongTran = () => {
+    datPhutRe(null)
+    datDangMo(null)
   }
 
   return (
@@ -186,7 +233,7 @@ export function TrangLichSu({ onQuayLai, onDauLai }: Props) {
             </h3>
             <button
               type="button"
-              onClick={() => datDangMo(null)}
+              onClick={dongTran}
               className="text-sm text-chinh underline hover:text-chinh-dam"
             >
               {LICH_SU.dong}
@@ -197,35 +244,36 @@ export function TrangLichSu({ onQuayLai, onDauLai }: Props) {
             Hai lời cảnh báo, mỗi cái cho một lý do khác nhau vì sao trận này
             không đấu lại được như cũ (quyết định D35 và spec mục 5).
           */}
-{(() => {
-            /*
-              "Xem lại" luôn làm được vì bản ghi mang dòng sự kiện đầy đủ.
-              "Đấu lại" thì không phải lúc nào cũng được — và khi không được
-              thì phải nói VÌ SAO, chứ không im lặng ẩn nút đi.
-            */
-            const lyDo = matchRepo.lyDoKhongDauLai(
-              dangMo,
-              PHIEN_BAN_ENGINE,
-              (teamId) => teams.some((d) => d.id === teamId),
-            )
-            return (
-              <div className="mt-2">
-                {lyDo && (
-                  <p className="rounded border border-vien-dam bg-canh-bao-nen p-2 text-sm text-canh-bao-chu">
-                    {LICH_SU.lyDoKhongDauLai[lyDo] ?? lyDo}
-                  </p>
-                )}
-                <button
-                  type="button"
-                  onClick={() => onDauLai(dangMo)}
-                  disabled={lyDo !== null}
-                  className="mt-2 rounded-md bg-chinh px-3 py-1.5 text-sm font-medium text-chu-tren-chinh hover:bg-chinh-dam disabled:cursor-not-allowed disabled:bg-nen-nhan disabled:text-chu-phu"
+{/*
+            "Xem lại" luôn làm được vì bản ghi mang dòng sự kiện đầy đủ.
+            "Đấu lại" và "rẽ nhánh" thì không phải lúc nào cũng được — và khi
+            không được thì phải nói VÌ SAO, chứ không im lặng ẩn nút đi.
+          */}
+          <div className="mt-2">
+            {lyDoKhongChayLai && (
+              <>
+                <p className="rounded border border-vien-dam bg-canh-bao-nen p-2 text-sm text-canh-bao-chu">
+                  {LICH_SU.lyDoKhongDauLai[lyDoKhongChayLai] ??
+                    lyDoKhongChayLai}
+                </p>
+                <p
+                  role="status"
+                  className="mt-2 rounded border border-vien-dam bg-canh-bao-nen p-2 text-sm text-canh-bao-chu"
                 >
-                  {LICH_SU.dauLai}
-                </button>
-              </div>
-            )
-          })()}
+                  {LICH_SU.lyDoKhongReNhanh[lyDoKhongChayLai] ??
+                    lyDoKhongChayLai}
+                </p>
+              </>
+            )}
+            <button
+              type="button"
+              onClick={() => onDauLai(dangMo)}
+              disabled={lyDoKhongChayLai !== null}
+              className="mt-2 rounded-md bg-chinh px-3 py-1.5 text-sm font-medium text-chu-tren-chinh hover:bg-chinh-dam disabled:cursor-not-allowed disabled:bg-nen-nhan disabled:text-chu-phu"
+            >
+              {LICH_SU.dauLai}
+            </button>
+          </div>
 
           <div className="mt-4">
             <h4 className="flex items-center gap-2 font-tieuDe text-base font-bold uppercase tracking-wide text-chu">
@@ -267,6 +315,11 @@ export function TrangLichSu({ onQuayLai, onDauLai }: Props) {
             <h4 className="font-tieuDe text-base font-bold uppercase tracking-wide text-chu">
               {LICH_SU.tieuDeDienBien}
             </h4>
+            {tranDauCuaBanGhi && (
+              <p className="mt-0.5 text-sm text-chu-phu">
+                {LICH_SU.moTaReNhanh}
+              </p>
+            )}
             <div className="mt-2">
               <DongTuongThuat
                 cacSuKien={dangMo.cacSuKien}
@@ -276,9 +329,43 @@ export function TrangLichSu({ onQuayLai, onDauLai }: Props) {
                     ben === 'nha' ? dangMo.doiChuNha : dangMo.doiKhach,
                   ).ten
                 }
+                /*
+                  Nút rẽ nhánh chỉ mọc ở dòng tường thuật của LỊCH SỬ. Trang
+                  trận đang chạy gọi `DongTuongThuat` mà không truyền prop này
+                  nên nó hiện đúng như cũ (T432).
+                */
+                chonPhut={
+                  tranDauCuaBanGhi
+                    ? {
+                        nhan: LICH_SU.nutReNhanh,
+                        nhanCuaDong: LICH_SU.reNhanhTuPhut,
+                        chonDuoc: chonPhutDuoc,
+                        onChon: (sk) =>
+                          datPhutRe({ phut: sk.phut, buGio: sk.buGio }),
+                      }
+                    : undefined
+                }
               />
             </div>
           </div>
+
+          {/*
+            Màn rẽ nhánh sống NGAY dưới trận gốc, không phải một trang khác:
+            người dùng cần thấy trận gốc còn nguyên ở trên trong lúc đọc
+            nhánh (AC-27.7).
+          */}
+          {phutRe && (
+            <RePhatLai
+              banGhi={dangMo}
+              phutRe={phutRe}
+              tenCauThu={(id) => tenTheoId.get(id) ?? id}
+              tenDoi={(ben) =>
+                tenDoiCua(ben === 'nha' ? dangMo.doiChuNha : dangMo.doiKhach)
+                  .ten
+              }
+              onRoi={() => datPhutRe(null)}
+            />
+          )}
         </section>
       )}
     </div>

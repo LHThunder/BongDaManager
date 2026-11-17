@@ -13,12 +13,18 @@ interface Props {
   readonly onDauLaiMaMoi: () => void
 }
 
-/** Sáu chỉ tiêu của AC-11.2, theo đúng thứ tự spec liệt kê. */
+/**
+ * Sáu chỉ tiêu của AC-11.2, theo đúng thứ tự spec liệt kê.
+ *
+ * Xuất ra để khối so sánh của màn rẽ nhánh dùng CHUNG (T434): hai danh sách
+ * chỉ tiêu song song sẽ có ngày lệch nhau, và lúc ấy hai bảng nói hai chuyện
+ * khác nhau về cùng một trận.
+ */
 /*
   Bảng này chỉ còn phần CẤU TRÚC — khoá và cờ phần trăm. Nhãn tra theo khoá
   lúc vẽ, vì `chiTieu` của hai bảng chuỗi dùng đúng tập khoá ấy (P8).
 */
-const CAC_CHI_TIEU: readonly {
+export const CAC_CHI_TIEU: readonly {
   readonly khoa: keyof ChiTieuBen
   readonly phanTram?: boolean
 }[] = [

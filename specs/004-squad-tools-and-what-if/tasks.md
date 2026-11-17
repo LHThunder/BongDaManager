@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | 37 AC (US-24 → US-27) |
-| **Tiến độ** | 27/40 |
+| **Tiến độ** | 37/40 |
 | **Sửa đổi** | 2026-11-17 — chẻ lần đầu từ plan; cùng ngày sửa theo `/analyze` (1 CRITICAL + 4 HIGH) |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -248,61 +248,61 @@ lát cắt dọc ở `plan.md` mục 9; mỗi phase kết thúc là một ứng 
 
 > Lát này độc lập với 29–33.
 
-- [ ] **T427** [P] — Dựng lại cấu hình trận từ bản ghi đã lưu
+- [x] **T427** [P] — Dựng lại cấu hình trận từ bản ghi đã lưu
   - File: tạo `src/services/phatLai.ts`, tạo `src/services/phatLai.test.ts`
   - Xong khi: hàm thuần ánh xạ `TranDaLuu` → `CauHinhTran` (D78); test xanh — cấu hình dựng lại mang đúng `maTran`, hai đội, quân số, thời lượng, cờ sân trung lập; **không sửa gì trong `src/engine/`**.
   - AC: AC-27.1
   - Phụ thuộc: —
 
-- [ ] **T428** — Vòng lặp phát lại tới phút X
+- [x] **T428** — Vòng lặp phát lại tới phút X
   - File: sửa `src/services/phatLai.ts`
   - Xong khi: hàm chạy `taoTran` rồi lặp `buocTiep`, xếp từng can thiệp đã lưu vào **đúng phút** của nó, dừng ở phút chỉ định; chỉ gọi hàm thuần đã có của engine (D77); **không sửa `src/engine/`**.
   - AC: AC-27.1, AC-27.2
   - Phụ thuộc: T427
 
-- [ ] **T429** — Test xương sống 1: không đổi gì thì ra y hệt
+- [x] **T429** — Test xương sống 1: không đổi gì thì ra y hệt
   - File: sửa `src/services/phatLai.test.ts`
   - Xong khi: test xanh — phát lại tới một phút rồi chạy nốt **mà không thêm can thiệp nào** cho ra dòng sự kiện và tỉ số **giống hệt** trận gốc, từng dòng một.
   - AC: AC-27.4
   - Phụ thuộc: T428
 
-- [ ] **T430** — Test xương sống 2: phần trước điểm rẽ giống hệt
+- [x] **T430** — Test xương sống 2: phần trước điểm rẽ giống hệt
   - File: sửa `src/services/phatLai.test.ts`
   - Xong khi: test xanh — phát lại tới phút X, thêm một can thiệp mới, chạy nốt; mọi dòng sự kiện **trước** phút X giống hệt trận gốc; từ phút X trở đi được phép khác.
   - AC: AC-27.2
   - Phụ thuộc: T428
 
-- [ ] **T431** — Hook điều phối rẽ nhánh, giữ trong bộ nhớ
+- [x] **T431** — Hook điều phối rẽ nhánh, giữ trong bộ nhớ
   - File: tạo `src/hooks/useRePhatLai.ts`
   - Xong khi: hook nhận bản ghi trận, phút rẽ và can thiệp mới, trả kết quả rẽ nhánh; kết quả sống **chỉ trong bộ nhớ**, không gọi bất kỳ hàm ghi nào của `services` (D79); chặn phút nằm ngoài khoảng của trận gốc.
   - AC: AC-27.1, AC-27.7, AC-27.8
   - Phụ thuộc: T428
 
-- [ ] **T432** — Chọn phút trong dòng tường thuật
+- [x] **T432** — Chọn phút trong dòng tường thuật
   - File: sửa `src/ui/components/DongTuongThuat.tsx`, `src/ui/pages/TrangLichSu.tsx`, `src/ui/ngonNgu/{vi,en,index}.ts`
   - Xong khi: mở một trận trong lịch sử, chọn được một phút từ dòng tường thuật; đi được bằng bàn phím; chuỗi đủ hai ngôn ngữ. Dòng tường thuật ở **trang trận đang chạy** vẫn hiển thị như cũ, không mọc thêm nút.
   - AC: AC-27.1
   - Phụ thuộc: T431
 
-- [ ] **T433** — Màn hình rẽ nhánh: đổi quyết định rồi chạy tiếp
+- [x] **T433** — Màn hình rẽ nhánh: đổi quyết định rồi chạy tiếp
   - File: tạo `src/ui/components/RePhatLai.tsx`, sửa `src/ui/pages/TrangLichSu.tsx`, sửa `src/ui/ngonNgu/{vi,en,index}.ts`
   - Xong khi: tại phút đã chọn, đổi được một chỉ thị toàn đội hoặc thay một người, rồi chạy nốt; màn hình này **không** phơi ra lối rẽ nhánh lần nữa và nói rõ mỗi lần rẽ nhánh đều xuất phát từ một trận trong lịch sử.
   - AC: AC-27.1, AC-27.10
   - Phụ thuộc: T431
 
-- [ ] **T434** — Khối so sánh với trận gốc
+- [x] **T434** — Khối so sánh với trận gốc
   - File: sửa `src/ui/components/RePhatLai.tsx`, sửa `src/ui/ngonNgu/{vi,en}.ts`
   - Xong khi: hiện cạnh nhau tỉ số và các chỉ tiêu hai đội của trận gốc và trận rẽ nhánh; dùng lại cấu trúc báo cáo sau trận đã có chứ không dựng bảng thứ hai.
   - AC: AC-27.3
   - Phụ thuộc: T433
 
-- [ ] **T435** — Từ chối rẽ nhánh khi không rẽ được
+- [x] **T435** — Từ chối rẽ nhánh khi không rẽ được
   - File: sửa `src/ui/pages/TrangLichSu.tsx`, sửa `src/ui/ngonNgu/{vi,en}.ts`
   - Xong khi: trận chạy bằng engine cũ hơn, hoặc trận có đội đã bị xoá, thì lối rẽ nhánh bị chặn kèm lý do bằng chữ; dùng lại `matchRepo.lyDoKhongDauLai` đã biết phân biệt hai trường hợp này.
   - AC: AC-27.5, AC-27.6
   - Phụ thuộc: T433
 
-- [ ] **T436** — Hỏi trước khi rời màn hình rẽ nhánh
+- [x] **T436** — Hỏi trước khi rời màn hình rẽ nhánh
   - File: sửa `src/ui/components/RePhatLai.tsx`, sửa `src/ui/ngonNgu/{vi,en}.ts`
   - Xong khi: rời màn hình rẽ nhánh thì được hỏi trước, nói rõ kết quả sẽ mất vì nó không được lưu; đồng ý thì về lịch sử và **trận gốc còn nguyên**.
   - AC: AC-27.7, AC-27.9
@@ -384,6 +384,53 @@ lát cắt dọc ở `plan.md` mục 9; mỗi phase kết thúc là một ứng 
 | AC-27.8 | T431 |
 | AC-27.9 | T436 |
 | AC-27.10 | T433 |
+
+## Phase 34 — hai thứ chỉ lộ ra khi làm thật
+
+**1. "Phút" trong ứng dụng này là HAI thứ khác nhau.** `CanThiep.phut` và
+`TrangThaiTran.phut` là phút ĐỒNG HỒ, đếm liên tục và tính cả bù giờ;
+`SuKien.phut` là phút NGƯỜI ĐỌC THẤY, hiệp hai bị trừ đi bù giờ hiệp một để
+"46" vẫn là 46. Người dùng chọn điểm rẽ bằng cách bấm một dòng tường thuật,
+nên lấy thẳng `SuKien.phut` làm phút rẽ là rẽ sớm hơn đúng số phút bù giờ
+hiệp một — lệch tới 5 phút, và lệch im lặng. Trận 30 phút kiểm tay có đủ cả
+hai mặt: dòng tường thuật đi `16'+`, `17'+`, rồi `16'`, `17'`. Phép đổi nằm
+ở `phutThucTe` trong `services/phatLai.ts`, có phép kiểm khẳng định nó là
+nghịch đảo đúng của `phutHienThi` ở MỌI phút của trận.
+
+**2. Trần 100 dòng của `chonSuKien` đẩy được dòng TRƯỚC điểm rẽ ra ngoài.**
+Bộ lọc mật độ xếp hạng tình huống trên cả trận, nên nhánh sinh tình huống
+điểm cao hơn ở phần sau sẽ hất mất dòng ở phần trước — `W5H4J2YD9F` rẽ ở
+phút 70 mất **ba dòng** trước điểm rẽ (65 thay vì 68), trong khi engine
+không chạy khác một nhịp. Đọc trên màn hình thì đó đúng là thứ AC-27.2 cấm.
+Lối ra: `dongSuKienNhanh` ghép phần tới điểm rẽ LẤY NGUYÊN từ bản ghi gốc,
+phần sau mới lấy từ nhánh — AC-27.2 đúng bằng cấu trúc, không bằng may. Ca
+`W5H4J2YD9F`/phút 70 được pin lại thành phép kiểm để không ai "dọn" phép
+ghép ấy đi.
+
+**Lệch khỏi danh sách file của T434, một từ:** thêm `export` cho
+`CAC_CHI_TIEU` trong `src/ui/components/BaoCaoSauTran.tsx` để khối so sánh
+dùng chung đúng một danh sách sáu chỉ tiêu. Khai danh sách thứ hai trong
+`RePhatLai.tsx` thì đúng danh sách file nhưng sai tinh thần T434 ("không
+dựng bảng thứ hai").
+
+**Chưa kiểm được bằng mắt: AC-27.5** (trận chạy bằng engine cũ hơn). Không
+có đường nào qua giao diện để làm ra một bản ghi `phienBanEngine` khác, nên
+nó dựa vào `matchRepo.lyDoKhongDauLai` (đã có test từ spec 001) và vào việc
+lý do kia — đội đã bị xoá — đã được kiểm tay trên cùng một đường code: hai
+câu từ chối hiện ra, không còn nút "Rẽ nhánh" nào, nút "Đấu lại" tắt, mà
+trận vẫn xem lại được 18 dòng. T437 nên thử nốt AC-27.5 bằng một tệp sao lưu
+sửa tay nếu muốn phủ kín.
+
+**Đã kiểm tay trên ứng dụng đang chạy** (trận 30 phút, hai đội 18 người):
+chạy nhánh mà không đổi gì → tỉ số và cả 12 chỉ tiêu đều "Giống trận gốc"
+(AC-27.4); đổi pressing sang Cao tại phút 16 hiệp hai → 25 dòng đầu giống
+hệt, lệch từ phút 23, tỉ số 3–1 thay vì 3–0 (AC-27.2, AC-27.3); mốc "TỪ PHÚT
+16' TRỞ ĐI LÀ NHÁNH KHÁC" đứng đúng chỗ; màn nhánh không có nút rẽ nhánh nào
+(AC-27.10); rời màn hình thì bị hỏi trước, focus sẵn ở "Huỷ", đồng ý thì
+trận gốc còn nguyên 33 dòng và 31 nút rẽ nhánh (AC-27.7, AC-27.9); không lỗi
+console; cả hai ngôn ngữ không có dấu thiếu bản dịch.
+
+---
 
 ## Ghi chú thực thi
 

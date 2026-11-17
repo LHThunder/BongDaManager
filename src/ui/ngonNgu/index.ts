@@ -28,6 +28,7 @@ import {
   SAO_LUU_EN,
   LUU_TRU_EN,
   LICH_SU_EN,
+  RE_PHAT_LAI_EN,
   LY_DO_TU_CHOI_CAN_THIEP_EN,
   LOI_EN,
   FORM_DOI_EN,
@@ -76,6 +77,7 @@ import {
   SAO_LUU_VI,
   LUU_TRU_VI,
   LICH_SU_VI,
+  RE_PHAT_LAI_VI,
   LY_DO_TU_CHOI_CAN_THIEP_VI,
   LOI_VI,
   FORM_DOI_VI,
@@ -148,6 +150,7 @@ export interface BoChuoi {
   readonly SAO_LUU: BanDich<typeof SAO_LUU_VI>
   readonly LUU_TRU: BanDich<typeof LUU_TRU_VI>
   readonly LICH_SU: BanDich<typeof LICH_SU_VI>
+  readonly RE_PHAT_LAI: BanDich<typeof RE_PHAT_LAI_VI>
   readonly LY_DO_TU_CHOI_CAN_THIEP: Readonly<Record<string, string>>
   readonly LOI: BanDich<typeof LOI_VI>
 }
@@ -195,6 +198,7 @@ const VI: BoChuoi = {
   SAO_LUU: SAO_LUU_VI,
   LUU_TRU: LUU_TRU_VI,
   LICH_SU: LICH_SU_VI,
+  RE_PHAT_LAI: RE_PHAT_LAI_VI,
   LY_DO_TU_CHOI_CAN_THIEP: LY_DO_TU_CHOI_CAN_THIEP_VI,
   LOI: LOI_VI,
 }
@@ -242,6 +246,7 @@ const EN: BoChuoi = {
   SAO_LUU: SAO_LUU_EN,
   LUU_TRU: LUU_TRU_EN,
   LICH_SU: LICH_SU_EN,
+  RE_PHAT_LAI: RE_PHAT_LAI_EN,
   LY_DO_TU_CHOI_CAN_THIEP: LY_DO_TU_CHOI_CAN_THIEP_EN,
   LOI: LOI_EN,
 }

@@ -920,7 +920,66 @@ export const LICH_SU_VI = {
       ? 'Lịch sử đã đủ chỗ, nên trận cũ nhất vừa rời khỏi danh sách.'
       : `Lịch sử đã đủ chỗ, nên ${so} trận cũ nhất vừa rời khỏi danh sách.`,
   dongBaoDaLoai: 'Đã hiểu',
+  /** Lối rẽ nhánh từ dòng tường thuật (US-27, T432, T435). */
+  nutReNhanh: 'Rẽ nhánh',
+  moTaReNhanh:
+    'Chọn một phút trong diễn biến dưới đây để đấu lại từ đó với một quyết định khác.',
+  reNhanhTuPhut: (phut: string) => `Rẽ nhánh từ phút ${phut}`,
+  /** Vì sao không rẽ nhánh được — hai lý do, hai chuyện khác nhau. */
+  lyDoKhongReNhanh: {
+    'khac-phien-ban-engine':
+      'Không rẽ nhánh được: trận này chạy bằng phiên bản engine cũ hơn, nên chạy lại sẽ không khớp với trận cũ dù không đổi gì.',
+    'doi-da-bi-xoa':
+      'Không rẽ nhánh được: một trong hai đội đã bị xoá, nên không còn hồ sơ để chạy lại trận.',
+  } as Readonly<Record<string, string>>,
   tieuDeDienBien: 'Diễn biến trận',
+} as const
+
+/*
+  Màn hình rẽ nhánh (US-27).
+
+  Hai câu quan trọng nhất của khối này là `khongLuu` và `khongReTiep`: cả hai
+  nói ra một hạn chế mà người dùng KHÔNG đoán được từ màn hình, và spec đòi
+  nói trước chứ không để họ phát hiện sau (AC-27.9, AC-27.10).
+*/
+export const RE_PHAT_LAI_VI = {
+  tieuDe: 'Đấu lại từ một phút',
+  moTa: (phut: string) =>
+    `Rẽ nhánh từ phút ${phut}. Mọi diễn biến tới phút đó giữ nguyên như trận gốc, từ đó trở đi mới khác.`,
+  khongLuu:
+    'Trận rẽ nhánh KHÔNG được lưu vào lịch sử. Rời màn hình này là kết quả mất đi; trận gốc thì còn nguyên.',
+  khongReTiep:
+    'Mỗi lần rẽ nhánh đều xuất phát từ một trận trong lịch sử, nên từ trận rẽ nhánh này không rẽ tiếp được.',
+  tieuDeQuyetDinh: 'Đổi một quyết định',
+  moTaQuyetDinh:
+    'Đổi chỉ thị toàn đội, hoặc thay một người — rồi chạy nốt phần còn lại của trận.',
+  chuaDoiGi:
+    'Chưa đổi gì. Chạy luôn thì trận rẽ nhánh sẽ ra đúng trận gốc, từng dòng một.',
+  daDoiChiThi: 'Đã đổi chỉ thị toàn đội tại phút này.',
+  daChonThayNguoi: (ra: string, vao: string) => `Thay ${ra} bằng ${vao}.`,
+  boThayNguoi: 'Bỏ lần thay người này',
+  nutChay: 'Chạy nốt trận',
+  nutChayLai: 'Chạy lại với quyết định mới',
+  nutDatLai: 'Bỏ mọi thay đổi',
+  nutRoi: 'Rời màn hình rẽ nhánh',
+  phutNgoaiKhoang: (tu: number, den: number) =>
+    `Phút này không rẽ nhánh được. Chọn một phút từ ${tu} tới ${den} — phút cuối không rẽ được vì sau nó không còn gì để chạy.`,
+  tieuDeSoSanh: 'Trận gốc so với trận rẽ nhánh',
+  moTaSoSanh:
+    'Cùng mã trận, cùng hai đội, chỉ khác một quyết định tại phút đã chọn.',
+  cotChiTieu: 'Chỉ tiêu',
+  cotGoc: 'Trận gốc',
+  cotNhanh: 'Rẽ nhánh',
+  hangTiSo: 'Tỉ số',
+  tiSo: (nha: number, khach: number) => `${nha} – ${khach}`,
+  giongTranGoc: 'Giống trận gốc',
+  khacTranGoc: 'Khác trận gốc',
+  tieuDeDienBien: 'Diễn biến trận rẽ nhánh',
+  mocRe: (phut: string) => `Từ phút ${phut} trở đi là nhánh khác`,
+  xacNhanRoiTieuDe: 'Rời màn hình rẽ nhánh?',
+  xacNhanRoiMoTa:
+    'Kết quả rẽ nhánh này không được lưu ở đâu cả, nên rời đi là nó mất hẳn. Trận gốc trong lịch sử không bị ảnh hưởng.',
+  xacNhanRoiNhan: 'Rời đi, bỏ kết quả',
 } as const
 
 export const BAO_CAO_SAU_TRAN_VI = {
