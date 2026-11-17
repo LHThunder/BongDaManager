@@ -1,6 +1,14 @@
 import { BieuTuong } from '../components/BieuTuong'
 import { useEffect, useState } from 'react'
+import { SO_CAU_THU_DU_BI_TOI_DA } from '../../engine/batDau'
+import { CAC_QUAN_SO } from '../../engine/tran'
+import { soDoTheoQuanSo } from '../../domain/formations'
+import { CAC_MUC_DO, sinhDoi, type MucDo } from '../../domain/generator'
+import { KHO_TEN_ANH, KHO_TEN_VIET } from '../../domain/tenNgauNhien'
+import type { Rng } from '../../domain/types'
 import { coTranDangDien, useTeams } from '../../hooks/useTeams'
+import { laLoiUngDung, type LoiUngDung } from '../../services/errors'
+import * as teamRepo from '../../services/teamRepo'
 import type { TeamSummary } from '../../services/teamRepo'
 import { useAppStore } from '../../store/appStore'
 import { useChuoi } from '../../hooks/useNgonNgu'
@@ -16,8 +24,154 @@ interface Props {
 type HopDangMo =
   | { readonly loai: 'khong' }
   | { readonly loai: 'tao' }
+  | { readonly loai: 'sinh' }
   | { readonly loai: 'sua'; readonly doi: TeamSummary }
   | { readonly loai: 'xoa'; readonly doi: TeamSummary }
+
+/** Nguồn ngẫu nhiên thật, tạo ở lớp giao diện — domain không được tự gọi (P1). */
+const RNG_THAT: Rng = { next: () => Math.random() }
+
+/**
+ * Hộp sinh một đội ngẫu nhiên (AC-24.4, AC-24.6).
+ *
+ * `SO_CAU_THU_DU_BI_TOI_DA` được đọc **ở đây** rồi truyền xuống `domain`:
+ * hằng số ấy ở tầng `engine`, và `domain` import `engine` là phụ thuộc vòng.
+ * `ui` thì đọc được cả hai tầng, nên đây là chỗ đúng để hai con số gặp nhau.
+ */
+function HopSinhDoi({
+  onXong,
+  onHuy,
+}: {
+  readonly onXong: (teamId: string) => void
+  readonly onHuy: () => void
+}) {
+  const { CHUNG, DANH_SACH_DOI, NHAN_MUC_DO, LOI, NHAN_CHI_SO } = useChuoi()
+  const ngonNgu = useAppStore((s) => s.ngonNgu)
+
+  const [ten, datTen] = useState(DANH_SACH_DOI.sinhDoiTenMacDinh)
+  const [muc, datMuc] = useState<MucDo>('kha')
+  const [quanSo, datQuanSo] = useState(11)
+  const [dangLam, datDangLam] = useState(false)
+  const [loi, datLoi] = useState<LoiUngDung | string | null>(null)
+
+  async function gui() {
+    datLoi(null)
+    datDangLam(true)
+    try {
+      const soDo = soDoTheoQuanSo(quanSo)[0]
+      if (!soDo) throw new Error(`Không có sơ đồ cho quân số ${quanSo}`)
+
+      const cacCauThu = sinhDoi(
+        {
+          muc,
+          kho: ngonNgu === 'vi' ? KHO_TEN_VIET : KHO_TEN_ANH,
+          soDo,
+          soDuBi: SO_CAU_THU_DU_BI_TOI_DA,
+        },
+        RNG_THAT,
+      )
+
+      const doi = await teamRepo.taoDoiSinhRa({
+        name: ten,
+        cacCauThu,
+        formationId: soDo.id,
+      })
+      onXong(doi.id)
+    } catch (e) {
+      datLoi(laLoiUngDung(e) ? e : String(e))
+      datDangLam(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-lop-phu p-4">
+      <form
+        className="my-8 w-full max-w-lg rounded-lg bg-nen-the p-6 shadow-xl"
+        onSubmit={(e) => {
+          e.preventDefault()
+          void gui()
+        }}
+      >
+        <h2 className="text-lg font-semibold text-chu">
+          {DANH_SACH_DOI.sinhDoiTieuDe}
+        </h2>
+        <p className="mt-1 text-sm text-chu-phu">
+          {DANH_SACH_DOI.sinhDoiMoTa}
+        </p>
+
+        <label className="mt-4 block text-sm font-medium text-chu">
+          {DANH_SACH_DOI.sinhDoiNhanTen}
+          <input
+            type="text"
+            value={ten}
+            onChange={(e) => {
+              datTen(e.target.value)
+              datLoi(null)
+            }}
+            className="mt-1 block w-full rounded-md border border-vien-dam px-3 py-2 text-chu"
+          />
+        </label>
+
+        <label className="mt-4 block text-sm font-medium text-chu">
+          {DANH_SACH_DOI.sinhDoiNhanMucDo}
+          <select
+            value={muc}
+            onChange={(e) => datMuc(e.target.value as MucDo)}
+            className="mt-1 block w-full rounded-md border border-vien-dam px-3 py-2 text-chu"
+          >
+            {CAC_MUC_DO.map((m) => (
+              <option key={m.id} value={m.id}>
+                {NHAN_MUC_DO[m.id]}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="mt-4 block text-sm font-medium text-chu">
+          {DANH_SACH_DOI.sinhDoiNhanQuanSo}
+          <select
+            value={quanSo}
+            onChange={(e) => datQuanSo(Number(e.target.value))}
+            className="mt-1 block w-full rounded-md border border-vien-dam px-3 py-2 text-chu"
+          >
+            {CAC_QUAN_SO.map((n) => (
+              <option key={n} value={n}>
+                {DANH_SACH_DOI.sinhDoiQuanSo(n, SO_CAU_THU_DU_BI_TOI_DA)}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        {loi !== null && (
+          <p role="alert" className="mt-3 text-sm text-loi-chu">
+            {typeof loi === 'string'
+              ? loi
+              : LOI.cau(loi, (id) => NHAN_CHI_SO[id])}
+          </p>
+        )}
+
+        <div className="mt-6 flex justify-end gap-3">
+          <button
+            type="button"
+            onClick={onHuy}
+            className="rounded-md border border-vien-dam px-4 py-2 text-sm font-medium text-chu hover:bg-nen-nhan"
+          >
+            {CHUNG.huy}
+          </button>
+          <button
+            type="submit"
+            disabled={dangLam}
+            className="rounded-md bg-chinh px-4 py-2 text-sm font-medium text-chu-tren-chinh hover:bg-chinh-dam disabled:bg-nen-nhan disabled:text-chu-phu"
+          >
+            {dangLam
+              ? DANH_SACH_DOI.sinhDoiDangLam
+              : DANH_SACH_DOI.sinhDoiXacNhan}
+          </button>
+        </div>
+      </form>
+    </div>
+  )
+}
 
 /**
  * Trạng thái trống và danh sách đội (AC-1.1, AC-1.4), kèm lối vào tạo, sửa
@@ -46,13 +200,22 @@ export function DanhSachDoi({ onMoDoi }: Props) {
           {DANH_SACH_DOI.tieuDe}
         </h2>
         {teams.length > 0 && (
-          <button
-            type="button"
-            onClick={() => datHop({ loai: 'tao' })}
-            className="rounded-md bg-chinh px-4 py-2 text-sm font-medium text-chu-tren-chinh hover:bg-chinh-dam"
-          >
-            {DANH_SACH_DOI.taoDoi}
-          </button>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => datHop({ loai: 'sinh' })}
+              className="rounded-md border border-vien-dam px-4 py-2 text-sm font-medium text-chu hover:bg-nen-nhan"
+            >
+              {DANH_SACH_DOI.sinhDoi}
+            </button>
+            <button
+              type="button"
+              onClick={() => datHop({ loai: 'tao' })}
+              className="rounded-md bg-chinh px-4 py-2 text-sm font-medium text-chu-tren-chinh hover:bg-chinh-dam"
+            >
+              {DANH_SACH_DOI.taoDoi}
+            </button>
+          </div>
         )}
       </div>
 
@@ -64,13 +227,22 @@ export function DanhSachDoi({ onMoDoi }: Props) {
           <p className="mx-auto mt-2 max-w-md text-sm text-chu-phu">
             {DANH_SACH_DOI.trongMoTa}
           </p>
-          <button
-            type="button"
-            onClick={() => datHop({ loai: 'tao' })}
-            className="mt-6 rounded-md bg-chinh px-5 py-2.5 text-sm font-medium text-chu-tren-chinh hover:bg-chinh-dam"
-          >
-            {DANH_SACH_DOI.taoDoiDauTien}
-          </button>
+          <div className="mt-6 flex justify-center gap-3">
+            <button
+              type="button"
+              onClick={() => datHop({ loai: 'tao' })}
+              className="rounded-md bg-chinh px-5 py-2.5 text-sm font-medium text-chu-tren-chinh hover:bg-chinh-dam"
+            >
+              {DANH_SACH_DOI.taoDoiDauTien}
+            </button>
+            <button
+              type="button"
+              onClick={() => datHop({ loai: 'sinh' })}
+              className="rounded-md border border-vien-dam px-5 py-2.5 text-sm font-medium text-chu hover:bg-nen-nhan"
+            >
+              {DANH_SACH_DOI.sinhDoi}
+            </button>
+          </div>
         </div>
       ) : (
         <ul className="mt-6 grid gap-3 sm:grid-cols-2">
@@ -129,6 +301,17 @@ export function DanhSachDoi({ onMoDoi }: Props) {
         <FormDoi
           onXong={(teamId) => {
             datHop({ loai: 'khong' })
+            onMoDoi(teamId)
+          }}
+          onHuy={() => datHop({ loai: 'khong' })}
+        />
+      )}
+
+      {hop.loai === 'sinh' && (
+        <HopSinhDoi
+          onXong={(teamId) => {
+            datHop({ loai: 'khong' })
+            void napDanhSachDoi()
             onMoDoi(teamId)
           }}
           onHuy={() => datHop({ loai: 'khong' })}

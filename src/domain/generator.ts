@@ -1,5 +1,6 @@
 import { POSITION_WEIGHTS } from './attributes'
 import { chiSoCanCo } from './completeness'
+import type { Formation } from './formations'
 import { POSITIONS } from './positions'
 import { sinhTen, type KhoTen } from './tenNgauNhien'
 import { CHI_SO_MAX, CHI_SO_MIN } from './types'
@@ -283,4 +284,82 @@ export function sinhCauThu(
       gkAttributes: chiSo.gkAttributes,
     },
   }
+}
+
+// ---------------------------------------------------------------------------
+// Sinh CẢ MỘT ĐỘI (T405, AC-24.4)
+// ---------------------------------------------------------------------------
+
+export interface DauVaoSinhDoi {
+  readonly muc: MucDo
+  readonly kho: KhoTen
+  /**
+   * Sơ đồ đội sẽ dùng. Quân số lấy từ **số ô của sơ đồ**, không nhận qua một
+   * tham số riêng: hai con số ấy buộc phải khớp nhau, nên để người gọi khai
+   * cả hai là mở sẵn một đường cho chúng lệch nhau.
+   */
+  readonly soDo: Formation
+  /**
+   * Số dự bị sinh thêm.
+   *
+   * Đi vào bằng THAM SỐ, không import: hằng số `SO_CAU_THU_DU_BI_TOI_DA` nằm
+   * ở `engine/batDau.ts`, và `domain` import `engine` là phụ thuộc vòng —
+   * `engine` đã đọc `domain`. `domain/boundaries.test.ts` hiện KHÔNG chặn
+   * đường import ấy, nên không phép kiểm nào bắt được nếu làm sai; đây là
+   * chỗ phải tự giữ.
+   */
+  readonly soDuBi: number
+}
+
+/**
+ * Sinh đủ người cho một đội đá được ngay (AC-24.4).
+ *
+ * **Mỗi ô của sơ đồ được một người đá đúng sở trường.** Người thứ `i` trong
+ * `quanSo` người đầu nhận đúng vị trí của ô thứ `i`, nên một sơ đồ có hai
+ * trung vệ thì sinh ra hai trung vệ — phân bố của đội khớp phân bố của sơ đồ
+ * chứ không khớp một bảng tỉ lệ nào tôi tự đặt.
+ *
+ * **Dự bị bốc vị trí TỪ CHÍNH danh sách vị trí của sơ đồ**, không bốc trong
+ * cả 12 vị trí. Bốc trong 12 vị trí thì một lần sinh có thể ra bảy thủ môn
+ * dự bị — đúng rủi ro R36 ("sinh ra một đội vô lý"), và nó không lộ ra ở
+ * phép kiểm nào khác vì đội ấy vẫn đá được.
+ *
+ * Số áo không trùng nhau trong đội: danh sách đã dùng lớn dần theo từng
+ * người, và `sinhCauThu` loại chúng ra (AC-24.3).
+ */
+export function sinhDoi(
+  dauVao: DauVaoSinhDoi,
+  rng: Rng,
+): readonly CauThuDaSinh[] {
+  const viTriCuaSoDo = dauVao.soDo.oVien.map((o) => o.viTri)
+  const tong = viTriCuaSoDo.length + dauVao.soDuBi
+
+  const ra: CauThuDaSinh[] = []
+  const soAoDaDung: number[] = []
+
+  for (let i = 0; i < tong; i += 1) {
+    const viTri =
+      i < viTriCuaSoDo.length
+        ? [viTriCuaSoDo[i] as PositionId]
+        : [bocPhanTu(viTriCuaSoDo, rng)]
+
+    const kq = sinhCauThu(
+      { muc: dauVao.muc, kho: dauVao.kho, soAoDaDung, viTri },
+      rng,
+    )
+
+    /*
+      Không thể xảy ra với một đội mới: tổng nhiều nhất là 11 + 7 = 18, còn
+      dải số áo là 99. Nếu nó xảy ra thì đó là lỗi lập trình — hiến pháp mục
+      4 đòi lỗi lập trình phải lộ ra ngay, không được che.
+    */
+    if (!kq.sinhDuoc) {
+      throw new Error(`sinhDoi: hết số áo ở người thứ ${i + 1}/${tong}`)
+    }
+
+    ra.push(kq.cauThu)
+    soAoDaDung.push(kq.cauThu.shirtNumber)
+  }
+
+  return ra
 }

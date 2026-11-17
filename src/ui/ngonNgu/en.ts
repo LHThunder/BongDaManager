@@ -117,6 +117,18 @@ export const DANH_SACH_DOI_EN: BanDich<typeof DANH_SACH_DOI_VI> = {
   moDoi: 'Open team',
   soCauThu: (n: number) => (n === 1 ? '1 player' : `${n} players`),
   chuaCoCauThu: 'No players yet',
+  sinhDoi: 'Generate a team',
+  sinhDoiTieuDe: 'Generate a random team',
+  sinhDoiMoTa:
+    'Pick a level and a squad size, and the whole team is built with a line-up already filled in — ready to play. Every player can be edited just like the ones you type in yourself.',
+  sinhDoiNhanTen: 'Team name',
+  sinhDoiNhanMucDo: 'Level',
+  sinhDoiNhanQuanSo: 'Players per side',
+  sinhDoiQuanSo: (n: number, soDuBi: number) =>
+    `${n} a side + ${soDuBi} substitutes = ${n + soDuBi} players`,
+  sinhDoiXacNhan: 'Generate team',
+  sinhDoiDangLam: 'Building the team…',
+  sinhDoiTenMacDinh: 'Random team',
 }
 
 export const XOA_DOI_EN: BanDich<typeof XOA_DOI_VI> = {

@@ -4,6 +4,7 @@ import { chiSoCanCo, hoSoHoanTat } from './completeness'
 import {
   CAC_MUC_DO,
   sinhCauThu,
+  sinhDoi,
   sinhChiSo,
   soAoConTrong,
   SO_AO_MAX,
@@ -13,6 +14,7 @@ import {
   type CauThuDaSinh,
   type MucDo,
 } from './generator'
+import { laySoDo, soDoTheoQuanSo } from './formations'
 import { kiemTraToHopViTri } from './positions'
 import { chiSoTongTheoViTri } from './rating'
 import { KHO_TEN_ANH, KHO_TEN_VIET } from './tenNgauNhien'
@@ -355,5 +357,137 @@ describe('sinh một cầu thủ đầy đủ (AC-24.1)', () => {
     expect(conLai.length).toBe(SO_AO_MAX - SO_AO_MIN + 1 - 3)
     // Số ngoài dải không làm hỏng phép lọc.
     expect(soAoConTrong([0, 100, -5]).length).toBe(SO_AO_MAX - SO_AO_MIN + 1)
+  })
+})
+
+/*
+  Sinh CẢ MỘT ĐỘI (T406, AC-24.4).
+
+  `SO_DU_BI` lặp lại con số 7 của `engine/batDau.ts` thay vì import nó: test
+  này thuộc `domain`, và `domain` import `engine` là phụ thuộc vòng. Lặp một
+  hằng số ở đây là có ý — `sinhDoi` nhận số dự bị qua THAM SỐ nên nó không
+  biết và không cần biết con số thật. Chỗ hai con số gặp nhau là `ui`:
+  `DanhSachDoi.tsx` đọc `SO_CAU_THU_DU_BI_TOI_DA` của engine rồi truyền
+  xuống, vì chỉ `ui` mới đọc được cả hai tầng.
+*/
+describe('sinh cả một đội (AC-24.4)', () => {
+  const SO_DU_BI = 7
+
+  function sinh(quanSo: number, hatGiong = 7) {
+    const soDo = soDoTheoQuanSo(quanSo)[0]
+    if (!soDo) throw new Error(`không có sơ đồ cho quân số ${quanSo}`)
+    return {
+      soDo,
+      doi: sinhDoi(
+        { muc: 'kha', kho: KHO_TEN_VIET, soDo, soDuBi: SO_DU_BI },
+        rngGia(hatGiong),
+      ),
+    }
+  }
+
+  it('sân 11 ra đúng 18 người', () => {
+    expect(sinh(11).doi).toHaveLength(18)
+  })
+
+  it('mọi quân số từ 5 tới 11 ra đúng quân số cộng 7 dự bị', () => {
+    for (let quanSo = 5; quanSo <= 11; quanSo += 1) {
+      const { doi } = sinh(quanSo)
+      expect(doi, `quân số ${quanSo}`).toHaveLength(quanSo + SO_DU_BI)
+    }
+  })
+
+  it('mọi vị trí của sơ đồ có ít nhất một người đá đúng sở trường', () => {
+    for (let quanSo = 5; quanSo <= 11; quanSo += 1) {
+      const { soDo, doi } = sinh(quanSo)
+      const coNguoiDaDuoc = new Set(doi.flatMap((c) => c.positions))
+      for (const o of soDo.oVien) {
+        expect(
+          coNguoiDaDuoc.has(o.viTri),
+          `quân số ${quanSo}: không ai đá được ${o.viTri}`,
+        ).toBe(true)
+      }
+    }
+  })
+
+  it('số người ĐÚNG SỞ TRƯỜNG đủ cho từng vị trí của sơ đồ', () => {
+    /*
+      Phủ "ít nhất một người" chưa đủ: sơ đồ 4-4-2 có hai ô trung vệ, nên một
+      trung vệ duy nhất vẫn để trống một ô. Phép kiểm này đếm theo từng vị trí.
+    */
+    const { soDo, doi } = sinh(11)
+    const can = new Map<string, number>()
+    for (const o of soDo.oVien) {
+      can.set(o.viTri, (can.get(o.viTri) ?? 0) + 1)
+    }
+    for (const [viTri, soCan] of can) {
+      const co = doi.filter((c) => c.positions.includes(viTri as never)).length
+      expect(co, `${viTri}: cần ${soCan}, có ${co}`).toBeGreaterThanOrEqual(
+        soCan,
+      )
+    }
+  })
+
+  it('không hai cầu thủ nào trùng số áo (AC-24.3)', () => {
+    for (let quanSo = 5; quanSo <= 11; quanSo += 1) {
+      for (const hat of [1, 42, 777]) {
+        const { doi } = sinh(quanSo, hat)
+        const soAo = doi.map((c) => c.shirtNumber)
+        expect(
+          new Set(soAo).size,
+          `quân số ${quanSo}, hạt ${hat}: ${soAo.join(',')}`,
+        ).toBe(soAo.length)
+      }
+    }
+  })
+
+  it('cùng nguồn ngẫu nhiên cho cùng một đội (P1)', () => {
+    expect(sinh(11, 42).doi).toEqual(sinh(11, 42).doi)
+  })
+
+  it('hai hạt giống khác nhau cho hai đội khác nhau (AC-24.5)', () => {
+    expect(sinh(11, 1).doi).not.toEqual(sinh(11, 2).doi)
+  })
+
+  it('mọi hồ sơ trong đội đều HOÀN TẤT', () => {
+    for (const c of sinh(11).doi) {
+      expect(
+        hoSoHoanTat({
+          positions: c.positions,
+          attributes: c.attributes,
+          gkAttributes: c.gkAttributes,
+        }).hoanTat,
+        `${c.name} (${c.positions.join('+')})`,
+      ).toBe(true)
+    }
+  })
+
+  it('dự bị không bốc ra vị trí ngoài sơ đồ — chặn "đội vô lý" (R36)', () => {
+    /*
+      Bốc vị trí trong cả 12 vị trí thì một lần sinh ra được bảy thủ môn dự
+      bị, mà đội ấy vẫn đá được nên không phép kiểm nào khác thấy.
+    */
+    for (const hat of [1, 2, 3, 5, 8, 13, 21, 34]) {
+      const { soDo, doi } = sinh(11, hat)
+      const cuaSoDo = new Set(soDo.oVien.map((o) => o.viTri))
+      for (const c of doi) {
+        for (const v of c.positions) {
+          expect(cuaSoDo.has(v), `hạt ${hat}: ${v} không có trong sơ đồ`).toBe(
+            true,
+          )
+        }
+      }
+      // Và không quá nửa đội là thủ môn.
+      const soThuMon = doi.filter((c) => c.positions.includes('GK')).length
+      expect(soThuMon, `hạt ${hat}`).toBeLessThan(doi.length / 2)
+    }
+  })
+
+  it('sơ đồ truyền vào quyết định quân số, không phải một tham số riêng', () => {
+    const soDo = laySoDo('4-4-2')
+    const doi = sinhDoi(
+      { muc: 'yeu', kho: KHO_TEN_ANH, soDo, soDuBi: 0 },
+      rngGia(4),
+    )
+    expect(doi).toHaveLength(soDo.oVien.length)
   })
 })

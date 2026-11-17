@@ -1,6 +1,13 @@
 import 'fake-indexeddb/auto'
-import { beforeEach, describe, expect, it } from 'vitest'
-import { laySoDo, SO_DO_MAC_DINH } from '../domain/formations'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import {
+  laySoDo,
+  soDoTheoQuanSo,
+  SO_DO_MAC_DINH,
+} from '../domain/formations'
+import { sinhDoi } from '../domain/generator'
+import { KHO_TEN_VIET } from '../domain/tenNgauNhien'
+import type { Rng } from '../domain/types'
 import { cacXungDot, THU_TU_CHI_THI } from '../domain/instructions'
 import { vaiTroApDungDuoc } from '../domain/roles'
 import type { Player } from '../domain/types'
@@ -296,5 +303,172 @@ describe('đội mới có sẵn bộ chỉ thị cân bằng (AC-7.4)', () => {
     const doi = await teamRepo.create({ name: 'Đội mới' })
     await dongDb()
     expect((await teamRepo.get(doi.id)).activeTacticId).toBe(doi.activeTacticId)
+  })
+})
+
+/*
+  Lưu một đội vừa SINH RA (T408, AC-24.4, AC-24.7).
+
+  Phép kiểm quan trọng nhất ở đây là phép kiểm thất bại. "Tất cả hoặc không
+  gì" là một tuyên bố về đường HỎNG, và đường hỏng thì không bao giờ tự chạy
+  qua trong lúc dùng thử — nó chỉ chạy đúng một lần, trên máy người dùng,
+  khi lưu trữ đầy. Nên nó phải bị ép chạy ở đây.
+*/
+function rngGia(hatGiong: number): Rng {
+  let s = hatGiong >>> 0
+  return {
+    next() {
+      s = (s * 1664525 + 1013904223) >>> 0
+      return s / 4294967296
+    },
+  }
+}
+
+describe('lưu đội sinh ra (AC-24.4, AC-24.7)', () => {
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  function doiSinhRa(quanSo = 11, soDuBi = 7) {
+    const soDo = soDoTheoQuanSo(quanSo)[0]
+    if (!soDo) throw new Error(`không có sơ đồ cho quân số ${quanSo}`)
+    return {
+      soDo,
+      cacCauThu: sinhDoi(
+        { muc: 'kha', kho: KHO_TEN_VIET, soDo, soDuBi },
+        rngGia(7),
+      ),
+    }
+  }
+
+  it('lưu đủ đội, cầu thủ và chiến thuật', async () => {
+    const { soDo, cacCauThu } = doiSinhRa()
+    const doi = await teamRepo.taoDoiSinhRa({
+      name: 'Đội sinh ra',
+      cacCauThu,
+      formationId: soDo.id,
+    })
+
+    const db = await moDb()
+    expect(await db.get('teams', doi.id)).toBeTruthy()
+    expect(await db.getAllFromIndex('players', 'byTeam', doi.id)).toHaveLength(
+      18,
+    )
+
+    const cacBo = await db.getAllFromIndex('tactics', 'byTeam', doi.id)
+    expect(cacBo).toHaveLength(1)
+    expect(doi.activeTacticId).toBe(cacBo[0]?.id)
+    expect(cacBo[0]?.formationId).toBe(soDo.id)
+  })
+
+  it('bộ chiến thuật sinh kèm đã xếp ĐỦ ô — đội đá được ngay (AC-24.4)', async () => {
+    for (let quanSo = 5; quanSo <= 11; quanSo += 1) {
+      await dongDb()
+      await xoaDatabase()
+
+      const { soDo, cacCauThu } = doiSinhRa(quanSo)
+      const doi = await teamRepo.taoDoiSinhRa({
+        name: `Đội ${quanSo}`,
+        cacCauThu,
+        formationId: soDo.id,
+      })
+
+      const db = await moDb()
+      const bo = (await db.getAllFromIndex('tactics', 'byTeam', doi.id))[0]
+      expect(bo?.oVien, `quân số ${quanSo}`).toHaveLength(soDo.oVien.length)
+      for (const o of bo?.oVien ?? []) {
+        expect(o.playerId, `quân số ${quanSo}, ô ${o.slotId}`).not.toBeNull()
+      }
+      // Không ai được xếp vào hai ô cùng lúc.
+      const daXep = (bo?.oVien ?? []).map((o) => o.playerId)
+      expect(new Set(daXep).size).toBe(daXep.length)
+    }
+  })
+
+  it('mỗi ô có vai trò mặc định của chính vị trí ô đó', async () => {
+    const { soDo, cacCauThu } = doiSinhRa()
+    const doi = await teamRepo.taoDoiSinhRa({
+      name: 'Đội vai trò',
+      cacCauThu,
+      formationId: soDo.id,
+    })
+    const db = await moDb()
+    const bo = (await db.getAllFromIndex('tactics', 'byTeam', doi.id))[0]
+    soDo.oVien.forEach((o, i) => {
+      const oBo = bo?.oVien[i]
+      expect(oBo?.slotId).toBe(o.slotId)
+      expect(oBo?.roleId, o.slotId).toBeDefined()
+      expect(vaiTroApDungDuoc(oBo!.roleId, o.viTri), o.slotId).toBe(true)
+    })
+  })
+
+  it('cầu thủ sinh ra KHÔNG mang ảnh nào', async () => {
+    const { soDo, cacCauThu } = doiSinhRa()
+    const doi = await teamRepo.taoDoiSinhRa({
+      name: 'Đội không ảnh',
+      cacCauThu,
+      formationId: soDo.id,
+    })
+    const db = await moDb()
+    for (const p of await db.getAllFromIndex('players', 'byTeam', doi.id)) {
+      expect(p.portraitImageId).toBeNull()
+    }
+    expect(await db.getAll('images')).toHaveLength(0)
+  })
+
+  it('hỏng giữa chừng thì KHÔNG để lại đội, cầu thủ hay chiến thuật nào (AC-24.7)', async () => {
+    const { soDo, cacCauThu } = doiSinhRa()
+
+    /*
+      Ép hỏng bằng cách cho mọi id trùng nhau: `add` của store `players` ném
+      ConstraintError ở người thứ hai, tức giữa transaction — sau khi đội đã
+      được ghi. Đây đúng hình dạng của một lần ghi thất bại thật.
+    */
+    vi.spyOn(crypto, 'randomUUID').mockReturnValue(
+      '11111111-1111-4111-8111-111111111111',
+    )
+
+    await expect(
+      teamRepo.taoDoiSinhRa({
+        name: 'Đội hỏng',
+        cacCauThu,
+        formationId: soDo.id,
+      }),
+    ).rejects.toBeInstanceOf(LoiUngDung)
+
+    vi.restoreAllMocks()
+
+    const db = await moDb()
+    expect(await db.getAll('teams')).toHaveLength(0)
+    expect(await db.getAll('players')).toHaveLength(0)
+    expect(await db.getAll('tactics')).toHaveLength(0)
+  })
+
+  it('tên rỗng bị từ chối TRƯỚC khi ghi gì', async () => {
+    const { soDo, cacCauThu } = doiSinhRa()
+    await expect(
+      teamRepo.taoDoiSinhRa({
+        name: '   ',
+        cacCauThu,
+        formationId: soDo.id,
+      }),
+    ).rejects.toBeInstanceOf(LoiUngDung)
+
+    const db = await moDb()
+    expect(await db.getAll('teams')).toHaveLength(0)
+    expect(await db.getAll('players')).toHaveLength(0)
+  })
+
+  it('đội sinh ra là bản ghi BÌNH THƯỜNG — list và get đọc được như mọi đội', async () => {
+    const { soDo, cacCauThu } = doiSinhRa()
+    const doi = await teamRepo.taoDoiSinhRa({
+      name: 'Đội bình thường',
+      cacCauThu,
+      formationId: soDo.id,
+    })
+
+    const danh = await teamRepo.list()
+    expect(danh.find((d) => d.id === doi.id)?.soCauThu).toBe(18)
+    expect((await teamRepo.get(doi.id)).name).toBe('Đội bình thường')
   })
 })

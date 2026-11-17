@@ -92,6 +92,18 @@ export const DANH_SACH_DOI_VI = {
   moDoi: 'Mở đội',
   soCauThu: (n: number) => `${n} cầu thủ`,
   chuaCoCauThu: 'Chưa có cầu thủ',
+  sinhDoi: 'Sinh một đội',
+  sinhDoiTieuDe: 'Sinh một đội ngẫu nhiên',
+  sinhDoiMoTa:
+    'Chọn mức độ và quân số, hệ thống dựng cả đội kèm một đội hình xếp sẵn — đá được ngay. Mọi cầu thủ sửa lại được như dữ liệu bạn tự nhập.',
+  sinhDoiNhanTen: 'Tên đội',
+  sinhDoiNhanMucDo: 'Mức độ',
+  sinhDoiNhanQuanSo: 'Quân số',
+  sinhDoiQuanSo: (n: number, soDuBi: number) =>
+    `${n} người + ${soDuBi} dự bị = ${n + soDuBi} cầu thủ`,
+  sinhDoiXacNhan: 'Sinh đội',
+  sinhDoiDangLam: 'Đang dựng đội…',
+  sinhDoiTenMacDinh: 'Đội ngẫu nhiên',
 } as const
 
 export const XOA_DOI_VI = {

@@ -1,4 +1,8 @@
-import type { Team } from '../domain/types'
+import { laySoDo, type FormationId } from '../domain/formations'
+import type { CauThuDaSinh } from '../domain/generator'
+import { xepLaiKhiDoiSoDo } from '../domain/lineup'
+import { vaiTroMacDinh } from '../domain/roles'
+import type { Player, Tactic, Team } from '../domain/types'
 import { moDb, taoChienThuatMacDinh } from '../storage/db'
 import { LoiUngDung, chuanHoaLoiLuuTru } from './errors'
 
@@ -127,6 +131,136 @@ export async function create(input: TaoDoiInput): Promise<Team> {
     await tx.done
 
     return { ...team, activeTacticId: chienThuat.id }
+  } catch (loi) {
+    throw chuanHoaLoiLuuTru(loi)
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Lưu một đội vừa SINH RA (T407, AC-24.4, AC-24.7)
+// ---------------------------------------------------------------------------
+
+export interface TaoDoiSinhRaInput {
+  readonly name: string
+  readonly primaryColor?: string
+  readonly secondaryColor?: string
+  /** Hồ sơ do `domain/generator.sinhDoi` sinh ra. */
+  readonly cacCauThu: readonly CauThuDaSinh[]
+  /** Sơ đồ của bộ chiến thuật sinh kèm. */
+  readonly formationId: FormationId
+}
+
+/**
+ * Xếp cả đội vừa sinh vào các ô của sơ đồ (D83).
+ *
+ * **Dùng lại `xepLaiKhiDoiSoDo`** — đúng hàm mà trang chiến thuật dùng khi
+ * đổi sơ đồ — nên luật "ai vào ô nào" chỉ có MỘT chỗ định nghĩa. Nhưng hàm
+ * ấy lấy danh sách người **từ `oVienCu`**, không từ `cacCauThu`: truyền
+ * `oVienCu = []` như `tacticRepo` làm khi đội chưa có bộ chiến thuật thì nó
+ * trả về đội hình toàn ô TRỐNG. Vì thế cả đội đi vào dưới dạng một `oVienCu`
+ * **giả**, mỗi người một ô.
+ *
+ * Rồi **lấp những ô còn trống bằng người bị đẩy ra**, đúng cách
+ * `chonTheoSoDo` ở `ChonCapDau.tsx` làm: `xepLaiKhiDoiSoDo` từ chối xếp ai
+ * vào ô mà mức sai là `nang`, nên một đội sinh ra vẫn có thể còn ô trống —
+ * mà AC-24.4 đòi đội sinh xong **đá được ngay**, không phải đá được sau khi
+ * người dùng tự điền nốt.
+ */
+function xepDoiSinhRa(
+  formationId: FormationId,
+  cacCauThu: readonly Player[],
+): readonly (string | null)[] {
+  const soDo = laySoDo(formationId)
+
+  const xepLai = xepLaiKhiDoiSoDo(
+    formationId,
+    cacCauThu.map((p, i) => ({ slotId: `gia-${i}`, playerId: p.id })),
+    cacCauThu.map((p) => ({ id: p.id, positions: p.positions })),
+  )
+
+  const conLai = [...xepLai.nguoiBiDayRa]
+  return soDo.oVien.map(
+    (_, i) => xepLai.oVien[i]?.playerId ?? conLai.shift() ?? null,
+  )
+}
+
+/**
+ * Tạo một đội sinh ngẫu nhiên: đội, toàn bộ cầu thủ, và bộ chiến thuật đã
+ * xếp đủ ô — trong **MỘT** transaction (AC-24.7, D82).
+ *
+ * Gọi lần lượt `create` rồi vòng lặp `playerRepo.save` thì hỏng giữa chừng
+ * để lại một đội có nửa số cầu thủ, và P3 cấm đúng điều đó. Số áo đã được
+ * `sinhDoi` bảo đảm không trùng nhau, nên ở đây không cần kiểm lại chỉ mục
+ * `byTeamAndShirt`: đội này mới, chưa có ai từ trước.
+ */
+export async function taoDoiSinhRa(input: TaoDoiSinhRaInput): Promise<Team> {
+  const ten = chuanHoaTen(input.name)
+  const bayGio = Date.now()
+  const teamId = crypto.randomUUID()
+
+  const cacCauThu: readonly Player[] = input.cacCauThu.map((c) => ({
+    id: crypto.randomUUID(),
+    teamId,
+    name: c.name,
+    shirtNumber: c.shirtNumber,
+    age: c.age,
+    preferredFoot: c.preferredFoot,
+    positions: [...c.positions],
+    attributes: c.attributes,
+    gkAttributes: c.gkAttributes,
+    portraitImageId: null,
+    createdAt: bayGio,
+    updatedAt: bayGio,
+  }))
+
+  const soDo = laySoDo(input.formationId)
+  const xep = xepDoiSinhRa(input.formationId, cacCauThu)
+
+  const chienThuat: Tactic = {
+    ...taoChienThuatMacDinh(teamId, bayGio),
+    formationId: input.formationId,
+    oVien: soDo.oVien.map((o, i) => ({
+      slotId: o.slotId,
+      playerId: xep[i] ?? null,
+      roleId: vaiTroMacDinh(o.viTri),
+    })),
+  }
+
+  const doi: Team = {
+    id: teamId,
+    name: ten,
+    logoImageId: null,
+    primaryColor: input.primaryColor ?? MAU_AO_MAC_DINH.chinh,
+    secondaryColor: input.secondaryColor ?? MAU_AO_MAC_DINH.phu,
+    activeTacticId: chienThuat.id,
+    createdAt: bayGio,
+    updatedAt: bayGio,
+  }
+
+  try {
+    const db = await moDb()
+    const tx = db.transaction(['teams', 'players', 'tactics'], 'readwrite')
+
+    /*
+      Đánh dấu `tx.done` là ĐÃ XỬ LÝ ngay từ đầu.
+
+      Khi một lệnh ghi hỏng, IndexedDB huỷ cả transaction và `tx.done` cũng
+      reject. Đường code bên dưới ném ngay ở lệnh ghi hỏng, nên nó không bao
+      giờ tới chỗ `await tx.done` — và một promise reject mà không ai bắt sẽ
+      thành unhandled rejection, thứ làm đỏ cả những test chạy sau. Gắn sẵn
+      một handler rỗng không che lỗi: lỗi thật vẫn đi ra từ lệnh ghi.
+    */
+    void tx.done.catch(() => undefined)
+
+    await tx.objectStore('teams').add(doi)
+    const khoCauThu = tx.objectStore('players')
+    for (const p of cacCauThu) {
+      await khoCauThu.add(p)
+    }
+    await tx.objectStore('tactics').add(chienThuat)
+    await tx.done
+
+    return doi
   } catch (loi) {
     throw chuanHoaLoiLuuTru(loi)
   }

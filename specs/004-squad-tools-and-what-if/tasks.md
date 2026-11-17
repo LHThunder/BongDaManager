@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | 37 AC (US-24 → US-27) |
-| **Tiến độ** | 5/40 |
+| **Tiến độ** | 10/40 |
 | **Sửa đổi** | 2026-11-17 — chẻ lần đầu từ plan; cùng ngày sửa theo `/analyze` (1 CRITICAL + 4 HIGH) |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -60,19 +60,19 @@ lát cắt dọc ở `plan.md` mục 9; mỗi phase kết thúc là một ứng 
 
 ## Phase 30 — Lát 30: Sinh CẢ ĐỘI kèm chiến thuật
 
-- [ ] **T405** — Sinh cả đội ở `domain`
+- [x] **T405** — Sinh cả đội ở `domain`
   - File: sửa `src/domain/generator.ts`
   - Xong khi: hàm mới sinh đủ người cho một quân số cho trước cộng tối đa 7 dự bị (sân 11 ra 18 người), bảo đảm mỗi vị trí của sơ đồ có ít nhất một người đá đúng sở trường, số áo không trùng nhau trong đội.
   - AC: AC-24.4
   - Phụ thuộc: T402
 
-- [ ] **T406** — Test sinh cả đội
+- [x] **T406** — Test sinh cả đội
   - File: sửa `src/domain/generator.test.ts`
   - Xong khi: test xanh — đủ số người; mọi vị trí của sơ đồ được phủ; không hai cầu thủ nào trùng số áo; cùng nguồn ngẫu nhiên cho cùng một đội.
   - AC: AC-24.4
   - Phụ thuộc: T405
 
-- [ ] **T407** — Lưu đội sinh ra trong MỘT transaction
+- [x] **T407** — Lưu đội sinh ra trong MỘT transaction
   - File: sửa `src/services/teamRepo.ts`
   - Xong khi: hàm lưu đội sinh ra ghi `teams` + `players` + `tactics` trong **một** `db.transaction([...], 'readwrite')` theo đúng nếp `create` đang có (D82); bộ chiến thuật kèm theo đã xếp đủ ô của sơ đồ, dùng lại `xepLaiKhiDoiSoDo` chứ không viết thuật toán xếp thứ hai (D83); **`DB_VERSION` không đổi**.
   - Cách dùng lại cho đúng (D83, đã kiểm trên code): `xepLaiKhiDoiSoDo` lấy
@@ -85,13 +85,13 @@ lát cắt dọc ở `plan.md` mục 9; mỗi phase kết thúc là một ứng 
   - AC: AC-24.4, AC-24.7
   - Phụ thuộc: T405
 
-- [ ] **T408** — Test lưu đội sinh ra là tất-cả-hoặc-không-gì
+- [x] **T408** — Test lưu đội sinh ra là tất-cả-hoặc-không-gì
   - File: sửa `src/services/teamRepo.test.ts`
   - Xong khi: test xanh — lưu thành công thì có đủ đội, cầu thủ và chiến thuật; ép lỗi giữa chừng thì **không** còn lại đội, cầu thủ hay chiến thuật nào.
   - AC: AC-24.7
   - Phụ thuộc: T407
 
-- [ ] **T409** — Nút sinh cả đội trên màn danh sách đội
+- [x] **T409** — Nút sinh cả đội trên màn danh sách đội
   - File: sửa `src/ui/pages/DanhSachDoi.tsx`, `src/ui/ngonNgu/{vi,en,index}.ts`
   - Xong khi: bấm một nút, chọn mức độ và quân số, ra một đội **đá được ngay**; mở trang chiến thuật của đội ấy thấy đội hình đã xếp đủ ô; chuỗi đủ hai ngôn ngữ.
   - AC: AC-24.4, AC-24.6
@@ -401,6 +401,13 @@ lát cắt dọc ở `plan.md` mục 9; mỗi phase kết thúc là một ứng 
 - **Hiến pháp mục 4:** T400, T402, T405 chạm `domain`; T407, T410, T427
   chạm lớp đọc/ghi dữ liệu — tất cả đều **chưa xong nếu chưa có test**
   (T401, T403, T406, T408, T411, T429/T430).
+- **Phạm vi thật của Phase 29–30 so với danh sách file:** T404 và T409
+  chạm thêm `src/store/appStore.ts` ở dạng ĐỌC (`useAppStore((s) => s.ngonNgu)`)
+  để chọn kho tên — đúng nếp sáu file `ui` khác đang dùng, không sửa store.
+  T409 **không** phải sửa `ui/ngonNgu/index.ts`: khối `DANH_SACH_DOI` đã có
+  sẵn nên thêm khoá vào `vi.ts`/`en.ts` là đủ. T409 gọi `teamRepo` trực tiếp
+  từ `ui`, đúng nếp `ChonCapDau`/`TrangDoi`/`TrangLichSu`/`TrangTran`, nên
+  không thêm hàm vào `hooks/useTeams.ts`.
 - **Bài học của spec 003 về danh sách file:** danh sách file ở trên đã
   `grep` trước khi chốt — `sinhChiSo` và `CAC_MUC_DO` hiện chỉ có `domain/
   generator.ts` và `FormCauThu.tsx` đọc; `xepLaiKhiDoiSoDo` có `useTactic.ts`
