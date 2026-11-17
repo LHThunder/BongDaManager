@@ -472,3 +472,226 @@ describe('lưu đội sinh ra (AC-24.4, AC-24.7)', () => {
     expect((await teamRepo.get(doi.id)).name).toBe('Đội bình thường')
   })
 })
+
+/*
+  Nhân bản đội (T411, AC-26.1, AC-26.2, AC-26.3).
+
+  Phép kiểm trung tâm là "không id nào dùng chung". AC-26.2 — sửa bản sao thì
+  gốc không đổi — KHÔNG phải một tính năng phải viết: nó là hệ quả của việc
+  mọi bản ghi có id riêng. Nên thứ đáng kiểm là tiền đề ấy, chứ không phải
+  diễn lại cảnh người dùng sửa rồi so.
+*/
+describe('nhân bản đội (AC-26.1, AC-26.2, AC-26.3)', () => {
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  async function doiGocCoNguoi(soCauThu = 18) {
+    const soDo = soDoTheoQuanSo(11)[0]
+    if (!soDo) throw new Error('không có sơ đồ 11 người')
+    const cacCauThu = sinhDoi(
+      { muc: 'kha', kho: KHO_TEN_VIET, soDo, soDuBi: soCauThu - 11 },
+      rngGia(7),
+    )
+    return teamRepo.taoDoiSinhRa({
+      name: 'Đội gốc',
+      primaryColor: '#123456',
+      secondaryColor: '#abcdef',
+      cacCauThu,
+      formationId: soDo.id,
+    })
+  }
+
+  it('bản sao có đủ số cầu thủ và chỉ số giống hệt (AC-26.1)', async () => {
+    const goc = await doiGocCoNguoi()
+    const kq = await teamRepo.nhanBan(goc.id, 'Đội gốc (bản sao)')
+
+    expect(kq.soCauThu).toBe(18)
+    const db = await moDb()
+    const nguoiGoc = await db.getAllFromIndex('players', 'byTeam', goc.id)
+    const nguoiSao = await db.getAllFromIndex('players', 'byTeam', kq.doi.id)
+    expect(nguoiSao).toHaveLength(nguoiGoc.length)
+
+    const rutGon = (p: Player) =>
+      JSON.stringify({
+        name: p.name,
+        shirtNumber: p.shirtNumber,
+        age: p.age,
+        preferredFoot: p.preferredFoot,
+        positions: p.positions,
+        attributes: p.attributes,
+        gkAttributes: p.gkAttributes,
+      })
+    expect(nguoiSao.map(rutGon).sort()).toEqual(nguoiGoc.map(rutGon).sort())
+  })
+
+  it('mang tên phân biệt được, và giữ màu áo (AC-26.1)', async () => {
+    const goc = await doiGocCoNguoi()
+    const kq = await teamRepo.nhanBan(goc.id, 'Đội gốc (bản sao)')
+
+    expect(kq.doi.name).toBe('Đội gốc (bản sao)')
+    expect(kq.doi.name).not.toBe(goc.name)
+    expect(kq.doi.primaryColor).toBe('#123456')
+    expect(kq.doi.secondaryColor).toBe('#abcdef')
+  })
+
+  it('KHÔNG id nào dùng chung với đội gốc (AC-26.2)', async () => {
+    const goc = await doiGocCoNguoi()
+    const kq = await teamRepo.nhanBan(goc.id, 'Bản sao')
+    const db = await moDb()
+
+    expect(kq.doi.id).not.toBe(goc.id)
+
+    const idNguoiGoc = new Set(
+      (await db.getAllFromIndex('players', 'byTeam', goc.id)).map((p) => p.id),
+    )
+    for (const p of await db.getAllFromIndex(
+      'players',
+      'byTeam',
+      kq.doi.id,
+    )) {
+      expect(idNguoiGoc.has(p.id), `id dùng chung: ${p.id}`).toBe(false)
+      expect(p.teamId).toBe(kq.doi.id)
+    }
+
+    const idBoGoc = new Set(
+      (await db.getAllFromIndex('tactics', 'byTeam', goc.id)).map((b) => b.id),
+    )
+    for (const bo of await db.getAllFromIndex(
+      'tactics',
+      'byTeam',
+      kq.doi.id,
+    )) {
+      expect(idBoGoc.has(bo.id)).toBe(false)
+      expect(bo.teamId).toBe(kq.doi.id)
+    }
+  })
+
+  it('đội hình của bản sao trỏ vào cầu thủ CỦA BẢN SAO (AC-26.2)', async () => {
+    const goc = await doiGocCoNguoi()
+    const kq = await teamRepo.nhanBan(goc.id, 'Bản sao')
+    const db = await moDb()
+
+    const idNguoiSao = new Set(
+      (await db.getAllFromIndex('players', 'byTeam', kq.doi.id)).map(
+        (p) => p.id,
+      ),
+    )
+    const bo = (await db.getAllFromIndex('tactics', 'byTeam', kq.doi.id))[0]
+    expect(bo?.oVien).toHaveLength(11)
+    for (const o of bo?.oVien ?? []) {
+      expect(o.playerId, o.slotId).not.toBeNull()
+      expect(idNguoiSao.has(o.playerId as string), o.slotId).toBe(true)
+    }
+    // Và bộ đang dùng của bản sao là BẢN SAO của bộ, không phải bộ của gốc.
+    expect(kq.doi.activeTacticId).toBe(bo?.id)
+    expect(kq.doi.activeTacticId).not.toBe(goc.activeTacticId)
+  })
+
+  it('sửa bản sao thì gốc không đổi, và ngược lại (AC-26.2)', async () => {
+    const goc = await doiGocCoNguoi()
+    const kq = await teamRepo.nhanBan(goc.id, 'Bản sao')
+    const db = await moDb()
+
+    const nguoiSao = (
+      await db.getAllFromIndex('players', 'byTeam', kq.doi.id)
+    )[0]
+    if (!nguoiSao) throw new Error('bản sao không có cầu thủ')
+    await db.put('players', { ...nguoiSao, name: 'Đã đổi tên', age: 40 })
+
+    for (const p of await db.getAllFromIndex('players', 'byTeam', goc.id)) {
+      expect(p.name).not.toBe('Đã đổi tên')
+      expect(p.age).not.toBe(40)
+    }
+
+    // Chiều ngược lại: xoá một người của GỐC thì bản sao vẫn đủ người.
+    const nguoiGoc = (
+      await db.getAllFromIndex('players', 'byTeam', goc.id)
+    )[0]
+    if (!nguoiGoc) throw new Error('gốc không có cầu thủ')
+    await db.delete('players', nguoiGoc.id)
+    expect(
+      await db.getAllFromIndex('players', 'byTeam', kq.doi.id),
+    ).toHaveLength(18)
+  })
+
+  it('bản sao KHÔNG mang ảnh nào (AC-26.3)', async () => {
+    const goc = await teamRepo.create({ name: 'Đội có ảnh' })
+    await themCauThu(goc.id, 7, true)
+    await themCauThu(goc.id, 8, true)
+    await teamRepo.capNhat(goc.id, { logoImageId: 'logo-gia' })
+
+    const db = await moDb()
+    const soAnhTruoc = (await db.getAll('images')).length
+    expect(soAnhTruoc).toBe(2)
+
+    const kq = await teamRepo.nhanBan(goc.id, 'Bản sao không ảnh')
+
+    expect(kq.doi.logoImageId).toBeNull()
+    for (const p of await db.getAllFromIndex(
+      'players',
+      'byTeam',
+      kq.doi.id,
+    )) {
+      expect(p.portraitImageId).toBeNull()
+    }
+    // Và không nhân bản thêm một ảnh nào vào store.
+    expect(await db.getAll('images')).toHaveLength(soAnhTruoc)
+  })
+
+  it('nhân bản đội CHƯA CÓ cầu thủ nào vẫn chạy (spec mục 5)', async () => {
+    const goc = await teamRepo.create({ name: 'Đội rỗng' })
+    const kq = await teamRepo.nhanBan(goc.id, 'Đội rỗng (bản sao)')
+
+    expect(kq.soCauThu).toBe(0)
+    expect(kq.doi.name).toBe('Đội rỗng (bản sao)')
+    // Đội mới tạo đã có một bộ chiến thuật, nên bản sao cũng phải có.
+    expect(kq.soChienThuat).toBe(1)
+    expect(kq.doi.activeTacticId).toBeTruthy()
+    expect(kq.doi.activeTacticId).not.toBe(goc.activeTacticId)
+  })
+
+  it('hỏng giữa chừng thì KHÔNG để lại gì của bản sao (spec mục 5)', async () => {
+    const goc = await doiGocCoNguoi()
+    const db = await moDb()
+    const soDoiTruoc = (await db.getAll('teams')).length
+    const soNguoiTruoc = (await db.getAll('players')).length
+    const soBoTruoc = (await db.getAll('tactics')).length
+
+    /*
+      Mọi id trùng nhau ⇒ `players.add` ném ConstraintError ở người thứ hai,
+      tức giữa transaction, sau khi đội bản sao đã được ghi. Đây là hình dạng
+      của một lần ghi thất bại thật (lưu trữ đầy).
+    */
+    vi.spyOn(crypto, 'randomUUID').mockReturnValue(
+      '22222222-2222-4222-8222-222222222222',
+    )
+
+    await expect(
+      teamRepo.nhanBan(goc.id, 'Bản sao hỏng'),
+    ).rejects.toBeInstanceOf(LoiUngDung)
+
+    vi.restoreAllMocks()
+
+    expect(await db.getAll('teams')).toHaveLength(soDoiTruoc)
+    expect(await db.getAll('players')).toHaveLength(soNguoiTruoc)
+    expect(await db.getAll('tactics')).toHaveLength(soBoTruoc)
+  })
+
+  it('nhân bản một đội không tồn tại thì báo NotFound', async () => {
+    await expect(
+      teamRepo.nhanBan(crypto.randomUUID(), 'Bản sao'),
+    ).rejects.toBeInstanceOf(LoiUngDung)
+  })
+
+  it('tên rỗng bị từ chối TRƯỚC khi ghi gì', async () => {
+    const goc = await doiGocCoNguoi()
+    const db = await moDb()
+    const soDoiTruoc = (await db.getAll('teams')).length
+
+    await expect(teamRepo.nhanBan(goc.id, '  ')).rejects.toBeInstanceOf(
+      LoiUngDung,
+    )
+    expect(await db.getAll('teams')).toHaveLength(soDoiTruoc)
+  })
+})

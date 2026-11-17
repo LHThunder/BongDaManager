@@ -4,7 +4,13 @@ import { useEffect, useMemo, useState } from 'react'
 import { hoSoHoanTat } from '../../domain/completeness'
 import { POSITIONS } from '../../domain/positions'
 import { viTriTotNhat } from '../../domain/rating'
-import type { Player, Team } from '../../domain/types'
+import { CHI_SO_MAX, CHI_SO_MIN } from '../../domain/types'
+import type {
+  Player,
+  PositionId,
+  PreferredFoot,
+  Team,
+} from '../../domain/types'
 import { usePlayers } from '../../hooks/usePlayers'
 import * as teamRepo from '../../services/teamRepo'
 
@@ -27,6 +33,106 @@ type HopDangMo =
   | { readonly loai: 'xoa'; readonly cauThu: Player }
 
 const THU_TU_VI_TRI = new Map(POSITIONS.map((p, i) => [p.id, i]))
+
+const CAC_CHAN_THUAN: readonly PreferredFoot[] = ['phai', 'trai', 'ca-hai']
+
+/** Dải tuổi của ô lọc. Rộng hơn dải sinh ngẫu nhiên, vì người dùng tự nhập. */
+const TUOI_LOC_MIN = 14
+const TUOI_LOC_MAX = 50
+
+interface BoLoc {
+  readonly ten: string
+  readonly viTri: PositionId | ''
+  readonly chanThuan: PreferredFoot | ''
+  readonly tuoiTu: number
+  readonly tuoiDen: number
+  readonly chiSoTu: number
+  readonly chiSoDen: number
+}
+
+const BO_LOC_RONG: BoLoc = {
+  ten: '',
+  viTri: '',
+  chanThuan: '',
+  tuoiTu: TUOI_LOC_MIN,
+  tuoiDen: TUOI_LOC_MAX,
+  chiSoTu: CHI_SO_MIN,
+  chiSoDen: CHI_SO_MAX,
+}
+
+function coLocNao(boLoc: BoLoc): boolean {
+  return (
+    boLoc.ten.trim() !== '' ||
+    boLoc.viTri !== '' ||
+    boLoc.chanThuan !== '' ||
+    boLoc.tuoiTu !== BO_LOC_RONG.tuoiTu ||
+    boLoc.tuoiDen !== BO_LOC_RONG.tuoiDen ||
+    boLoc.chiSoTu !== BO_LOC_RONG.chiSoTu ||
+    boLoc.chiSoDen !== BO_LOC_RONG.chiSoDen
+  )
+}
+
+/** Khoảng chỉ số tổng có bị thu hẹp so với dải đầy đủ hay không. */
+function coLocChiSo(boLoc: BoLoc): boolean {
+  return (
+    boLoc.chiSoTu !== BO_LOC_RONG.chiSoTu ||
+    boLoc.chiSoDen !== BO_LOC_RONG.chiSoDen
+  )
+}
+
+/**
+ * Chỉ số tổng dùng để lọc: đo ở **vị trí tốt nhất** của cầu thủ (AC-26.5).
+ *
+ * Đây đúng con số đang hiện ở cột Chỉ số tổng, nên người dùng lọc theo chính
+ * thứ họ đang đọc. Lấy một vị trí khác thì danh sách sẽ loại người mà con số
+ * trên màn hình vẫn nằm trong khoảng — không ai hiểu nổi vì sao.
+ */
+function diemDeLoc(p: Player): number | null {
+  return (
+    viTriTotNhat(
+      { attributes: p.attributes, gkAttributes: p.gkAttributes },
+      p.positions,
+    )?.diem ?? null
+  )
+}
+
+/**
+ * Lọc danh sách cầu thủ ở **tầng giao diện** (quyết định D87).
+ *
+ * Một đội tối đa 30 người và đã nằm sẵn trong bộ nhớ, nên thêm chỉ mục
+ * IndexedDB là tăng `DB_VERSION` cộng một đường migration cho một việc mà
+ * vòng lặp `filter` làm xong trong micro-giây.
+ *
+ * Mọi điều kiện AND với nhau (AC-26.4). So tên không phân biệt chữ hoa.
+ */
+function locCauThu(cauThu: readonly Player[], boLoc: BoLoc): Player[] {
+  const ten = boLoc.ten.trim().toLocaleLowerCase('vi')
+  const locChiSo = coLocChiSo(boLoc)
+
+  return cauThu.filter((p) => {
+    if (ten !== '' && !p.name.toLocaleLowerCase('vi').includes(ten)) {
+      return false
+    }
+    if (boLoc.viTri !== '' && !p.positions.includes(boLoc.viTri)) return false
+    if (boLoc.chanThuan !== '' && p.preferredFoot !== boLoc.chanThuan) {
+      return false
+    }
+    if (p.age < boLoc.tuoiTu || p.age > boLoc.tuoiDen) return false
+
+    if (locChiSo) {
+      /*
+        Người chưa đủ chỉ số thì KHÔNG có con số nào để so. Loại họ ra khi
+        khoảng đã bị thu hẹp — và nói rõ ngay dưới ô lọc là đã loại bao
+        nhiêu người vì lý do ấy, chứ không để họ biến mất im lặng.
+      */
+      const diem = diemDeLoc(p)
+      if (diem === null) return false
+      if (diem < boLoc.chiSoTu || diem > boLoc.chiSoDen) return false
+    }
+
+    return true
+  })
+}
 
 function sapXep(cauThu: readonly Player[], khoa: KhoaSapXep): Player[] {
   const ra = [...cauThu]
@@ -52,6 +158,7 @@ export function TrangDoi({ teamId, onQuayLai, onMoChienThuat }: Props) {
   const [doi, datDoi] = useState<Team | null>(null)
   const { cauThu, napCauThu, xoaCauThu } = usePlayers(teamId)
   const [khoa, datKhoa] = useState<KhoaSapXep>('soAo')
+  const [boLoc, datBoLoc] = useState<BoLoc>(BO_LOC_RONG)
   const [hop, datHop] = useState<HopDangMo>({ loai: 'khong' })
 
   useEffect(() => {
@@ -73,7 +180,19 @@ export function TrangDoi({ teamId, onQuayLai, onMoChienThuat }: Props) {
     void napCauThu()
   }, [napCauThu])
 
-  const daSapXep = useMemo(() => sapXep(cauThu, khoa), [cauThu, khoa])
+  const daLoc = useMemo(() => locCauThu(cauThu, boLoc), [cauThu, boLoc])
+  const daSapXep = useMemo(() => sapXep(daLoc, khoa), [daLoc, khoa])
+
+  /** Số người bị khoảng chỉ số loại vì chưa tính được chỉ số tổng. */
+  const soChuaTinhDuoc = useMemo(
+    () =>
+      coLocChiSo(boLoc)
+        ? cauThu.filter((p) => diemDeLoc(p) === null).length
+        : 0,
+    [cauThu, boLoc],
+  )
+
+  const dangLoc = coLocNao(boLoc)
 
   if (!doi) {
     return <p className="text-chu-phu">{CHUNG.dangTai}</p>
@@ -147,6 +266,167 @@ export function TrangDoi({ teamId, onQuayLai, onMoChienThuat }: Props) {
         </div>
       </div>
 
+      {cauThu.length > 0 && (
+        <fieldset className="mt-4 rounded-lg border border-vien bg-nen-the p-4">
+          <legend className="px-1 text-sm font-medium text-chu">
+            {TRANG_DOI.locTieuDe}
+          </legend>
+
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <label className="block text-sm text-chu">
+              {TRANG_DOI.locTen}
+              <input
+                type="text"
+                value={boLoc.ten}
+                onChange={(e) =>
+                  datBoLoc({ ...boLoc, ten: e.target.value })
+                }
+                placeholder={TRANG_DOI.locTenGoiY}
+                className="mt-1 block w-full rounded-md border border-vien-dam px-3 py-1.5 text-chu"
+              />
+            </label>
+
+            <label className="block text-sm text-chu">
+              {TRANG_DOI.locViTri}
+              <select
+                value={boLoc.viTri}
+                onChange={(e) =>
+                  datBoLoc({
+                    ...boLoc,
+                    viTri: e.target.value as PositionId | '',
+                  })
+                }
+                className="mt-1 block w-full rounded-md border border-vien-dam px-3 py-1.5 text-chu"
+              >
+                <option value="">{TRANG_DOI.locMoiViTri}</option>
+                {POSITIONS.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {NHAN_VI_TRI[p.id].ten}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="block text-sm text-chu">
+              {TRANG_DOI.locChanThuan}
+              <select
+                value={boLoc.chanThuan}
+                onChange={(e) =>
+                  datBoLoc({
+                    ...boLoc,
+                    chanThuan: e.target.value as PreferredFoot | '',
+                  })
+                }
+                className="mt-1 block w-full rounded-md border border-vien-dam px-3 py-1.5 text-chu"
+              >
+                <option value="">{TRANG_DOI.locMoiChanThuan}</option>
+                {CAC_CHAN_THUAN.map((c) => (
+                  <option key={c} value={c}>
+                    {CHAN_THUAN[c]}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <fieldset>
+              <legend className="text-sm text-chu">{TRANG_DOI.locTuoi}</legend>
+              <div className="mt-1 flex items-center gap-2">
+                <label className="flex-1 text-xs text-chu-phu">
+                  {TRANG_DOI.locTu}
+                  <input
+                    type="number"
+                    inputMode="numeric"
+                    min={TUOI_LOC_MIN}
+                    max={TUOI_LOC_MAX}
+                    value={boLoc.tuoiTu}
+                    onChange={(e) =>
+                      datBoLoc({ ...boLoc, tuoiTu: Number(e.target.value) })
+                    }
+                    className="mt-0.5 block w-full rounded-md border border-vien-dam px-2 py-1.5 text-chu"
+                  />
+                </label>
+                <label className="flex-1 text-xs text-chu-phu">
+                  {TRANG_DOI.locDen}
+                  <input
+                    type="number"
+                    inputMode="numeric"
+                    min={TUOI_LOC_MIN}
+                    max={TUOI_LOC_MAX}
+                    value={boLoc.tuoiDen}
+                    onChange={(e) =>
+                      datBoLoc({ ...boLoc, tuoiDen: Number(e.target.value) })
+                    }
+                    className="mt-0.5 block w-full rounded-md border border-vien-dam px-2 py-1.5 text-chu"
+                  />
+                </label>
+              </div>
+            </fieldset>
+
+            <fieldset className="sm:col-span-2">
+              <legend className="text-sm text-chu">
+                {TRANG_DOI.locChiSoTong}
+              </legend>
+              <div className="mt-1 flex items-center gap-2">
+                <label className="flex-1 text-xs text-chu-phu">
+                  {TRANG_DOI.locTu}
+                  <input
+                    type="number"
+                    inputMode="numeric"
+                    min={CHI_SO_MIN}
+                    max={CHI_SO_MAX}
+                    step="0.1"
+                    value={boLoc.chiSoTu}
+                    onChange={(e) =>
+                      datBoLoc({ ...boLoc, chiSoTu: Number(e.target.value) })
+                    }
+                    className="mt-0.5 block w-full rounded-md border border-vien-dam px-2 py-1.5 text-chu"
+                  />
+                </label>
+                <label className="flex-1 text-xs text-chu-phu">
+                  {TRANG_DOI.locDen}
+                  <input
+                    type="number"
+                    inputMode="numeric"
+                    min={CHI_SO_MIN}
+                    max={CHI_SO_MAX}
+                    step="0.1"
+                    value={boLoc.chiSoDen}
+                    onChange={(e) =>
+                      datBoLoc({ ...boLoc, chiSoDen: Number(e.target.value) })
+                    }
+                    className="mt-0.5 block w-full rounded-md border border-vien-dam px-2 py-1.5 text-chu"
+                  />
+                </label>
+              </div>
+              <p className="mt-1 text-xs text-chu-phu">
+                {TRANG_DOI.locChiSoTongGiaiThich}
+              </p>
+            </fieldset>
+          </div>
+
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+            <p className="text-sm text-chu-phu" aria-live="polite">
+              {TRANG_DOI.locDangHien(daLoc.length, cauThu.length)}
+              {soChuaTinhDuoc > 0 && (
+                <>
+                  {' '}
+                  {TRANG_DOI.locBoQuaChuaTinhDuoc(soChuaTinhDuoc)}
+                </>
+              )}
+            </p>
+            {dangLoc && (
+              <button
+                type="button"
+                onClick={() => datBoLoc(BO_LOC_RONG)}
+                className="rounded-md border border-vien-dam px-3 py-1.5 text-sm text-chu hover:bg-nen-nhan"
+              >
+                {TRANG_DOI.locXoaBoLoc}
+              </button>
+            )}
+          </div>
+        </fieldset>
+      )}
+
       {cauThu.length === 0 ? (
         <div className="mt-4 rounded-lg border border-dashed border-vien-dam bg-nen-the p-10 text-center">
           <h4 className="text-base font-medium text-chu">
@@ -161,6 +441,23 @@ export function TrangDoi({ teamId, onQuayLai, onMoChienThuat }: Props) {
             className="mt-6 rounded-md bg-chinh px-5 py-2.5 text-sm font-medium text-chu-tren-chinh hover:bg-chinh-dam"
           >
             {TRANG_DOI.themCauThuDauTien}
+          </button>
+        </div>
+      ) : daSapXep.length === 0 ? (
+        /* Lọc không khớp ai (AC-26.7) — nói rõ, và cho một đường về. */
+        <div className="mt-4 rounded-lg border border-dashed border-vien-dam bg-nen-the p-10 text-center">
+          <h4 className="text-base font-medium text-chu">
+            {TRANG_DOI.locKhongKhopTieuDe}
+          </h4>
+          <p className="mx-auto mt-2 max-w-lg text-sm text-chu-phu">
+            {TRANG_DOI.locKhongKhopMoTa}
+          </p>
+          <button
+            type="button"
+            onClick={() => datBoLoc(BO_LOC_RONG)}
+            className="mt-6 rounded-md bg-chinh px-5 py-2.5 text-sm font-medium text-chu-tren-chinh hover:bg-chinh-dam"
+          >
+            {TRANG_DOI.locXoaBoLoc}
           </button>
         </div>
       ) : (

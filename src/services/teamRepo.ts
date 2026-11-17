@@ -266,6 +266,136 @@ export async function taoDoiSinhRa(input: TaoDoiSinhRaInput): Promise<Team> {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Nhân bản một đội (T410, AC-26.1, AC-26.2, AC-26.3)
+// ---------------------------------------------------------------------------
+
+export interface KetQuaNhanBan {
+  readonly doi: Team
+  readonly soCauThu: number
+  readonly soChienThuat: number
+}
+
+/**
+ * Nhân bản một đội để có đối chứng khi so chiến thuật (AC-26.1).
+ *
+ * **Id mới cho MỌI bản ghi**, và `playerId` trong chiến thuật được ánh xạ
+ * sang id mới. Dùng chung dù một id là va thẳng vào AC-26.2: sửa bản sao sẽ
+ * sửa luôn đội gốc.
+ *
+ * **Chép cả chiến thuật**, không chỉ cầu thủ. Mục đích của nhân bản là so
+ * hai bộ chiến thuật trên hai đội giống hệt nhau (spec mục 1); bản sao mà
+ * đội hình trống thì người dùng phải xếp lại 11 người bằng tay, tức mất đúng
+ * cái việc mà tính năng này định tiết kiệm. D82 cũng đã liệt `tactics` vào
+ * danh sách store của transaction.
+ *
+ * **KHÔNG chép ảnh**: chân dung và logo để trống (quyết định `/clarify` câu
+ * 6). Chép hết là ~3MB mỗi lần bấm; dùng chung id ảnh thì xoá bản sao sẽ xoá
+ * ảnh của đội gốc. Giao diện phải nói trước điều này (AC-26.3).
+ *
+ * Tất cả trong MỘT transaction: hỏng giữa chừng thì không để lại đội nửa vời
+ * (P3, và trường hợp biên "nhân bản khi lưu trữ đã đầy" ở spec mục 5).
+ */
+export async function nhanBan(
+  id: string,
+  tenMoi: string,
+): Promise<KetQuaNhanBan> {
+  const ten = chuanHoaTen(tenMoi)
+  const bayGio = Date.now()
+
+  try {
+    const db = await moDb()
+    const tx = db.transaction(['teams', 'players', 'tactics'], 'readwrite')
+    void tx.done.catch(() => undefined)
+
+    const khoDoi = tx.objectStore('teams')
+    const khoCauThu = tx.objectStore('players')
+    const khoChienThuat = tx.objectStore('tactics')
+
+    const goc = await khoDoi.get(id)
+    if (!goc) {
+      await tx.done
+      throw new LoiUngDung('NotFound', { truong: 'teamId', giaTri: id })
+    }
+
+    const cauThuGoc = await khoCauThu.index('byTeam').getAll(id)
+    const chienThuatGoc = await khoChienThuat.index('byTeam').getAll(id)
+
+    const teamIdMoi = crypto.randomUUID()
+
+    /*
+      Bảng ánh xạ id cũ → id mới. Chiến thuật trỏ tới cầu thủ bằng id, nên
+      không có bảng này thì bản sao sẽ có đội hình gồm cầu thủ của đội GỐC —
+      hai đội dùng chung người, đúng thứ AC-26.2 cấm.
+    */
+    const idMoiTheoIdCu = new Map<string, string>()
+    const cauThuMoi: Player[] = cauThuGoc.map((p) => {
+      const idMoi = crypto.randomUUID()
+      idMoiTheoIdCu.set(p.id, idMoi)
+      return {
+        ...p,
+        id: idMoi,
+        teamId: teamIdMoi,
+        portraitImageId: null,
+        createdAt: bayGio,
+        updatedAt: bayGio,
+      }
+    })
+
+    const chienThuatMoi: Tactic[] = chienThuatGoc.map((bo) => ({
+      ...bo,
+      id: crypto.randomUUID(),
+      teamId: teamIdMoi,
+      oVien: bo.oVien.map((o) => ({
+        ...o,
+        playerId:
+          o.playerId === null
+            ? null
+            : (idMoiTheoIdCu.get(o.playerId) ?? null),
+      })),
+      createdAt: bayGio,
+      updatedAt: bayGio,
+    }))
+
+    /*
+      `activeTacticId` phải trỏ sang BẢN SAO của bộ đang dùng, không trỏ lại
+      bộ của đội gốc. Tìm theo vị trí trong danh sách vừa chép.
+    */
+    const viTriBoDangDung = chienThuatGoc.findIndex(
+      (bo) => bo.id === goc.activeTacticId,
+    )
+    const boDangDungMoi =
+      viTriBoDangDung === -1 ? null : chienThuatMoi[viTriBoDangDung]
+
+    const doiMoi: Team = {
+      ...goc,
+      id: teamIdMoi,
+      name: ten,
+      logoImageId: null,
+      activeTacticId: boDangDungMoi?.id ?? null,
+      createdAt: bayGio,
+      updatedAt: bayGio,
+    }
+
+    await khoDoi.add(doiMoi)
+    for (const p of cauThuMoi) {
+      await khoCauThu.add(p)
+    }
+    for (const bo of chienThuatMoi) {
+      await khoChienThuat.add(bo)
+    }
+    await tx.done
+
+    return {
+      doi: doiMoi,
+      soCauThu: cauThuMoi.length,
+      soChienThuat: chienThuatMoi.length,
+    }
+  } catch (loi) {
+    throw chuanHoaLoiLuuTru(loi)
+  }
+}
+
 /**
  * Cập nhật tên, logo và màu áo của đội. Ảnh logo cũ bị thay thì được xoá luôn
  * trong cùng transaction, để store `images` không tích ảnh mồ côi (P3).

@@ -104,6 +104,21 @@ export const DANH_SACH_DOI_VI = {
   sinhDoiXacNhan: 'Sinh đội',
   sinhDoiDangLam: 'Đang dựng đội…',
   sinhDoiTenMacDinh: 'Đội ngẫu nhiên',
+  nhanBan: 'Nhân bản',
+  nhanBanTieuDe: 'Nhân bản đội này?',
+  /*
+    Câu này phải nói TRƯỚC việc mất ảnh (AC-26.3). Người dùng bấm nhân bản
+    xong thấy một đội toàn ảnh thay thế sẽ tưởng là lỗi, và sẽ không bao giờ
+    biết rằng đó là lựa chọn có chủ đích.
+  */
+  nhanBanMoTa: (tenDoi: string, soCauThu: number) =>
+    soCauThu === 0
+      ? `Tạo một đội mới giống "${tenDoi}". Đội này chưa có cầu thủ nào, nên bản sao cũng vậy.`
+      : `Tạo một đội mới với đủ ${soCauThu} cầu thủ của "${tenDoi}" — chỉ số, màu áo và đội hình chép nguyên. Hai đội hoàn toàn độc lập: sửa bên này không ảnh hưởng bên kia.`,
+  nhanBanKhongAnh:
+    'Bản sao sẽ KHÔNG mang ảnh chân dung và logo của đội gốc; nó dùng ảnh thay thế mặc định. Đây là chủ đích, không phải lỗi.',
+  nhanBanXacNhan: 'Nhân bản đội',
+  nhanBanTenMoi: (tenDoi: string) => `${tenDoi} (bản sao)`,
 } as const
 
 export const XOA_DOI_VI = {
@@ -494,6 +509,33 @@ export const TRANG_DOI_VI = {
   chuaTinhDuocChiSoTong: 'Chưa đủ chỉ số để tính',
   suaCauThu: 'Sửa',
   xoaCauThu: 'Xoá',
+  locTieuDe: 'Tìm trong danh sách',
+  locTen: 'Tên',
+  locTenGoiY: 'Gõ một phần tên',
+  locViTri: 'Vị trí sở trường',
+  locMoiViTri: 'Mọi vị trí',
+  locChanThuan: 'Chân thuận',
+  locMoiChanThuan: 'Mọi chân thuận',
+  locTuoi: 'Tuổi',
+  locChiSoTong: 'Chỉ số tổng',
+  /*
+    AC-26.5: phải nói rõ con số đang tính theo VỊ TRÍ nào. Chỉ số tổng đổi
+    theo vị trí đang xét, nên một khoảng lọc mà không nói nó đo ở đâu là một
+    con số vô nghĩa. Ở đây nó đo đúng con số đang hiện ở cột Chỉ số tổng —
+    vị trí tốt nhất của từng cầu thủ, và cột ấy ghi sẵn viết tắt vị trí.
+  */
+  locChiSoTongGiaiThich:
+    'Đo ở vị trí tốt nhất của từng cầu thủ — đúng con số và vị trí ghi ở cột Chỉ số tổng.',
+  locTu: 'Từ',
+  locDen: 'Đến',
+  locDangHien: (hien: number, tong: number) =>
+    `Đang hiện ${hien} trên ${tong} cầu thủ`,
+  locBoQuaChuaTinhDuoc: (n: number) =>
+    `${n} cầu thủ chưa đủ chỉ số để tính chỉ số tổng nên không nằm trong khoảng lọc.`,
+  locXoaBoLoc: 'Xoá bộ lọc',
+  locKhongKhopTieuDe: 'Không có cầu thủ nào khớp',
+  locKhongKhopMoTa:
+    'Không ai trong đội khớp hết các điều kiện đang đặt. Hãy nới một điều kiện, hoặc xoá bộ lọc để xem lại cả đội.',
 } as const
 
 export const XOA_CAU_THU_VI = {

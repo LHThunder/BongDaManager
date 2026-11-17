@@ -6,6 +6,7 @@ import { soDoTheoQuanSo } from '../../domain/formations'
 import { CAC_MUC_DO, sinhDoi, type MucDo } from '../../domain/generator'
 import { KHO_TEN_ANH, KHO_TEN_VIET } from '../../domain/tenNgauNhien'
 import type { Rng } from '../../domain/types'
+import { ghiNhanLoiLuuTru } from '../../hooks/useBackup'
 import { coTranDangDien, useTeams } from '../../hooks/useTeams'
 import { laLoiUngDung, type LoiUngDung } from '../../services/errors'
 import * as teamRepo from '../../services/teamRepo'
@@ -26,6 +27,7 @@ type HopDangMo =
   | { readonly loai: 'tao' }
   | { readonly loai: 'sinh' }
   | { readonly loai: 'sua'; readonly doi: TeamSummary }
+  | { readonly loai: 'nhanBan'; readonly doi: TeamSummary }
   | { readonly loai: 'xoa'; readonly doi: TeamSummary }
 
 /** Nguồn ngẫu nhiên thật, tạo ở lớp giao diện — domain không được tự gọi (P1). */
@@ -184,6 +186,22 @@ export function DanhSachDoi({ onMoDoi }: Props) {
   const tran = useAppStore((s) => s.tran)
   const [hop, datHop] = useState<HopDangMo>({ loai: 'khong' })
 
+  /**
+   * Nhân bản một đội rồi nạp lại danh sách (AC-26.1).
+   *
+   * Lỗi lưu trữ đi qua `ghiNhanLoiLuuTru` để hiện ở **một chỗ duy nhất** của
+   * ứng dụng (AC-4.7), đúng cách `useTeams` làm — không mọc thêm một ô báo
+   * lỗi thứ hai trên màn hình này.
+   */
+  async function nhanBanDoi(doi: TeamSummary): Promise<void> {
+    try {
+      await teamRepo.nhanBan(doi.id, DANH_SACH_DOI.nhanBanTenMoi(doi.name))
+      await napDanhSachDoi()
+    } catch (loi) {
+      ghiNhanLoiLuuTru(loi)
+    }
+  }
+
   useEffect(() => {
     void napDanhSachDoi()
   }, [napDanhSachDoi])
@@ -284,6 +302,13 @@ export function DanhSachDoi({ onMoDoi }: Props) {
                 </button>
                 <button
                   type="button"
+                  onClick={() => datHop({ loai: 'nhanBan', doi })}
+                  className="rounded-md border border-vien-dam px-3 py-1.5 text-sm text-chu hover:bg-nen-nhan"
+                >
+                  {DANH_SACH_DOI.nhanBan}
+                </button>
+                <button
+                  type="button"
                   onClick={() => datHop({ loai: 'xoa', doi })}
                   className="rounded-md border border-loi-chu px-3 py-1.5 text-sm text-loi-chu hover:bg-loi-nen"
                 >
@@ -322,6 +347,24 @@ export function DanhSachDoi({ onMoDoi }: Props) {
         <FormDoi
           doiDangSua={hop.doi}
           onXong={() => datHop({ loai: 'khong' })}
+          onHuy={() => datHop({ loai: 'khong' })}
+        />
+      )}
+
+      {hop.loai === 'nhanBan' && (
+        <HopXacNhan
+          tieuDe={DANH_SACH_DOI.nhanBanTieuDe}
+          moTa={
+            DANH_SACH_DOI.nhanBanMoTa(hop.doi.name, hop.doi.soCauThu) +
+            ' ' +
+            DANH_SACH_DOI.nhanBanKhongAnh
+          }
+          nhanXacNhan={DANH_SACH_DOI.nhanBanXacNhan}
+          onXacNhan={() => {
+            const doi = hop.doi
+            datHop({ loai: 'khong' })
+            void nhanBanDoi(doi)
+          }}
           onHuy={() => datHop({ loai: 'khong' })}
         />
       )}

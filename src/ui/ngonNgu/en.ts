@@ -129,6 +129,16 @@ export const DANH_SACH_DOI_EN: BanDich<typeof DANH_SACH_DOI_VI> = {
   sinhDoiXacNhan: 'Generate team',
   sinhDoiDangLam: 'Building the team…',
   sinhDoiTenMacDinh: 'Random team',
+  nhanBan: 'Duplicate',
+  nhanBanTieuDe: 'Duplicate this team?',
+  nhanBanMoTa: (tenDoi: string, soCauThu: number) =>
+    soCauThu === 0
+      ? `This creates a new team just like "${tenDoi}". That team has no players yet, so neither will the copy.`
+      : `This creates a new team with all ${soCauThu} players from "${tenDoi}" — attributes, kit colours and line-up are copied as they are. The two teams are fully independent: editing one never touches the other.`,
+  nhanBanKhongAnh:
+    'The copy will NOT carry the portrait photos or the crest of the original; it uses the default placeholders instead. That is deliberate, not a fault.',
+  nhanBanXacNhan: 'Duplicate team',
+  nhanBanTenMoi: (tenDoi: string) => `${tenDoi} (copy)`,
 }
 
 export const XOA_DOI_EN: BanDich<typeof XOA_DOI_VI> = {
@@ -474,6 +484,29 @@ export const TRANG_DOI_EN: BanDich<typeof TRANG_DOI_VI> = {
   chuaTinhDuocChiSoTong: 'Not enough attributes to work it out',
   suaCauThu: 'Edit',
   xoaCauThu: 'Delete',
+  locTieuDe: 'Search the squad',
+  locTen: 'Name',
+  locTenGoiY: 'Type part of a name',
+  locViTri: 'Preferred position',
+  locMoiViTri: 'Any position',
+  locChanThuan: 'Preferred foot',
+  locMoiChanThuan: 'Either foot',
+  locTuoi: 'Age',
+  locChiSoTong: 'Overall',
+  locChiSoTongGiaiThich:
+    'Measured at each player’s best position — the same figure and position shown in the Overall column.',
+  locTu: 'From',
+  locDen: 'To',
+  locDangHien: (hien: number, tong: number) =>
+    `Showing ${hien} of ${tong} players`,
+  locBoQuaChuaTinhDuoc: (n: number) =>
+    n === 1
+      ? '1 player does not have enough attributes for an overall, so the range filter leaves them out.'
+      : `${n} players do not have enough attributes for an overall, so the range filter leaves them out.`,
+  locXoaBoLoc: 'Clear filters',
+  locKhongKhopTieuDe: 'No players match',
+  locKhongKhopMoTa:
+    'Nobody in this squad matches every condition you have set. Loosen one of them, or clear the filters to see the whole squad again.',
 }
 
 export const XOA_CAU_THU_EN: BanDich<typeof XOA_CAU_THU_VI> = {

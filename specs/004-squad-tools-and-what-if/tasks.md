@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | 37 AC (US-24 → US-27) |
-| **Tiến độ** | 10/40 |
+| **Tiến độ** | 16/40 |
 | **Sửa đổi** | 2026-11-17 — chẻ lần đầu từ plan; cùng ngày sửa theo `/analyze` (1 CRITICAL + 4 HIGH) |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -101,37 +101,37 @@ lát cắt dọc ở `plan.md` mục 9; mỗi phase kết thúc là một ứng 
 
 ## Phase 31 — Lát 31: Nhân bản đội và lọc danh sách
 
-- [ ] **T410** — Nhân bản đội ở `services`
+- [x] **T410** — Nhân bản đội ở `services`
   - File: sửa `src/services/teamRepo.ts`
   - Xong khi: hàm nhân bản tạo đội mới với **id mới cho mọi bản ghi**, chép chỉ số và màu áo, **bỏ ảnh** chân dung và logo (quyết định `/clarify` câu 6); tất cả trong một transaction; **`DB_VERSION` không đổi**.
   - AC: AC-26.1, AC-26.3
   - Phụ thuộc: —
 
-- [ ] **T411** — Test nhân bản đội
+- [x] **T411** — Test nhân bản đội
   - File: sửa `src/services/teamRepo.test.ts`
   - Xong khi: test xanh — bản sao có đủ số cầu thủ và chỉ số giống hệt; **không id nào dùng chung** với đội gốc; sửa bản sao thì gốc không đổi và ngược lại; bản sao không mang ảnh nào.
   - AC: AC-26.1, AC-26.2, AC-26.3
   - Phụ thuộc: T410
 
-- [ ] **T412** — Nút nhân bản trên màn danh sách đội
+- [x] **T412** — Nút nhân bản trên màn danh sách đội
   - File: sửa `src/ui/pages/DanhSachDoi.tsx`, `src/ui/ngonNgu/{vi,en,index}.ts`
   - Xong khi: mỗi đội có một nút nhân bản; bản sao mang tên phân biệt được; **trước khi nhân bản, màn hình nói rõ bản sao sẽ không có ảnh** (AC-26.3); chuỗi đủ hai ngôn ngữ.
   - AC: AC-26.1, AC-26.3
   - Phụ thuộc: T410
 
-- [ ] **T413** — Lọc danh sách cầu thủ
+- [x] **T413** — Lọc danh sách cầu thủ
   - File: sửa `src/ui/pages/TrangDoi.tsx`, `src/ui/ngonNgu/{vi,en,index}.ts`
   - Xong khi: lọc được theo **tên, vị trí sở trường, khoảng chỉ số tổng, tuổi, chân thuận** và các bộ lọc kết hợp được; khoảng chỉ số tổng nêu rõ đang tính theo **vị trí nào** (dùng `chiSoTongTheoViTri`); danh sách nói rõ đang hiện bao nhiêu trên tổng bao nhiêu; lọc ở tầng giao diện, **không** thêm chỉ mục database (D87).
   - AC: AC-26.4, AC-26.5, AC-26.6
   - Phụ thuộc: —
 
-- [ ] **T414** — Trạng thái rỗng khi lọc không ra ai
+- [x] **T414** — Trạng thái rỗng khi lọc không ra ai
   - File: sửa `src/ui/pages/TrangDoi.tsx`, `src/ui/ngonNgu/{vi,en}.ts`
   - Xong khi: lọc không khớp ai thì hiện thông báo không có kết quả kèm một thao tác xoá bộ lọc; bấm vào trở lại danh sách đầy đủ.
   - AC: AC-26.7
   - Phụ thuộc: T413
 
-- [ ] **T415** — Bàn phím và tương phản cho phần lọc
+- [x] **T415** — Bàn phím và tương phản cho phần lọc
   - File: sửa `src/ui/pages/TrangDoi.tsx`
   - Xong khi: Tab đi được qua mọi ô lọc; đo tương phản chữ/nền của phần lọc ở **cả hai chế độ** sáng và tối, đều ≥ 4.5:1.
   - AC: AC-26.4
