@@ -1,8 +1,21 @@
 import { describe, expect, it } from 'vitest'
 import { chiSoQuanTrong, GK_CHI_SO_CHUNG } from './attributes'
-import { chiSoCanCo } from './completeness'
-import { CAC_MUC_DO, sinhChiSo, type MucDo } from './generator'
+import { chiSoCanCo, hoSoHoanTat } from './completeness'
+import {
+  CAC_MUC_DO,
+  sinhCauThu,
+  sinhChiSo,
+  soAoConTrong,
+  SO_AO_MAX,
+  SO_AO_MIN,
+  TUOI_MAX,
+  TUOI_MIN,
+  type CauThuDaSinh,
+  type MucDo,
+} from './generator'
+import { kiemTraToHopViTri } from './positions'
 import { chiSoTongTheoViTri } from './rating'
+import { KHO_TEN_ANH, KHO_TEN_VIET } from './tenNgauNhien'
 import { CHI_SO_MAX, CHI_SO_MIN, type AttributeId, type Rng } from './types'
 
 /** Nguồn ngẫu nhiên giả, cho cùng chuỗi số với cùng hạt giống (P1). */
@@ -160,5 +173,187 @@ describe('sinh nhanh chỉ số (AC-2.9)', () => {
         expect(ra.gkAttributes?.[id], `${viTri}/${id}`).toBeDefined()
       }
     }
+  })
+})
+
+/*
+  Sinh MỘT cầu thủ đầy đủ (T403, AC-24.1, AC-24.2, AC-24.3).
+
+  Phép kiểm đáng tiền nhất trong khối này là phép kiểm cuối: đội đã dùng hết
+  99 số áo. Nó không kiểm một giá trị trả về — nó kiểm rằng hàm **kết thúc**.
+  Cách viết tự nhiên nhất ("bốc một số, trùng thì bốc lại") chạy đúng ở mọi
+  trường hợp khác và treo vĩnh viễn ở đúng trường hợp này.
+*/
+describe('sinh một cầu thủ đầy đủ (AC-24.1)', () => {
+  function sinh(hatGiong: number, soAoDaDung: readonly number[] = []): CauThuDaSinh {
+    const kq = sinhCauThu(
+      { muc: 'kha', kho: KHO_TEN_VIET, soAoDaDung },
+      rngGia(hatGiong),
+    )
+    if (!kq.sinhDuoc) throw new Error(`không sinh được: ${kq.lyDo}`)
+    return kq.cauThu
+  }
+
+  it('không trường bắt buộc nào trống', () => {
+    for (const hat of [1, 7, 42, 999]) {
+      const c = sinh(hat)
+      expect(c.name.trim(), `hạt ${hat}`).not.toBe('')
+      expect(c.shirtNumber).toBeGreaterThanOrEqual(SO_AO_MIN)
+      expect(c.shirtNumber).toBeLessThanOrEqual(SO_AO_MAX)
+      expect(c.age).toBeGreaterThanOrEqual(TUOI_MIN)
+      expect(c.age).toBeLessThanOrEqual(TUOI_MAX)
+      expect(['trai', 'phai', 'ca-hai']).toContain(c.preferredFoot)
+      expect(c.positions.length).toBeGreaterThan(0)
+      // Hồ sơ phải ở trạng thái HOÀN TẤT, không chỉ "có vài chỉ số".
+      expect(
+        hoSoHoanTat({
+          positions: c.positions,
+          attributes: c.attributes,
+          gkAttributes: c.gkAttributes,
+        }).hoanTat,
+        `hạt ${hat}`,
+      ).toBe(true)
+    }
+  })
+
+  it('tổ hợp vị trí sinh ra luôn hợp lệ', () => {
+    for (let hat = 1; hat <= 60; hat += 1) {
+      const c = sinh(hat)
+      expect(
+        kiemTraToHopViTri(c.positions).hopLe,
+        `hạt ${hat}: ${c.positions.join('+')}`,
+      ).toBe(true)
+    }
+  })
+
+  it('cùng một nguồn ngẫu nhiên cho cùng một hồ sơ (P1)', () => {
+    expect(sinh(42)).toEqual(sinh(42))
+  })
+
+  it('hai hạt giống khác nhau cho hai người khác nhau (AC-24.5)', () => {
+    expect(sinh(1)).not.toEqual(sinh(2))
+  })
+
+  it('kho tên quyết định thứ tiếng của tên, không phải mức hay vị trí', () => {
+    const viet = sinhCauThu(
+      { muc: 'kha', kho: KHO_TEN_VIET, soAoDaDung: [] },
+      rngGia(5),
+    )
+    const anh = sinhCauThu(
+      { muc: 'kha', kho: KHO_TEN_ANH, soAoDaDung: [] },
+      rngGia(5),
+    )
+    if (!viet.sinhDuoc || !anh.sinhDuoc) throw new Error('không sinh được')
+    expect(viet.cauThu.name).not.toBe(anh.cauThu.name)
+    // Mọi thứ KHÁC tên phải giống hệt: cùng hạt giống, cùng thứ tự lấy số.
+    expect({ ...viet.cauThu, name: '' }).toEqual({ ...anh.cauThu, name: '' })
+  })
+
+  it('số áo không trùng với danh sách truyền vào (AC-24.3)', () => {
+    const daDung = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+    for (let hat = 1; hat <= 80; hat += 1) {
+      const c = sinh(hat, daDung)
+      expect(daDung, `hạt ${hat}`).not.toContain(c.shirtNumber)
+    }
+  })
+
+  it('còn đúng một số trống thì sinh ra đúng số ấy', () => {
+    const daDung: number[] = []
+    for (let n = SO_AO_MIN; n <= SO_AO_MAX; n += 1) {
+      if (n !== 77) daDung.push(n)
+    }
+    expect(sinh(3, daDung).shirtNumber).toBe(77)
+  })
+
+  it('vị trí khai sẵn thì dùng đúng vị trí ấy, không bốc lại', () => {
+    const kq = sinhCauThu(
+      { muc: 'kha', kho: KHO_TEN_VIET, soAoDaDung: [], viTri: ['GK'] },
+      rngGia(9),
+    )
+    if (!kq.sinhDuoc) throw new Error('không sinh được')
+    expect(kq.cauThu.positions).toEqual(['GK'])
+    expect(kq.cauThu.gkAttributes).not.toBeNull()
+  })
+
+  it('mức cao hơn cho chỉ số tổng cao hơn ở CÙNG vị trí (AC-24.2)', () => {
+    const diem = CAC_MUC_DO.map((m) => {
+      const kq = sinhCauThu(
+        {
+          muc: m.id as MucDo,
+          kho: KHO_TEN_VIET,
+          soAoDaDung: [],
+          viTri: ['DC'],
+        },
+        rngGia(5),
+      )
+      if (!kq.sinhDuoc) throw new Error(`mức ${m.id} không sinh được`)
+      const tong = chiSoTongTheoViTri(
+        {
+          attributes: kq.cauThu.attributes,
+          gkAttributes: kq.cauThu.gkAttributes,
+        },
+        'DC',
+      )
+      if (!tong.tinhDuoc) throw new Error(`mức ${m.id} sinh ra hồ sơ chưa đủ`)
+      return { muc: m.id, diem: tong.diem }
+    })
+
+    for (let i = 1; i < diem.length; i++) {
+      const truoc = diem[i - 1]
+      const sau = diem[i]
+      if (!truoc || !sau) throw new Error('thiếu mức')
+      expect(
+        truoc.diem,
+        `${truoc.muc} phải cao hơn ${sau.muc}`,
+      ).toBeGreaterThan(sau.diem)
+    }
+  })
+
+  it('mọi chỉ số nằm trong 1..20 ở cả bốn mức', () => {
+    for (const muc of CAC_MUC_DO) {
+      for (const viTri of ['GK', 'DC', 'ST'] as const) {
+        const kq = sinhCauThu(
+          {
+            muc: muc.id as MucDo,
+            kho: KHO_TEN_VIET,
+            soAoDaDung: [],
+            viTri: [viTri],
+          },
+          rngGia(17),
+        )
+        if (!kq.sinhDuoc) throw new Error(`${muc.id}/${viTri} không sinh được`)
+        for (const v of [
+          ...Object.values(kq.cauThu.attributes),
+          ...Object.values(kq.cauThu.gkAttributes ?? {}),
+        ]) {
+          expect(v, `${muc.id}/${viTri}`).toBeGreaterThanOrEqual(CHI_SO_MIN)
+          expect(v, `${muc.id}/${viTri}`).toBeLessThanOrEqual(CHI_SO_MAX)
+        }
+      }
+    }
+  })
+
+  it('hết số áo thì TRẢ VỀ lý do, không treo', () => {
+    const hetSo: number[] = []
+    for (let n = SO_AO_MIN; n <= SO_AO_MAX; n += 1) hetSo.push(n)
+
+    const kq = sinhCauThu(
+      { muc: 'kha', kho: KHO_TEN_VIET, soAoDaDung: hetSo },
+      rngGia(1),
+    )
+    expect(kq.sinhDuoc).toBe(false)
+    if (kq.sinhDuoc) throw new Error('đáng ra phải từ chối')
+    expect(kq.lyDo).toBe('het-so-ao')
+  })
+
+  it('soAoConTrong loại đúng những số đang dùng', () => {
+    expect(soAoConTrong([]).length).toBe(SO_AO_MAX - SO_AO_MIN + 1)
+    const conLai = soAoConTrong([1, 50, 99])
+    expect(conLai).not.toContain(1)
+    expect(conLai).not.toContain(50)
+    expect(conLai).not.toContain(99)
+    expect(conLai.length).toBe(SO_AO_MAX - SO_AO_MIN + 1 - 3)
+    // Số ngoài dải không làm hỏng phép lọc.
+    expect(soAoConTrong([0, 100, -5]).length).toBe(SO_AO_MAX - SO_AO_MIN + 1)
   })
 })

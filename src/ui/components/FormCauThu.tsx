@@ -2,13 +2,19 @@ import { useChuoi } from '../../hooks/useNgonNgu'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { GK_CHI_SO_CHUNG } from '../../domain/attributes'
 import { hoSoHoanTat } from '../../domain/completeness'
-import { CAC_MUC_DO, sinhChiSo, type MucDo } from '../../domain/generator'
+import {
+  CAC_MUC_DO,
+  sinhCauThu,
+  sinhChiSo,
+  type MucDo,
+} from '../../domain/generator'
 import {
   cacViTriConChonDuoc,
   laThuMon,
   POSITIONS,
 } from '../../domain/positions'
 import { chiSoTongTheoViTri } from '../../domain/rating'
+import { KHO_TEN_ANH, KHO_TEN_VIET } from '../../domain/tenNgauNhien'
 import type {
   AttributeId,
   AttributeValues,
@@ -20,6 +26,7 @@ import type {
 } from '../../domain/types'
 import { usePlayers } from '../../hooks/usePlayers'
 import { laLoiUngDung, type LoiUngDung } from '../../services/errors'
+import { useAppStore } from '../../store/appStore'
 
 import { BangChiSo } from './BangChiSo'
 import { ChonAnh } from './ChonAnh'
@@ -65,7 +72,13 @@ export function FormCauThu({
     LOI,
     TRANG_DOI,
   } = useChuoi()
-  const { luuCauThu } = usePlayers(teamId)
+  const { cauThu, luuCauThu } = usePlayers(teamId)
+  /*
+    Ngôn ngữ đang chọn quyết định KHO TÊN, không quyết định nhãn nào ở đây —
+    nhãn đã đi qua `useChuoi()` ở trên. Tên sinh ra là dữ liệu người dùng,
+    nên đổi ngôn ngữ sau đó không đổi tên đã sinh (AC-24.8, D80).
+  */
+  const ngonNgu = useAppStore((s) => s.ngonNgu)
   const dangSua = cauThuDangSua !== undefined
 
   const [ten, datTen] = useState(cauThuDangSua?.name ?? '')
@@ -90,6 +103,11 @@ export function FormCauThu({
   const [loi, datLoi] = useState<LoiHienThi>(null)
   const [canhBaoDoiSangThuMon, datCanhBaoDoiSangThuMon] = useState(false)
   const [nhacChonViTri, datNhacChonViTri] = useState(false)
+  /*
+    Cờ, không phải câu. Giữ câu trong state thì câu ấy đóng băng ở thứ tiếng
+    lúc bấm nút — đúng cái bẫy mà chú thích đầu file này nói tới (AC-17.5).
+  */
+  const [hetSoAo, datHetSoAo] = useState(false)
   const [viTriXem, datViTriXem] = useState<PositionId | null>(
     cauThuDangSua?.positions[0] ?? null,
   )
@@ -177,6 +195,48 @@ export function FormCauThu({
     const ra = sinhChiSo(muc, viTri, RNG_THAT)
     datChiSo(ra.attributes)
     datChiSoThuMon(ra.gkAttributes)
+    datLoi(null)
+  }
+
+  /**
+   * Sinh TRỌN một hồ sơ: tên, tuổi, số áo, vị trí và chỉ số (AC-24.1).
+   *
+   * Khác `sinhNhanh` ở hai chỗ: nó KHÔNG đòi chọn vị trí trước (nó tự bốc
+   * vị trí), và nó cần biết số áo nào đội đang dùng để không sinh trùng
+   * (AC-24.3). Khi sửa hồ sơ một người đã có thì số áo của CHÍNH người ấy
+   * không tính là đang dùng — nếu không thì sinh lại cho một người sẽ luôn
+   * đổi số áo của họ.
+   */
+  function sinhCaHoSo(muc: MucDo) {
+    const soAoDaDung = cauThu
+      .filter((p) => p.id !== cauThuDangSua?.id)
+      .map((p) => p.shirtNumber)
+
+    const kq = sinhCauThu(
+      {
+        muc,
+        kho: ngonNgu === 'vi' ? KHO_TEN_VIET : KHO_TEN_ANH,
+        soAoDaDung,
+      },
+      RNG_THAT,
+    )
+
+    if (!kq.sinhDuoc) {
+      datHetSoAo(true)
+      return
+    }
+
+    const moi = kq.cauThu
+    datHetSoAo(false)
+    datTen(moi.name)
+    datSoAo(String(moi.shirtNumber))
+    datTuoi(String(moi.age))
+    datChanThuan(moi.preferredFoot)
+    datViTri(moi.positions)
+    datViTriXem(moi.positions[0] ?? null)
+    datNhacChonViTri(false)
+    datChiSo(moi.attributes)
+    datChiSoThuMon(moi.gkAttributes)
     datLoi(null)
   }
 
@@ -358,6 +418,32 @@ export function FormCauThu({
             </div>
           </div>
         )}
+
+        <div className="mt-4 rounded-md border border-vien p-3">
+          <p className="text-sm font-medium text-chu">
+            {FORM_CAU_THU.sinhCaHoSo}
+          </p>
+          <p className="mt-0.5 text-xs text-chu-phu">
+            {FORM_CAU_THU.sinhCaHoSoMoTa}
+          </p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {CAC_MUC_DO.map((m) => (
+              <button
+                key={m.id}
+                type="button"
+                onClick={() => sinhCaHoSo(m.id)}
+                className="rounded-md border border-vien-dam px-3 py-1.5 text-sm text-chu hover:bg-nen-nhan"
+              >
+                {NHAN_MUC_DO[m.id]}
+              </button>
+            ))}
+          </div>
+          {hetSoAo && (
+            <p role="alert" className="mt-2 text-sm text-canh-bao-chu">
+              {FORM_CAU_THU.hetSoAo}
+            </p>
+          )}
+        </div>
 
         <div className="mt-4 rounded-md border border-vien p-3">
           <p className="text-sm font-medium text-chu">

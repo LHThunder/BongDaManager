@@ -1,5 +1,7 @@
 import { POSITION_WEIGHTS } from './attributes'
 import { chiSoCanCo } from './completeness'
+import { POSITIONS } from './positions'
+import { sinhTen, type KhoTen } from './tenNgauNhien'
 import { CHI_SO_MAX, CHI_SO_MIN } from './types'
 import type {
   AttributeId,
@@ -7,6 +9,7 @@ import type {
   GkAttributeId,
   GkAttributeValues,
   PositionId,
+  PreferredFoot,
   Rng,
 } from './types'
 
@@ -134,5 +137,150 @@ export function sinhChiSo(
   return {
     attributes: attributes as AttributeValues,
     gkAttributes: gkAttributes as GkAttributeValues,
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Sinh MỘT cầu thủ đầy đủ (T402, AC-24.1, AC-24.2, AC-24.3)
+// ---------------------------------------------------------------------------
+
+/*
+  `sinhChiSo` ở trên chỉ điền chỉ số; người dùng vẫn phải gõ tên, tuổi, số áo
+  và vị trí. Phần dưới đây sinh trọn một hồ sơ.
+
+  Nó KHÔNG ghi gì và KHÔNG biết đội là gì: nó nhận danh sách số áo đang dùng
+  qua tham số và trả về một hồ sơ. Việc lưu là của `services`.
+*/
+
+/** Số áo hợp lệ: 1 tới 99, như ô nhập của form cầu thủ. */
+export const SO_AO_MIN = 1
+export const SO_AO_MAX = 99
+
+/**
+ * Dải tuổi của cầu thủ sinh ra.
+ *
+ * Spec không chốt con số, nên chọn dải của một đội bóng thật: đủ trẻ để có
+ * người mới lên, đủ già để có người sắp nghỉ. Người dùng sửa được sau
+ * (AC-24.6), nên đây là điểm khởi đầu chứ không phải một luật.
+ */
+export const TUOI_MIN = 17
+export const TUOI_MAX = 36
+
+/**
+ * Chân thuận bốc từ danh sách CÓ LẶP, nên chân phải ra nhiều hơn.
+ *
+ * Bốc đều ba giá trị thì một đội 18 người có 6 người thuận hai chân — con số
+ * đó không giống một đội bóng nào. Lặp phần tử là cách rẻ nhất để có xác
+ * suất lệch mà vẫn chỉ tốn đúng một lần gọi `rng`, nên thứ tự lấy số không
+ * đổi (P1).
+ */
+const CHAN_THUAN_THEO_TI_LE: readonly PreferredFoot[] = [
+  'phai',
+  'phai',
+  'phai',
+  'phai',
+  'phai',
+  'phai',
+  'trai',
+  'trai',
+  'trai',
+  'ca-hai',
+]
+
+function bocSo(tu: number, den: number, rng: Rng): number {
+  return tu + Math.min(den - tu, Math.floor(rng.next() * (den - tu + 1)))
+}
+
+function bocPhanTu<T>(danh: readonly T[], rng: Rng): T {
+  const i = Math.min(danh.length - 1, Math.floor(rng.next() * danh.length))
+  return danh[i] as T
+}
+
+/** Những số áo từ `SO_AO_MIN` tới `SO_AO_MAX` mà đội chưa dùng. */
+export function soAoConTrong(daDung: readonly number[]): readonly number[] {
+  const dung = new Set(daDung)
+  const ra: number[] = []
+  for (let n = SO_AO_MIN; n <= SO_AO_MAX; n += 1) {
+    if (!dung.has(n)) ra.push(n)
+  }
+  return ra
+}
+
+export interface DauVaoSinhCauThu {
+  readonly muc: MucDo
+  readonly kho: KhoTen
+  /** Số áo đang dùng trong đội — số sinh ra sẽ không trùng (AC-24.3). */
+  readonly soAoDaDung: readonly number[]
+  /**
+   * Vị trí sở trường muốn có. Không khai thì bốc ngẫu nhiên MỘT vị trí.
+   *
+   * Bốc một vị trí chứ không bốc nhiều: mọi tổ hợp một vị trí đều hợp lệ,
+   * còn tổ hợp nhiều vị trí thì `kiemTraToHopViTri` có luật riêng (thủ môn
+   * không kiêm vị trí sân). Sinh ra hồ sơ hợp lệ là việc của hàm này; muốn
+   * thêm vị trí thứ hai thì người dùng tự chọn (AC-24.6).
+   */
+  readonly viTri?: readonly PositionId[]
+}
+
+/** Hồ sơ vừa sinh — đúng những trường mà form cầu thủ cần. */
+export interface CauThuDaSinh {
+  readonly name: string
+  readonly shirtNumber: number
+  readonly age: number
+  readonly preferredFoot: PreferredFoot
+  readonly positions: readonly PositionId[]
+  readonly attributes: AttributeValues
+  readonly gkAttributes: GkAttributeValues | null
+}
+
+export type KetQuaSinhCauThu =
+  | { readonly sinhDuoc: true; readonly cauThu: CauThuDaSinh }
+  /** Đội đã dùng hết số áo từ 1 tới 99 (trường hợp biên ở spec mục 5). */
+  | { readonly sinhDuoc: false; readonly lyDo: 'het-so-ao' }
+
+/**
+ * Sinh một hồ sơ cầu thủ đầy đủ (AC-24.1).
+ *
+ * **Số áo bốc từ tập CÒN TRỐNG, không bốc rồi thử lại.** Vòng "bốc tới khi
+ * chưa trùng" chạy đúng ở mọi trường hợp thường gặp và **treo vĩnh viễn**
+ * ở đúng một trường hợp: đội đã dùng hết 99 số. Lọc trước rồi bốc thì
+ * trường hợp ấy thành một câu trả lời, không thành một vòng lặp vô tận.
+ *
+ * **Thứ tự lấy số từ `rng` là cố định** (P1): tên → vị trí (chỉ khi không
+ * khai) → tuổi → chân thuận → số áo → chỉ số. Cùng một nguồn ngẫu nhiên và
+ * cùng đầu vào thì ra cùng một hồ sơ.
+ */
+export function sinhCauThu(
+  dauVao: DauVaoSinhCauThu,
+  rng: Rng,
+): KetQuaSinhCauThu {
+  const conTrong = soAoConTrong(dauVao.soAoDaDung)
+  if (conTrong.length === 0) {
+    return { sinhDuoc: false, lyDo: 'het-so-ao' }
+  }
+
+  const name = sinhTen(dauVao.kho, rng)
+
+  const positions =
+    dauVao.viTri !== undefined && dauVao.viTri.length > 0
+      ? dauVao.viTri
+      : [bocPhanTu(POSITIONS, rng).id]
+
+  const age = bocSo(TUOI_MIN, TUOI_MAX, rng)
+  const preferredFoot = bocPhanTu(CHAN_THUAN_THEO_TI_LE, rng)
+  const shirtNumber = bocPhanTu(conTrong, rng)
+  const chiSo = sinhChiSo(dauVao.muc, positions, rng)
+
+  return {
+    sinhDuoc: true,
+    cauThu: {
+      name,
+      shirtNumber,
+      age,
+      preferredFoot,
+      positions,
+      attributes: chiSo.attributes,
+      gkAttributes: chiSo.gkAttributes,
+    },
   }
 }

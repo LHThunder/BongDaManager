@@ -588,6 +588,11 @@ export const FORM_CAU_THU_VI = {
   sinhNhanh: 'Sinh nhanh chỉ số',
   sinhNhanhMoTa: 'Chọn mức để điền sẵn toàn bộ chỉ số, rồi tỉa lại ô nào bạn muốn.',
   canChonViTriTruoc: 'Hãy chọn vị trí sở trường trước, vì mức sinh phụ thuộc vị trí.',
+  sinhCaHoSo: 'Sinh cả hồ sơ',
+  sinhCaHoSoMoTa:
+    'Chọn mức để sinh luôn tên, tuổi, số áo, vị trí sở trường và toàn bộ chỉ số. Bấm lần nữa ra một người khác, và sửa lại được mọi trường.',
+  hetSoAo:
+    'Đội đã dùng hết số áo từ 1 tới 99 nên không sinh thêm cầu thủ được. Hãy xoá một cầu thủ hoặc đổi số áo của ai đó trước.',
   chiSoTongTaiViTri: (tenViTri: string) => `Chỉ số tổng ở vị trí ${tenViTri}`,
 } as const
 

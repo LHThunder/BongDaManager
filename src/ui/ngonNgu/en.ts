@@ -541,6 +541,11 @@ export const FORM_CAU_THU_EN: BanDich<typeof FORM_CAU_THU_VI> = {
     'Pick a level to fill in every attribute, then adjust whichever boxes you want.',
   canChonViTriTruoc:
     'Choose the preferred positions first — the generated levels depend on them.',
+  sinhCaHoSo: 'Generate a whole profile',
+  sinhCaHoSoMoTa:
+    'Pick a level to generate the name, age, shirt number, preferred position and every attribute at once. Press again for a different player, and edit any field afterwards.',
+  hetSoAo:
+    'This squad already uses every shirt number from 1 to 99, so no further player can be generated. Remove a player or change someone else’s number first.',
   chiSoTongTaiViTri: (tenViTri: string) => `Overall as a ${tenViTri}`,
 }
 

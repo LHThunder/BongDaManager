@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | 37 AC (US-24 → US-27) |
-| **Tiến độ** | 0/40 |
+| **Tiến độ** | 5/40 |
 | **Sửa đổi** | 2026-11-17 — chẻ lần đầu từ plan; cùng ngày sửa theo `/analyze` (1 CRITICAL + 4 HIGH) |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -26,31 +26,31 @@ lát cắt dọc ở `plan.md` mục 9; mỗi phase kết thúc là một ứng 
 
 ## Phase 29 — Lát 29: Kho tên và sinh MỘT cầu thủ
 
-- [ ] **T400** — Kho tên hư cấu hai thứ tiếng
+- [x] **T400** — Kho tên hư cấu hai thứ tiếng
   - File: tạo `src/domain/tenNgauNhien.ts`
   - Xong khi: hai kho tên (Việt, Anh) nằm trong `domain`, mỗi kho là hai danh sách họ và tên ghép được (D81); hàm sinh nhận **kho và nguồn ngẫu nhiên qua tham số**, không gọi `Math.random` (P1); `domain` KHÔNG import gì từ `services` hay `ui` (D80).
   - AC: AC-24.8
   - Phụ thuộc: —
 
-- [ ] **T401** — Test kho tên
+- [x] **T401** — Test kho tên
   - File: tạo `src/domain/tenNgauNhien.test.ts`
   - Xong khi: test xanh — cùng một nguồn ngẫu nhiên cho ra cùng tên; hai kho cho ra tên khác nhau về bộ ký tự; sinh 200 tên từ một kho thì tỉ lệ trùng thấp hơn 10%.
   - AC: AC-24.8
   - Phụ thuộc: T400
 
-- [ ] **T402** — Sinh một cầu thủ đầy đủ ở `domain`
+- [x] **T402** — Sinh một cầu thủ đầy đủ ở `domain`
   - File: sửa `src/domain/generator.ts`
   - Xong khi: hàm mới sinh đủ tên, tuổi, số áo, vị trí sở trường và chỉ số cho **một** cầu thủ, dùng lại `sinhChiSo` đã có; nhận danh sách số áo đang dùng để tránh trùng; nhận `Rng` và kho tên qua tham số.
   - AC: AC-24.1, AC-24.2, AC-24.3
   - Phụ thuộc: T400
 
-- [ ] **T403** — Test sinh một cầu thủ
+- [x] **T403** — Test sinh một cầu thủ
   - File: sửa `src/domain/generator.test.ts`
   - Xong khi: test xanh — không trường bắt buộc nào trống; chỉ số nằm đúng dải của mức đã chọn và mức cao hơn cho chỉ số tổng cao hơn ở cùng vị trí; số áo không trùng với danh sách truyền vào; cùng nguồn ngẫu nhiên cho cùng kết quả.
   - AC: AC-24.1, AC-24.2, AC-24.3
   - Phụ thuộc: T402
 
-- [ ] **T404** — Nút sinh cầu thủ trong form, và chuỗi hai ngôn ngữ
+- [x] **T404** — Nút sinh cầu thủ trong form, và chuỗi hai ngôn ngữ
   - File: sửa `src/ui/components/FormCauThu.tsx`, `src/ui/ngonNgu/{vi,en,index}.ts`
   - Xong khi: trong form cầu thủ có nút sinh toàn bộ hồ sơ (không chỉ chỉ số như hiện nay); nguồn ngẫu nhiên thật dựng ở tầng giao diện đúng nếp `taoMaTran(RNG_THAT)`; kho tên chọn theo ngôn ngữ đang chọn; bấm hai lần ra hai người khác nhau; **mọi chuỗi mới có đủ hai ngôn ngữ trong cùng commit** (P8).
   - AC: AC-24.1, AC-24.5, AC-24.6, AC-24.8
