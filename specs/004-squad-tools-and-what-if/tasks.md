@@ -5,8 +5,8 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | 37 AC (US-24 → US-27) |
-| **Tiến độ** | 37/40 |
-| **Sửa đổi** | 2026-11-17 — chẻ lần đầu từ plan; cùng ngày sửa theo `/analyze` (1 CRITICAL + 4 HIGH) |
+| **Tiến độ** | 39/40 |
+| **Sửa đổi** | 2026-11-17 — chẻ lần đầu từ plan; cùng ngày sửa theo `/analyze` (1 CRITICAL + 4 HIGH); T439 bị chặn, xem ghi chú Phase 35 |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
 > Mỗi task phải: chạm file cụ thể + có cách kiểm chứng + đủ nhỏ để làm trong một lần.
@@ -312,14 +312,14 @@ lát cắt dọc ở `plan.md` mục 9; mỗi phase kết thúc là một ứng 
 
 ## Phase 35 — Lát 35: Kiểm tay, đo ngân sách, đóng spec
 
-- [ ] **T437** — Kiểm tay 2 ngôn ngữ × 2 chế độ
+- [x] **T437** — Kiểm tay 2 ngôn ngữ × 2 chế độ
   - File: — *(kiểm trên ứng dụng đang chạy)*
   - Xong khi: đi hết mọi màn hình mới ở bốn tổ hợp, kể cả màn hình lỗi và trạng thái rỗng của phần lọc; không sót chữ, không chỗ nào tương phản dưới 4.5:1, không dấu hiệu thiếu bản dịch. Và với sân 2D đang nội suy: tỉ số, dòng tường thuật, chỉ tiêu hai đội và điểm từng cầu thủ **không đổi** so với trước spec này (AC-25.5 — T420 chứng minh engine không đổi, nhưng chỉ phép kiểm tay này nhìn thấy màn hình có nội suy).
   - AC: AC-24.8, AC-25.5, AC-26.3, AC-26.7
   - Phụ thuộc: T404, T409, T412, T414, T415, T419, T425, T426, T434, T435, T436
   - *Sửa theo `/analyze`: danh sách cũ (T409, T412, T414, T418, T426, T436) bỏ sót sáu task tạo màn hình mới — T404, T415, T419, T425, T434, T435. T434 và T435 là **em** của T433 chứ không phải tổ tiên của T436, nên chúng không nằm trong cây phụ thuộc cũ.*
 
-- [ ] **T438** — Đo lại các ngân sách ở spec mục 6
+- [x] **T438** — Đo lại các ngân sách ở spec mục 6
   - File: — *(đo trên bản build)*
   - Xong khi: sinh một đội < 2 giây; nhân bản đội 30 cầu thủ < 2 giây; gõ ô lọc cập nhật < 100ms; chạy hết một trận < 3 giây **với sân 2D bật** (AC-25.9, phép đo 1); chạy tiếp một trận rẽ nhánh < 3 giây. Ghi số đo vào mô tả commit, và nói rõ số đo là thời gian tới lúc DOM đổi hay tới lúc nhìn thấy.
   - **Phép đo 2 — đang phát theo đồng hồ, bắt buộc.** 22 điểm đang nội suy
@@ -335,7 +335,7 @@ lát cắt dọc ở `plan.md` mục 9; mỗi phase kết thúc là một ứng 
   - AC: AC-25.9
   - Phụ thuộc: T437
 
-- [ ] **T439** — Tick 37 AC và đóng spec
+- [ ] **T439** — Tick 37 AC và đóng spec *(CHẶN: xem ghi chú Phase 35 — một đường đi của US-27 làm trắng ứng dụng, chưa đóng spec được)*
   - File: sửa `specs/004-squad-tools-and-what-if/spec.md`
   - Xong khi: mọi AC ở mục 3 được tick có căn cứ; Definition of Done đủ chín mục; `Status` đổi thành **Done**; xác nhận `PHIEN_BAN_ENGINE` vẫn là 5 và định dạng tệp sao lưu không đổi.
   - AC: toàn bộ
@@ -431,6 +431,190 @@ trận gốc còn nguyên 33 dòng và 31 nút rẽ nhánh (AC-27.7, AC-27.9); k
 console; cả hai ngôn ngữ không có dấu thiếu bản dịch.
 
 ---
+
+## Phase 35 — số đo thật, và một lỗi chặn việc đóng spec
+
+### Lỗi chặn: mở một trận đã lưu của đội hơn 18 người làm TRẮNG cả ứng dụng
+
+Ba thao tác tái lập: sinh một đội rồi thêm người cho tới 29–30 (hoặc nhân bản
+một đội như thế) → đá một trận 11 người giữa hai đội ấy → Lịch sử → "Mở lại".
+Kết quả: `#root` còn 0 phần tử, trang trắng, phải tải lại. Console ghi
+`Uncaught LoiCauHinhTran: Không bắt đầu được trận: chua-dung-du-bi,
+chua-dung-du-bi`, ném từ trong một `useMemo`.
+
+Chuỗi nguyên nhân, đã đi hết tới tận bản ghi trong IndexedDB:
+
+1. `ui/pages/ChonCapDau.tsx:284` đăng ký `cacCauThu` = CẢ ĐỘI (29/30 người),
+   còn `duBi` = đúng 7 người đã chọn. Hợp lệ, vì engine cần hồ sơ của mọi
+   người có thể vào sân.
+2. `engine/tran.ts:1274 dangKyTuTrangThai` dựng LẠI `duBi` = `cacCauThu` trừ
+   người xuất phát → 18/19 dự bị, dù `BenTran.duBi` (dòng 178) đang giữ sẵn
+   đúng 7 người.
+3. `hooks/useMatch.ts:87-88` dùng hàm ấy để dựng bản ghi đem lưu → bản ghi
+   trong store `matches` có `duBi` = 18 và 19 (đã đọc tận IndexedDB).
+4. Phase 34 `services/phatLai.ts:68 cauHinhTuBanGhi` chép y nguyên rồi gọi
+   `taoTran` → `kiemTraMotBen` từ chối `chua-dung-du-bi` bằng cách NÉM → không
+   ai bắt → cả cây React bị tháo.
+
+**Vì sao không test nào bắt được:** mọi fixture (`benMau`, `benMauTheoSoDo`)
+đăng ký đúng 11 + 7 = 18 người, nên `cacCauThu` trừ người xuất phát luôn ra
+đúng 7. Quét 60 trận fixture: không ca nào lệch. Lỗi chỉ hiện khi đội có
+**nhiều hơn quânSố + 7** người — mà spec 004 vừa biến việc đó thành một cú bấm.
+
+**Phase 34 làm nó từ im lặng thành chết màn hình.** Trước Phase 34 trang lịch
+sử chỉ hiển thị bản ghi; T432 thêm `tranDauCuaBanGhi` useMemo gọi `taoTran`
+ngay khi mở một trận, nên những bản ghi hỏng sẵn kia giờ giết cả trang. Vì thế
+T439 chưa làm: AC-27.1 và AC-27.3 không đi được trên loại bản ghi ấy, và trường
+hợp biên mục 5 ("từ chối kèm lý do") đang bị thay bằng trang trắng.
+
+Ba hướng sửa, chưa làm vì nằm ngoài danh sách file của Phase 35 và một hướng
+chạm engine (ràng buộc cứng của spec — phải hỏi, không tự đổi):
+
+- **(a) Chặn sập** (`phatLai.ts` / `useRePhatLai.ts` / `TrangLichSu.tsx`): bắt
+  `LoiCauHinhTran` và từ chối kèm lý do, đúng như đã làm cho "đội đã bị xoá" và
+  "engine cũ hơn". Bắt buộc có, dù chọn hướng nào — nhưng một mình nó thì đội
+  lớn vẫn không rẽ nhánh được.
+- **(b) Thôi sinh ra bản ghi hỏng** (`useMatch.ts:87-88`): lưu đúng băng ghế đã
+  đăng ký thay vì tính lại. Không chạm engine. Chỉ cứu trận mới; trận đã lưu
+  vẫn phải nhờ (a). Lưu ý `BenTran.duBi` lúc hết trận là băng ghế CUỐI trận,
+  không phải lúc đăng ký, nên muốn đúng tuyệt đối còn phải cộng lại những người
+  đã vào sân.
+- **(c) Sửa gốc** (`engine/tran.ts:1284`, một dòng: `duBi: ben.duBi`): chữa cả
+  nút "Đấu lại cùng mã trận" ở trang trận. Hàm này không tham gia mô phỏng nên
+  `PHIEN_BAN_ENGINE` vẫn là 5 — nhưng nó NẰM TRONG `src/engine/`, nên theo đúng
+  ràng buộc xuyên suốt của spec thì phải dừng và hỏi.
+
+### T438 — số đo (bản build `vite preview`, cổng 4173)
+
+Mốc đo: từ lúc bấm (`click` thật, bắt ở capture-phase) tới lúc
+`MutationObserver` trên `#root` **lặng 300ms** — tức tới lúc DOM đổi xong,
+không phải tới lúc nhìn thấy; pane không được vẽ nên không đo được thời điểm
+nhìn thấy.
+
+| Ngân sách spec mục 6 | Đo được | Giới hạn |
+|---|---|---|
+| Sinh một đội | 31,0 / 53,8 / 99,4 ms (ba lần, đội 18 người) | < 2 s |
+| Nhân bản đội 30 cầu thủ | 86,8 ms | < 2 s |
+| Gõ ô lọc, đội 30 người | 1,3 ms (từ sự kiện `input` tới DOM lặng) | < 100 ms |
+| Chạy hết trận 90 phút, **sân 2D bật** | 62,7 ms tới chữ "Trận đã kết thúc"; 255,8 ms tới lúc DOM lặng (báo cáo + 86 dòng) | < 3 s |
+| Chạy nốt một trận rẽ nhánh | 64,6 ms (một lần commit của React, có cả bảng so sánh) | < 3 s |
+
+### T438 phép đo 2 — công việc mỗi khung vẽ
+
+Đo khi trận **đang phát theo đồng hồ**, 22 điểm cùng nội suy, trong cùng một
+trận để hai cửa sổ đo so được với nhau:
+
+- Thân `requestAnimationFrame` mỗi khung: p50 **0,1 ms**, p95 0,2 ms, max
+  **0,3 ms** ở mức Thường (nhịp 200 ms); p50 0,1 ms, p95 0,3 ms, max **1,0 ms**
+  ở mức Nhanh (nhịp 70 ms). Tức ≤ 0,15% và ≤ 1,4% một nhịp.
+- Bộ đo nghẽn luồng chính (vòng `setTimeout(0)`, nền bị kẹp ~15 ms): **ẩn sân**
+  p95 21,3 ms / max 27,7 ms; **hiện sân** p95 17,7 ms / max 25,5 ms. Không tác
+  vụ nào quá 50 ms ở cả hai. Bật sân không làm số nào xấu đi — chênh lệch nằm
+  trong nhiễu.
+- Trong 1,6 s lấy mẫu, 22 điểm đi qua **51–52 trạng thái toạ độ khác nhau**,
+  tức chúng thật sự chạy qua các điểm trung gian chứ không nhảy mốc.
+
+**Điều kiện đo, phải ghi rõ:** pane trình duyệt của phiên này không được hiển
+thị trong cửa sổ nào, nên `requestAnimationFrame` **không chạy một khung nào**
+(đo thẳng: 0 khung trong 1,5 s dù `visibilityState` là `visible`) — đúng vật
+cản đã chặn T035 spec 001 và Phase 33. Để đo được, `requestAnimationFrame` bị
+thay bằng `setTimeout(16ms)`, và nhịp thật ra ~31 ms vì bị kẹp. Vậy con số trên
+là **công việc JS mỗi khung**, không phải chi phí vẽ/ghép ảnh thật, và phần
+"không rơi nhịp" theo nghĩa màn hình vẫn phải xem trên trình duyệt thật.
+
+### T437 — kiểm được bằng mắt, bốn tổ hợp (Việt/Anh × Sáng/Tối)
+
+- **Tương phản:** quét 468 nút văn bản đang hiện, tính tỉ số WCAG của màu chữ
+  trên màu nền thật (đã gộp mọi lớp nền trong suốt), ngưỡng 4,5:1 và 3:1 cho
+  chữ lớn: **0 chỗ dưới ngưỡng** ở cả bốn tổ hợp (nền sáng `rgb(246,248,245)`,
+  nền tối `rgb(14,21,18)`).
+- **Thiếu bản dịch:** ở giao diện Anh, quét mọi nút văn bản có dấu tiếng Việt →
+  96 chuỗi, tất cả là **dữ liệu người dùng**: tên đội, tên cầu thủ, và câu
+  tường thuật mẫu tiếng Anh có chèn tên Việt. Không một nhãn giao diện nào.
+- **AC-24.1/24.3/24.5/24.6:** sinh cả hồ sơ điền đủ 23 ô, không ô nào
+  `readOnly` hay `disabled`; 30 số áo trong một đội đều khác nhau; hai lần sinh
+  ra hai đội khác nhau.
+- **AC-24.4:** đội 18 người sinh ra có sẵn đội hình đủ 11 ô + 7 ngoài sân và
+  câu "Đội hình đã đủ điều kiện thi đấu".
+- **AC-24.8 cả hai nửa:** giao diện Việt sinh tên Việt; giao diện Anh sinh
+  "Kieran Haldane", "Rupert Whitcombe", đội mặc định "Random team"; đổi ngôn
+  ngữ thì tên đã sinh **giữ nguyên**. Hậu tố "(bản sao)" cũng đóng băng theo
+  ngôn ngữ lúc nhân bản — đúng tinh thần ấy.
+- **AC-26.1/26.2:** 30 dòng của bản sao khớp đội gốc từng ô (số áo, tên, tuổi,
+  vị trí, chân thuận, chỉ số tổng); xoá một người ở đội gốc thì bản sao vẫn 30,
+  sửa tên ở bản sao thì đội gốc không có chữ nào đổi.
+- **AC-26.3:** hộp nhân bản nói trước, bằng cả hai thứ tiếng, rằng bản sao
+  không mang ảnh chân dung và logo, kèm "Đây là chủ đích, không phải lỗi".
+- **AC-26.4/26.5/26.6/26.7:** lọc tên + vị trí + chân thuận + tuổi + chỉ số
+  tổng kết hợp được (TĐ + chân phải + 18–30 tuổi + ≥15 → 1 trên 30); câu "Đo ở
+  vị trí tốt nhất của từng cầu thủ"; "Đang hiện N trên M"; không ai khớp thì
+  "KHÔNG CÓ CẦU THỦ NÀO KHỚP" + "Xoá bộ lọc", bấm vào thì về đủ 30.
+- **AC-26.8/26.9/26.10:** mỗi ô ghi "Chọn vì đúng sở trường" (Anh: "Chosen:
+  this is their own position"); đội 3 người → "Đã xếp 3 ô" + "còn 8 ô trống vì
+  đội không đủ người" + mỗi ô trống ghi "Để trống: đội đã hết người"; đội rỗng
+  → "Đội chưa có cầu thủ nào…", không màn hình trống; sau khi tự chọn, cả 11 ô
+  vẫn `tabIndex=0` và không `disabled`.
+- **AC-25.5:** cùng một mã trận chạy hai lần, một lần sân bật một lần sân ẩn →
+  văn bản trang **giống nhau từng ký tự** (8841 ký tự): tỉ số, từng dòng tường
+  thuật, 12 chỉ tiêu, điểm từng cầu thủ. Cộng với `git diff` của cả spec trên
+  `src/engine/` chỉ có đúng một file test (+68 dòng, chính T420), còn
+  `src/storage/` **rỗng hoàn toàn**.
+- **AC-25.6:** giả lập hệ điều hành bật giảm chuyển động (`matchMedia` trả
+  `matches: true`) → **0 khung** trong 1,75 s phát trực tiếp, trong khi cùng
+  cửa sổ ấy lúc bình thường có 55–64 khung; vị trí vẫn đổi 8 lần, tức vẫn đúng
+  mốc, chỉ không nội suy. Đây là thứ Phase 33 chưa nhìn thấy được.
+- **AC-25.7:** trong MỘT chặng chuyển động, cùng một thời điểm, sáu điểm có di
+  chuyển đã đi được **12%, 12%, 25%, 28%, 57%, 58%** quãng đường của mình. Một
+  hàm giảm tốc dùng chung sẽ cho sáu con số bằng nhau; chênh gần 5 lần chính là
+  dáng chuyển động theo thể lực (D88). Cả sáu cùng tới đích trong chặng.
+- **AC-25.8:** nhãn chữ "Kiệt sức" có mặt trong tường thuật (5 dòng một trận),
+  nên tốc độ di chuyển không phải kênh duy nhất báo thể lực.
+- **AC-27.1/27.2/27.3/27.7/27.9/27.10:** rẽ nhánh ở phút 51, đổi pressing sang
+  Cao → **41 dòng tới phút 51 giống trận gốc từng chữ** (so bằng mã, lệch đầu
+  tiên: không có), mốc "TỪ PHÚT 51' TRỞ ĐI LÀ NHÁNH KHÁC" đứng đúng chỗ, bảng
+  so sánh 12 chỉ tiêu + tỉ số 0–1 → 1–0 kèm nhãn chữ "Giống/Khác trận gốc";
+  **0 nút "Rẽ nhánh"** trong phần tường thuật của nhánh; rời màn hình thì bị
+  hỏi trước, focus sẵn ở "Huỷ", đồng ý thì khối nhánh mất hẳn mà trận gốc còn
+  đủ 85 dòng và 79 nút rẽ nhánh.
+- **AC-27.5 — nay đã kiểm được bằng mắt.** Hạ `phienBanEngine` của một bản ghi
+  xuống 4 ngay trong IndexedDB (đúng việc "sửa tay một bản ghi" mà Phase 34 đề
+  nghị), mở lại: hai câu từ chối hiện ra ở cả hai thứ tiếng ("Không đấu lại
+  được…", "Không rẽ nhánh được…"), nút "Đấu lại trận này" `disabled`, 0 nút rẽ
+  nhánh, mà trận vẫn xem lại được. Đã trả bản ghi về 5 sau khi kiểm.
+- **AC-27.8:** dòng phút 0 không có nút rẽ nhánh (79 nút cho 85 dòng), và màn
+  nhánh nói rõ khoảng phút chọn được.
+- Không một lỗi console nào trong cả lượt đi, trừ đúng lỗi chặn ở trên.
+
+### Những gì môi trường này KHÔNG kiểm được
+
+- **Độ mềm của đường cong bằng mắt người** (AC-25.1): có số (51–52 trạng thái
+  trung gian, 22 điểm) nhưng không có ai nhìn, vì pane không được vẽ nên cả
+  `requestAnimationFrame` lẫn ảnh chụp đều không có.
+- **Kéo-thả giữa hai ô bằng bàn phím** (AC-26.10 phần bàn phím): nhấc lên và
+  đặt xuống CHẠY và có thông báo cho trình đọc màn hình ("Placed in Left back
+  slot."), nhưng phím mũi tên không đổi được ô đích — 5 lần sang phải, khoảng
+  cách hai ô chỉ 99px, vẫn "Now over Left back slot.". Toạ độ kéo-thả của
+  `@dnd-kit` cập nhật theo `requestAnimationFrame`, mà ở đây rAF không chạy,
+  nên **nghi là vật cản môi trường, chưa kết luận là lỗi** — cần xem lại trên
+  trình duyệt thật.
+- **Xuất/nhập tệp sao lưu qua hộp thoại tệp** (Definition of Done): chưa đi
+  bằng tay. Căn cứ thay thế: `git diff` của cả spec trên `src/storage/` rỗng,
+  nên định dạng tệp sao lưu không đổi một byte nào.
+
+### Ba phát hiện phụ, ngoài phạm vi spec 004 — ghi ra chứ không tự sửa
+
+1. **`<html lang="vi">` cố định** trong `index.html:2` và không đổi khi người
+   dùng sang English (`hooks/useNgonNgu.ts` chỉ đặt `data-che-do`). Trình đọc
+   màn hình sẽ đọc tiếng Anh bằng giọng Việt. Thuộc spec 003.
+2. **Nút "Đấu lại cùng mã trận" ở trang trận không làm gì và không nói gì** khi
+   đội có hơn 18 người — cùng gốc với lỗi chặn ở trên (`cauHinhDauLai` →
+   `dangKyTuTrangThai`), nhưng `TrangTran.tsx` **không vẽ** `lyDoKhongBatDau`
+   (chỉ `ChonCapDau.tsx:523` vẽ), nên lời từ chối không tới được người dùng. Đã
+   xác nhận `onClick` trả `false`. Cả `useMatch.ts` lẫn `TrangTran.tsx` spec 004
+   không sửa một dòng.
+3. **Ô lọc tên không bỏ dấu:** gõ "nguy" ra 3 người, gõ "nguyen" ra 0 người
+   trong một đội đầy "Nguyễn". AC-26.4 không đòi bỏ dấu, nên không phải vi phạm
+   — nhưng với người dùng Việt gõ không dấu thì đó là một cái bẫy.
 
 ## Ghi chú thực thi
 
