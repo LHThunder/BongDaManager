@@ -78,13 +78,27 @@ export function khungSan(quanSo: number): KhungSan {
 }
 
 /**
- * Tâm theo trục dọc sân cho từng dải, tính theo TỈ LỆ chiều dài khung.
+ * ĐỘ SÂU của bốn dải, tính từ **khung thành của chính đội ấy**, theo tỉ lệ chiều
+ * dài khung: thủ môn, hậu vệ, tiền vệ, tiền đạo.
  *
- * Toạ độ ô vốn đã là phần trăm sân (D15), nên đổi khung là đủ — không cần
- * một bảng toạ độ riêng cho mỗi quân số. Nhân với 100 ra lại đúng bộ số
- * 9/32/56/79 của spec 001.
+ * **Bảng này là của MỘT ĐỘI, không phải của cả sân** (T523) — đó là khác biệt với
+ * bản của spec 001, và là thứ sửa được một lỗi bố cục đã sống qua bốn spec.
+ *
+ * Bản cũ dùng **một** bảng cho cả hai đội và lật đội khách bằng **chỉ số dải**
+ * (`latVung`: dải 3 ↔ dải 0). Hệ quả: dải tấn công của đội này lật thành đúng dải
+ * **thủ môn** của đội kia, nên tiền đạo đội khách đứng ở `x = 13` trong khi hậu vệ
+ * đội nhà đứng ở `x = 28` — tiền đạo nằm **sau lưng** hàng thủ suốt trận, trong
+ * vòng 5m50. Người dùng gọi đúng tên ở T518: "hậu vệ luôn đứng trên tiền đạo
+ * đối phương".
+ *
+ * Bốn số này chọn để **tám hàng của hai đội xen kẽ đều** (AC-30.8). Với `t` là bảng
+ * này, đội nhà đứng ở `t`, đội khách ở `1 - t`, nên thứ tự dọc sân thành:
+ *
+ *     TM nhà 6 | HV nhà 20 | TĐ khách 32 | TV nhà 44 | TV khách 56 | TĐ nhà 68 | HV khách 80 | TM khách 94
+ *
+ * — đúng thứ tự của một trận thật, và cách đều 12 đơn vị giữa hai hàng kề nhau.
  */
-const TI_LE_DAI: readonly number[] = [0.09, 0.32, 0.56, 0.79]
+const TI_LE_DAI: readonly number[] = [0.06, 0.2, 0.44, 0.68]
 
 /** Tâm theo trục ngang sân cho từng cột, theo tỉ lệ chiều rộng khung. */
 const TI_LE_COT: Readonly<Record<VungSan['cot'], number>> = {
@@ -95,9 +109,9 @@ const TI_LE_COT: Readonly<Record<VungSan['cot'], number>> = {
 
 /** Độ cao đội hình đẩy cả đội lên hay xuống theo hướng tấn công của họ. */
 const DICH_THEO_DO_CAO: Readonly<Record<string, number>> = {
-  thap: -5,
+  thap: -3,
   'trung-binh': 0,
-  cao: 5,
+  cao: 3,
 }
 
 const BAN_KINH = 3.4
@@ -105,17 +119,16 @@ const BAN_KINH = 3.4
 /** Khoảng giãn giữa hai người cùng ĐỘI đứng cùng một vùng. */
 const BUOC_GIAN = 8
 
-/**
- * Đẩy hai đội lệch nhau theo trục dọc, mỗi đội về phía khung thành của mình.
- *
- * Cần thiết vì lưới vùng cố tình cho hai đội đứng CHUNG vùng: tiền đạo đội
- * khách (dải 3 của họ) lật sang chính là dải 0 của đội nhà, tức ngay trước
- * khung thành đội nhà — đúng bóng đá. Nhưng vẽ đúng một toạ độ thì hai điểm
- * nằm đè lên nhau và sân chỉ hiện 13 điểm thay vì 22. Lệch 4 đơn vị mỗi bên
- * cho khoảng cách 8, lớn hơn đường kính 6,8 của một điểm.
- *
- */
-const LECH_DOI = 4
+/*
+  `LECH_DOI` đã bỏ ở T523.
+
+  Nó sinh ra để chữa đúng triệu chứng của bảng dải cũ: hai đội dùng chung một
+  bảng nên có những cặp đứng trùng toạ độ, và nó đẩy mỗi đội 4 đơn vị về phía
+  khung thành của mình cho hai điểm rời nhau. Nhưng cái phải sửa là **bảng dải**,
+  và cú đẩy ấy còn làm nặng thêm chuyện tiền đạo nằm sau lưng hậu vệ: nó kéo
+  hậu vệ nhà xuống 28 và đẩy tiền đạo khách lên 13. Bảng dải riêng từng đội
+  đã cho mọi cặp cách nhau 12 đơn vị, nên không còn gì để chữa.
+*/
 
 /** Lề tối thiểu từ tâm điểm tới mép khung, đủ cho bán kính 3,4. */
 const LE_TOI_THIEU = 5
@@ -181,23 +194,63 @@ function kep(v: number, tu: number, den: number): number {
   return Math.min(Math.max(v, tu), den)
 }
 
+/** Ai đang dùng bảng dải nào: đội nhà, đội khách, hay **trung lập**. */
+export type BenVe = 'nha' | 'khach' | 'trung-lap'
+
+/**
+ * Toạ độ dọc của một dải, theo bảng của đội đang hỏi (T523, AC-30.8).
+ *
+ * `dai` luôn là chỉ số **đã quy về khung đội nhà** — `cacNguoiTrenSan` và
+ * `vungTrenSan` đã lật sẵn. Ba câu trả lời khác nhau cho cùng một chỉ số:
+ *
+ * - `'nha'`: độ sâu đếm từ khung thành bên trái → `TI_LE_DAI[dai]`.
+ * - `'khach'`: đội khách đá ngược, và chỉ số đã bị lật một lần, nên phải lật lại
+ *   rồi soí từ bên phải → `1 - TI_LE_DAI[3 - dai]`.
+ * - `'trung-lap'`: một **chỗ trên sân**, không thuộc đội nào — dành cho quả bóng
+ *   và cho những người được **kéo tới tình huống**: một pha tranh chấp phải
+ *   diễn ra ở đúng một chỗ cho cả hai bên. Lấy trung điểm của hai bảng trên,
+ *   nên nó đối xứng qua giữa sân.
+ */
+/**
+ * Bốn chỗ **trung lập** của sân: nơi quả bóng và một pha tranh chấp diễn ra.
+ *
+ * **Không** phải trung bình của hai bảng đội: lấy trung bình thì chỗ của bóng rơi
+ * cách một hàng đúng **1 đơn vị**, và đo trên 10 mã trận ra hai điểm cách nhau
+ * **0,87** trên bán kính 3,4. Bốn chỗ này rơi vào **giữa hai hàng** của trật tự
+ * xen kẽ, mỗi chỗ cách hàng gần nhất 6–7 đơn vị:
+ *
+ *     6 TM nhà | **13** | 20 HV nhà | 32 TĐ khách | **38** | 44 TV nhà |
+ *     56 TV khách | **62** | 68 TĐ nhà | 80 HV khách | **87** | 94 TM khách
+ */
+const TI_LE_DAI_TRUNG_LAP: readonly number[] = [0.13, 0.38, 0.62, 0.87]
+
+export function tiLeCuaDai(dai: number, ben: BenVe): number {
+  const nha = TI_LE_DAI[dai]
+  const khachTho = TI_LE_DAI[TI_LE_DAI.length - 1 - dai]
+  if (nha == null || khachTho == null) return 0.5
+  if (ben === 'nha') return nha
+  if (ben === 'khach') return 1 - khachTho
+  return TI_LE_DAI_TRUNG_LAP[dai] ?? 0.5
+}
+
 /**
  * Toạ độ tâm của một vùng, đã kẹp vào mặt cỏ.
  *
- * Xuất ra ngoài để phép kiểm của T510 tính được **chỗ đúng ra phải đứng** của một
- * người tham gia tình huống, thay vì chỉ so các điểm với nhau — AC-28.3 là phát
- * biểu về **vùng**, nên phép kiểm phải biểu diễn được vùng thành toạ độ.
+ * Xuất ra ngoài để phép kiểm tính được **chỗ đúng ra phải đứng** của một người
+ * tham gia tình huống, thay vì chỉ so các điểm với nhau — AC-28.3 là phát biểu về
+ * **vùng**, nên phép kiểm phải biểu diễn được vùng thành toạ độ.
  */
 export function toaDo(
   vung: VungSan,
   dichX: number,
   khung: KhungSan,
+  ben: BenVe = 'trung-lap',
 ): { x: number; y: number } {
   const tiLe = tiLeKhung(khung)
   const le = LE_TOI_THIEU * tiLe
   const leX = (RONG - khung.rong) / 2
   const leY = (CAO - khung.cao) / 2
-  const x = leX + TI_LE_DAI[vung.dai] * khung.rong + dichX
+  const x = leX + tiLeCuaDai(vung.dai, ben) * khung.rong + dichX
   return {
     x: kep(x, leX + le, leX + khung.rong - le),
     y: leY + TI_LE_COT[vung.cot] * khung.cao,
@@ -242,48 +295,43 @@ function lechTrongVung(
 const BIEN_NGHIENG_KHOI = 1 / 10
 
 /**
- * Hệ số co khối: dịch bao nhiêu phần của khoảng cách từ một dải tới dải có bóng.
- *
- * Chọn sao cho người ở dải **xa bóng nhất** dịch đúng `BIEN_NGHIENG_KHOI` chiều
- * dài sân: hai dải ngoài cùng cách nhau 0,7 chiều dài, nên 0,1 / 0,7 = 1/7.
+ * Khoảng cách lớn nhất có thể có giữa một người và dải có bóng, theo tỉ lệ
+ * chiều dài: thủ môn (0,06 bằng bảng đội mình) và bóng ở dải tấn công xa nhất
+ * (0,87 bằng bảng trung lập) — **0,81**. Dùng để chuẩn hoá độ co khối về đúng
+ * biên `BIEN_NGHIENG_KHOI`.
  */
-const PHAN_CO_KHOI =
-  BIEN_NGHIENG_KHOI /
-  ((TI_LE_DAI[TI_LE_DAI.length - 1] as number) - (TI_LE_DAI[0] as number))
+const KHOANG_TOI_DA_TOI_BONG = 0.81
+
+/** Hệ số co khối: dịch bao nhiêu phần của khoảng cách tới dải có bóng. */
+const PHAN_CO_KHOI = BIEN_NGHIENG_KHOI / KHOANG_TOI_DA_TOI_BONG
 
 /**
  * Một người KHÔNG tham gia dịch bao nhiêu theo trục dọc, vì bóng đang ở dải
  * nào (AC-30.4, quyết định D94).
  *
  * **Cả khối CO VỀ phía bóng, không phải cả khối trượt theo bóng** — dịch của mỗi
- * người tỉ lệ với khoảng cách từ dải của anh ta tới dải có bóng, nên người đứng
- * **đúng dải có bóng không dịch một đơn vị nào**. Đó không phải thẩm mỹ: hai bản
+ * người tỉ lệ với khoảng cách từ chỗ anh ta tới dải có bóng, nên người đứng
+ * **đúng chỗ bóng không dịch một đơn vị nào**. Đó không phải thẩm mỹ: hai bản
  * trước của T510 dịch **cả khối một lượng như nhau** và đều phá AC-30.5, hai kiểu
  * khác nhau, cả hai chỉ lộ ra khi đo trên 10 mã trận:
- * - Dịch theo tỉ lệ đều → hai dải giữa cho dịch **3,43**, đúng bằng `LECH_DOI` = 4,
- *   tức triệt tiêu khoảng lệch duy nhất tách một người không tham gia khỏi người
- *   tham gia đứng cùng dải: hai điểm còn cách **0,57** đơn vị.
- * - Dịch nguyên `r/10` theo dấu → đẩy những người ở dải ngoài cùng vào **phép kẹp
- *   mặt cỏ**, mà phép kẹp thì dồn mọi người bị kẹp về **đúng một toạ độ**: thủ
- *   môn đội nhà và một tiền đạo đội khách cách nhau **0,00** đơn vị.
- *
- * Co về phía bóng tránh được cả hai bằng cấu trúc, không bằng cẩn thận: mọi dịch
- * đều **hướng vào trong**, nên không ai bị đẩy ra mép cỏ; dịch bằng 0 ở đúng dải
- * có bóng, nên khoảng lệch với người tham gia không hề bị ăn; và hệ số < 1 nên
- * thứ tự các dải không đảo — 4-4-2 vẫn ra 4-4-2, chỉ gọn lại một phần bảy.
+ * - Dịch theo tỉ lệ đều → triệt tiêu khoảng lệch duy nhất tách một người không
+ *   tham gia khỏi người tham gia đứng cùng dải: hai điểm còn cách **0,57** đơn vị.
+ * - Dịch nguyên `r/10` theo dấu → đẩy người ở dải ngoài cùng vào **phép kẹp mặt
+ *   cỏ**, mà phép kẹp dồn mọi người bị kẹp về **đúng một toạ độ**: hai điểm cách
+ *   nhau **0,00** đơn vị.
  *
  * Trả 0 khi không biết bóng ở đâu (chưa có dòng nào, hay dòng không mang vùng):
  * đứng theo sơ đồ là câu trả lời đúng khi chưa có thông tin.
  */
 export function nghiengKhoiTheoBong(
   vungNguoi: VungSan,
+  benNguoi: BenVe,
   vungBong: VungSan | null,
   khung: KhungSan,
 ): number {
   if (vungBong == null) return 0
-  const tiBong = TI_LE_DAI[vungBong.dai]
-  const tiNguoi = TI_LE_DAI[vungNguoi.dai]
-  if (tiBong == null || tiNguoi == null) return 0
+  const tiNguoi = tiLeCuaDai(vungNguoi.dai, benNguoi)
+  const tiBong = tiLeCuaDai(vungBong.dai, 'trung-lap')
   return PHAN_CO_KHOI * (tiBong - tiNguoi) * khung.rong
 }
 
@@ -505,7 +553,7 @@ export function hinhSan({
     const huong = laDoiNha ? 1 : -1
     const doCao = doiTren.ben.chienThuatHienTai.chiThi['do-cao-doi-hinh']
     const dichX =
-      ((DICH_THEO_DO_CAO[doCao] ?? 0) * huong - LECH_DOI * huong) * tiLe
+      (DICH_THEO_DO_CAO[doCao] ?? 0) * huong * tiLe
 
     const tren = cacNguoiTrenSan(doiTren.ben, laDoiNha)
     const lech = lechTrongVung(tren, buocGian)
@@ -533,8 +581,22 @@ export function hinhSan({
         diChuyen
           ? 0
           : dichX +
-            (laThuMon ? 0 : nghiengKhoiTheoBong(x.vung, vungSuKien, khung)),
+            (laThuMon
+              ? 0
+              : nghiengKhoiTheoBong(
+                  x.vung,
+                  laDoiNha ? 'nha' : 'khach',
+                  vungSuKien,
+                  khung,
+                )),
         khung,
+        /*
+          Người được kéo tới tình huống dùng bảng **trung lập**: một pha
+          tranh chấp phải diễn ra ở đúng một chỗ cho cả hai bên, không thể
+          mỗi người đứng theo bảng của đội mình. Còn người đứng theo sơ đồ
+          thì dùng bảng của đội anh ta — đó là cả ý nghĩa của T523.
+        */
+        diChuyen ? 'trung-lap' : laDoiNha ? 'nha' : 'khach',
       )
       const dai = laThuMon ? daiThuMon(laDoiNha, khung) : null
       const cx = dai ? kep(xTho, dai.tu, dai.den) : xTho
@@ -1160,15 +1222,37 @@ export function San2D(props: Props) {
           trên cùng — cùng với kênh chữ của hiệu ứng bàn thắng, vì một dòng chữ
           bị điểm đè lên cũng là một kênh thông tin bị mất (P9).
         */}
-        <circle
-          cx={viTriBongVe().x}
-          cy={viTriBongVe().y}
-          r={1.5 * tiLe}
-          fill="var(--co-vang)"
-          stroke="var(--co-net)"
-          strokeWidth={0.3 * tiLe}
+        <g
+          transform={`translate(${viTriBongVe().x} ${viTriBongVe().y})`}
           aria-hidden="true"
-        />
+        >
+          {/*
+            Quả bóng vẽ ra **quả bóng** (AC-32.8, T522): đĩa trắng, viền sẫm, một
+            mảng đen giữa và năm mảng nhỏ quanh — đú ba mảng đen là đủ để mắt
+            đọc ra quả bóng ở cỡ này. Trắng trên mặt cỏ cho tương phản 7,2:1,
+            và **không màu áo nào của người dùng trùng được với trắng-đen có họa
+            tiết**, nên bóng không lẫn vào một điểm cầu thủ.
+          */}
+          <circle
+            r={1.7 * tiLe}
+            fill="#ffffff"
+            stroke="var(--co-net)"
+            strokeWidth={0.35 * tiLe}
+          />
+          <circle r={0.52 * tiLe} fill="var(--co-net)" />
+          {[0, 1, 2, 3, 4].map((i) => {
+            const goc = (i / 5) * Math.PI * 2 - Math.PI / 2
+            return (
+              <circle
+                key={i}
+                cx={Math.cos(goc) * 1.12 * tiLe}
+                cy={Math.sin(goc) * 1.12 * tiLe}
+                r={0.34 * tiLe}
+                fill="var(--co-net)"
+              />
+            )
+          })}
+        </g>
 
         {/*
           KÊNH CHỮ của hiệu ứng (AC-32.4, AC-32.6, hiến pháp P9).

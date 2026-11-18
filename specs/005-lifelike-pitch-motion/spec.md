@@ -4,7 +4,7 @@
 |---|---|
 | **ID** | `005-lifelike-pitch-motion` |
 | **Status** | Planned (2026-11-18) |
-| **Sửa đổi** | 2026-11-18 — thêm US-32 (quả bóng luôn hiện, hiệu ứng bàn thắng) sau khi plan đã Approved; 2026-11-18 — thêm AC-30.7 và siết AC-32.1 sau khi người dùng xem thật ở T518 |
+| **Sửa đổi** | 2026-11-18 — thêm US-32 (quả bóng luôn hiện, hiệu ứng bàn thắng) sau khi plan đã Approved; 2026-11-18 — thêm AC-30.7 và siết AC-32.1 sau khi người dùng xem thật ở T518; 2026-11-18 — thêm AC-30.8 và AC-32.8, cũng từ T518 |
 | **Created** | 2026-11-18 |
 | **Branch** | `005-lifelike-pitch-motion` |
 
@@ -134,6 +134,14 @@ bị dịch chỗ**.
 - [ ] AC-30.5 — KHI xem bất kỳ mười giây nào của một trận đang chạy THÌ KHÔNG điểm nào được ra ngoài vạch biên, và KHÔNG hai điểm nào được nằm khít lên nhau tới mức người xem chỉ thấy một.
 - [ ] AC-30.6 — KHI một cầu thủ đã xuống thể lực THÌ ở những nhịp còn dư thời gian, điểm của anh ta PHẢI **đi chậm thật**: tới đích muộn hơn một người cùng lúc còn sung sức, nhưng VẪN phải tới trước khi tình huống kế tiếp tới. Ở nhịp không đủ dư thời gian, độ chênh PHẢI vẫn nhận ra được bằng dáng chạy (xuất phát muộn hơn, đi phần lớn quãng đường sau).
 - [ ] AC-30.7 — KHI trận đang chạy THÌ điểm của **thủ môn** PHẢI luôn nằm trong **một phần ba sân của đội mình**, kể cả khi dòng tường thuật liệt kê anh ta là người tham gia một tình huống ở vùng khác, và kể cả khi cả khối đội hình đang co về phía bóng — thủ môn **không** co theo khối.
+- [ ] AC-30.8 — KHI hai đội đứng theo sơ đồ THÌ hàng phòng ngự của một đội PHẢI đứng **giữa tiền đạo đối phương và khung thành của mình**, không được đứng trước mặt họ; và bốn hàng của hai đội PHẢI xen kẽ nhau dọc sân theo đúng thứ tự bóng đá: thủ môn nhà → hậu vệ nhà → tiền đạo khách → tiền vệ nhà → tiền vệ khách → tiền đạo nhà → hậu vệ khách → thủ môn khách.
+
+  > *Thêm ngày 2026-11-18, sau khi người dùng xem thật (T518).* Đo được trước khi
+  > sửa: hậu vệ đội nhà ở `x = 28`, tiền đạo đội khách ở `x = 13` — tiền đạo nằm
+  > **sau lưng** hàng hậu vệ, kẹp giữa họ và khung thành nhà, suốt trận; hàng thủ
+  > dâng cao thì khoảng ấy thành 25. Lý do: lưới vùng lật theo **chỉ số dải**, nên
+  > dải 3 (tấn công) của một đội lật thành dải 0 — đúng dải của thủ môn đối
+  > phương, tức trong vòng 5m50.
 
 ### US-31: Những lời hứa cũ không được rơi
 
@@ -176,6 +184,7 @@ quan trọng nhất của nó**.
 - [ ] AC-32.5 — KHI hiệu ứng bàn thắng chạy THÌ đồng hồ trận PHẢI lặng khoảng 1,5 giây rồi **tự** chạy tiếp, mà nút Tạm dừng / Tiếp tục KHÔNG được đổi nghĩa: người dùng PHẢI không thể tưởng là mình đã bấm Tạm dừng.
 - [ ] AC-32.6 — KHI người dùng bật chế độ giảm chuyển động THÌ hiệu ứng bàn thắng PHẢI chỉ còn phần chữ — không vòng sáng, không phóng to — nhưng đồng hồ VẪN lặng một nhịp, vì một nhịp lặng không phải là chuyển động.
 - [ ] AC-32.7 — KHI trận đang tạm dừng hoặc đã kết thúc THÌ quả bóng PHẢI vẫn có mặt: đóng băng sân không có nghĩa là bóng mất.
+- [ ] AC-32.8 — KHI nhìn vào sân THÌ quả bóng PHẢI **trông ra một quả bóng đá**: hình tròn **trắng có mảng đen** như bóng thật, chứ không phải một chấm màu trơn; và nó PHẢI phân biệt được với mọi điểm cầu thủ ở cả hai chế độ sáng/tối.
 
 ## 4. Luồng chính (happy path)
 

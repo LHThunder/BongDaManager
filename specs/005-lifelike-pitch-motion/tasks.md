@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | 30 AC (US-28 → US-32), 11 quyết định D89–D100 |
-| **Tiến độ** | 20/22 |
+| **Tiến độ** | 22/24 |
 | **Sửa đổi** | 2026-11-18 — chẻ lần đầu từ plan |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -240,6 +240,28 @@ xem được (hiến pháp P6), và là một commit.
 
 ---
 
+## Phase 44 — Lát 44: Hai hàng đứng đúng chỗ, và quả bóng trông ra quả bóng
+
+> Lại là mắt người dùng ở T518. Lần này cái thứ nhất nặng hơn vẻ ngoài của nó:
+> nó là **lỗi bố cục có từ spec 001**, không phải lỗi của spec này.
+
+- [x] **T522** [P] — Quả bóng trắng đen như bóng thật
+  - File: sửa `src/ui/components/San2D.tsx`
+  - Xong khi: bóng vẽ bằng nền **trắng**, viền sẫm và **mảng đen** bên trong; tương phản nền bóng với mặt cỏ ≥ 4,5:1 ở cả hai chế độ màu; bóng vẫn vẽ sau các điểm người (T520) và vẫn có mặt ở mọi dòng (T513).
+  - Bằng chứng: **số** cho tương phản; **mắt** cho "trông ra quả bóng".
+  - AC: AC-32.8
+  - Phụ thuộc: T520
+
+- [x] **T523** — Bốn hàng của hai đội xen kẽ đúng thứ tự bóng đá
+  - File: sửa `src/ui/components/San2D.tsx`, sửa `src/ui/san2D.test.ts`
+  - Xong khi: chỗ đứng theo sơ đồ dùng **bảng dải riêng cho từng đội** thay cho một bảng chung lật theo chỉ số; phép kiểm mới: thứ tự dọc sân là TM nhà → HV nhà → TĐ khách → TV nhà → TV khách → TĐ nhà → HV khách → TM khách, đúng ở **cả chín tổ hợp độ cao đội hình**; người tham gia tình huống và quả bóng dùng **bảng trung lập** nên vẫn tụ đúng một chỗ; ba phép kiểm sẵn có — số điểm, điểm không chồng khít (10 mã trận), thủ môn trong một phần ba sân — vẫn xanh.
+  - Bằng chứng: **số**.
+  - AC: AC-30.8, AC-30.5
+  - Phụ thuộc: T510, T521
+  - ⚠️ Đây là **thay đổi bố cục của spec 001**, không phải tinh chỉnh của spec 005: `TI_LE_DAI` và `LECH_DOI` có từ đó. Mọi con số của trận **không đổi** — đây thuần là chỗ vẽ.
+
+---
+
 ## Bảng phủ AC
 
 | AC | Task |
@@ -261,6 +283,7 @@ xem được (hiến pháp P6), và là một commit.
 | AC-30.5 | T510 |
 | AC-30.6 | T512 |
 | AC-30.7 | T521 |
+| AC-30.8 | T523 |
 | AC-31.1 | T509, T516 |
 | AC-31.2 | T516 |
 | AC-31.3 | T517 |
@@ -275,6 +298,7 @@ xem được (hiến pháp P6), và là một commit.
 | AC-32.5 | T515, T516 |
 | AC-32.6 | T514, T516 |
 | AC-32.7 | T513, T516 |
+| AC-32.8 | T522 |
 
 ## Ghi chú thực thi
 
@@ -675,4 +699,54 @@ một mô hình chuyển động **giữa hai mốc** mà engine không kể ra:
 bóng đi theo ai, lúc nào rời chân. Đó cũng là nơi giải luôn điều người dùng gọi là
 "teleport" — đo được: quãng một người đi trong **một nhịp** có trung vị 3,9 đơn vị
 nhưng lớn nhất **46,3**, tức gần nửa sân trong một giây. Để cho **spec 006**.
+
+## Phase 44 — một lỗi bố cục đã sống qua bốn spec
+
+**1. "Hậu vệ luôn đứng trên tiền đạo đối phương" là lỗi của spec 001, không phải
+của spec này.** Lưới vùng lật đội khách theo **chỉ số dải** (`latVung`: dải 3 ↔
+dải 0), mà hai đội lại dùng **chung một bảng toạ độ**. Hệ quả: dải tấn công của
+một đội lật thành đúng dải **thủ môn** của đội kia. Đo được trước khi sửa:
+
+| Độ cao đội hình | HV đội nhà | TĐ đội khách | Tiền đạo nằm sau hàng thủ |
+|---|---|---|---|
+| trung bình | x = 28 | x = 13 | 15 đơn vị |
+| cao | x = 33 | x = 8 | 25 đơn vị |
+| thấp | x = 23 | x = 18 | 5 đơn vị |
+
+Tức tiền đạo đối phương đứng **trong vòng 5m50 suốt trận**, còn hàng thủ đứng
+trước mặt họ. Không phép kiểm nào của bốn spec bắt được, vì mọi phép kiểm đều
+hỏi "hai điểm có chồng nhau không" chứ chưa bao giờ hỏi "**thứ tự tám hàng có đúng
+không**".
+
+**Cách sửa: mỗi đội một bảng dải**, cộng một **bảng trung lập** cho quả bóng và
+cho người được kéo tới tình huống — một pha tranh chấp phải diễn ra ở đúng một
+chỗ cho cả hai bên. Đo lại trên ứng dụng, một khung lúc không có tình huống:
+
+    5 (TM nhà) | 19–21 ×4 (HV nhà) | 31–33 ×2 (TĐ khách) | 43–45 ×4 (TV nhà)
+    | 55–57 ×4 (TV khách) | 68 ×2 (TĐ nhà) | 79–81 ×4 (HV khách) | 95 (TM khách)
+
+Đúng thứ tự một trận thật, và mỗi hàng cách hàng kế 12 đơn vị.
+
+**Ba thứ phải đi theo, không có thứ nào là trang trí:**
+- `LECH_DOI` = 4 **bị bỏ**. Nó sinh ra để chữa triệu chứng của chính bảng chung ấy
+  (hai điểm trùng toạ độ), và cú đẩy của nó còn làm nặng thêm chính lỗi này.
+- Độ cao đội hình **±5 → ±3**: với khoảng cách 12 giữa hai hàng, ±5 cho hai đội
+  cùng dâng cao là đủ để hai hàng **đổi chỗ cho nhau**. Với ±3, khoảng hẹp nhất
+  trong chín tổ hợp độ cao là **6 đơn vị** và thứ tự không bao giờ đảo.
+- Bảng trung lập **không phải trung bình của hai bảng kia**. Bản đầu lấy trung bình
+  và phép kiểm đỏ ngay: chỗ của bóng rơi cách một hàng đúng **1 đơn vị**, hai điểm
+  cách nhau 0,87 trên bán kính 3,4. Bốn chỗ đúng là 13 / 38 / 62 / 87 — **giữa hai
+  hàng**, cách hàng gần nhất 6–7 đơn vị.
+
+**Một hệ quả tốt ngoài dự tính:** sàn "hai điểm gần nhau nhất" đo trên 10 mã trận
+× 7 quân số × mọi dòng **rộng từ 1,176 lên 1,80 bán kính**. Sân thoáng hẳn ra, và
+biên phì thêm của người ghi bàn giờ có dư rất nhiều chỗ — nhưng phép kiểm vẫn
+giữ ngưỡng cũ làm sàn cứng, không nới theo số đo mới.
+
+**2. Quả bóng (T522).** Trắng, viền sẫm, một mảng đen giữa và năm mảng quanh. Tương
+phản nền bóng với mặt cỏ **7,68:1**, mảng đen với nền **17,74:1**, giống nhau ở cả
+hai chế độ màu. Bóng vẫn vẽ sau các điểm người (T520).
+
+**Vẫn chưa làm, và vẫn cố ý chưa làm:** bóng dính chân người dẫn, qua người,
+chuyền và sút, đường bóng liên tục — **spec 006**.
 
