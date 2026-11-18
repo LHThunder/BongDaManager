@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **ID** | `006-ball-carrier-motion` |
-| **Status** | Clarified (2026-11-19) |
+| **Status** | Planned (2026-11-19) |
 | **Created** | 2026-11-18 |
 | **Branch** | `006-ball-carrier-motion` — **cắt từ `005-lifelike-pitch-motion`, không phải từ `main`** |
 
