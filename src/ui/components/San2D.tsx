@@ -2,25 +2,33 @@ import { useEffect, useMemo, useReducer, useRef, useState } from 'react'
 import { mauChuTuongPhan } from '../../domain/colors'
 import { laySoDo, soNguoiCuaSoDo } from '../../domain/formations'
 import type { PositionId } from '../../domain/types'
-import type { BenDoi, SuKien } from '../../engine/suKien'
+import type { BenDoi, LoaiSuKien, SuKien } from '../../engine/suKien'
 import type { BenTran } from '../../engine/tran'
 import { latVung, vungCuaViTri, type VungSan } from '../../engine/vung'
 import { useChuoi } from '../../hooks/useNgonNgu'
+import { bienDoTuKhoangGian, lechDaoDong } from '../daoDong'
 import {
   doMetTuTheLuc,
   huongRaKhoiMoc,
+  QUANG_CHUAN,
+  thoiLuongCuaNguoi,
   viTriTaiThoiDiem,
   type Diem,
+  type KhungKep,
 } from '../noiSuy'
 import type { BoChuoi } from '../ngonNgu'
 
 /*
   Sân 2D dạng điểm (US-10, quyết định D41).
 
-  SVG viết tay, KHÔNG thư viện đồ hoạ (P4) và KHÔNG vòng lặp animation: mỗi
-  điểm là một `<g>` có `transform`, di chuyển bằng CSS transition. 22 điểm
-  tròn không cần canvas, mà vòng lặp animation chính là thứ sẽ phá ngân sách 3
-  giây của AC-10.5 ở chế độ chạy hết trận.
+  SVG viết tay, KHÔNG thư viện đồ hoạ (P4): mỗi điểm là một `<g>` có
+  `transform`. 22 điểm tròn không cần canvas.
+
+  **CÓ vòng lặp animation, từ spec 004.** Câu cũ ở đây ghi "KHÔNG vòng lặp
+  animation... vòng lặp chính là thứ sẽ phá ngân sách 3 giây" — sai từ lúc lát 33
+  thêm nội suy, và spec 005 làm nó sai hơn nữa vì vòng giờ chạy liên tục. Ngân
+  sách 3 giây không bị đe doạ: chế độ "chạy hết trận" chạy engine một lèo rồi
+  vẽ MỘT lần, không đi qua vòng khung hình nào.
 
   Toạ độ suy từ lưới 12 vùng của D23, không phải một bảng toạ độ riêng — nhờ
   vậy chỗ bóng mà engine báo và chỗ người mà sân vẽ luôn nói cùng một thứ
@@ -36,8 +44,8 @@ import type { BoChuoi } from '../ngonNgu'
   điểm, khoảng giãn và cỡ chữ đều là số pixel như nhau ở mọi định dạng —
   cầu thủ sân 5 không phình to ra chỉ vì sân của họ nhỏ.
 */
-const RONG = 100
-const CAO = 64
+export const RONG = 100
+export const CAO = 64
 
 /** Khung sân vẽ bên trong hệ toạ độ trên. */
 export interface KhungSan {
@@ -71,13 +79,27 @@ export function khungSan(quanSo: number): KhungSan {
 }
 
 /**
- * Tâm theo trục dọc sân cho từng dải, tính theo TỈ LỆ chiều dài khung.
+ * ĐỘ SÂU của bốn dải, tính từ **khung thành của chính đội ấy**, theo tỉ lệ chiều
+ * dài khung: thủ môn, hậu vệ, tiền vệ, tiền đạo.
  *
- * Toạ độ ô vốn đã là phần trăm sân (D15), nên đổi khung là đủ — không cần
- * một bảng toạ độ riêng cho mỗi quân số. Nhân với 100 ra lại đúng bộ số
- * 9/32/56/79 của spec 001.
+ * **Bảng này là của MỘT ĐỘI, không phải của cả sân** (T523) — đó là khác biệt với
+ * bản của spec 001, và là thứ sửa được một lỗi bố cục đã sống qua bốn spec.
+ *
+ * Bản cũ dùng **một** bảng cho cả hai đội và lật đội khách bằng **chỉ số dải**
+ * (`latVung`: dải 3 ↔ dải 0). Hệ quả: dải tấn công của đội này lật thành đúng dải
+ * **thủ môn** của đội kia, nên tiền đạo đội khách đứng ở `x = 13` trong khi hậu vệ
+ * đội nhà đứng ở `x = 28` — tiền đạo nằm **sau lưng** hàng thủ suốt trận, trong
+ * vòng 5m50. Người dùng gọi đúng tên ở T518: "hậu vệ luôn đứng trên tiền đạo
+ * đối phương".
+ *
+ * Bốn số này chọn để **tám hàng của hai đội xen kẽ đều** (AC-30.8). Với `t` là bảng
+ * này, đội nhà đứng ở `t`, đội khách ở `1 - t`, nên thứ tự dọc sân thành:
+ *
+ *     TM nhà 6 | HV nhà 20 | TĐ khách 32 | TV nhà 44 | TV khách 56 | TĐ nhà 68 | HV khách 80 | TM khách 94
+ *
+ * — đúng thứ tự của một trận thật, và cách đều 12 đơn vị giữa hai hàng kề nhau.
  */
-const TI_LE_DAI: readonly number[] = [0.09, 0.32, 0.56, 0.79]
+const TI_LE_DAI: readonly number[] = [0.06, 0.2, 0.44, 0.68]
 
 /** Tâm theo trục ngang sân cho từng cột, theo tỉ lệ chiều rộng khung. */
 const TI_LE_COT: Readonly<Record<VungSan['cot'], number>> = {
@@ -88,9 +110,9 @@ const TI_LE_COT: Readonly<Record<VungSan['cot'], number>> = {
 
 /** Độ cao đội hình đẩy cả đội lên hay xuống theo hướng tấn công của họ. */
 const DICH_THEO_DO_CAO: Readonly<Record<string, number>> = {
-  thap: -5,
+  thap: -3,
   'trung-binh': 0,
-  cao: 5,
+  cao: 3,
 }
 
 const BAN_KINH = 3.4
@@ -98,17 +120,16 @@ const BAN_KINH = 3.4
 /** Khoảng giãn giữa hai người cùng ĐỘI đứng cùng một vùng. */
 const BUOC_GIAN = 8
 
-/**
- * Đẩy hai đội lệch nhau theo trục dọc, mỗi đội về phía khung thành của mình.
- *
- * Cần thiết vì lưới vùng cố tình cho hai đội đứng CHUNG vùng: tiền đạo đội
- * khách (dải 3 của họ) lật sang chính là dải 0 của đội nhà, tức ngay trước
- * khung thành đội nhà — đúng bóng đá. Nhưng vẽ đúng một toạ độ thì hai điểm
- * nằm đè lên nhau và sân chỉ hiện 13 điểm thay vì 22. Lệch 4 đơn vị mỗi bên
- * cho khoảng cách 8, lớn hơn đường kính 6,8 của một điểm.
- *
- */
-const LECH_DOI = 4
+/*
+  `LECH_DOI` đã bỏ ở T523.
+
+  Nó sinh ra để chữa đúng triệu chứng của bảng dải cũ: hai đội dùng chung một
+  bảng nên có những cặp đứng trùng toạ độ, và nó đẩy mỗi đội 4 đơn vị về phía
+  khung thành của mình cho hai điểm rời nhau. Nhưng cái phải sửa là **bảng dải**,
+  và cú đẩy ấy còn làm nặng thêm chuyện tiền đạo nằm sau lưng hậu vệ: nó kéo
+  hậu vệ nhà xuống 28 và đẩy tiền đạo khách lên 13. Bảng dải riêng từng đội
+  đã cho mọi cặp cách nhau 12 đơn vị, nên không còn gì để chữa.
+*/
 
 /** Lề tối thiểu từ tâm điểm tới mép khung, đủ cho bán kính 3,4. */
 const LE_TOI_THIEU = 5
@@ -174,16 +195,63 @@ function kep(v: number, tu: number, den: number): number {
   return Math.min(Math.max(v, tu), den)
 }
 
-function toaDo(
+/** Ai đang dùng bảng dải nào: đội nhà, đội khách, hay **trung lập**. */
+export type BenVe = 'nha' | 'khach' | 'trung-lap'
+
+/**
+ * Toạ độ dọc của một dải, theo bảng của đội đang hỏi (T523, AC-30.8).
+ *
+ * `dai` luôn là chỉ số **đã quy về khung đội nhà** — `cacNguoiTrenSan` và
+ * `vungTrenSan` đã lật sẵn. Ba câu trả lời khác nhau cho cùng một chỉ số:
+ *
+ * - `'nha'`: độ sâu đếm từ khung thành bên trái → `TI_LE_DAI[dai]`.
+ * - `'khach'`: đội khách đá ngược, và chỉ số đã bị lật một lần, nên phải lật lại
+ *   rồi soí từ bên phải → `1 - TI_LE_DAI[3 - dai]`.
+ * - `'trung-lap'`: một **chỗ trên sân**, không thuộc đội nào — dành cho quả bóng
+ *   và cho những người được **kéo tới tình huống**: một pha tranh chấp phải
+ *   diễn ra ở đúng một chỗ cho cả hai bên. Lấy trung điểm của hai bảng trên,
+ *   nên nó đối xứng qua giữa sân.
+ */
+/**
+ * Bốn chỗ **trung lập** của sân: nơi quả bóng và một pha tranh chấp diễn ra.
+ *
+ * **Không** phải trung bình của hai bảng đội: lấy trung bình thì chỗ của bóng rơi
+ * cách một hàng đúng **1 đơn vị**, và đo trên 10 mã trận ra hai điểm cách nhau
+ * **0,87** trên bán kính 3,4. Bốn chỗ này rơi vào **giữa hai hàng** của trật tự
+ * xen kẽ, mỗi chỗ cách hàng gần nhất 6–7 đơn vị:
+ *
+ *     6 TM nhà | **13** | 20 HV nhà | 32 TĐ khách | **38** | 44 TV nhà |
+ *     56 TV khách | **62** | 68 TĐ nhà | 80 HV khách | **87** | 94 TM khách
+ */
+const TI_LE_DAI_TRUNG_LAP: readonly number[] = [0.13, 0.38, 0.62, 0.87]
+
+export function tiLeCuaDai(dai: number, ben: BenVe): number {
+  const nha = TI_LE_DAI[dai]
+  const khachTho = TI_LE_DAI[TI_LE_DAI.length - 1 - dai]
+  if (nha == null || khachTho == null) return 0.5
+  if (ben === 'nha') return nha
+  if (ben === 'khach') return 1 - khachTho
+  return TI_LE_DAI_TRUNG_LAP[dai] ?? 0.5
+}
+
+/**
+ * Toạ độ tâm của một vùng, đã kẹp vào mặt cỏ.
+ *
+ * Xuất ra ngoài để phép kiểm tính được **chỗ đúng ra phải đứng** của một người
+ * tham gia tình huống, thay vì chỉ so các điểm với nhau — AC-28.3 là phát biểu về
+ * **vùng**, nên phép kiểm phải biểu diễn được vùng thành toạ độ.
+ */
+export function toaDo(
   vung: VungSan,
   dichX: number,
   khung: KhungSan,
+  ben: BenVe = 'trung-lap',
 ): { x: number; y: number } {
   const tiLe = tiLeKhung(khung)
   const le = LE_TOI_THIEU * tiLe
   const leX = (RONG - khung.rong) / 2
   const leY = (CAO - khung.cao) / 2
-  const x = leX + TI_LE_DAI[vung.dai] * khung.rong + dichX
+  const x = leX + tiLeCuaDai(vung.dai, ben) * khung.rong + dichX
   return {
     x: kep(x, leX + le, leX + khung.rong - le),
     y: leY + TI_LE_COT[vung.cot] * khung.cao,
@@ -216,8 +284,89 @@ function lechTrongVung(
   return ra
 }
 
+/**
+ * Khối đội hình nghiêng theo bóng tối đa bao nhiêu: **một phần mười chiều dài
+ * sân** (AC-30.4, quyết định D94).
+ *
+ * Ngưỡng này là do người dùng chốt lúc `/clarify`: đủ để thấy đội đang dồn lên
+ * hay lùi về, mà sơ đồ vẫn nhận ra được. Bốn dải cách nhau ~0,23 chiều dài, nên
+ * 0,1 là **chưa đầy một nửa** khoảng giữa hai dải: một hàng bốn không bao giờ trôi
+ * sang chỗ của hàng bên.
+ */
+const BIEN_NGHIENG_KHOI = 1 / 10
+
+/**
+ * Khoảng cách lớn nhất có thể có giữa một người và dải có bóng, theo tỉ lệ
+ * chiều dài: thủ môn (0,06 bằng bảng đội mình) và bóng ở dải tấn công xa nhất
+ * (0,87 bằng bảng trung lập) — **0,81**. Dùng để chuẩn hoá độ co khối về đúng
+ * biên `BIEN_NGHIENG_KHOI`.
+ */
+const KHOANG_TOI_DA_TOI_BONG = 0.81
+
+/** Hệ số co khối: dịch bao nhiêu phần của khoảng cách tới dải có bóng. */
+const PHAN_CO_KHOI = BIEN_NGHIENG_KHOI / KHOANG_TOI_DA_TOI_BONG
+
+/**
+ * Một người KHÔNG tham gia dịch bao nhiêu theo trục dọc, vì bóng đang ở dải
+ * nào (AC-30.4, quyết định D94).
+ *
+ * **Cả khối CO VỀ phía bóng, không phải cả khối trượt theo bóng** — dịch của mỗi
+ * người tỉ lệ với khoảng cách từ chỗ anh ta tới dải có bóng, nên người đứng
+ * **đúng chỗ bóng không dịch một đơn vị nào**. Đó không phải thẩm mỹ: hai bản
+ * trước của T510 dịch **cả khối một lượng như nhau** và đều phá AC-30.5, hai kiểu
+ * khác nhau, cả hai chỉ lộ ra khi đo trên 10 mã trận:
+ * - Dịch theo tỉ lệ đều → triệt tiêu khoảng lệch duy nhất tách một người không
+ *   tham gia khỏi người tham gia đứng cùng dải: hai điểm còn cách **0,57** đơn vị.
+ * - Dịch nguyên `r/10` theo dấu → đẩy người ở dải ngoài cùng vào **phép kẹp mặt
+ *   cỏ**, mà phép kẹp dồn mọi người bị kẹp về **đúng một toạ độ**: hai điểm cách
+ *   nhau **0,00** đơn vị.
+ *
+ * Trả 0 khi không biết bóng ở đâu (chưa có dòng nào, hay dòng không mang vùng):
+ * đứng theo sơ đồ là câu trả lời đúng khi chưa có thông tin.
+ */
+export function nghiengKhoiTheoBong(
+  vungNguoi: VungSan,
+  benNguoi: BenVe,
+  vungBong: VungSan | null,
+  khung: KhungSan,
+): number {
+  if (vungBong == null) return 0
+  const tiNguoi = tiLeCuaDai(vungNguoi.dai, benNguoi)
+  const tiBong = tiLeCuaDai(vungBong.dai, 'trung-lap')
+  return PHAN_CO_KHOI * (tiBong - tiNguoi) * khung.rong
+}
+
+/**
+ * Một phần ba sân của đội: thủ môn không được rời khỏi đó (AC-30.7, T521).
+ *
+ * **Ngoại lệ duy nhất của AC-28.3**, và nó đến từ mắt người dùng ở T518 chứ không
+ * từ một phép kiểm: đo trên bản dev, thủ môn đội khách chạy từ `x = 54,5` tới
+ * `85,2` trong một trận — ra tới gần giữa sân. Hai thứ cộng lại: engine có lúc liệt
+ * kê thủ môn là người tham gia một tình huống ở xa khung thành (và AC-28.3 bắt đặt
+ * người tham gia vào đúng vùng ấy), và lớp co khối của T510 kéo thêm.
+ *
+ * Dải bị thu lại đúng một biên độ dao động (`BUOC_GIAN / 8`), vì lớp dao động cộng
+ * vào **sau** `hinhSan`: trừ sẵn thì chỗ **được vẽ** mới thật sự nằm trong một phần
+ * ba sân, chứ không phải chỉ có toạ độ tại mốc.
+ */
+export function daiThuMon(
+  laDoiNha: boolean,
+  khung: KhungSan,
+): { readonly tu: number; readonly den: number } {
+  const tiLe = tiLeKhung(khung)
+  const le = LE_TOI_THIEU * tiLe
+  const leX = (RONG - khung.rong) / 2
+  const mot3 = khung.rong / 3
+  const chuaDao = (BUOC_GIAN * tiLe) / 8
+  return laDoiNha
+    ? { tu: leX + le, den: leX + mot3 - chuaDao }
+    : { tu: leX + khung.rong - mot3 + chuaDao, den: leX + khung.rong - le }
+}
+
 export interface DiemCauThu {
   readonly playerId: string
+  /** Thủ môn được đối xử riêng — xem `daiThuMon` và AC-30.7. */
+  readonly laThuMon: boolean
   readonly x: number
   readonly y: number
   readonly mauNen: string
@@ -261,10 +410,17 @@ interface DuLieuVe {
 interface Props extends DuLieuVe {
   /** Nhịp đồng hồ trận: bao nhiêu mili-giây cho một phút chơi. */
   readonly msMoiPhut: number
+  /**
+   * Phút ĐỒNG HỒ của trận (T508).
+   *
+   * **Không phải `suKien.phut`.** Đó là phút HIỂN THỊ, và nó không nhích khi
+   * một phút không có tình huống nào — bẫy đã biết từ spec 004, ghi ở D90.
+   * Dao động chờ bám vào con số này, nên bám sai là sân đứng chết hàng giây.
+   */
+  readonly phutDongHo: number
+  /** Trận đang chạy hay đang tạm dừng — tạm dừng thì đóng băng cả sân (AC-28.5). */
+  readonly dangChay: boolean
 }
-
-/** Thời gian chuyển chỗ dài nhất, dùng khi đồng hồ chạy đủ thong thả. */
-export const THOI_GIAN_CHUYEN_TOI_DA = 280
 
 /**
  * Chừa lại 10% để cú chuyển chỗ KẾT THÚC trước khi tình huống sau tới.
@@ -272,6 +428,15 @@ export const THOI_GIAN_CHUYEN_TOI_DA = 280
  * toàn kể cả ở những đoạn dày sự kiện nhất.
  */
 const TI_LE_KIP = 0.9
+
+/**
+ * Dưới nhịp này thì thôi nội suy hẳn (AC-29.4, quyết định D97).
+ *
+ * Ở mức Rất nhanh (20ms một phút trận) một cú di chuyển chỉ dài 18ms — khoảng
+ * một khung hình 60Hz. Mắt không đọc được chuyển động nào trong khoảng ấy, nên
+ * vẽ đường đi không mang lại gì mà chỉ làm điểm bị giật khi khung hình rơi.
+ */
+const NHIP_TOI_THIEU_DE_NOI_SUY = 40
 
 /**
  * Thời gian một điểm đi từ chỗ cũ tới chỗ mới, buộc theo nhịp đồng hồ trận.
@@ -286,9 +451,16 @@ const TI_LE_KIP = 0.9
  * đội hình đi. Sân 5 cũng ~1,88 người mỗi tình huống nhưng trên một đội hình
  * năm người, tức **37%** — mắt đọc chuyển động theo tỉ lệ, không theo số
  * tuyệt đối, nên cùng một lỗi ở sân 5 thành ra loạn.
+ *
+ * **Trần cứng 280ms đã bị bỏ (T501, quyết định D91).** Nó sinh ra để chữa đúng
+ * lỗi ở trên — một con số đặt cứng dài hơn khoảng cách giữa hai mốc — nhưng
+ * công thức theo tỉ lệ thì **không bao giờ** vượt nhịp, nên lý do tồn tại của
+ * trần đã hết. Giữ nó thì ở nhịp 1000ms một cú di chuyển dài 280ms rồi điểm
+ * **đứng im 720ms** — chậm hơn nhưng giật hơn, đúng cái bẫy spec 005 mục 1 ghi.
  */
 export function thoiGianChuyen(msMoiPhut: number): number {
-  return Math.min(THOI_GIAN_CHUYEN_TOI_DA, Math.round(msMoiPhut * TI_LE_KIP))
+  if (!(msMoiPhut >= NHIP_TOI_THIEU_DE_NOI_SUY)) return 0
+  return Math.round(msMoiPhut * TI_LE_KIP)
 }
 
 export interface HinhSan {
@@ -297,7 +469,25 @@ export interface HinhSan {
   readonly banKinh: number
   readonly cacDiem: readonly DiemCauThu[]
   readonly duongBong: readonly { readonly x: number; readonly y: number }[]
+  /**
+   * Chỗ của quả bóng mà **dòng này** nói ra, hay `null` khi nó không nói gì (T513).
+   *
+   * `null` **không** có nghĩa là "không có bóng": nó có nghĩa là "dòng này không
+   * kể một pha bóng nào, hãy để bóng ở chỗ nó đang ở" — thay người, kiệt sức,
+   * tiếng còi mãn cuộc đều như vậy (AC-32.3). Trước T513 những dòng ấy làm quả
+   * bóng **biến mất** khỏi sân, và riêng "kiệt sức" là năm dòng một trận.
+   */
+  readonly bongTaiMoc: Diem | null
 }
+
+/**
+ * Những dòng đưa bóng về điểm giao bóng giữa sân (AC-32.2).
+ *
+ * Đúng hai loại, và đó là hai lúc bóng thật sự được đặt lại giữa sân. Tiếng
+ * còi mãn cuộc **không** nằm đây: trận hết thì bóng ở chỗ nó đang ở, đúng
+ * hơn là bị dọn về giữa.
+ */
+const MOC_GIAO_BONG: readonly LoaiSuKien[] = ['bat-dau', 'het-hiep']
 
 /**
  * Toàn bộ hình học của sân — tách khỏi phần vẽ để kiểm được bằng test.
@@ -333,6 +523,13 @@ export function hinhSan({
   const vungSuKien = suKien?.vung ? vungTrenSan(suKien.vung, suKien.doi) : null
 
   /*
+    Khối đội hình co về phía bóng (AC-30.4, D94) áp **chỉ** cho người KHÔNG tham
+    gia tình huống: người tham gia vẫn được đặt thẳng vào vùng của tình huống,
+    không xê dịch một đơn vị nào — đó là thứ giữ AC-28.3 đúng tuyệt đối, và
+    cũng là giới hạn mà D94 đặt ra cho quyền đổi cách tính toạ độ tại mốc.
+  */
+
+  /*
     Người tham gia dồn về CÙNG một vùng, nên phải giãn họ ra y như đã giãn
     những người đứng chung một ô (T132). Không giãn thì hai điểm nằm khít
     lên nhau và người xem chỉ thấy MỘT — pha tranh chấp hay bàn thắng có
@@ -357,7 +554,7 @@ export function hinhSan({
     const huong = laDoiNha ? 1 : -1
     const doCao = doiTren.ben.chienThuatHienTai.chiThi['do-cao-doi-hinh']
     const dichX =
-      ((DICH_THEO_DO_CAO[doCao] ?? 0) * huong - LECH_DOI * huong) * tiLe
+      (DICH_THEO_DO_CAO[doCao] ?? 0) * huong * tiLe
 
     const tren = cacNguoiTrenSan(doiTren.ben, laDoiNha)
     const lech = lechTrongVung(tren, buocGian)
@@ -366,12 +563,44 @@ export function hinhSan({
     for (const x of tren) {
       // Người tham gia tình huống dịch TỚI chỗ bóng; người khác giữ chỗ.
       const noiBat = thamGia.has(x.playerId)
-      const diChuyen = noiBat && vungSuKien !== null
-      const { x: cx, y: cy } = toaDo(
+      /*
+        **Thủ môn không bao giờ bị dịch đi đâu cả** (AC-30.7, T521): anh ta
+        đứng ở vùng của mình, kể cả khi dòng tường thuật liệt kê anh ta là
+        người tham gia. Một cú cứu thùa thì vốn đã diễn ra ở vùng của anh ta,
+        nên không mất gì; còn những dòng liệt kê anh ta ở xa khung thành là
+        thứ đã kéo thủ môn đội khách ra tới `x = 85,2` trước T521.
+      */
+      const laThuMon = x.viTriO === 'GK'
+      const diChuyen = noiBat && vungSuKien !== null && !laThuMon
+      /*
+        Thủ môn cũng **không co theo khối**, và còn bị kẹp vào một phần ba sân
+        của mình — phép kẹp ấy hiện không ràng vào đâu, nó là lưới giữ AC-30.7
+        đúng nếu sau này có sơ đồ đặt thủ môn ở một dải khác.
+      */
+      const { x: xTho, y: cy } = toaDo(
         diChuyen && vungSuKien ? vungSuKien : x.vung,
-        diChuyen ? 0 : dichX,
+        diChuyen
+          ? 0
+          : dichX +
+            (laThuMon
+              ? 0
+              : nghiengKhoiTheoBong(
+                  x.vung,
+                  laDoiNha ? 'nha' : 'khach',
+                  vungSuKien,
+                  khung,
+                )),
         khung,
+        /*
+          Người được kéo tới tình huống dùng bảng **trung lập**: một pha
+          tranh chấp phải diễn ra ở đúng một chỗ cho cả hai bên, không thể
+          mỗi người đứng theo bảng của đội mình. Còn người đứng theo sơ đồ
+          thì dùng bảng của đội anh ta — đó là cả ý nghĩa của T523.
+        */
+        diChuyen ? 'trung-lap' : laDoiNha ? 'nha' : 'khach',
       )
+      const dai = laThuMon ? daiThuMon(laDoiNha, khung) : null
+      const cx = dai ? kep(xTho, dai.tu, dai.den) : xTho
       const lechY = diChuyen
         ? (lechThamGia.get(x.playerId) ?? 0)
         : (lech.get(x.playerId) ?? 0)
@@ -379,6 +608,7 @@ export function hinhSan({
 
       cacDiem.push({
         playerId: x.playerId,
+        laThuMon,
         x: cx,
         y: kep(cy + lechY, leY + le, leY + khung.cao - le),
         mauNen: doiTren.mauAo,
@@ -400,7 +630,25 @@ export function hinhSan({
     toaDo(vungTrenSan(v, suKien?.doi ?? 'nha'), 0, khung),
   )
 
-  return { khung, banKinh: BAN_KINH * tiLe, cacDiem, duongBong }
+  const cuoiDuongBong = duongBong[duongBong.length - 1]
+  /*
+    Điểm giao bóng là giữa khung ảnh, không phải giữa khung sân — hai thứ này
+    bằng nhau vì `hinhSan` luôn đặt sân giữa ảnh, và viết theo khung ảnh thì
+    không phải đi qua lề hai bên.
+  */
+  const bongTaiMoc: Diem | null =
+    cuoiDuongBong ??
+    (suKien && MOC_GIAO_BONG.includes(suKien.loai)
+      ? { x: RONG / 2, y: CAO / 2 }
+      : null)
+
+  return {
+    khung,
+    banKinh: BAN_KINH * tiLe,
+    cacDiem,
+    duongBong,
+    bongTaiMoc,
+  }
 }
 
 /**
@@ -425,19 +673,161 @@ function useGiamChuyenDong(): boolean {
   return giam
 }
 
+/** Bước thời gian để đo vận tốc bằng sai phân, theo tỉ lệ chặng. */
+const BUOC_DO_VAN_TOC = 0.01
+
+/**
+ * Bóng nhanh gấp mấy lần người (AC-30.2, T505).
+ *
+ * Bóng đi hết chặng của nó trong `msChuyen / 3`, nên nó tới đích trong khoảng
+ * một phần ba đầu — mắt theo bóng trước, người theo sau, đúng như một đường
+ * chuyền. Trước T505 bóng được vẽ thắng tại toạ độ mốc, tức **nhảy tức thời**.
+ */
+const BONG_NHANH_GAP = 3
+
+/** Hiệu ứng bàn thắng chạy bao lâu, mực thời gian thật (AC-32.4). */
+const THOI_GIAN_HIEU_UNG_BAN_THANG = 1500
+
+/** Vòng sáng nở tối đa gấp mấy lần bán kính một điểm. */
+const VONG_SANG_NO_GAP = 7
+
+/**
+ * Điểm người ghi bàn được phì thêm tối đa bao nhiêu (AC-32.4, rủi ro R45).
+ *
+ * **Con số này là số học, không phải thẩm mỹ**, và nó đã sai hai lần trước khi
+ * đúng — cả hai lần đều vì suy từ cấu trúc mà không đo.
+ *
+ * Ngưỡng thật là **khoảng cách gần nhất giữa hai điểm bất kỳ trên sân**, không
+ * phải khoảng giãn giữa hai người cùng một vùng: cặp chật nhất lại là một cặp
+ * **khác vùng**, nơi hai đội chỉ lệch nhau `LECH_DOI` = 4. Đo trên 5905 khung
+ * (10 mã trận × 7 quân số × mọi dòng tường thuật): sàn là **đúng 4,0 đơn vị**,
+ * tức 1,176 bán kính — và đo riêng 330 bàn thắng thì chính người ghi bàn là một
+ * nửa của cặp chật nhất ấy, nên biên này thật sự bị ràng.
+ *
+ * Chỗ trống tối đa vì thế là `BUOC_GIAN / 2 - BAN_KINH` = 0,6, và biên này chỉ lấy
+ * **ba phần tư** chỗ trống đó. Hai lý do: đứng đúng sàn thì viền điểm người ghi
+ * bàn chạm **đúng** tâm điểm gần nhất, không còn một pixel nào dữ; và hai lớp
+ * đứng sau `hinhSan` — dao động (Phase 39) và nghiêng khối (Phase 40) — còn
+ * dịch tâm điểm lúc vẽ, mà phép kiểm ở `san2D.test.ts` chỉ thấy toạ độ của
+ * `hinhSan`.
+ *
+ * Hai bản sai trước đó: `min(BAN_KINH, BUOC_GIAN/2)` = 3,4 (gần sáu lần mức cho
+ * phép), rồi `BUOC_GIAN - 2 * BAN_KINH` = 1,2 (gần gấp đôi) — bản sau suy từ khoảng
+ * trống giữa hai người **cùng vùng** mà bỏ quên cặp khác vùng chật hơn.
+ */
+export const PHI_THEM_NGUOI_GHI_BAN = ((BUOC_GIAN / 2 - BAN_KINH) * 3) / 4
+
+/**
+ * Điểm trên đường THẮNG từ `tu` tới `den`.
+ *
+ * Bóng không đi đường cong như người: một đường chuyền là đường thẳng, và
+ * cho bóng vòng cung thì nó trông như một cầu thủ thứ 23.
+ */
+function diemThang(tu: Diem, den: Diem, tiLe: number): Diem {
+  const t = tiLe < 0 ? 0 : tiLe > 1 ? 1 : tiLe
+  return { x: tu.x + (den.x - tu.x) * t, y: tu.y + (den.y - tu.y) * t }
+}
+
+/** Tổng chiều dài một đường gấp khúc. */
+export function chieuDaiDuong(duong: readonly Diem[]): number {
+  let tong = 0
+  for (let i = 1; i < duong.length; i += 1) {
+    const a = duong[i - 1] as Diem
+    const b = duong[i] as Diem
+    tong += Math.hypot(b.x - a.x, b.y - a.y)
+  }
+  return tong
+}
+
+/**
+ * Chỗ quả bóng đang ở trên **cả đường chuyền**, ở tỉ lệ `tiLe` của chiều dài
+ * (T524, AC-30.9).
+ *
+ * **Đây là chỗ khác hẳn với T505.** Trước đó bóng chỉ đi **một đoạn thẳng**
+ * từ chỗ cũ tới điểm cuối của pha bóng, bỏ qua mọi vùng nó đi qua — nên một pha
+ * ba nhịp chỉ còn là một cú băng chéo sân, và phải vẽ thêm một **đường kẻ vàng**
+ * để người xem đoán ra nó đã đi đường nào. Nay bóng **đi hết đường ấy**, nên
+ * đường kẻ không còn việc gì để làm.
+ *
+ * Tham số là tỉ lệ của **chiều dài**, không phải của số đoạn: nhờ vậy bóng đi
+ * **đều một tốc độ** suốt cả pha, không chậm lại ở đoạn ngắn rồi vọt lên ở đoạn
+ * dài — một đường chuyền không đổi tốc độ giữa đường.
+ */
+export function diemTrenDuong(duong: readonly Diem[], tiLe: number): Diem {
+  const dau = duong[0]
+  const cuoi = duong[duong.length - 1]
+  if (dau == null || cuoi == null) return { x: RONG / 2, y: CAO / 2 }
+  if (duong.length === 1) return dau
+
+  const t = tiLe < 0 ? 0 : tiLe > 1 ? 1 : Number.isFinite(tiLe) ? tiLe : 1
+  const tong = chieuDaiDuong(duong)
+  if (!(tong > 0)) return cuoi
+
+  let con = t * tong
+  for (let i = 1; i < duong.length; i += 1) {
+    const a = duong[i - 1] as Diem
+    const b = duong[i] as Diem
+    const d = Math.hypot(b.x - a.x, b.y - a.y)
+    if (d <= 0) continue
+    if (con <= d) return diemThang(a, b, con / d)
+    con -= d
+  }
+  return cuoi
+}
+
+/**
+ * Vận tốc **tức thời** của một chặng tại tỉ lệ `troi` (T504).
+ *
+ * Trước T504, chặng mới nhận tiếp tuyến là **dây cung** của chặng cũ
+ * (`den − tu`). Với một chặng chạy hết thì hai thứ đó bằng nhau, nhưng với một
+ * chặng **bị cắt giữa đường** — đổi tốc độ, hay hai tình huống dồn sát nhau —
+ * thì dây cung trỏ về cái đích cũ, không phải hướng điểm đang thực sự bay. Kết
+ * quả là một cú gật ở đúng chỗ đáng ra phải liền nhất.
+ *
+ * Đo bằng sai phân trên chính đường cong cũ nên không cần thêm một hàm đạo
+ * hàm vào lớp nội suy: hai lần gọi `viTriTaiThoiDiem` là đủ, và nó tự đúng với
+ * mọi thay đổi sau này của lớp ấy — kể cả dáng theo thể lực.
+ */
+function vanTocCuaChang(
+  truoc: ChuyenDiemDang | undefined,
+  troi: number,
+  doMet: number,
+  gioiHan: KhungKep,
+): Diem | null {
+  if (!truoc) return null
+
+  const t1 = Math.min(1, Math.max(0, troi))
+  const t0 = Math.max(0, t1 - BUOC_DO_VAN_TOC)
+  if (t1 <= t0) return huongRaKhoiMoc(truoc.tu, truoc.den)
+
+  const tuyChon = { huongVao: truoc.huongVao, doMet, gioiHan }
+  const p0 = viTriTaiThoiDiem(truoc.tu, truoc.den, t0, tuyChon)
+  const p1 = viTriTaiThoiDiem(truoc.tu, truoc.den, t1, tuyChon)
+  const dt = t1 - t0
+  return { x: (p1.x - p0.x) / dt, y: (p1.y - p0.y) / dt }
+}
+
 /** Một điểm đang đi từ đâu tới đâu, và nó vào mốc đầu theo hướng nào. */
 interface ChuyenDiemDang {
   readonly tu: Diem
   readonly den: Diem
   readonly huongVao: Diem | null
+  /**
+   * Chặng này dài bao lâu, **riêng của người này** (AC-30.6, D93).
+   *
+   * Trước T512 cả 22 điểm dùng chung một `msChuyen`. Giờ người kiệt sức có
+   * chặng dài hơn ở những nhịp có dư, nên tỉ lệ đã đi được phải chia theo
+   * thời lượng của chính anh ta — chia theo một con số chung thì hai chế độ
+   * của D93 không khác gì nhau.
+   */
+  readonly thoiLuong: number
 }
 
 export function San2D(props: Props) {
   const { SAN_2D } = useChuoi()
-  const { nha, khach, msMoiPhut } = props
+  const { nha, khach, suKien, msMoiPhut, phutDongHo, dangChay } = props
   const msChuyen = thoiGianChuyen(msMoiPhut)
-  const { khung, banKinh, cacDiem, duongBong } = hinhSan(props)
-  const bong = duongBong[duongBong.length - 1]
+  const { khung, banKinh, cacDiem, duongBong, bongTaiMoc } = hinhSan(props)
   const tiLe = tiLeKhung(khung)
 
   const leX = (RONG - khung.rong) / 2
@@ -479,6 +869,32 @@ export function San2D(props: Props) {
   }, [nha.ben, khach.ben])
 
   const dang = useRef(new Map<string, ChuyenDiemDang>())
+  /**
+   * Pha bóng đang đi: **cả đường chuyền**, kèm thời lượng của riêng nó (T524).
+   *
+   * Bóng đi nhanh gấp ba người (T505) nhưng nay đi **hết đường**, nên thời
+   * lượng phụ thuộc số đoạn chứ không còn là một hằng số.
+   */
+  const bongDang = useRef<{
+    readonly duong: readonly Diem[]
+    readonly thoiLuong: number
+  } | null>(null)
+  /**
+   * Chỗ bóng được thấy lần cuối (T513).
+   *
+   * Đọc ref này ngay trong lúc vẽ là cố ý: chỉ cần giá trị của lần vẽ trước,
+   * và nhờ vậy "giữ chỗ cũ" không cần thêm một vòng vẽ nào.
+   */
+  const bongMocCuoi = useRef<Diem | null>(null)
+
+  /*
+    Chỗ của bóng ở **mọi** dòng (AC-32.1): dòng này nói gì thì theo, không nói
+    gì thì giữ chỗ cũ, và chưa bao giờ thấy bóng thì đặt giữa sân — đúng chỗ
+    một quả bóng nằm trước giờ bóng lăn. **Không bao giờ `null`**, nên không có
+    dòng nào làm bóng biến mất nữa.
+  */
+  const bong: Diem =
+    bongTaiMoc ?? bongMocCuoi.current ?? { x: RONG / 2, y: CAO / 2 }
   const batDau = useRef(0)
   const [, veLai] = useReducer((n: number) => n + 1, 0)
 
@@ -487,16 +903,28 @@ export function San2D(props: Props) {
     chuyển mới. Vẽ lại vì lý do khác — đổi ngôn ngữ, đổi chế độ màu — không
     được làm các điểm chạy lại từ đầu.
   */
-  const khoaMoc = cacDiem.map((d) => `${d.playerId}:${d.x},${d.y}`).join('|')
+  /*
+    Toạ độ bóng nằm trong khoá (T505): bóng có thể đổi chỗ mà không ai đổi
+    chỗ, và nếu khoá không để ý tới nó thì chặng của bóng không bao giờ được
+    dựng lại.
+  */
+  const khoaMoc =
+    cacDiem.map((d) => `${d.playerId}:${d.x},${d.y}`).join('|') +
+    `|bong:${bong.x},${bong.y}`
 
   useEffect(() => {
     const bayGio = performance.now()
     const cu = dang.current
-    const troi = msChuyen <= 0 ? 1 : (bayGio - batDau.current) / msChuyen
 
     const moi = new Map<string, ChuyenDiemDang>()
     for (const d of cacDiem) {
       const truoc = cu.get(d.playerId)
+      const met = doMetTheoNguoi.get(d.playerId) ?? 0
+      // Tỉ lệ đã đi của chặng CŨ, theo thời lượng của chính chặng ấy (D93).
+      const troi =
+        truoc && truoc.thoiLuong > 0
+          ? (bayGio - batDau.current) / truoc.thoiLuong
+          : 1
       /*
         Xuất phát từ chỗ điểm ĐANG ĐỨNG, không từ mốc trước: đổi tốc độ hay
         có tình huống dồn dập thì cú trước có thể chưa đi hết, và bắt nó
@@ -505,7 +933,7 @@ export function San2D(props: Props) {
       const tuDau = truoc
         ? viTriTaiThoiDiem(truoc.tu, truoc.den, troi, {
             huongVao: truoc.huongVao,
-            doMet: doMetTheoNguoi.get(d.playerId) ?? 0,
+            doMet: met,
             gioiHan,
           })
         : { x: d.x, y: d.y }
@@ -513,47 +941,217 @@ export function San2D(props: Props) {
       moi.set(d.playerId, {
         tu: tuDau,
         den: { x: d.x, y: d.y },
-        huongVao: truoc ? huongRaKhoiMoc(truoc.tu, truoc.den) : null,
+        huongVao: vanTocCuaChang(truoc, troi, met, gioiHan),
+        /*
+          Thời lượng còn phụ thuộc **quãng phải đi** (T525, AC-30.10): quãng dài
+          thì đi lâu hơn chứ không đi nhanh hơn. Trước T525 mọi chặng cùng một
+          thời lượng, nên tốc độ tỉ lệ thẳng với quãng và dải tốc độ trên sân rộng
+          tới **38,7 lần** (đo ở mức Chậm, phân vị 99 so với phân vị 10).
+        */
+        thoiLuong: thoiLuongCuaNguoi(
+          msMoiPhut,
+          msChuyen,
+          met,
+          Math.hypot(d.x - tuDau.x, d.y - tuDau.y),
+          QUANG_CHUAN * tiLe,
+        ),
       })
     }
 
+    /*
+      Chặng của bóng dựng cùng một lúc và dùng cùng một mốc thời gian với
+      người (T505), nên không có chuyện bóng và người đếm giờ lệch nhau.
+      Chỉ khác ở **thời lượng** — bóng xong trong một phần ba — và ở **hình
+      đường đi**: thẳng, không cong.
+    */
+    const cuBong = bongDang.current
+    const choBongBatDau =
+      cuBong && cuBong.thoiLuong > 0
+        ? diemTrenDuong(
+            cuBong.duong,
+            (bayGio - batDau.current) / cuBong.thoiLuong,
+          )
+        : { x: bong.x, y: bong.y }
+    /*
+      Đường mới nối từ **chỗ bóng đang đứng** chứ không từ điểm đầu của pha
+      bóng: hai pha liên tiếp không phải lúc nào cũng nối đuôi nhau, và bắt
+      bóng nhảy về điểm đầu là một cú giật.
+    */
+    const duongMoi: readonly Diem[] =
+      duongBong.length > 0
+        ? [choBongBatDau, ...duongBong]
+        : [choBongBatDau, { x: bong.x, y: bong.y }]
+    const soDoan = Math.max(1, duongMoi.length - 1)
+    bongDang.current = {
+      duong: duongMoi,
+      /*
+        Mỗi đoạn vẫn tốn `msChuyen / 3` như T505, nhưng cả pha không được dài
+        hơn một nhịp — pha nào nhiều đoạn quá thì bóng đi nhanh hơn, chứ
+        không được còn bay dở khi tình huống sau tới (AC-29.3).
+      */
+      thoiLuong: Math.min(msChuyen, (msChuyen / BONG_NHANH_GAP) * soDoan),
+    }
+    bongMocCuoi.current = { x: bong.x, y: bong.y }
+
     dang.current = moi
     batDau.current = bayGio
-
-    if (giamChuyenDong || msChuyen <= 0) {
-      veLai()
-      return
-    }
-
-    let yeuCau = 0
-    const buoc = () => {
-      veLai()
-      if (performance.now() - batDau.current < msChuyen) {
-        yeuCau = requestAnimationFrame(buoc)
-      }
-    }
-    yeuCau = requestAnimationFrame(buoc)
-    return () => cancelAnimationFrame(yeuCau)
+    veLai()
     // `gioiHan` và `cacDiem` dựng lại mỗi lần vẽ; `khoaMoc` mới là thứ quyết
     // định có bắt đầu cú di chuyển mới hay không.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [khoaMoc, msChuyen, giamChuyenDong])
 
   /*
+    Vòng khung hình, TÁCH khỏi việc dựng chặng (T508).
+
+    Trước T508, vòng này nằm trong cùng effect với việc dựng chặng và **tự
+    thoát** khi hết `msChuyen`, nên sau mỗi cú di chuyển là mọi điểm đứng im cho
+    tới tình huống sau — đo ở lát 37: tới **2114ms**. Tách ra thì vòng chạy
+    liên tục trong khi trận chạy, mà dự liệu chặng vẫn chỉ dựng lại khi toạ độ
+    đích đổi — nên vẽ lại vì đổi ngôn ngữ hay đổi chế độ màu vẫn **không**
+    làm các điểm chạy lại từ đầu, đúng tính chất quý nhất của code cũ.
+
+    Tạm dừng là `dangChay = false`: vòng tắt, không khung nào được xin, sân đóng
+    băng ở đúng khung cuối (AC-28.5, và AC-10.4 của spec 001 vẫn đúng).
+  */
+  useEffect(() => {
+    if (!dangChay || giamChuyenDong || msChuyen <= 0) return
+
+    let yeuCau = 0
+    const buoc = () => {
+      veLai()
+      yeuCau = requestAnimationFrame(buoc)
+    }
+    yeuCau = requestAnimationFrame(buoc)
+    return () => cancelAnimationFrame(yeuCau)
+  }, [dangChay, giamChuyenDong, msChuyen])
+
+  /*
+    Mốc thời gian thật của lần đổi phút gần nhất, để suy ra "thời điểm trận"
+    liên tục cho lớp dao động (T508, D90). Phải dùng mốc riêng chứ không dùng
+    `batDau` của chặng: nhiều phút liền có thể không đổi toạ độ nào, lúc ấy
+    `batDau` đứng im và dao động sẽ đứng im theo.
+  */
+  const batDauPhut = useRef(0)
+  useEffect(() => {
+    batDauPhut.current = performance.now()
+  }, [phutDongHo])
+
+  /*
     Tỉ lệ đã đi được của cú di chuyển hiện tại — tính MỘT lần cho cả 22 điểm,
     để chúng không lệch nhau vài phần nghìn giây chỉ vì thứ tự vòng lặp.
   */
-  const troiQua = msChuyen <= 0 ? 1 : (performance.now() - batDau.current) / msChuyen
+  const bayGioVe = performance.now()
+
+  /** Tỉ lệ đã đi được của một người, theo thời lượng riêng của anh ta (D93). */
+  function troiQuaCua(tt: ChuyenDiemDang): number {
+    if (!(tt.thoiLuong > 0)) return 1
+    return (bayGioVe - batDau.current) / tt.thoiLuong
+  }
+
+  /**
+   * Chỗ vẽ của bóng ở thời điểm này (T505, AC-30.2).
+   *
+   * Giảm chuyển động thì về đúng toạ độ mốc, như mọi thứ khác trên sân này.
+   */
+  function viTriBongVe(): Diem {
+    if (giamChuyenDong) return { x: bong.x, y: bong.y }
+    const tt = bongDang.current
+    if (!tt) return { x: bong.x, y: bong.y }
+    if (!(tt.thoiLuong > 0)) return { x: bong.x, y: bong.y }
+    return diemTrenDuong(
+      tt.duong,
+      (performance.now() - batDau.current) / tt.thoiLuong,
+    )
+  }
+
+  /*
+    Hiệu ứng bàn thắng (T514, AC-32.4).
+
+    Nhận ra từ loại của dòng đang hiện, và **mỗi bàn một lần**: khoá gồm cả
+    phút và người ghi, nên hai bàn liền nhau thì hiệu ứng thứ hai **thay** hiệu
+    ứng đang chạy chứ không xếp hàng (trường hợp biên ở mục 5 của spec).
+  */
+  const khoaBanThang =
+    suKien && suKien.loai === 'ban-thang'
+      ? `${suKien.phut}|${suKien.cacCauThu[0] ?? ''}`
+      : null
+
+  /*
+    Hiệu ứng sống theo ĐỒNG HỒ CỦA NÓ, không theo dòng đang hiển thị.
+
+    Bản đầu của T514 gắn đời sống hiệu ứng vào `suKien.loai === 'ban-thang'`, và
+    nó **không hiện lên được**: một dòng chỉ được hiển thị trong một nhịp — 70ms
+    ở mức Nhanh — rồi dòng sau đẩy nó đi, trong khi hiệu ứng phải chạy 1,5 giây.
+    Đo trên một trận có bàn thắng: 0 trong 383 mẫu thấy nó.
+
+    Nay chỗ ghi bàn, người ghi và mốc thời gian được **chụp lại** vào một ref
+    ngay lúc dòng bàn thắng xuất hiện, nên hiệu ứng chạy đủ 1,5 giây dù dòng
+    tường thuật đã sang chuyện khác.
+  */
+  const anMung = useRef<{
+    readonly batDau: number
+    readonly nguoi: string | null
+    readonly diem: Diem
+  } | null>(null)
+  const khoaAnMungCu = useRef<string | null>(null)
+  if (khoaBanThang !== null && khoaBanThang !== khoaAnMungCu.current) {
+    khoaAnMungCu.current = khoaBanThang
+    anMung.current = {
+      batDau: performance.now(),
+      nguoi: suKien?.cacCauThu[0] ?? null,
+      diem: { x: bong.x, y: bong.y },
+    }
+  }
+
+  const tienHieuUng = anMung.current
+    ? Math.min(
+        1,
+        (performance.now() - anMung.current.batDau) /
+          THOI_GIAN_HIEU_UNG_BAN_THANG,
+      )
+    : 1
+  /** Có đang trong 1,5 giây của một bàn thắng hay không. */
+  const dangAnMung = tienHieuUng < 1
+  const nguoiGhiBan = dangAnMung ? (anMung.current?.nguoi ?? null) : null
+  const diemAnMung = anMung.current?.diem ?? bong
+
+  /*
+    "Thời điểm trận" liên tục, tính bằng phút: phút đồng hồ cộng phần đã trôi
+    trong nhịp. Đây là thứ duy nhất lớp dao động biết về thời gian, và nó là
+    thời gian CỦA TRẬN — nên xem lại cùng một trận ở cùng một nhịp thì chuyển
+    động giống hệt (P1, mục 6 của spec).
+  */
+  const thoiDiemTran =
+    phutDongHo +
+    (msMoiPhut > 0
+      ? Math.min(1, (performance.now() - batDauPhut.current) / msMoiPhut)
+      : 0)
+
+  /** Biên độ dao động chờ, đo theo khoảng giãn đã co theo khung sân (AC-28.2). */
+  const bienDoDao = bienDoTuKhoangGian(BUOC_GIAN * tiLe)
 
   function viTriVe(d: DiemCauThu): Diem {
     if (giamChuyenDong) return { x: d.x, y: d.y }
     const tt = dang.current.get(d.playerId)
-    if (!tt) return { x: d.x, y: d.y }
-    return viTriTaiThoiDiem(tt.tu, tt.den, troiQua, {
-      huongVao: tt.huongVao,
-      doMet: doMetTheoNguoi.get(d.playerId) ?? 0,
-      gioiHan,
-    })
+    const goc = tt
+      ? viTriTaiThoiDiem(tt.tu, tt.den, troiQuaCua(tt), {
+          huongVao: tt.huongVao,
+          doMet: doMetTheoNguoi.get(d.playerId) ?? 0,
+          gioiHan,
+        })
+      : { x: d.x, y: d.y }
+
+    /*
+      Dao động cộng vào SAU CÙNG, và chỉ cộng cho người — không cho bóng:
+      một quả bóng nằm yên thì nằm yên. Vị trí tại mốc của lớp nội suy
+      không bị đụng tới, nên bất biến của nó còn nguyên (D89).
+    */
+    const lech = lechDaoDong(d.playerId, thoiDiemTran, bienDoDao)
+    return {
+      x: kep(goc.x + lech.x, gioiHan.xTu, gioiHan.xDen),
+      y: kep(goc.y + lech.y, gioiHan.yTu, gioiHan.yDen),
+    }
   }
 
   return (
@@ -607,25 +1205,29 @@ export function San2D(props: Props) {
           />
         </g>
 
-        {/* Đường đi của bóng (AC-10.2, quyết định D40). */}
-        {duongBong.length > 1 && (
-          <polyline
-            points={duongBong.map((p) => `${p.x},${p.y}`).join(' ')}
+        {/*
+          ĐƯỜNG KẺ VÀNG ĐÃ BỎ (T524).
+
+          Nó có từ spec 001 (AC-10.2, D40) vì bóng không đi đường của mình: bóng
+          nhảy thẳng tới điểm cuối, nên phải vẽ lại đường đã đi cho người xem đoán
+          ra. Nay bóng đi hết đường ấy, nên một đường kẻ đứng yên chỉ còn làm
+          rối mặt sân — người dùng nói thẳng ở T518 là không cần nữa.
+          `duongBong` vẫn nằm trong `HinhSan`: nó là **đường đi của bóng**, giờ
+          được dùng để bóng đi chứ không để vẽ.
+        */}
+        {/*
+          Vòng sáng lan ra từ chỗ ghi bàn (AC-32.4). Giảm chuyển động thì
+          không vẽ — chỉ còn chữ, đúng AC-32.6.
+        */}
+        {dangAnMung && !giamChuyenDong && (
+          <circle
+            cx={diemAnMung.x}
+            cy={diemAnMung.y}
+            r={banKinh * (1 + VONG_SANG_NO_GAP * tienHieuUng)}
             fill="none"
             stroke="var(--co-vang)"
-            strokeWidth={0.8 * tiLe}
-            strokeDasharray={`${2 * tiLe} ${1.5 * tiLe}`}
-            aria-hidden="true"
-          />
-        )}
-        {bong && (
-          <circle
-            cx={bong.x}
-            cy={bong.y}
-            r={1.5 * tiLe}
-            fill="var(--co-vang)"
-            stroke="var(--co-net)"
-            strokeWidth={0.3 * tiLe}
+            strokeWidth={1.2 * tiLe * (1 - tienHieuUng)}
+            opacity={1 - tienHieuUng}
             aria-hidden="true"
           />
         )}
@@ -645,7 +1247,16 @@ export function San2D(props: Props) {
           >
             <title>{d.moTa}</title>
             <circle
-              r={banKinh}
+              r={
+                /*
+                  Điểm người ghi bàn phóng to (AC-32.4), nhưng chặn ở đúng khoảng
+                  trống giữa hai viền — xem `PHI_THEM_NGUOI_GHI_BAN`.
+                */
+                d.playerId === nguoiGhiBan && dangAnMung && !giamChuyenDong
+                  ? banKinh +
+                    PHI_THEM_NGUOI_GHI_BAN * tiLe * (1 - tienHieuUng)
+                  : banKinh
+              }
               fill={d.mauNen}
               stroke={d.noiBat ? 'var(--co-vang)' : 'var(--co-net-mo)'}
               strokeWidth={(d.noiBat ? 1.4 : 0.5) * tiLe}
@@ -683,6 +1294,72 @@ export function San2D(props: Props) {
           </g>
           )
         })}
+
+        {/*
+          QUẢ BÓNG VẼ SAU CÁC ĐIỂM NGƯỜI (T520, AC-32.1).
+
+          Trong SVG, vẽ sau là nằm trên. Bản đầu của T513 vẽ bóng ngay sau
+          đường bóng, tức **trước** 22 điểm cầu thủ — đo trên bản build một
+          trận trọn vẹn: **40,5% số khung** có tâm bóng nằm trong lòng một điểm,
+          tức bị che hẳn. Mắt người dùng bắt được ở T518, gọi đúng tên là "bóng
+          đang bị chìm". Quả bóng là thứ mắt người xem bám vào, nên nó phải nằm
+          trên cùng — cùng với kênh chữ của hiệu ứng bàn thắng, vì một dòng chữ
+          bị điểm đè lên cũng là một kênh thông tin bị mất (P9).
+        */}
+        <g
+          transform={`translate(${viTriBongVe().x} ${viTriBongVe().y})`}
+          aria-hidden="true"
+        >
+          {/*
+            Quả bóng vẽ ra **quả bóng** (AC-32.8, T522): đĩa trắng, viền sẫm, một
+            mảng đen giữa và năm mảng nhỏ quanh — đú ba mảng đen là đủ để mắt
+            đọc ra quả bóng ở cỡ này. Trắng trên mặt cỏ cho tương phản 7,2:1,
+            và **không màu áo nào của người dùng trùng được với trắng-đen có họa
+            tiết**, nên bóng không lẫn vào một điểm cầu thủ.
+          */}
+          <circle
+            r={1.7 * tiLe}
+            fill="#ffffff"
+            stroke="var(--co-net)"
+            strokeWidth={0.35 * tiLe}
+          />
+          <circle r={0.52 * tiLe} fill="var(--co-net)" />
+          {[0, 1, 2, 3, 4].map((i) => {
+            const goc = (i / 5) * Math.PI * 2 - Math.PI / 2
+            return (
+              <circle
+                key={i}
+                cx={Math.cos(goc) * 1.12 * tiLe}
+                cy={Math.sin(goc) * 1.12 * tiLe}
+                r={0.34 * tiLe}
+                fill="var(--co-net)"
+              />
+            )
+          })}
+        </g>
+
+        {/*
+          KÊNH CHỮ của hiệu ứng (AC-32.4, AC-32.6, hiến pháp P9).
+
+          Nó **không** tắt khi giảm chuyển động: một dòng chữ đứng yên không
+          phải là chuyển động, và nó là thứ duy nhất còn lại ở chế độ ấy — nên
+          thông tin "vừa có bàn thắng" không đi qua một kênh duy nhất là hình.
+        */}
+        {dangAnMung && (
+          <text
+            x={giuaX}
+            y={leY + khung.cao * 0.3}
+            textAnchor="middle"
+            fontSize={7 * tiLe}
+            fontWeight={800}
+            fill="var(--co-vang)"
+            stroke="var(--co-net)"
+            strokeWidth={0.4 * tiLe}
+            opacity={giamChuyenDong ? 1 : 1 - tienHieuUng * 0.3}
+          >
+            {SAN_2D.hieuUngBanThang}
+          </text>
+        )}
       </svg>
     </figure>
   )

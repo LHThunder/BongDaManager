@@ -29,16 +29,44 @@ import { useAppStore } from '../store/appStore'
   nhanh hay chậm — không đụng một dòng nào của engine.
 */
 
-export type MucTocDo = 'thuong' | 'nhanh' | 'rat-nhanh'
+export type MucTocDo = 'cham' | 'thuong' | 'nhanh' | 'rat-nhanh'
 
-/** Mili-giây thực tế cho mỗi phút trận. Mức thường lấy từ spec mục 6. */
+/**
+ * Mili-giây thực tế cho mỗi phút trận.
+ *
+ * `cham` là mức của spec 005 (T500): một phút trận dài **1000ms**, nên trận 90
+ * phút xem hết trong khoảng một phút rưỡi. Nhịp này mới đủ dài để mắt theo
+ * được một cầu thủ chạy từ chỗ cũ tới chỗ mới: ở 200ms, cả quãng đường có thể
+ * bằng một phần ba sân phải gói trong 180ms, nên mọi cú di chuyển đều thành cú
+ * rướn.
+ *
+ * `rat-nhanh` giữ nguyên 20ms, nhưng ở nhịp ấy `thoiGianChuyen` trả 0 — thôi
+ * nội suy hoàn toàn (AC-29.4): 18ms không đủ cho mắt đọc một chuyển động nào, nên
+ * vẽ đường đi chỉ sinh ra cú giật.
+ */
 export const MS_MOI_PHUT: Readonly<Record<MucTocDo, number>> = {
+  cham: 1000,
   thuong: 200,
   nhanh: 70,
   'rat-nhanh': 20,
 }
 
+/*
+  Thứ tự này là thứ tự các nút hiện trên màn hình, nên `cham` đứng đầu: nó là
+  mức mặc định, và để mức mặc định nằm giữa dãy thì người dùng khó đọc ra
+  mình đang ở đâu trong thang.
+*/
+/**
+ * Một nhịp lặng sau bàn thắng, mực thời gian thật (AC-32.5, T515).
+ *
+ * Đủ để xem hết hiệu ứng trên sân và đọc dòng tường thuật vừa hiện, như khi
+ * truyền hình dừng lại một nhịp ở bàn thắng. Không phụ thuộc mức tốc độ: mắt
+ * người cần một khoảng thời gian thật, không phải một số phút trận.
+ */
+export const MS_LANG_SAU_BAN_THANG = 1500
+
 export const CAC_MUC_TOC_DO: readonly MucTocDo[] = [
+  'cham',
   'thuong',
   'nhanh',
   'rat-nhanh',
@@ -130,7 +158,14 @@ export function useMatch() {
   const tran = useAppStore((s) => s.tran)
   const dangChay = useAppStore((s) => s.tranDangChay)
   const datDangChay = useAppStore((s) => s.datTranDangChay)
-  const [tocDo, datTocDo] = useState<MucTocDo>('thuong')
+  /*
+    Mặc định là `cham`, không `thuong` (AC-29.5, T500). Mở một trận ra là thấy
+    ngay nhịp giống một trận đấu; ai chỉ cần tỉ số thì đã có "Chạy hết trận".
+    Mức này KHÔNG được lưu xuống đĩa, nên mỗi trận lại bắt đầu từ đây — đúng
+    như AC-29.5 viết, và là một trong những phát hiện MEDIUM còn mở của
+    `/analyze` nếu sau này muốn nhớ lựa chọn.
+  */
+  const [tocDo, datTocDo] = useState<MucTocDo>('cham')
   const [lyDoKhongBatDau, datLyDoKhongBatDau] = useState<
     readonly LyDoKhongBatDau[]
   >([])
@@ -198,8 +233,32 @@ export function useMatch() {
         datDangChay(false)
         return
       }
-      useAppStore.getState().datTran(buocTiep(hienTai))
-      hanGio = setTimeout(nhip, MS_MOI_PHUT[tocDoRef.current])
+      const moi = buocTiep(hienTai)
+      useAppStore.getState().datTran(moi)
+
+      /*
+        MỘT NHẬP LẮNG SAU BÀN THẮNG (T515, AC-32.5).
+
+        Cách làm: **kéo dài riêng nhịp kế tiếp**, không gọi `tamDung()` rồi
+        `tiepTuc()`. Đường kia sẽ làm nút Tạm dừng / Tiếp tục đổi chữ ngay
+        trước mắt người dùng — đúng điều AC-32.5 cấm. Trạng thái "đang chạy"
+        ở đây không đổi một giây nào, nên AC-32.5 đạt bằng cấu trúc.
+
+        Nhận ra bàn thắng bằng việc **tỉ số đổi**, không bằng cách đi tìm dòng
+        sự kiện: tỉ số chỉ đổi khi có bàn, và nó là hai con số có sẵn ở đây.
+
+        Nhịp lặng xảy ra **kể cả khi đang ẩn sân**: dòng tường thuật và tỉ số
+        cũng cần một nhịp để đọc, và gắn nó vào một công tắc hiển thị là buộc
+        vòng đồng hồ biết một việc nó không nên biết (quyết định D100).
+      */
+      const coBanThang =
+        moi.tiSo.nha !== hienTai.tiSo.nha ||
+        moi.tiSo.khach !== hienTai.tiSo.khach
+
+      hanGio = setTimeout(
+        nhip,
+        MS_MOI_PHUT[tocDoRef.current] + (coBanThang ? MS_LANG_SAU_BAN_THANG : 0),
+      )
     }
 
     hanGio = setTimeout(nhip, MS_MOI_PHUT[tocDoRef.current])
