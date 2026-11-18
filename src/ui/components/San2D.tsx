@@ -11,6 +11,7 @@ import {
   huongRaKhoiMoc,
   viTriTaiThoiDiem,
   type Diem,
+  type KhungKep,
 } from '../noiSuy'
 import type { BoChuoi } from '../ngonNgu'
 
@@ -438,6 +439,61 @@ function useGiamChuyenDong(): boolean {
   return giam
 }
 
+/** Bước thời gian để đo vận tốc bằng sai phân, theo tỉ lệ chặng. */
+const BUOC_DO_VAN_TOC = 0.01
+
+/**
+ * Bóng nhanh gấp mấy lần người (AC-30.2, T505).
+ *
+ * Bóng đi hết chặng của nó trong `msChuyen / 3`, nên nó tới đích trong khoảng
+ * một phần ba đầu — mắt theo bóng trước, người theo sau, đúng như một đường
+ * chuyền. Trước T505 bóng được vẽ thắng tại toạ độ mốc, tức **nhảy tức thời**.
+ */
+const BONG_NHANH_GAP = 3
+
+/**
+ * Điểm trên đường THẮNG từ `tu` tới `den`.
+ *
+ * Bóng không đi đường cong như người: một đường chuyền là đường thẳng, và
+ * cho bóng vòng cung thì nó trông như một cầu thủ thứ 23.
+ */
+function diemThang(tu: Diem, den: Diem, tiLe: number): Diem {
+  const t = tiLe < 0 ? 0 : tiLe > 1 ? 1 : tiLe
+  return { x: tu.x + (den.x - tu.x) * t, y: tu.y + (den.y - tu.y) * t }
+}
+
+/**
+ * Vận tốc **tức thời** của một chặng tại tỉ lệ `troi` (T504).
+ *
+ * Trước T504, chặng mới nhận tiếp tuyến là **dây cung** của chặng cũ
+ * (`den − tu`). Với một chặng chạy hết thì hai thứ đó bằng nhau, nhưng với một
+ * chặng **bị cắt giữa đường** — đổi tốc độ, hay hai tình huống dồn sát nhau —
+ * thì dây cung trỏ về cái đích cũ, không phải hướng điểm đang thực sự bay. Kết
+ * quả là một cú gật ở đúng chỗ đáng ra phải liền nhất.
+ *
+ * Đo bằng sai phân trên chính đường cong cũ nên không cần thêm một hàm đạo
+ * hàm vào lớp nội suy: hai lần gọi `viTriTaiThoiDiem` là đủ, và nó tự đúng với
+ * mọi thay đổi sau này của lớp ấy — kể cả dáng theo thể lực.
+ */
+function vanTocCuaChang(
+  truoc: ChuyenDiemDang | undefined,
+  troi: number,
+  doMet: number,
+  gioiHan: KhungKep,
+): Diem | null {
+  if (!truoc) return null
+
+  const t1 = Math.min(1, Math.max(0, troi))
+  const t0 = Math.max(0, t1 - BUOC_DO_VAN_TOC)
+  if (t1 <= t0) return huongRaKhoiMoc(truoc.tu, truoc.den)
+
+  const tuyChon = { huongVao: truoc.huongVao, doMet, gioiHan }
+  const p0 = viTriTaiThoiDiem(truoc.tu, truoc.den, t0, tuyChon)
+  const p1 = viTriTaiThoiDiem(truoc.tu, truoc.den, t1, tuyChon)
+  const dt = t1 - t0
+  return { x: (p1.x - p0.x) / dt, y: (p1.y - p0.y) / dt }
+}
+
 /** Một điểm đang đi từ đâu tới đâu, và nó vào mốc đầu theo hướng nào. */
 interface ChuyenDiemDang {
   readonly tu: Diem
@@ -492,6 +548,10 @@ export function San2D(props: Props) {
   }, [nha.ben, khach.ben])
 
   const dang = useRef(new Map<string, ChuyenDiemDang>())
+  /** Chặng đang đi của bóng — riêng, vì bóng đi thẳng và nhanh gấp ba (T505). */
+  const bongDang = useRef<{ readonly tu: Diem; readonly den: Diem } | null>(
+    null,
+  )
   const batDau = useRef(0)
   const [, veLai] = useReducer((n: number) => n + 1, 0)
 
@@ -500,7 +560,14 @@ export function San2D(props: Props) {
     chuyển mới. Vẽ lại vì lý do khác — đổi ngôn ngữ, đổi chế độ màu — không
     được làm các điểm chạy lại từ đầu.
   */
-  const khoaMoc = cacDiem.map((d) => `${d.playerId}:${d.x},${d.y}`).join('|')
+  /*
+    Toạ độ bóng nằm trong khoá (T505): bóng có thể đổi chỗ mà không ai đổi
+    chỗ, và nếu khoá không để ý tới nó thì chặng của bóng không bao giờ được
+    dựng lại.
+  */
+  const khoaMoc =
+    cacDiem.map((d) => `${d.playerId}:${d.x},${d.y}`).join('|') +
+    `|bong:${bong ? `${bong.x},${bong.y}` : '-'}`
 
   useEffect(() => {
     const bayGio = performance.now()
@@ -526,8 +593,31 @@ export function San2D(props: Props) {
       moi.set(d.playerId, {
         tu: tuDau,
         den: { x: d.x, y: d.y },
-        huongVao: truoc ? huongRaKhoiMoc(truoc.tu, truoc.den) : null,
+        huongVao: vanTocCuaChang(
+          truoc,
+          troi,
+          doMetTheoNguoi.get(d.playerId) ?? 0,
+          gioiHan,
+        ),
       })
+    }
+
+    /*
+      Chặng của bóng dựng cùng một lúc và dùng cùng một mốc thời gian với
+      người (T505), nên không có chuyện bóng và người đếm giờ lệch nhau.
+      Chỉ khác ở **thời lượng** — bóng xong trong một phần ba — và ở **hình
+      đường đi**: thẳng, không cong.
+    */
+    if (!bong) {
+      bongDang.current = null
+    } else {
+      const cu = bongDang.current
+      const msBong = msChuyen / BONG_NHANH_GAP
+      const troiBong = msBong <= 0 ? 1 : (bayGio - batDau.current) / msBong
+      bongDang.current = {
+        tu: cu ? diemThang(cu.tu, cu.den, troiBong) : { x: bong.x, y: bong.y },
+        den: { x: bong.x, y: bong.y },
+      }
     }
 
     dang.current = moi
@@ -557,6 +647,22 @@ export function San2D(props: Props) {
     để chúng không lệch nhau vài phần nghìn giây chỉ vì thứ tự vòng lặp.
   */
   const troiQua = msChuyen <= 0 ? 1 : (performance.now() - batDau.current) / msChuyen
+
+  /**
+   * Chỗ vẽ của bóng ở thời điểm này (T505, AC-30.2).
+   *
+   * Giảm chuyển động thì về đúng toạ độ mốc, như mọi thứ khác trên sân này.
+   */
+  function viTriBongVe(): Diem {
+    if (!bong) return { x: 0, y: 0 }
+    if (giamChuyenDong) return { x: bong.x, y: bong.y }
+    const tt = bongDang.current
+    if (!tt) return { x: bong.x, y: bong.y }
+    const msBong = msChuyen / BONG_NHANH_GAP
+    const troiBong =
+      msBong <= 0 ? 1 : (performance.now() - batDau.current) / msBong
+    return diemThang(tt.tu, tt.den, troiBong)
+  }
 
   function viTriVe(d: DiemCauThu): Diem {
     if (giamChuyenDong) return { x: d.x, y: d.y }
@@ -633,8 +739,8 @@ export function San2D(props: Props) {
         )}
         {bong && (
           <circle
-            cx={bong.x}
-            cy={bong.y}
+            cx={viTriBongVe().x}
+            cy={viTriBongVe().y}
             r={1.5 * tiLe}
             fill="var(--co-vang)"
             stroke="var(--co-net)"

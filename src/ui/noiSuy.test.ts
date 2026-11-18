@@ -5,9 +5,10 @@ import { thoiGianChuyen } from './components/San2D'
 import {
   doMetTuTheLuc,
   huongRaKhoiMoc,
-  lamMuot,
   MU_KIET_SUC,
   noiSuyCong,
+  tiLeRoiDungYen,
+  TRON_TOI_DA,
   tiLeTheoDoMet,
   viTriTaiThoiDiem,
   type Diem,
@@ -140,15 +141,69 @@ describe('đường đi mềm và nằm trong khung sân (AC-25.1)', () => {
     expect(buocLonNhat).toBeLessThan(5)
   })
 
-  it('lamMuot giữ nguyên hai đầu và luôn tăng', () => {
-    expect(lamMuot(0)).toBe(0)
-    expect(lamMuot(1)).toBe(1)
+  it('tỉ lệ rời đứng yên: giữ nguyên hai đầu, luôn tăng, êm ở đầu', () => {
+    expect(tiLeRoiDungYen(0)).toBe(0)
+    expect(tiLeRoiDungYen(1)).toBe(1)
+
     let truoc = -1
     for (let i = 0; i <= 50; i += 1) {
-      const v = lamMuot(i / 50)
+      const v = tiLeRoiDungYen(i / 50)
       expect(v).toBeGreaterThanOrEqual(truoc)
       truoc = v
     }
+
+    // ÊM Ở ĐẦU: bước đầu tiên phải nhỏ hơn hẳn bước giữa chặng.
+    const buocDau = tiLeRoiDungYen(0.02) - tiLeRoiDungYen(0)
+    const buocGiua = tiLeRoiDungYen(0.52) - tiLeRoiDungYen(0.5)
+    expect(buocDau).toBeLessThan(buocGiua / 2)
+  })
+
+  /*
+    AC-30.1 đòi tốc độ tại mốc **không về 0**. Đây là phép kiểm của điều đó,
+    và nó đo bằng số chứ không bằng mắt.
+
+    Ngưỡng buộc vào đúng điều lớp này **bảo đảm**: phần tuyến tính còn lại
+    sau khi trộn dáng mệt là `1 − TRON_TOI_DA`, nên trong 1% thời gian đầu
+    tiên, một người dù kiệt sức hoàn toàn vẫn đi được ít nhất `0,2 × 1%` quãng
+    đường. Buộc vào hằng số thay vì một số ma: nếu ai đó quay về `u ** mu`
+    thuần thì con số ấy tụt xuống ~2e-6, tức nhỏ hơn ngưỡng cả nghìn lần và
+    phép kiểm đỏ ngay.
+  */
+  it('tốc độ tại mốc KHÔNG về 0 khi có tốc độ vào — mọi độ lốn tiếp tuyến', () => {
+    const tu: Diem = { x: 10, y: 30 }
+    const den: Diem = { x: 70, y: 30 }
+    const eps = 0.01
+
+    for (const huongVao of [
+      { x: 60, y: 0 },
+      { x: 5, y: 40 },
+      { x: -300, y: 200 },
+      { x: 0.5, y: 0 },
+    ]) {
+      /*
+        Chuẩn hoá theo ĐỘ LỚN CỦA TỐC ĐỘ VÀO, không theo dây cung của chặng
+        này: tốc độ vào là của **chặng trước**, và nó hoàn toàn có thể nhỏ hơn
+        hay lớn hơn dây cung hiện tại. Lần đầu viết phép kiểm này tôi chia cho
+        dây cung và nó đỏ oan ở tiếp tuyến (5, 40).
+      */
+      const tocDoVao = Math.hypot(huongVao.x, huongVao.y)
+      for (const doMet of [0, 0.5, 1]) {
+        const p = viTriTaiThoiDiem(tu, den, eps, { huongVao, doMet })
+        const diDuoc = Math.hypot(p.x - tu.x, p.y - tu.y)
+        expect(
+          diDuoc,
+          `tiếp tuyến ${huongVao.x},${huongVao.y} mệt ${doMet}`,
+        ).toBeGreaterThan(tocDoVao * eps * (1 - TRON_TOI_DA) * 0.9)
+      }
+    }
+  })
+
+  it('không có tốc độ vào thì được phép êm ở đầu — đúng là một người đang đứng', () => {
+    const tu: Diem = { x: 10, y: 30 }
+    const den: Diem = { x: 70, y: 30 }
+    const coVao = viTriTaiThoiDiem(tu, den, 0.02, { huongVao: { x: 60, y: 0 } })
+    const khongVao = viTriTaiThoiDiem(tu, den, 0.02, {})
+    expect(khongVao.x - tu.x).toBeLessThan(coVao.x - tu.x)
   })
 })
 

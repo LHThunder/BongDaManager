@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | 30 AC (US-28 → US-32), 11 quyết định D89–D100 |
-| **Tiến độ** | 3/20 |
+| **Tiến độ** | 6/20 |
 | **Sửa đổi** | 2026-11-18 — chẻ lần đầu từ plan |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -69,21 +69,22 @@ xem được (hiến pháp P6), và là một commit.
 
 ## Phase 38 — Lát 38: Hết phanh ở mốc, và bóng đi như bóng
 
-- [ ] **T503** — Nối TỐC ĐỘ qua mốc, không chỉ nối hướng
+- [x] **T503** — Nối TỐC ĐỘ qua mốc, không chỉ nối hướng
   - File: sửa `src/ui/noiSuy.ts`, sửa `src/ui/noiSuy.test.ts`
   - Xong khi: thời gian đi **đều** cho cầu thủ (bỏ smoothstep khỏi đường của người), chỉ làm mượt khi **xuất phát từ đứng yên** (chặng đầu, vừa mở sân, vừa hết tạm dừng); tiếp tuyến vào mốc được chuẩn theo tốc độ của chặng trước; thêm phép kiểm "tốc độ tại mốc không về 0 khi có tốc độ vào", đúng với **mọi** độ lớn tiếp tuyến; **describe `'toạ độ tại mốc không bao giờ sai'` không sửa một dòng và vẫn xanh (R38)**; **không đổi engine**.
   - Bằng chứng: **số**.
   - AC: AC-30.1
   - Phụ thuộc: —
 
-- [ ] **T504** — `San2D` mang tốc độ của chặng trước vào chặng sau
+- [x] **T504** — `San2D` mang tốc độ của chặng trước vào chặng sau
   - File: sửa `src/ui/components/San2D.tsx`
-  - Xong khi: chặng mới nhận tốc độ vào từ chặng trước; đo trên trận đang phát: không điểm nào có hai khung liền **cùng một toạ độ** ở giữa hai mốc (tức không có khoảnh khắc phanh đứng); `san2D.test.ts` vẫn xanh.
+  - Xong khi: chặng mới nhận tốc độ vào từ chặng trước; đo trên trận đang phát: một điểm có **chuỗi chuyển động liên tục dài hơn một chặng** — tức nó băng qua mốc mà không có một khung nào đứng im; `san2D.test.ts` vẫn xanh.
+  - ⚠️ **Tiêu chí cũ là một phép đo sai.** Bản chẻ đầu đòi "không hai khung liền cùng một toạ độ" — đo thật thì 4% khung vẫn trùng toạ độ, nhưng không phải vì phanh: đó là những điểm di chuyển quãng ngắn tới mức bị làm tròn trong thuộc tính SVG. Chuỗi liên tục dài hơn một chặng mới là thứ chỉ xảy ra được khi tốc độ nối qua mốc.
   - Bằng chứng: **số**.
   - AC: AC-30.1
   - Phụ thuộc: T503
 
-- [ ] **T505** — Bóng đi đường thẳng, nhanh gấp ba người
+- [x] **T505** — Bóng đi đường thẳng, nhanh gấp ba người
   - File: sửa `src/ui/components/San2D.tsx`
   - Xong khi: bóng có chặng riêng, **đường thẳng**, thời lượng `msChuyen / 3`; đo: bóng tới toạ độ đích trong khoảng một phần ba đầu của chặng, trước mọi cầu thủ đi cùng hướng.
   - Bằng chứng: **số**.
@@ -280,6 +281,43 @@ pane không được vẽ): mức Chậm được chọn sẵn khi mở trận, 
 tự Chậm → Thường → Nhanh → Rất nhanh; hai chặng di chuyển đo được **914,1ms và
 916,7ms** (trước T501 là 280ms, bị trần cắt); mức Rất nhanh **0 khung** được xin
 trong ~1 giây mà toạ độ vẫn đổi qua 29 giá trị; không lỗi console.
+
+## Phase 38 — hai thứ chỉ lộ ra khi làm thật
+
+**1. Hàm dáng theo thể lực cũng có cú phanh, và nó khó thấy hơn.** Bỏ smoothstep
+là xong cú phanh của người sung sức, nhưng dáng của D88 là `u ** mu` với
+`mu > 1`, mà hàm ấy có **đạo hàm bằng 0 tại `u = 0`**. Tức người kiệt sức vẫn
+xuất phát từ vận tốc 0 ở **mọi** mốc — đúng điều AC-30.1 cấm, chỉ khác là nó
+chỉ xảy ra với người mệt nên còn dễ lọt hơn. Sửa bằng cách **trộn** một phần
+tuyến tính vào dáng (`TRON_TOI_DA = 0,8`): đạo hàm ở hai đầu luôn `≥ 0,2`, mà
+đoạn giữa vẫn tụt lại sau người sung sức đúng như D88 đòi — bốn phép kiểm cũ
+của D88 vẫn xanh không phải sửa một dòng.
+
+**2. Hai lần tôi viết phép đo sai trước khi viết được phép đo đúng.** Phép kiểm
+"tốc độ tại mốc không về 0" đỏ oan hai lần: lần đầu vì ngưỡng `eps/4` không
+tính đến phần tuyến tính chỉ còn 0,2; lần hai vì tôi chuẩn hoá theo **dây cung
+của chặng này** trong khi tốc độ vào là của **chặng trước** và hoàn toàn có thể
+nhỏ hơn. Bản cuối buộc ngưỡng vào đúng điều lớp này bảo đảm
+(`tocDoVao × eps × (1 − TRON_TOI_DA)`), nên nó vừa đúng vừa bắt được việc ai đó
+quay về `u ** mu` thuần — lúc ấy con số tụt xuống ~2e-6, nhỏ hơn ngưỡng cả
+nghìn lần.
+
+Cùng loại lỗi ấy lặp lại ở phép đo trên ứng dụng: "không hai khung liền cùng
+một toạ độ" đo ra 4% khung trùng, nhưng nguyên nhân là **làm tròn thuộc tính
+SVG** ở những điểm di chuyển quãng rất ngắn, không phải phanh. Phép đo đúng là
+**độ dài chuỗi chuyển động liên tục**, và tiêu chí của T504 đã được sửa theo.
+
+**Số đo thật của lát 38** (bản build, mức Chậm, rAF thay bằng `setTimeout`, lấy
+mẫu **ngay sau mỗi khung vẽ**):
+- **Chuỗi chuyển động liên tục dài nhất: 3590ms**, tức băng qua **~4,0 chặng**
+  900ms mà không một khung nào đứng im. Trước T503 điều này **không thể xảy
+  ra**: mọi chặng kết thúc ở vận tốc 0 rồi điểm đứng chờ hết quãng trống giữa
+  hai nhịp, nên một chuỗi không bao giờ dài hơn một chặng.
+- **Chặng của bóng: 286, 283, 285ms** so với 900ms của người — tỉ lệ ~3,16, đúng
+  `msChuyen / 3` (chênh nhỏ là do độ thưa của khung vẽ).
+- Tỉ lệ bước-đầu trên bước-giữa **không dùng được** làm bằng chứng: nhịp khung
+  do `setTimeout` sinh ra dao động mạnh nên bước mỗi khung dao động theo.
+- Không lỗi console.
 
 - **Phạm vi thật của "thêm một mức tốc độ" rộng hơn danh sách file trông thấy.**
   Đã grep: `MucTocDo` xuất hiện ở `useMatch.ts` (4 chỗ) và
