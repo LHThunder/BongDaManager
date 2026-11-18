@@ -18,7 +18,9 @@ import { MS_MOI_PHUT } from '../hooks/useMatch'
 import { bienDoTuKhoangGian, lechDaoDong } from './daoDong'
 import {
   CAO,
+  chieuDaiDuong,
   daiThuMon,
+  diemTrenDuong,
   hinhSan,
   type KhungSan,
   khungSan,
@@ -791,5 +793,80 @@ describe('bốn hàng của hai đội xen kẽ đúng thứ tự bóng đá (AC
       const gan = Math.min(...hang.map((x) => Math.abs(x - bong)))
       expect(gan, `bóng ở dải ${dai}`).toBeGreaterThanOrEqual(5)
     }
+  })
+})
+
+describe('bóng đi HẾT đường chuyền của nó (AC-30.9, T524)', () => {
+  /*
+    Trước T524 bóng chỉ đi **một đoạn thẳng** từ chỗ cũ tới điểm cuối của pha
+    bóng, bỏ qua mọi vùng nó đi qua — nên một pha ba nhịp chỉ còn là một cú băng
+    chéo sân, và phải vẽ thêm một đường kẻ vàng cho người xem đoán ra nó đã đi
+    đường nào.
+  */
+  const duong = [
+    { x: 0, y: 0 },
+    { x: 30, y: 0 },
+    { x: 30, y: 40 },
+  ]
+
+  it('tỉ lệ 0 và 1 trả đúng hai đầu đường', () => {
+    expect(diemTrenDuong(duong, 0)).toEqual(duong[0])
+    expect(diemTrenDuong(duong, 1)).toEqual(duong[2])
+    expect(diemTrenDuong(duong, -5)).toEqual(duong[0])
+    expect(diemTrenDuong(duong, 9)).toEqual(duong[2])
+  })
+
+  it('đi qua TẪT CẢ các vùng, không cắt góc', () => {
+    // Đúng giữa đường (30 + 40 = 70, nửa là 35) thì bóng đã qua khúc cua.
+    const giua = diemTrenDuong(duong, 35 / 70)
+    expect(giua.x).toBeCloseTo(30, 10)
+    expect(giua.y).toBeCloseTo(5, 10)
+    // Một đoạn thẳng nối hai đầu sẽ cho (15; 20) — cách điểm trên rất xa.
+    expect(Math.hypot(giua.x - 15, giua.y - 20)).toBeGreaterThan(15)
+  })
+
+  it('đi ĐỀU một tốc độ: quãng đi được tỉ lệ với thời gian', () => {
+    const tong = chieuDaiDuong(duong)
+    expect(tong).toBeCloseTo(70, 10)
+    let truoc = diemTrenDuong(duong, 0)
+    let daDi = 0
+    for (let i = 1; i <= 70; i += 1) {
+      const nay = diemTrenDuong(duong, i / 70)
+      const buoc = Math.hypot(nay.x - truoc.x, nay.y - truoc.y)
+      // Mỗi bước 1/70 chiều dài phải đúng 1 đơn vị, kể cả bước đi qua khúc cua.
+      expect(buoc, `bước ${i}`).toBeCloseTo(1, 9)
+      daDi += buoc
+      truoc = nay
+    }
+    expect(daDi).toBeCloseTo(tong, 8)
+  })
+
+  it('đầu vào vô lý không làm nó ném hay trả NaN', () => {
+    expect(diemTrenDuong([], 0.5)).toEqual({ x: RONG / 2, y: CAO / 2 })
+    expect(diemTrenDuong([{ x: 7, y: 9 }], 0.5)).toEqual({ x: 7, y: 9 })
+    const motCho = [
+      { x: 5, y: 5 },
+      { x: 5, y: 5 },
+    ]
+    expect(diemTrenDuong(motCho, 0.3)).toEqual({ x: 5, y: 5 })
+    const p = diemTrenDuong(duong, Number.NaN)
+    expect(Number.isFinite(p.x) && Number.isFinite(p.y)).toBe(true)
+    expect(chieuDaiDuong([])).toBe(0)
+  })
+
+  it('đường của một pha bóng thật có nhiều hơn một đoạn', () => {
+    /*
+      Nếu mọi pha bóng của engine chỉ có một đoạn thì cả T524 không chứng minh
+      được gì — phép kiểm này giữ cho điều đó không âm thầm thành thật.
+    */
+    const tt = chayHetTran(tranMau(11, MA_TRAN_CO_DINH[0]))
+    let nhieuDoan = 0
+    let daiNhat = 0
+    for (const sk of dongSuKien(tt)) {
+      const h = veTu(tt, sk)
+      if (h.duongBong.length > 2) nhieuDoan += 1
+      daiNhat = Math.max(daiNhat, h.duongBong.length)
+    }
+    expect(nhieuDoan, `dài nhất ${daiNhat} điểm`).toBeGreaterThan(5)
   })
 })

@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | 30 AC (US-28 → US-32), 11 quyết định D89–D100 |
-| **Tiến độ** | 22/24 |
+| **Tiến độ** | 23/25 |
 | **Sửa đổi** | 2026-11-18 — chẻ lần đầu từ plan |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -262,6 +262,17 @@ xem được (hiến pháp P6), và là một commit.
 
 ---
 
+## Phase 45 — Lát 45: Bóng đi đường của nó
+
+- [x] **T524** — Bóng đi hết đường chuyền, và đường kẻ vàng bị bỏ
+  - File: sửa `src/ui/components/San2D.tsx`, sửa `src/ui/san2D.test.ts`
+  - Xong khi: bóng đi qua **từng vùng** của pha bóng theo đúng thứ tự, tốc độ đều theo **chiều dài** (không phải theo số đoạn), xuất phát từ **chỗ bóng đang đứng** chứ không từ điểm đầu của pha; cả pha không dài hơn một nhịp; `<polyline>` vàng bị xóa; phép kiểm thuần cho lớp đi dọc đường, kèm một phép kiểm chứng minh pha bóng thật có nhiều hơn một đoạn.
+  - Bằng chứng: **số**.
+  - AC: AC-30.9, AC-30.2
+  - Phụ thuộc: T505, T513
+
+---
+
 ## Bảng phủ AC
 
 | AC | Task |
@@ -277,13 +288,14 @@ xem được (hiến pháp P6), và là một commit.
 | AC-29.4 | T501 |
 | AC-29.5 | T500 |
 | AC-30.1 | T503, T504, T518 |
-| AC-30.2 | T505, T518 |
+| AC-30.2 | T505, T518, T524 |
 | AC-30.3 | T511, T518 |
 | AC-30.4 | T510, T518 |
 | AC-30.5 | T510 |
 | AC-30.6 | T512 |
 | AC-30.7 | T521 |
 | AC-30.8 | T523 |
+| AC-30.9 | T524 |
 | AC-31.1 | T509, T516 |
 | AC-31.2 | T516 |
 | AC-31.3 | T517 |
@@ -749,4 +761,33 @@ hai chế độ màu. Bóng vẫn vẽ sau các điểm người (T520).
 
 **Vẫn chưa làm, và vẫn cố ý chưa làm:** bóng dính chân người dẫn, qua người,
 chuyền và sút, đường bóng liên tục — **spec 006**.
+
+## Phase 45 — bóng đi đường của nó, và nửa còn lại vẫn ở spec 006
+
+**Đường kẻ vàng tồn tại vì bóng không đi đường của nó.** Spec 001 vẽ nó (D40) để
+người xem đoán ra lộ trình, bởi bóng nhảy thẳng từ chỗ cũ tới điểm cuối, bỏ qua
+mọi vùng ở giữa. Sửa đúng cái gốc — cho bóng **đi hết đường** — thì đường kẻ tự
+hết việc, đúng như người dùng nói ở T518.
+
+Hai chi tiết không phải trang trí:
+- **Tỉ lệ đi theo CHIỀU DÀI, không theo số đoạn.** Chia đều theo đoạn thì bóng bò
+  qua đoạn ngắn rồi vọt qua đoạn dài — một đường chuyền không đổi tốc độ giữa
+  đường.
+- **Đường mới nối từ chỗ bóng ĐANG ĐỨNG**, không từ điểm đầu của pha bóng: hai
+  pha liên tiếp không phải lúc nào cũng nối đuôi nhau, và bắt bóng nhảy về điểm
+  đầu là đúng cú giật AC-29.3 cấm.
+
+**Số đo trên ứng dụng** (mức Chậm, 1150 mẫu, tới phút 20):
+- **0 khung** còn đường kẻ vàng.
+- **17 khúc cua** của quả bóng — điều một cú nhảy thẳng **không thể** làm được, nên
+  nó là bằng chứng trực tiếp rằng bóng đang đi qua từng vùng.
+- Tổng quãng bóng đi 1101 đơn vị, bước lớn nhất mỗi khung 14,67.
+
+**Và đây là nửa chưa làm, đo được hẳn hoi:** bóng chỉ **di chuyển ở 35,5% số
+khung**, và quãng đứng yên lâu nhất là **3144ms**. Vì giữa hai pha bóng — và ở
+những dòng không kể pha bóng nào (thay người, kiệt sức) — không ai giữ bóng cả,
+nên nó nằm yên. Một quả bóng thật không nằm yên ba giây giữa trận. Thứ chữa được
+điều đó là **mô hình người giữ bóng** — bóng dính chân người dẫn, qua người,
+rời chân khi chuyền hay sút — và đó là **spec 006**, không phải một hằng số của spec
+này.
 

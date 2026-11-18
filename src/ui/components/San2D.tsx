@@ -727,6 +727,53 @@ function diemThang(tu: Diem, den: Diem, tiLe: number): Diem {
   return { x: tu.x + (den.x - tu.x) * t, y: tu.y + (den.y - tu.y) * t }
 }
 
+/** Tổng chiều dài một đường gấp khúc. */
+export function chieuDaiDuong(duong: readonly Diem[]): number {
+  let tong = 0
+  for (let i = 1; i < duong.length; i += 1) {
+    const a = duong[i - 1] as Diem
+    const b = duong[i] as Diem
+    tong += Math.hypot(b.x - a.x, b.y - a.y)
+  }
+  return tong
+}
+
+/**
+ * Chỗ quả bóng đang ở trên **cả đường chuyền**, ở tỉ lệ `tiLe` của chiều dài
+ * (T524, AC-30.9).
+ *
+ * **Đây là chỗ khác hẳn với T505.** Trước đó bóng chỉ đi **một đoạn thẳng**
+ * từ chỗ cũ tới điểm cuối của pha bóng, bỏ qua mọi vùng nó đi qua — nên một pha
+ * ba nhịp chỉ còn là một cú băng chéo sân, và phải vẽ thêm một **đường kẻ vàng**
+ * để người xem đoán ra nó đã đi đường nào. Nay bóng **đi hết đường ấy**, nên
+ * đường kẻ không còn việc gì để làm.
+ *
+ * Tham số là tỉ lệ của **chiều dài**, không phải của số đoạn: nhờ vậy bóng đi
+ * **đều một tốc độ** suốt cả pha, không chậm lại ở đoạn ngắn rồi vọt lên ở đoạn
+ * dài — một đường chuyền không đổi tốc độ giữa đường.
+ */
+export function diemTrenDuong(duong: readonly Diem[], tiLe: number): Diem {
+  const dau = duong[0]
+  const cuoi = duong[duong.length - 1]
+  if (dau == null || cuoi == null) return { x: RONG / 2, y: CAO / 2 }
+  if (duong.length === 1) return dau
+
+  const t = tiLe < 0 ? 0 : tiLe > 1 ? 1 : Number.isFinite(tiLe) ? tiLe : 1
+  const tong = chieuDaiDuong(duong)
+  if (!(tong > 0)) return cuoi
+
+  let con = t * tong
+  for (let i = 1; i < duong.length; i += 1) {
+    const a = duong[i - 1] as Diem
+    const b = duong[i] as Diem
+    const d = Math.hypot(b.x - a.x, b.y - a.y)
+    if (d <= 0) continue
+    if (con <= d) return diemThang(a, b, con / d)
+    con -= d
+  }
+  return cuoi
+}
+
 /**
  * Vận tốc **tức thời** của một chặng tại tỉ lệ `troi` (T504).
  *
@@ -821,10 +868,16 @@ export function San2D(props: Props) {
   }, [nha.ben, khach.ben])
 
   const dang = useRef(new Map<string, ChuyenDiemDang>())
-  /** Chặng đang đi của bóng — riêng, vì bóng đi thẳng và nhanh gấp ba (T505). */
-  const bongDang = useRef<{ readonly tu: Diem; readonly den: Diem } | null>(
-    null,
-  )
+  /**
+   * Pha bóng đang đi: **cả đường chuyền**, kèm thời lượng của riêng nó (T524).
+   *
+   * Bóng đi nhanh gấp ba người (T505) nhưng nay đi **hết đường**, nên thời
+   * lượng phụ thuộc số đoạn chứ không còn là một hằng số.
+   */
+  const bongDang = useRef<{
+    readonly duong: readonly Diem[]
+    readonly thoiLuong: number
+  } | null>(null)
   /**
    * Chỗ bóng được thấy lần cuối (T513).
    *
@@ -899,13 +952,31 @@ export function San2D(props: Props) {
       đường đi**: thẳng, không cong.
     */
     const cuBong = bongDang.current
-    const msBong = msChuyen / BONG_NHANH_GAP
-    const troiBong = msBong <= 0 ? 1 : (bayGio - batDau.current) / msBong
+    const choBongBatDau =
+      cuBong && cuBong.thoiLuong > 0
+        ? diemTrenDuong(
+            cuBong.duong,
+            (bayGio - batDau.current) / cuBong.thoiLuong,
+          )
+        : { x: bong.x, y: bong.y }
+    /*
+      Đường mới nối từ **chỗ bóng đang đứng** chứ không từ điểm đầu của pha
+      bóng: hai pha liên tiếp không phải lúc nào cũng nối đuôi nhau, và bắt
+      bóng nhảy về điểm đầu là một cú giật.
+    */
+    const duongMoi: readonly Diem[] =
+      duongBong.length > 0
+        ? [choBongBatDau, ...duongBong]
+        : [choBongBatDau, { x: bong.x, y: bong.y }]
+    const soDoan = Math.max(1, duongMoi.length - 1)
     bongDang.current = {
-      tu: cuBong
-        ? diemThang(cuBong.tu, cuBong.den, troiBong)
-        : { x: bong.x, y: bong.y },
-      den: { x: bong.x, y: bong.y },
+      duong: duongMoi,
+      /*
+        Mỗi đoạn vẫn tốn `msChuyen / 3` như T505, nhưng cả pha không được dài
+        hơn một nhịp — pha nào nhiều đoạn quá thì bóng đi nhanh hơn, chứ
+        không được còn bay dở khi tình huống sau tới (AC-29.3).
+      */
+      thoiLuong: Math.min(msChuyen, (msChuyen / BONG_NHANH_GAP) * soDoan),
     }
     bongMocCuoi.current = { x: bong.x, y: bong.y }
 
@@ -974,10 +1045,11 @@ export function San2D(props: Props) {
     if (giamChuyenDong) return { x: bong.x, y: bong.y }
     const tt = bongDang.current
     if (!tt) return { x: bong.x, y: bong.y }
-    const msBong = msChuyen / BONG_NHANH_GAP
-    const troiBong =
-      msBong <= 0 ? 1 : (performance.now() - batDau.current) / msBong
-    return diemThang(tt.tu, tt.den, troiBong)
+    if (!(tt.thoiLuong > 0)) return { x: bong.x, y: bong.y }
+    return diemTrenDuong(
+      tt.duong,
+      (performance.now() - batDau.current) / tt.thoiLuong,
+    )
   }
 
   /*
@@ -1120,17 +1192,16 @@ export function San2D(props: Props) {
           />
         </g>
 
-        {/* Đường đi của bóng (AC-10.2, quyết định D40). */}
-        {duongBong.length > 1 && (
-          <polyline
-            points={duongBong.map((p) => `${p.x},${p.y}`).join(' ')}
-            fill="none"
-            stroke="var(--co-vang)"
-            strokeWidth={0.8 * tiLe}
-            strokeDasharray={`${2 * tiLe} ${1.5 * tiLe}`}
-            aria-hidden="true"
-          />
-        )}
+        {/*
+          ĐƯỜNG KẺ VÀNG ĐÃ BỎ (T524).
+
+          Nó có từ spec 001 (AC-10.2, D40) vì bóng không đi đường của mình: bóng
+          nhảy thẳng tới điểm cuối, nên phải vẽ lại đường đã đi cho người xem đoán
+          ra. Nay bóng đi hết đường ấy, nên một đường kẻ đứng yên chỉ còn làm
+          rối mặt sân — người dùng nói thẳng ở T518 là không cần nữa.
+          `duongBong` vẫn nằm trong `HinhSan`: nó là **đường đi của bóng**, giờ
+          được dùng để bóng đi chứ không để vẽ.
+        */}
         {/*
           Vòng sáng lan ra từ chỗ ghi bàn (AC-32.4). Giảm chuyển động thì
           không vẽ — chỉ còn chữ, đúng AC-32.6.

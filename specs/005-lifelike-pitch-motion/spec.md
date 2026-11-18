@@ -4,7 +4,7 @@
 |---|---|
 | **ID** | `005-lifelike-pitch-motion` |
 | **Status** | Planned (2026-11-18) |
-| **Sửa đổi** | 2026-11-18 — thêm US-32 (quả bóng luôn hiện, hiệu ứng bàn thắng) sau khi plan đã Approved; 2026-11-18 — thêm AC-30.7 và siết AC-32.1 sau khi người dùng xem thật ở T518; 2026-11-18 — thêm AC-30.8 và AC-32.8, cũng từ T518 |
+| **Sửa đổi** | 2026-11-18 — thêm US-32 (quả bóng luôn hiện, hiệu ứng bàn thắng) sau khi plan đã Approved; 2026-11-18 — thêm AC-30.7 và siết AC-32.1 sau khi người dùng xem thật ở T518; 2026-11-18 — thêm AC-30.8 và AC-32.8, cũng từ T518; 2026-11-18 — thêm AC-30.9 (bóng đi hết đường, bỏ đường kẻ) |
 | **Created** | 2026-11-18 |
 | **Branch** | `005-lifelike-pitch-motion` |
 
@@ -135,6 +135,13 @@ bị dịch chỗ**.
 - [ ] AC-30.6 — KHI một cầu thủ đã xuống thể lực THÌ ở những nhịp còn dư thời gian, điểm của anh ta PHẢI **đi chậm thật**: tới đích muộn hơn một người cùng lúc còn sung sức, nhưng VẪN phải tới trước khi tình huống kế tiếp tới. Ở nhịp không đủ dư thời gian, độ chênh PHẢI vẫn nhận ra được bằng dáng chạy (xuất phát muộn hơn, đi phần lớn quãng đường sau).
 - [ ] AC-30.7 — KHI trận đang chạy THÌ điểm của **thủ môn** PHẢI luôn nằm trong **một phần ba sân của đội mình**, kể cả khi dòng tường thuật liệt kê anh ta là người tham gia một tình huống ở vùng khác, và kể cả khi cả khối đội hình đang co về phía bóng — thủ môn **không** co theo khối.
 - [ ] AC-30.8 — KHI hai đội đứng theo sơ đồ THÌ hàng phòng ngự của một đội PHẢI đứng **giữa tiền đạo đối phương và khung thành của mình**, không được đứng trước mặt họ; và bốn hàng của hai đội PHẢI xen kẽ nhau dọc sân theo đúng thứ tự bóng đá: thủ môn nhà → hậu vệ nhà → tiền đạo khách → tiền vệ nhà → tiền vệ khách → tiền đạo nhà → hậu vệ khách → thủ môn khách.
+- [ ] AC-30.9 — KHI một pha bóng đi qua nhiều vùng THÌ quả bóng PHẢI **đi hết đường ấy** — qua từng vùng theo đúng thứ tự, tốc độ đều — chứ KHÔNG được nhảy thẳng tới điểm cuối; và khi bóng đã đi đường của mình thì **KHÔNG cần vẽ đường kẻ chỉ hướng nữa**.
+
+  > *Thêm ngày 2026-11-18, sau khi người dùng xem thật (T518): "tôi muốn bóng di
+  > chuyển tự nhiên hơn, không cần hiện đường màu vàng cũng được."* Đường kẻ
+  > vàng có từ spec 001 **chính vì** bóng không đi đường của nó: nó nhảy thẳng tới
+  > điểm cuối, nên phải vẽ lại lộ trình cho người xem đoán. Sửa cái gốc thì cái
+  > bóng kia tự hết việc.
 
   > *Thêm ngày 2026-11-18, sau khi người dùng xem thật (T518).* Đo được trước khi
   > sửa: hậu vệ đội nhà ở `x = 28`, tiền đạo đội khách ở `x = 13` — tiền đạo nằm
@@ -330,6 +337,7 @@ thế những gì.
 | AC-10.4 — tạm dừng thì sân 2D dừng ở đúng trạng thái của phút đó | **Giữ, và nó củng cố AC-28.5.** Nếu lúc `/clarify` chọn "tạm dừng vẫn động nhẹ" thì sẽ có một mâu thuẫn nữa ở đây |
 | AC-10.5 — chạy hết trận không bị sân 2D làm chậm | **Giữ** (AC-31.3) |
 | AC-10.1, AC-10.3, AC-10.6 — đủ 22 điểm, làm nổi bật người tham gia, ẩn được sân | **Giữ, không chạm** |
+| **AC-10.2** của spec 001, phần "**kèm đường đi của bóng**" được **vẽ thành một đường kẻ** | **Thay thế, ngày 2026-11-18 sau T518.** Ý định của mệnh đề ấy — người xem **thấy được bóng đi đường nào** — được giữ nguyên và làm tốt hơn: bóng **đi hết đường ấy** (AC-30.9) thay vì nhảy tới điểm cuối rồi để một đường kẻ đứng yên kể lại. `duongBong` vẫn nằm trong dữ liệu vẽ — nó chuyển từ **thứ để vẽ** thành **lộ trình để đi** |
 | AC-15.2 của spec 002 — không điểm nào chồng khít tới mức đếm thiếu người | **Giữ**, và nó là thứ chặn biên độ dao động ở mục 6 (AC-30.5) |
 | AC-9.3 của spec 001 — đổi tốc độ thì áp dụng ngay | **Giữ**, và nhịp lặng sau bàn thắng (AC-32.5) không được làm nó chậm hơn một nhịp — xem phát hiện MEDIUM số 6 của `/analyze`, còn mở |
 
