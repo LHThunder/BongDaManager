@@ -5,8 +5,8 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | 37 AC (US-24 → US-27) + 2 task sửa lỗi do T437 tìm ra (T440, T441) |
-| **Tiến độ** | 41/42 |
-| **Sửa đổi** | 2026-11-17 — chẻ lần đầu từ plan; cùng ngày sửa theo `/analyze` (1 CRITICAL + 4 HIGH); T439 bị chặn, xem ghi chú Phase 35 |
+| **Tiến độ** | 42/42 — **xong** |
+| **Sửa đổi** | 2026-11-17 — chẻ lần đầu từ plan, cùng ngày sửa theo `/analyze` (1 CRITICAL + 4 HIGH); 2026-11-18 — thêm Phase 36 (T440, T441) từ lỗi T437 tìm ra, rồi đóng spec |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
 > Mỗi task phải: chạm file cụ thể + có cách kiểm chứng + đủ nhỏ để làm trong một lần.
@@ -335,7 +335,7 @@ lát cắt dọc ở `plan.md` mục 9; mỗi phase kết thúc là một ứng 
   - AC: AC-25.9
   - Phụ thuộc: T437
 
-- [ ] **T439** — Tick 37 AC và đóng spec *(lỗi chặn đã sửa ở Phase 36; còn lại là đối chiếu 37 AC và đổi Status)*
+- [x] **T439** — Tick 37 AC và đóng spec
   - File: sửa `specs/004-squad-tools-and-what-if/spec.md`
   - Xong khi: mọi AC ở mục 3 được tick có căn cứ; Definition of Done đủ chín mục; `Status` đổi thành **Done**; xác nhận `PHIEN_BAN_ENGINE` vẫn là 5 và định dạng tệp sao lưu không đổi.
   - AC: toàn bộ
@@ -507,7 +507,7 @@ Chuỗi nguyên nhân, đã đi hết tới tận bản ghi trong IndexedDB:
 **Phase 34 làm nó từ im lặng thành chết màn hình.** Trước Phase 34 trang lịch
 sử chỉ hiển thị bản ghi; T432 thêm `tranDauCuaBanGhi` useMemo gọi `taoTran`
 ngay khi mở một trận, nên những bản ghi hỏng sẵn kia giờ giết cả trang. Vì thế
-T439 chưa làm: AC-27.1 và AC-27.3 không đi được trên loại bản ghi ấy, và trường
+T439 phải chờ (đã làm sau Phase 36): AC-27.1 và AC-27.3 không đi được trên loại bản ghi ấy, và trường
 hợp biên mục 5 ("từ chối kèm lý do") đang bị thay bằng trang trắng.
 
 Ba hướng sửa, chưa làm vì nằm ngoài danh sách file của Phase 35 và một hướng

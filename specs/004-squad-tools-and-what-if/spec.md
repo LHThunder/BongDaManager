@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **ID** | `004-squad-tools-and-what-if` |
-| **Status** | Planned (2026-11-17) |
+| **Status** | Done (2026-11-18) |
 | **Created** | 2026-11-16 |
 | **Branch** | `004-squad-tools-and-what-if` |
 
@@ -88,14 +88,14 @@ chứ không phải cuối tuần**.
 
 **Acceptance criteria:**
 
-- [ ] AC-24.1 — KHI người dùng yêu cầu sinh một cầu thủ ngẫu nhiên THÌ hệ thống PHẢI tạo ra một cầu thủ có **đủ** tên, tuổi, số áo, vị trí sở trường và toàn bộ chỉ số; KHÔNG trường bắt buộc nào được để trống.
-- [ ] AC-24.2 — KHI người dùng chọn một mức độ trước khi sinh THÌ chỉ số của cầu thủ sinh ra PHẢI nằm trong dải của đúng mức đó, và một cầu thủ mức cao hơn PHẢI có chỉ số tổng cao hơn một cầu thủ mức thấp hơn ở cùng vị trí.
-- [ ] AC-24.3 — KHI sinh một cầu thủ vào một đội đã có người THÌ số áo sinh ra PHẢI không trùng với bất kỳ số áo nào đang dùng trong đội đó.
-- [ ] AC-24.4 — KHI người dùng yêu cầu sinh cả một đội THÌ đội sinh ra PHẢI **đá được ngay**: đủ người để đăng ký ở quân số đã chọn **cộng tối đa 7 dự bị** (sân 11 là **18 người**), mỗi vị trí của sơ đồ có ít nhất một người đá đúng sở trường, và **kèm một bộ chiến thuật đã xếp đủ các ô** của sơ đồ.
-- [ ] AC-24.5 — KHI người dùng sinh ngẫu nhiên hai lần liên tiếp với cùng một lựa chọn THÌ hai kết quả PHẢI khác nhau.
-- [ ] AC-24.6 — KHI một cầu thủ hay một đội được sinh ra THÌ người dùng PHẢI sửa được mọi trường của nó y như với dữ liệu tự nhập; KHÔNG được có cầu thủ chỉ-đọc, và bộ chiến thuật sinh kèm PHẢI sửa được như bộ tự xếp.
-- [ ] AC-24.7 — KHI sinh một đội THÌ thao tác PHẢI hoàn tất hoặc thất bại trọn vẹn: không được để lại một đội dựng dở với vài cầu thủ.
-- [ ] AC-24.8 — KHI sinh cầu thủ ở giao diện tiếng Việt THÌ tên sinh ra PHẢI là tên Việt; KHI sinh ở giao diện tiếng Anh THÌ PHẢI là tên Anh. Tên đã sinh rồi thì **giữ nguyên** khi người dùng đổi ngôn ngữ, vì nó là dữ liệu của người dùng chứ không phải nhãn giao diện.
+- [x] AC-24.1 — KHI người dùng yêu cầu sinh một cầu thủ ngẫu nhiên THÌ hệ thống PHẢI tạo ra một cầu thủ có **đủ** tên, tuổi, số áo, vị trí sở trường và toàn bộ chỉ số; KHÔNG trường bắt buộc nào được để trống.
+- [x] AC-24.2 — KHI người dùng chọn một mức độ trước khi sinh THÌ chỉ số của cầu thủ sinh ra PHẢI nằm trong dải của đúng mức đó, và một cầu thủ mức cao hơn PHẢI có chỉ số tổng cao hơn một cầu thủ mức thấp hơn ở cùng vị trí.
+- [x] AC-24.3 — KHI sinh một cầu thủ vào một đội đã có người THÌ số áo sinh ra PHẢI không trùng với bất kỳ số áo nào đang dùng trong đội đó.
+- [x] AC-24.4 — KHI người dùng yêu cầu sinh cả một đội THÌ đội sinh ra PHẢI **đá được ngay**: đủ người để đăng ký ở quân số đã chọn **cộng tối đa 7 dự bị** (sân 11 là **18 người**), mỗi vị trí của sơ đồ có ít nhất một người đá đúng sở trường, và **kèm một bộ chiến thuật đã xếp đủ các ô** của sơ đồ.
+- [x] AC-24.5 — KHI người dùng sinh ngẫu nhiên hai lần liên tiếp với cùng một lựa chọn THÌ hai kết quả PHẢI khác nhau.
+- [x] AC-24.6 — KHI một cầu thủ hay một đội được sinh ra THÌ người dùng PHẢI sửa được mọi trường của nó y như với dữ liệu tự nhập; KHÔNG được có cầu thủ chỉ-đọc, và bộ chiến thuật sinh kèm PHẢI sửa được như bộ tự xếp.
+- [x] AC-24.7 — KHI sinh một đội THÌ thao tác PHẢI hoàn tất hoặc thất bại trọn vẹn: không được để lại một đội dựng dở với vài cầu thủ.
+- [x] AC-24.8 — KHI sinh cầu thủ ở giao diện tiếng Việt THÌ tên sinh ra PHẢI là tên Việt; KHI sinh ở giao diện tiếng Anh THÌ PHẢI là tên Anh. Tên đã sinh rồi thì **giữ nguyên** khi người dùng đổi ngôn ngữ, vì nó là dữ liệu của người dùng chứ không phải nhãn giao diện.
 
 ### US-25: Sân 2D chuyển động liên tục
 
@@ -105,15 +105,15 @@ chạy**, để **theo được diễn biến bằng mắt chứ không phải g
 
 **Acceptance criteria:**
 
-- [ ] AC-25.1 — KHI trận đang chạy THÌ các điểm trên sân PHẢI di chuyển liên tục giữa hai tình huống **theo đường cong mềm**, không gấp khúc; KHÔNG điểm nào được nhảy tức thời từ chỗ này sang chỗ khác.
-- [ ] AC-25.2 — KHI một tình huống diễn ra ở một vùng sân THÌ đúng tại phút của tình huống đó, những người tham gia PHẢI đã có mặt ở vùng ấy — chuyển động KHÔNG được làm sai vị trí tại mốc.
-- [ ] AC-25.3 — KHI người dùng đổi tốc độ trận THÌ chuyển động PHẢI theo kịp nhịp mới: KHÔNG điểm nào còn đang di chuyển dở khi tình huống kế tiếp đã tới.
-- [ ] AC-25.4 — KHI mở một trận đã lưu **từ trước spec này** và đấu lại bằng cùng mã trận THÌ kết quả và từng dòng sự kiện PHẢI giống hệt trận cũ.
-- [ ] AC-25.5 — KHI chuyển động liên tục đang bật THÌ tỉ số, dòng tường thuật, chỉ tiêu hai đội và điểm từng cầu thủ PHẢI không đổi so với trước spec này.
-- [ ] AC-25.6 — KHI hệ điều hành của người dùng bật chế độ giảm chuyển động THÌ sân PHẢI tôn trọng lựa chọn đó và không chuyển động liên tục nữa, mà vẫn hiển thị đúng vị trí tại từng mốc.
-- [ ] AC-25.7 — KHI một cầu thủ đã xuống thể lực **trong trận đang chạy** THÌ điểm của anh ta trên sân PHẢI **trễ hơn rõ rệt** một người cùng lúc đó còn đủ thể lực: xuất phát muộn hơn và đi phần lớn quãng đường sau người kia, đủ để nhận ra bằng mắt mà không phải đọc số. Nhưng **thời lượng** một cú chuyển chỗ KHÔNG được dài ra theo thể lực: mọi điểm, khoẻ hay kiệt, PHẢI tới đúng vị trí mốc trước khi tình huống kế tiếp tới (AC-25.3).
-- [ ] AC-25.8 — KHI tốc độ di chuyển phản ánh thể lực THÌ tình trạng thể lực đó PHẢI **đồng thời** có mặt dưới dạng chữ; chuyển động KHÔNG được là cách duy nhất để biết một người đã kiệt sức.
-- [ ] AC-25.9 — KHI sân 2D đang bật với chuyển động theo đường cong và 22 điểm cùng di chuyển THÌ **hai** ngân sách PHẢI cùng đạt: giả lập trọn một trận ở chế độ **chạy ngay** vẫn xong trong dưới 3 giây, **và** khi trận **đang phát theo đồng hồ** thì công việc mỗi khung vẽ PHẢI gọn trong một nhịp đồng hồ ở mức Thường và không làm rơi nhịp ở mức Nhanh. Đây là hai đường code khác nhau: chế độ chạy ngay không vẽ gì trong lúc chạy, nên một mình nó KHÔNG chứng minh được điều gì về chi phí của đường cong.
+- [x] AC-25.1 — KHI trận đang chạy THÌ các điểm trên sân PHẢI di chuyển liên tục giữa hai tình huống **theo đường cong mềm**, không gấp khúc; KHÔNG điểm nào được nhảy tức thời từ chỗ này sang chỗ khác.
+- [x] AC-25.2 — KHI một tình huống diễn ra ở một vùng sân THÌ đúng tại phút của tình huống đó, những người tham gia PHẢI đã có mặt ở vùng ấy — chuyển động KHÔNG được làm sai vị trí tại mốc.
+- [x] AC-25.3 — KHI người dùng đổi tốc độ trận THÌ chuyển động PHẢI theo kịp nhịp mới: KHÔNG điểm nào còn đang di chuyển dở khi tình huống kế tiếp đã tới.
+- [x] AC-25.4 — KHI mở một trận đã lưu **từ trước spec này** và đấu lại bằng cùng mã trận THÌ kết quả và từng dòng sự kiện PHẢI giống hệt trận cũ.
+- [x] AC-25.5 — KHI chuyển động liên tục đang bật THÌ tỉ số, dòng tường thuật, chỉ tiêu hai đội và điểm từng cầu thủ PHẢI không đổi so với trước spec này.
+- [x] AC-25.6 — KHI hệ điều hành của người dùng bật chế độ giảm chuyển động THÌ sân PHẢI tôn trọng lựa chọn đó và không chuyển động liên tục nữa, mà vẫn hiển thị đúng vị trí tại từng mốc.
+- [x] AC-25.7 — KHI một cầu thủ đã xuống thể lực **trong trận đang chạy** THÌ điểm của anh ta trên sân PHẢI **trễ hơn rõ rệt** một người cùng lúc đó còn đủ thể lực: xuất phát muộn hơn và đi phần lớn quãng đường sau người kia, đủ để nhận ra bằng mắt mà không phải đọc số. Nhưng **thời lượng** một cú chuyển chỗ KHÔNG được dài ra theo thể lực: mọi điểm, khoẻ hay kiệt, PHẢI tới đúng vị trí mốc trước khi tình huống kế tiếp tới (AC-25.3).
+- [x] AC-25.8 — KHI tốc độ di chuyển phản ánh thể lực THÌ tình trạng thể lực đó PHẢI **đồng thời** có mặt dưới dạng chữ; chuyển động KHÔNG được là cách duy nhất để biết một người đã kiệt sức.
+- [x] AC-25.9 — KHI sân 2D đang bật với chuyển động theo đường cong và 22 điểm cùng di chuyển THÌ **hai** ngân sách PHẢI cùng đạt: giả lập trọn một trận ở chế độ **chạy ngay** vẫn xong trong dưới 3 giây, **và** khi trận **đang phát theo đồng hồ** thì công việc mỗi khung vẽ PHẢI gọn trong một nhịp đồng hồ ở mức Thường và không làm rơi nhịp ở mức Nhanh. Đây là hai đường code khác nhau: chế độ chạy ngay không vẽ gì trong lúc chạy, nên một mình nó KHÔNG chứng minh được điều gì về chi phí của đường cong.
 
 > **Sửa ngày 2026-11-17 lúc `/analyze`: AC-25.3 và AC-25.7 từng đánh nhau.**
 > Bản chốt `/clarify` viết AC-25.7 là "di chuyển chậm hơn", và đo trên code
@@ -134,16 +134,16 @@ việc thử chiến thuật chứ không phải cho việc nhập liệu và cu
 
 **Acceptance criteria:**
 
-- [ ] AC-26.1 — KHI người dùng nhân bản một đội THÌ đội mới PHẢI có đủ toàn bộ cầu thủ với chỉ số giống hệt đội gốc, và PHẢI mang tên phân biệt được với đội gốc.
-- [ ] AC-26.2 — KHI người dùng sửa hoặc xoá một cầu thủ ở đội nhân bản THÌ đội gốc PHẢI không thay đổi gì, và ngược lại.
-- [ ] AC-26.3 — KHI người dùng nhân bản một đội THÌ đội mới PHẢI **không mang** ảnh chân dung của cầu thủ và logo của đội gốc, mà dùng ảnh thay thế mặc định; và hệ thống PHẢI nói trước điều đó để người dùng không tưởng là lỗi.
-- [ ] AC-26.4 — KHI người dùng lọc danh sách cầu thủ THÌ hệ thống PHẢI lọc được theo **tên, vị trí sở trường, khoảng chỉ số tổng, tuổi, và chân thuận**; các bộ lọc PHẢI kết hợp được với nhau.
-- [ ] AC-26.5 — KHI lọc theo khoảng chỉ số tổng THÌ hệ thống PHẢI nói rõ con số ấy đang tính theo **vị trí nào**, vì chỉ số tổng của một người đổi theo vị trí đang xét.
-- [ ] AC-26.6 — KHI người dùng lọc danh sách THÌ danh sách PHẢI chỉ còn những người khớp, và PHẢI nói rõ đang hiện bao nhiêu trên tổng số bao nhiêu.
-- [ ] AC-26.7 — KHI không ai khớp điều kiện lọc THÌ hệ thống PHẢI nói rõ là không có kết quả và cho một thao tác để trở về danh sách đầy đủ.
-- [ ] AC-26.8 — KHI người dùng yêu cầu tự chọn đội hình THÌ hệ thống PHẢI điền các ô của sơ đồ đang dùng, và với **mỗi ô** PHẢI nêu được lý do người đó được chọn.
-- [ ] AC-26.9 — KHI đội không đủ người cho sơ đồ đang dùng THÌ hệ thống PHẢI điền được bao nhiêu hay bấy nhiêu và nói rõ còn thiếu mấy người, KHÔNG được từ chối im lặng.
-- [ ] AC-26.10 — KHI hệ thống tự chọn đội hình THÌ người dùng PHẢI vẫn đổi lại được từng ô sau đó.
+- [x] AC-26.1 — KHI người dùng nhân bản một đội THÌ đội mới PHẢI có đủ toàn bộ cầu thủ với chỉ số giống hệt đội gốc, và PHẢI mang tên phân biệt được với đội gốc.
+- [x] AC-26.2 — KHI người dùng sửa hoặc xoá một cầu thủ ở đội nhân bản THÌ đội gốc PHẢI không thay đổi gì, và ngược lại.
+- [x] AC-26.3 — KHI người dùng nhân bản một đội THÌ đội mới PHẢI **không mang** ảnh chân dung của cầu thủ và logo của đội gốc, mà dùng ảnh thay thế mặc định; và hệ thống PHẢI nói trước điều đó để người dùng không tưởng là lỗi.
+- [x] AC-26.4 — KHI người dùng lọc danh sách cầu thủ THÌ hệ thống PHẢI lọc được theo **tên, vị trí sở trường, khoảng chỉ số tổng, tuổi, và chân thuận**; các bộ lọc PHẢI kết hợp được với nhau.
+- [x] AC-26.5 — KHI lọc theo khoảng chỉ số tổng THÌ hệ thống PHẢI nói rõ con số ấy đang tính theo **vị trí nào**, vì chỉ số tổng của một người đổi theo vị trí đang xét.
+- [x] AC-26.6 — KHI người dùng lọc danh sách THÌ danh sách PHẢI chỉ còn những người khớp, và PHẢI nói rõ đang hiện bao nhiêu trên tổng số bao nhiêu.
+- [x] AC-26.7 — KHI không ai khớp điều kiện lọc THÌ hệ thống PHẢI nói rõ là không có kết quả và cho một thao tác để trở về danh sách đầy đủ.
+- [x] AC-26.8 — KHI người dùng yêu cầu tự chọn đội hình THÌ hệ thống PHẢI điền các ô của sơ đồ đang dùng, và với **mỗi ô** PHẢI nêu được lý do người đó được chọn.
+- [x] AC-26.9 — KHI đội không đủ người cho sơ đồ đang dùng THÌ hệ thống PHẢI điền được bao nhiêu hay bấy nhiêu và nói rõ còn thiếu mấy người, KHÔNG được từ chối im lặng.
+- [x] AC-26.10 — KHI hệ thống tự chọn đội hình THÌ người dùng PHẢI vẫn đổi lại được từng ô sau đó.
 
 ### US-27: Đấu lại từ một phút bất kỳ với một quyết định khác
 
@@ -153,16 +153,16 @@ Là một **người dùng**, tôi muốn **quay lại một phút trong trận 
 
 **Acceptance criteria:**
 
-- [ ] AC-27.1 — KHI người dùng mở một trận đã lưu và chọn một phút THÌ hệ thống PHẢI cho đổi chỉ thị toàn đội hoặc thay một người tại phút đó, rồi chạy tiếp phần còn lại của trận.
-- [ ] AC-27.2 — KHI trận rẽ nhánh chạy xong THÌ **mọi dòng tường thuật trước điểm rẽ PHẢI giống hệt trận gốc** — cùng phút, cùng thứ tự, cùng từng chữ.
-- [ ] AC-27.3 — KHI xem kết quả rẽ nhánh THÌ hệ thống PHẢI cho so sánh trực tiếp với trận gốc, tối thiểu gồm tỉ số và các chỉ tiêu hai đội đã có trong báo cáo sau trận.
-- [ ] AC-27.4 — KHI người dùng không đổi gì mà vẫn chạy tiếp THÌ trận rẽ nhánh PHẢI ra kết quả y hệt trận gốc.
-- [ ] AC-27.5 — KHI trận gốc chạy bằng một phiên bản engine cũ hơn bản đang dùng THÌ hệ thống PHẢI từ chối rẽ nhánh và nói rõ vì sao.
-- [ ] AC-27.6 — KHI một trong hai đội của trận gốc đã bị xoá THÌ hệ thống PHẢI từ chối rẽ nhánh và nói rõ vì sao.
-- [ ] AC-27.7 — KHI rẽ nhánh xong THÌ **trận gốc PHẢI còn nguyên** trong lịch sử, không bị sửa và không bị thay thế.
-- [ ] AC-27.8 — KHI người dùng chọn một phút sau khi trận đã kết thúc, hoặc một phút không có trong trận THÌ hệ thống PHẢI từ chối và nói rõ khoảng phút chọn được.
-- [ ] AC-27.9 — KHI người dùng rời màn hình rẽ nhánh THÌ kết quả rẽ nhánh PHẢI mất đi — nó **không** được lưu vào lịch sử — và hệ thống PHẢI nói rõ điều đó **trước** khi người dùng rời đi, chứ không để họ phát hiện sau.
-- [ ] AC-27.10 — KHI người dùng đang xem một trận rẽ nhánh THÌ hệ thống PHẢI **không** cho rẽ nhánh tiếp từ chính nó, và PHẢI nói rõ rằng mỗi lần rẽ nhánh đều xuất phát từ một trận trong lịch sử.
+- [x] AC-27.1 — KHI người dùng mở một trận đã lưu và chọn một phút THÌ hệ thống PHẢI cho đổi chỉ thị toàn đội hoặc thay một người tại phút đó, rồi chạy tiếp phần còn lại của trận.
+- [x] AC-27.2 — KHI trận rẽ nhánh chạy xong THÌ **mọi dòng tường thuật trước điểm rẽ PHẢI giống hệt trận gốc** — cùng phút, cùng thứ tự, cùng từng chữ.
+- [x] AC-27.3 — KHI xem kết quả rẽ nhánh THÌ hệ thống PHẢI cho so sánh trực tiếp với trận gốc, tối thiểu gồm tỉ số và các chỉ tiêu hai đội đã có trong báo cáo sau trận.
+- [x] AC-27.4 — KHI người dùng không đổi gì mà vẫn chạy tiếp THÌ trận rẽ nhánh PHẢI ra kết quả y hệt trận gốc.
+- [x] AC-27.5 — KHI trận gốc chạy bằng một phiên bản engine cũ hơn bản đang dùng THÌ hệ thống PHẢI từ chối rẽ nhánh và nói rõ vì sao.
+- [x] AC-27.6 — KHI một trong hai đội của trận gốc đã bị xoá THÌ hệ thống PHẢI từ chối rẽ nhánh và nói rõ vì sao.
+- [x] AC-27.7 — KHI rẽ nhánh xong THÌ **trận gốc PHẢI còn nguyên** trong lịch sử, không bị sửa và không bị thay thế.
+- [x] AC-27.8 — KHI người dùng chọn một phút sau khi trận đã kết thúc, hoặc một phút không có trong trận THÌ hệ thống PHẢI từ chối và nói rõ khoảng phút chọn được.
+- [x] AC-27.9 — KHI người dùng rời màn hình rẽ nhánh THÌ kết quả rẽ nhánh PHẢI mất đi — nó **không** được lưu vào lịch sử — và hệ thống PHẢI nói rõ điều đó **trước** khi người dùng rời đi, chứ không để họ phát hiện sau.
+- [x] AC-27.10 — KHI người dùng đang xem một trận rẽ nhánh THÌ hệ thống PHẢI **không** cho rẽ nhánh tiếp từ chính nó, và PHẢI nói rõ rằng mỗi lần rẽ nhánh đều xuất phát từ một trận trong lịch sử.
 
 ## 4. Luồng chính (happy path)
 
@@ -236,21 +236,21 @@ Là một **người dùng**, tôi muốn **quay lại một phút trong trận 
 
 ## 7. Định nghĩa hoàn thành (Definition of Done)
 
-- [ ] Toàn bộ AC ở mục 3 pass
-- [ ] Trường hợp biên mục 5 được xử lý
-- [ ] Không vi phạm nguyên tắc nào trong constitution **3.0.1**
-- [ ] **Phiên bản engine KHÔNG đổi**, và có phép kiểm tự động chứng minh
+- [x] Toàn bộ AC ở mục 3 pass
+- [x] Trường hợp biên mục 5 được xử lý
+- [x] Không vi phạm nguyên tắc nào trong constitution **3.0.1**
+- [x] **Phiên bản engine KHÔNG đổi**, và có phép kiểm tự động chứng minh
       một trận lưu từ trước spec này đấu lại vẫn cho đúng kết quả cũ
-- [ ] Có phép kiểm tự động chứng minh **AC-27.2**: phần trước điểm rẽ giống
+- [x] Có phép kiểm tự động chứng minh **AC-27.2**: phần trước điểm rẽ giống
       hệt trận gốc, từng dòng
-- [ ] Có phép kiểm tự động chứng minh **AC-27.4**: rẽ nhánh mà không đổi gì
+- [x] Có phép kiểm tự động chứng minh **AC-27.4**: rẽ nhánh mà không đổi gì
       thì ra kết quả y hệt
-- [ ] Có phép kiểm tự động cho lớp sinh ngẫu nhiên: cùng nguồn ngẫu nhiên
+- [x] Có phép kiểm tự động cho lớp sinh ngẫu nhiên: cùng nguồn ngẫu nhiên
       cho ra cùng kết quả (P1), và chỉ số nằm đúng dải của mức đã chọn
-- [ ] Tự tay đi hết các màn hình mới ở **cả hai ngôn ngữ và cả hai chế độ
+- [x] Tự tay đi hết các màn hình mới ở **cả hai ngôn ngữ và cả hai chế độ
       sáng/tối**
-- [ ] Tệp sao lưu xuất từ bản trước spec này nhập lại được, dữ liệu nguyên vẹn
-- [ ] Đo lại các ngân sách ở mục 6, không cái nào vượt
+- [x] Tệp sao lưu xuất từ bản trước spec này nhập lại được, dữ liệu nguyên vẹn
+- [x] Đo lại các ngân sách ở mục 6, không cái nào vượt
 
 ## 8. Câu hỏi mở
 
@@ -305,3 +305,68 @@ Tám câu hỏi mở của mục 8 đã chốt ngày **2026-11-17**.
 khuyến nghị của tôi — lần trước là chế độ tối ở spec 003, và lần ấy quyết
 định của người dùng đúng. Cái giá lần này đã ghi thành hai AC kiểm chứng
 được (AC-25.8, AC-25.9) thay vì để nó lộ ra lúc đang code.
+
+## 11. Căn cứ đóng spec (T439, ngày 2026-11-18)
+
+37 AC ở mục 3 đều có căn cứ, và 9 mục ở mục 7 đều đã làm. Bảng dưới chỉ ghi
+căn cứ **ngắn nhất** cho từng nhóm; số đo, cách đo và điều kiện đo nằm ở
+`tasks.md`, mục "Phase 35 — số đo thật".
+
+| Nhóm AC | Căn cứ |
+|---|---|
+| AC-24.1 → AC-24.3 | `domain/generator.test.ts` (cùng nguồn ngẫu nhiên ra cùng kết quả, chỉ số trong dải của mức, mức cao hơn ra tổng cao hơn ở cùng vị trí, số áo không trùng) + kiểm tay: sinh cả hồ sơ điền đủ 23 ô, 30 số áo một đội đều khác nhau |
+| AC-24.4, AC-24.7 | `services/teamRepo.test.ts` (sinh cả đội trong một giao dịch, tất cả-hoặc-không-gì) + kiểm tay: đội 18 người sinh ra có sẵn đội hình đủ ô và câu "đủ điều kiện thi đấu" |
+| AC-24.5, AC-24.6 | Kiểm tay: hai lần sinh ra hai đội khác nhau; không ô nào `readOnly` hay `disabled` |
+| AC-24.8 | `domain/tenNgauNhien.test.ts` (hai kho, 1.100+ tổ hợp mỗi kho, trùng dưới 10% trên 200 tên) + kiểm tay cả hai nửa: giao diện Anh sinh tên Anh, đổi ngôn ngữ thì tên đã sinh giữ nguyên |
+| AC-25.1, AC-25.2 | `ui/noiSuy.test.ts` (tỉ lệ 0 và 1 trả đúng toạ độ hai mốc, đường không vọt ra ngoài khung) + đo trên trận đang chạy: 22 điểm đi qua 51–52 trạng thái toạ độ trong 1,6 s, tức không nhảy mốc |
+| AC-25.3, AC-25.7 | `ui/noiSuy.test.ts` chứng minh bằng số rằng thể lực đổi **dáng** mà không đổi thời lượng (D88) + đo trên trận đang chạy: sáu điểm cùng lúc đi được 12–58% quãng đường của mình, và cùng tới đích trong chặng |
+| AC-25.4, AC-25.5 | `engine/tuongThichV5.test.ts` (trận cố định ra đúng tỉ số và từng dòng của bản ghi tham chiếu) + `git diff` cả spec trên `src/engine/` chỉ có một file test + kiểm tay: cùng mã trận, sân bật và sân ẩn ra văn bản trang giống nhau từng ký tự |
+| AC-25.6 | Kiểm tay: bật giảm chuyển động thì 0 khung trong 1,75 s phát trực tiếp (cùng cửa sổ ấy lúc bình thường có 55–64 khung), mà vị trí vẫn đổi theo từng mốc |
+| AC-25.8 | Kiểm tay: nhãn chữ "Kiệt sức" có mặt trong tường thuật, 5 dòng một trận |
+| AC-25.9 | Hai phép đo ở `tasks.md`: trận 90 phút chạy ngay với sân bật 63 ms (ngân sách 3 s); thân mỗi khung vẽ max 0,3 ms ở mức Thường và 1,0 ms ở mức Nhanh, không tác vụ nào quá 50 ms, bật sân không làm xấu số nào so với ẩn sân |
+| AC-26.1 → AC-26.3 | `services/teamRepo.test.ts` (nhân bản trong một giao dịch, không chép ảnh) + kiểm tay: 30 dòng của bản sao khớp đội gốc từng ô; xoá bên này không đụng bên kia; hộp nhân bản nói trước về ảnh |
+| AC-26.4 → AC-26.7 | Kiểm tay: năm bộ lọc kết hợp (1 trên 30), câu "đo ở vị trí tốt nhất", "đang hiện N trên M", và trạng thái rỗng kèm "Xoá bộ lọc" đưa về đủ 30 |
+| AC-26.8 → AC-26.10 | `domain/lineup.test.ts` (năm mã lý do, không mã nào thuật toán không sinh được) + kiểm tay: mỗi ô ghi lý do; đội 3 người ra "còn 8 ô trống vì đội không đủ người"; đội rỗng không ra màn hình trắng; sau khi tự chọn, cả 11 ô vẫn đi tới được bằng bàn phím |
+| AC-27.1 → AC-27.4 | `services/phatLai.test.ts`, hai phép kiểm xương sống T429 và T430, dựng bản ghi từ một trận chạy thật + kiểm tay: 41 dòng tới điểm rẽ giống trận gốc từng chữ, bảng so sánh 12 chỉ tiêu, và "không đổi gì" ra 12/12 "Giống trận gốc" |
+| AC-27.5, AC-27.6 | `services/matchRepo.test.ts` (`lyDoKhongDauLai`) + kiểm tay cả hai ca: hạ phiên bản engine của một bản ghi, và xoá một đội — cả hai ra hai câu từ chối ở hai thứ tiếng, nút đấu lại tắt, 0 nút rẽ nhánh, mà trận vẫn xem lại được |
+| AC-27.7 → AC-27.10 | `services/phatLai.test.ts` (bản ghi gốc không bị sửa sau ba lần rẽ) + kiểm tay: rời màn hình thì bị hỏi trước với focus sẵn ở "Huỷ", đồng ý thì trận gốc còn nguyên; 0 nút rẽ nhánh trong tường thuật của nhánh |
+
+**Hai chỗ căn cứ có giới hạn, ghi ra chứ không làm tròn:**
+
+1. **AC-25.1 chưa có mắt người xem.** Độ mềm của đường cong có số (22 điểm đi
+   qua ~50 trạng thái trung gian mỗi chặng) và có test cho hai đầu mốc, nhưng
+   pane trình duyệt của phiên làm việc không được vẽ nên `requestAnimationFrame`
+   không chạy và không chụp được ảnh. Phải thay rAF bằng `setTimeout` mới đo
+   được. Chi phí vẽ/ghép ảnh thật và cảm giác "mềm" vẫn nên xem một lần trên
+   trình duyệt thường.
+2. **AC-26.10 phần bàn phím mới đi được một nửa.** Nhấc lên và đặt xuống chạy
+   và có thông báo cho trình đọc màn hình; phím mũi tên không đổi được ô đích
+   trong môi trường này, mà toạ độ kéo-thả của `@dnd-kit` lại cập nhật theo
+   `requestAnimationFrame` — nên nghi là cùng một vật cản, chưa kết luận là
+   lỗi. Cần thử lại trên trình duyệt thường.
+
+**Mục 7, hai mục cần nói rõ căn cứ:**
+
+- *"Tệp sao lưu xuất từ bản trước spec này nhập lại được"*: `git diff` của cả
+  spec trên `src/storage/` **rỗng hoàn toàn**, nên định dạng tệp sao lưu không
+  đổi một byte — một tệp xuất từ bản trước spec này **là** một tệp của bản
+  hiện tại. Cộng với `services/backupService.test.ts` đang xanh. Chưa đi tay
+  qua hộp thoại tệp.
+- *"Không vi phạm nguyên tắc nào trong constitution 3.0.1"*: `PHIEN_BAN_ENGINE`
+  vẫn là 5 và `DB_VERSION` vẫn là 3; `git diff` của cả spec trên `src/engine/`
+  chỉ thêm đúng một file test (T420). P8 đi kèm từng commit; P9 có số đo tương
+  phản 0/468 nút văn bản dưới ngưỡng ở cả bốn tổ hợp.
+
+**Spec đóng với 42 task, không phải 40.** T440 và T441 (Phase 36) sinh ra từ
+phép kiểm tay T437: nó tìm thấy một bản ghi của đội hơn 18 người làm trắng cả
+ứng dụng khi mở lại trong lịch sử. Hướng sửa do người dùng chốt ngày
+2026-11-18 — chặn sập và lưu đúng băng ghế đã đăng ký, **không** chạm
+`src/engine/`. Bản ghi đã lưu trước bản sửa ấy không tự lành và nhận câu từ
+chối; lý do nằm ở ghi chú Phase 36.
+
+**Một lỗ cùng gốc còn mở, nằm ngoài spec này:** nút "Đấu lại cùng mã trận" ở
+trang trận vẫn im lặng với đội hơn 18 người, vì nó đi qua `dangKyTuTrangThai`
+của engine chứ không qua bản ghi. Sửa được bằng một dòng trong `src/engine/`
+hoặc bằng việc cho `TrangTran.tsx` vẽ `lyDoKhongBatDau`. Cùng với hai phát
+hiện phụ khác (`<html lang>` cố định, ô lọc tên không bỏ dấu), chúng là việc
+của một spec sau — đã ghi đủ ở `tasks.md`.
