@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | 30 AC (US-28 → US-32), 11 quyết định D89–D100 |
-| **Tiến độ** | 16/20 |
+| **Tiến độ** | 18/20 |
 | **Sửa đổi** | 2026-11-18 — chẻ lần đầu từ plan |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -185,14 +185,14 @@ xem được (hiến pháp P6), và là một commit.
 
 ## Phase 42 — Lát 42: Kiểm tay, đo ngân sách, đóng spec
 
-- [ ] **T516** — Kiểm tay bốn tổ hợp, một lượt giảm chuyển động, và biên mục 5
+- [x] **T516** — Kiểm tay bốn tổ hợp, một lượt giảm chuyển động, và biên mục 5
   - File: — *(kiểm trên bản build)*
   - Xong khi: đi hết màn hình trận ở **bốn tổ hợp** ngôn ngữ × chế độ màu, không sót chữ, không chỗ nào tương phản dưới 4.5:1; một lượt với giảm chuyển động đang bật; và đi hết bảng trường hợp biên mục 5 của spec — phút 0, tạm dừng, hết trận, thẻ đỏ, thay người, sân 5 người, hai bàn liền nhau, bàn ở phút cuối, ẩn sân khi có bàn, bàn trong lúc chạy hết trận.
   - Bằng chứng: **số** cho tương phản và chuỗi; **mắt** cho phần còn lại.
   - AC: AC-31.1, AC-31.2, AC-31.6, AC-32.1 → AC-32.7
   - Phụ thuộc: T502, T505, T509, T511, T512, T514, T515
 
-- [ ] **T517** — Đo hai ngân sách ở **cả bốn** mức tốc độ
+- [x] **T517** — Đo hai ngân sách ở **cả bốn** mức tốc độ
   - File: — *(đo trên bản build)*
   - Xong khi: chạy hết một trận ở chế độ chạy ngay vẫn **< 3 giây** với sân bật; công việc mỗi khung vẽ gọn trong một nhịp ở **cả bốn** mức (Chậm, Thường, Nhanh, Rất nhanh) và không tác vụ nào chiếm luồng chính quá 50ms; so với nền đã đo ở Phase 35 spec 004 (≤0,3ms mỗi khung ở Thường, ≤1,0ms ở Nhanh); ghi số đo và **điều kiện đo** vào mô tả commit.
   - Bằng chứng: **số**.
@@ -532,3 +532,79 @@ dòng** (R38) — `git diff` của file ấy không có một dòng nào thuộc
 - **Không tạo file nào ngoài danh sách trên.** Phát sinh thêm → dừng, cập nhật
   `plan.md` / `tasks.md` trước. Hai file mới duy nhất của spec này là
   `src/ui/daoDong.ts` và `src/ui/daoDong.test.ts`.
+
+## Phase 42 — kiểm tay, đo ngân sách, và hai phép đo tôi phải bỏ đi
+
+**1. Bộ đo tương phản của tôi báo một lỗi không có thật.** Nó nói dấu `▲` (dấu
+"đang tham gia tình huống") chỉ đạt **1,26**, dưới xa ngưỡng 4,5. Lý do: tôi lấy nền
+là **chính cái điểm** vì hai thứ nằm chung một `<g>`, trong khi dấu ấy được vẽ ở
+`y = -4,6`, tức **bên ngoài** bán kính 3,4 — nó nằm trên **mặt cỏ**. Đo lại với
+đúng nền: **5,83**. Cùng một thói xấu đã ghi ở ba ghi chú trước, lần này ở **phép đo**
+chứ không ở tiêu chí: một con số đỏ không phải bằng chứng cho tới khi biết nó đo cái
+gì.
+
+**2. Con số "5,2ms mỗi khung" phải bỏ đi, vì nó là của `setTimeout` chứ không phải
+của ứng dụng.** Bản đầu của T517 đo thời gian tác vụ bằng cách hẹn `setTimeout(…0)`
+ngay sau thân hàm khung hình — mà `setTimeout` lồng nhau bị trình duyệt **kẹp ở
+~4ms**, nên mọi mức tốc độ đều ra 5,2ms giống hệt nhau — chính sự đều đặn ấy là dấu
+hiệu. Đo lại bằng ba con số không dính đồng hồ hẹn giờ: thân hàm khung hình
+(**0,1ms** lớn nhất), nhịp khung thực đạt (**59/giây** trên danh nghĩa 62,5), và
+`PerformanceObserver('longtask')` (**0 tác vụ** quá 50ms).
+
+**3. Hai hàng của bảng biên không ép được trên ứng dụng, nên đo bằng đường khác.**
+Giao diện không cho chọn mã trận, mà thẻ đỏ thì hiếm và bàn ở phút cuối còn hiếm
+hơn. Chạy một **probe** trên 70 trận (10 mã × 7 quân số, không commit):
+- **56 thẻ đỏ**, và **0 điểm ma**: người bị đuổi không còn xuất hiện ở bất kỳ dòng
+  nào sau đó, và số điểm cuối trận đúng bằng `2n − số thẻ đỏ` ở cả 70 trận.
+- **18 bàn thắng ở phút liền ngay sau một bàn khác**, tức trường hợp "hai bàn liền
+  nhau" có thật, khoảng 0,26 lần một trận.
+- **0 bàn ở phút cuối** trong 70 trận — nên hàng ấy của bảng biên được kiểm bằng
+  **đường code**: việc lưu trận nằm ở một effect riêng khoá theo `tran.ketThuc`
+  (`useMatch.ts:289`), không nằm trong hàm hẹn giờ, nên nhịp lặng không thể chặn nó.
+
+**4. Một hệ quả cấu trúc mà lúc viết D100 chưa ai nói ra: hai hiệu ứng bàn thắng
+KHÔNG BAO GIỜ chồng nhau.** Nhịp lặng làm khoảng cách thật giữa hai bàn liền nhau
+luôn `≥ 1500ms + một nhịp` (đo được: 1567–1587ms), trong khi hiệu ứng chỉ dài
+**1500ms**. Nên hàng "hiệu ứng mới thay hiệu ứng đang chạy" đúng bằng hai lớp: một
+ô ref **duy nhất** khoá theo `phút|người ghi`, và một khoảng cách thời gian lớn hơn
+tuổi thọ hiệu ứng.
+
+**5. Một phép đo tôi **không** dám nhận là bằng chứng.** "Biên độ chuyển động chờ co
+theo khung" ở sân 5 người: đo ra 1,91 so với 2,35 (tỉ lệ 0,81) trong khi khung co
+còn 0,70. Nhưng cửa sổ đo 2,2 giây ở mức Chậm dài hơn hai phút trận, nên con số ấy
+lẫn cả **chặng thật** chứ không chỉ có dao động — nó không chứng minh được điều cần
+chứng minh. Thứ đúng là bằng chứng: biên độ **bằng cấu trúc** là `BUOC_GIAN × tiLe / 8`,
+mà `tiLe` chính là tỉ lệ khung (đo được: 70/100), còn câu "5 điểm không trông như
+đang rung" là việc của **mắt người dùng** ở T518.
+
+**Số đo thật của lát 42** (bản build `npm run preview`, cửa sổ xem trong ứng dụng
+Claude **không được hợp thành ảnh**, nên `requestAnimationFrame` được thay bằng
+`setTimeout(16ms)` và **chi phí vẽ của trình duyệt không nằm trong những con số này**):
+
+| Đo | Kết quả |
+|---|---|
+| Tương phản chữ HTML, bốn tổ hợp ngôn ngữ × chế độ màu | nhỏ nhất **6,16** (sáng) và **6,59** (tối), **0** chỗ dưới ngưỡng |
+| Tương phản chữ trong SVG | số áo trên nền áo nhỏ nhất **8,72** (21 điểm); dấu `▲` và chữ "BÀN THẮNG!" trên mặt cỏ **5,83** |
+| Chuỗi thiếu / lọt khoá | **0** chỗ có `undefined`, `NaN`, `[object`, tên khoá chuỗi; nhãn mức tốc độ đủ hai thứ tiếng (Chậm / Slow) |
+| Bàn phím (AC-31.5) | 4 `<input type="radio">` thật trong một `fieldset`, mỗi cái có `<label>`, `tabIndex` đều là 0 |
+| Phút 0, chưa có tình huống nào | **22/22 điểm** đổi toạ độ ở **mọi** khung, bước lớn nhất 0,192 |
+| Tạm dừng | **0 khung** xin trong 1500ms, lệch toạ độ **0,000**, nút đổi thành "Tiếp tục" |
+| Hết trận | **0 khung** trong 1000ms sau tiếng còi, bước lớn nhất 0,01 qua 88 khung, và **bóng vẫn có mặt** (AC-32.7) |
+| Ẩn sân | **0 khung** trong 800ms; cả trận chỉ xin 18 khung |
+| Thay người | người vào hiện **ngay tại chỗ của mình** (lần đầu thấy cách chỗ đứng sau 2,6 giây **1,98** đơn vị, cả quãng chỉ 4,32), người ra biến mất gọn, số điểm vẫn 22 |
+| Đổi tốc độ liên tục (5 lần trong 0,9 giây) | **0 lần đổi chiều** trong 2838 cặp bước; nhịp cuối đúng là nhịp được áp dụng (209–210ms ở mức Thường) |
+| Máy yếu — chỉ 5 khung/giây | **0 lần đổi chiều** trong 5236 cặp bước; ở khung cuối của **cả sáu** nhịp đo được, bước là **0,00** — điểm đã tới mốc trước khi nhịp sau tới |
+| Giảm chuyển động | **0 khung** trong 2500ms; chỉ **3 bộ vị trí** khác nhau qua 153 mẫu (giữ nguyên 63 / 56 / 34 mẫu liền) — đổi theo **nhịp**, không theo khung |
+| Giảm chuyển động + bàn thắng | chữ "BÀN THẮNG!" có (90 mẫu), **không vòng sáng**, bán kính điểm lớn nhất vẫn là bán kính gốc (2,38 ở sân 5), mà đồng hồ **vẫn lặng** 1570–1587ms |
+| Ẩn sân mà có bàn thắng | ba nhịp sau bàn là **1571 / 1577 / 1577ms** so với trung vị **86ms** |
+| "Chạy hết trận", sân ĐANG BẬT (AC-31.3) | **57ms** trên ngân sách 3000ms; **0** mẫu có chữ bàn thắng, bán kính điểm vẫn 3,4 — không hiệu ứng, không nhịp lặng |
+| Công việc mỗi khung (AC-31.4) | Chậm / Thường / Nhanh: **59 khung/giây**, thân hàm **0,1ms** lớn nhất; Rất nhanh: **0 khung** (AC-29.4); **0 tác vụ** quá 50ms ở mọi mức |
+| Nền so sánh Phase 35 (spec 004) | ≤0,3ms mỗi khung ở Thường, ≤1,0ms ở Nhanh — nay **0,1ms** ở cả hai |
+| Đấu lại cùng mã (AC-31.2) | cùng mã `XVQYPWA670`, cùng tỉ số 2–1, **40 dòng tường thuật đầu giống hệt** |
+| Kiệt sức có nhãn chữ (AC-31.6) | dòng tường thuật vẫn có "Kiệt sức — … thể lực gần cạn" |
+| Probe 70 trận (thẻ đỏ, bàn liền phút) | 56 thẻ đỏ → **0 điểm ma**; 18 bàn ở phút liền nhau; 0 bàn ở phút cuối |
+
+**Còn lại của Phase 42:** T518 — **người dùng tự xem một trận ở mức Chậm trên trình
+duyệt của mình và phán**. Không phép kiểm nào thay được, và đó là lý do cả spec này
+tồn tại. T519 (tick 30 AC, đóng spec) phụ thuộc T518.
+
