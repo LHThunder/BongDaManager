@@ -56,6 +56,15 @@ export const MS_MOI_PHUT: Readonly<Record<MucTocDo, number>> = {
   mức mặc định, và để mức mặc định nằm giữa dãy thì người dùng khó đọc ra
   mình đang ở đâu trong thang.
 */
+/**
+ * Một nhịp lặng sau bàn thắng, mực thời gian thật (AC-32.5, T515).
+ *
+ * Đủ để xem hết hiệu ứng trên sân và đọc dòng tường thuật vừa hiện, như khi
+ * truyền hình dừng lại một nhịp ở bàn thắng. Không phụ thuộc mức tốc độ: mắt
+ * người cần một khoảng thời gian thật, không phải một số phút trận.
+ */
+export const MS_LANG_SAU_BAN_THANG = 1500
+
 export const CAC_MUC_TOC_DO: readonly MucTocDo[] = [
   'cham',
   'thuong',
@@ -224,8 +233,32 @@ export function useMatch() {
         datDangChay(false)
         return
       }
-      useAppStore.getState().datTran(buocTiep(hienTai))
-      hanGio = setTimeout(nhip, MS_MOI_PHUT[tocDoRef.current])
+      const moi = buocTiep(hienTai)
+      useAppStore.getState().datTran(moi)
+
+      /*
+        MỘT NHẬP LẮNG SAU BÀN THẮNG (T515, AC-32.5).
+
+        Cách làm: **kéo dài riêng nhịp kế tiếp**, không gọi `tamDung()` rồi
+        `tiepTuc()`. Đường kia sẽ làm nút Tạm dừng / Tiếp tục đổi chữ ngay
+        trước mắt người dùng — đúng điều AC-32.5 cấm. Trạng thái "đang chạy"
+        ở đây không đổi một giây nào, nên AC-32.5 đạt bằng cấu trúc.
+
+        Nhận ra bàn thắng bằng việc **tỉ số đổi**, không bằng cách đi tìm dòng
+        sự kiện: tỉ số chỉ đổi khi có bàn, và nó là hai con số có sẵn ở đây.
+
+        Nhịp lặng xảy ra **kể cả khi đang ẩn sân**: dòng tường thuật và tỉ số
+        cũng cần một nhịp để đọc, và gắn nó vào một công tắc hiển thị là buộc
+        vòng đồng hồ biết một việc nó không nên biết (quyết định D100).
+      */
+      const coBanThang =
+        moi.tiSo.nha !== hienTai.tiSo.nha ||
+        moi.tiSo.khach !== hienTai.tiSo.khach
+
+      hanGio = setTimeout(
+        nhip,
+        MS_MOI_PHUT[tocDoRef.current] + (coBanThang ? MS_LANG_SAU_BAN_THANG : 0),
+      )
     }
 
     hanGio = setTimeout(nhip, MS_MOI_PHUT[tocDoRef.current])

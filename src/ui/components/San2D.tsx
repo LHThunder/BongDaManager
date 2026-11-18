@@ -2,7 +2,7 @@ import { useEffect, useMemo, useReducer, useRef, useState } from 'react'
 import { mauChuTuongPhan } from '../../domain/colors'
 import { laySoDo, soNguoiCuaSoDo } from '../../domain/formations'
 import type { PositionId } from '../../domain/types'
-import type { BenDoi, SuKien } from '../../engine/suKien'
+import type { BenDoi, LoaiSuKien, SuKien } from '../../engine/suKien'
 import type { BenTran } from '../../engine/tran'
 import { latVung, vungCuaViTri, type VungSan } from '../../engine/vung'
 import { useChuoi } from '../../hooks/useNgonNgu'
@@ -42,8 +42,8 @@ import type { BoChuoi } from '../ngonNgu'
   điểm, khoảng giãn và cỡ chữ đều là số pixel như nhau ở mọi định dạng —
   cầu thủ sân 5 không phình to ra chỉ vì sân của họ nhỏ.
 */
-const RONG = 100
-const CAO = 64
+export const RONG = 100
+export const CAO = 64
 
 /** Khung sân vẽ bên trong hệ toạ độ trên. */
 export interface KhungSan {
@@ -326,7 +326,25 @@ export interface HinhSan {
   readonly banKinh: number
   readonly cacDiem: readonly DiemCauThu[]
   readonly duongBong: readonly { readonly x: number; readonly y: number }[]
+  /**
+   * Chỗ của quả bóng mà **dòng này** nói ra, hay `null` khi nó không nói gì (T513).
+   *
+   * `null` **không** có nghĩa là "không có bóng": nó có nghĩa là "dòng này không
+   * kể một pha bóng nào, hãy để bóng ở chỗ nó đang ở" — thay người, kiệt sức,
+   * tiếng còi mãn cuộc đều như vậy (AC-32.3). Trước T513 những dòng ấy làm quả
+   * bóng **biến mất** khỏi sân, và riêng "kiệt sức" là năm dòng một trận.
+   */
+  readonly bongTaiMoc: Diem | null
 }
+
+/**
+ * Những dòng đưa bóng về điểm giao bóng giữa sân (AC-32.2).
+ *
+ * Đúng hai loại, và đó là hai lúc bóng thật sự được đặt lại giữa sân. Tiếng
+ * còi mãn cuộc **không** nằm đây: trận hết thì bóng ở chỗ nó đang ở, đúng
+ * hơn là bị dọn về giữa.
+ */
+const MOC_GIAO_BONG: readonly LoaiSuKien[] = ['bat-dau', 'het-hiep']
 
 /**
  * Toàn bộ hình học của sân — tách khỏi phần vẽ để kiểm được bằng test.
@@ -429,7 +447,25 @@ export function hinhSan({
     toaDo(vungTrenSan(v, suKien?.doi ?? 'nha'), 0, khung),
   )
 
-  return { khung, banKinh: BAN_KINH * tiLe, cacDiem, duongBong }
+  const cuoiDuongBong = duongBong[duongBong.length - 1]
+  /*
+    Điểm giao bóng là giữa khung ảnh, không phải giữa khung sân — hai thứ này
+    bằng nhau vì `hinhSan` luôn đặt sân giữa ảnh, và viết theo khung ảnh thì
+    không phải đi qua lề hai bên.
+  */
+  const bongTaiMoc: Diem | null =
+    cuoiDuongBong ??
+    (suKien && MOC_GIAO_BONG.includes(suKien.loai)
+      ? { x: RONG / 2, y: CAO / 2 }
+      : null)
+
+  return {
+    khung,
+    banKinh: BAN_KINH * tiLe,
+    cacDiem,
+    duongBong,
+    bongTaiMoc,
+  }
 }
 
 /**
@@ -465,6 +501,38 @@ const BUOC_DO_VAN_TOC = 0.01
  * chuyền. Trước T505 bóng được vẽ thắng tại toạ độ mốc, tức **nhảy tức thời**.
  */
 const BONG_NHANH_GAP = 3
+
+/** Hiệu ứng bàn thắng chạy bao lâu, mực thời gian thật (AC-32.4). */
+const THOI_GIAN_HIEU_UNG_BAN_THANG = 1500
+
+/** Vòng sáng nở tối đa gấp mấy lần bán kính một điểm. */
+const VONG_SANG_NO_GAP = 7
+
+/**
+ * Điểm người ghi bàn được phì thêm tối đa bao nhiêu (AC-32.4, rủi ro R45).
+ *
+ * **Con số này là số học, không phải thẩm mỹ**, và nó đã sai hai lần trước khi
+ * đúng — cả hai lần đều vì suy từ cấu trúc mà không đo.
+ *
+ * Ngưỡng thật là **khoảng cách gần nhất giữa hai điểm bất kỳ trên sân**, không
+ * phải khoảng giãn giữa hai người cùng một vùng: cặp chật nhất lại là một cặp
+ * **khác vùng**, nơi hai đội chỉ lệch nhau `LECH_DOI` = 4. Đo trên 5905 khung
+ * (10 mã trận × 7 quân số × mọi dòng tường thuật): sàn là **đúng 4,0 đơn vị**,
+ * tức 1,176 bán kính — và đo riêng 330 bàn thắng thì chính người ghi bàn là một
+ * nửa của cặp chật nhất ấy, nên biên này thật sự bị ràng.
+ *
+ * Chỗ trống tối đa vì thế là `BUOC_GIAN / 2 - BAN_KINH` = 0,6, và biên này chỉ lấy
+ * **ba phần tư** chỗ trống đó. Hai lý do: đứng đúng sàn thì viền điểm người ghi
+ * bàn chạm **đúng** tâm điểm gần nhất, không còn một pixel nào dữ; và hai lớp
+ * đứng sau `hinhSan` — dao động (Phase 39) và nghiêng khối (Phase 40) — còn
+ * dịch tâm điểm lúc vẽ, mà phép kiểm ở `san2D.test.ts` chỉ thấy toạ độ của
+ * `hinhSan`.
+ *
+ * Hai bản sai trước đó: `min(BAN_KINH, BUOC_GIAN/2)` = 3,4 (gần sáu lần mức cho
+ * phép), rồi `BUOC_GIAN - 2 * BAN_KINH` = 1,2 (gần gấp đôi) — bản sau suy từ khoảng
+ * trống giữa hai người **cùng vùng** mà bỏ quên cặp khác vùng chật hơn.
+ */
+export const PHI_THEM_NGUOI_GHI_BAN = ((BUOC_GIAN / 2 - BAN_KINH) * 3) / 4
 
 /**
  * Điểm trên đường THẮNG từ `tu` tới `den`.
@@ -518,10 +586,9 @@ interface ChuyenDiemDang {
 
 export function San2D(props: Props) {
   const { SAN_2D } = useChuoi()
-  const { nha, khach, msMoiPhut, phutDongHo, dangChay } = props
+  const { nha, khach, suKien, msMoiPhut, phutDongHo, dangChay } = props
   const msChuyen = thoiGianChuyen(msMoiPhut)
-  const { khung, banKinh, cacDiem, duongBong } = hinhSan(props)
-  const bong = duongBong[duongBong.length - 1]
+  const { khung, banKinh, cacDiem, duongBong, bongTaiMoc } = hinhSan(props)
   const tiLe = tiLeKhung(khung)
 
   const leX = (RONG - khung.rong) / 2
@@ -567,6 +634,22 @@ export function San2D(props: Props) {
   const bongDang = useRef<{ readonly tu: Diem; readonly den: Diem } | null>(
     null,
   )
+  /**
+   * Chỗ bóng được thấy lần cuối (T513).
+   *
+   * Đọc ref này ngay trong lúc vẽ là cố ý: chỉ cần giá trị của lần vẽ trước,
+   * và nhờ vậy "giữ chỗ cũ" không cần thêm một vòng vẽ nào.
+   */
+  const bongMocCuoi = useRef<Diem | null>(null)
+
+  /*
+    Chỗ của bóng ở **mọi** dòng (AC-32.1): dòng này nói gì thì theo, không nói
+    gì thì giữ chỗ cũ, và chưa bao giờ thấy bóng thì đặt giữa sân — đúng chỗ
+    một quả bóng nằm trước giờ bóng lăn. **Không bao giờ `null`**, nên không có
+    dòng nào làm bóng biến mất nữa.
+  */
+  const bong: Diem =
+    bongTaiMoc ?? bongMocCuoi.current ?? { x: RONG / 2, y: CAO / 2 }
   const batDau = useRef(0)
   const [, veLai] = useReducer((n: number) => n + 1, 0)
 
@@ -582,7 +665,7 @@ export function San2D(props: Props) {
   */
   const khoaMoc =
     cacDiem.map((d) => `${d.playerId}:${d.x},${d.y}`).join('|') +
-    `|bong:${bong ? `${bong.x},${bong.y}` : '-'}`
+    `|bong:${bong.x},${bong.y}`
 
   useEffect(() => {
     const bayGio = performance.now()
@@ -623,17 +706,16 @@ export function San2D(props: Props) {
       Chỉ khác ở **thời lượng** — bóng xong trong một phần ba — và ở **hình
       đường đi**: thẳng, không cong.
     */
-    if (!bong) {
-      bongDang.current = null
-    } else {
-      const cu = bongDang.current
-      const msBong = msChuyen / BONG_NHANH_GAP
-      const troiBong = msBong <= 0 ? 1 : (bayGio - batDau.current) / msBong
-      bongDang.current = {
-        tu: cu ? diemThang(cu.tu, cu.den, troiBong) : { x: bong.x, y: bong.y },
-        den: { x: bong.x, y: bong.y },
-      }
+    const cuBong = bongDang.current
+    const msBong = msChuyen / BONG_NHANH_GAP
+    const troiBong = msBong <= 0 ? 1 : (bayGio - batDau.current) / msBong
+    bongDang.current = {
+      tu: cuBong
+        ? diemThang(cuBong.tu, cuBong.den, troiBong)
+        : { x: bong.x, y: bong.y },
+      den: { x: bong.x, y: bong.y },
     }
+    bongMocCuoi.current = { x: bong.x, y: bong.y }
 
     dang.current = moi
     batDau.current = bayGio
@@ -691,7 +773,6 @@ export function San2D(props: Props) {
    * Giảm chuyển động thì về đúng toạ độ mốc, như mọi thứ khác trên sân này.
    */
   function viTriBongVe(): Diem {
-    if (!bong) return { x: 0, y: 0 }
     if (giamChuyenDong) return { x: bong.x, y: bong.y }
     const tt = bongDang.current
     if (!tt) return { x: bong.x, y: bong.y }
@@ -700,6 +781,57 @@ export function San2D(props: Props) {
       msBong <= 0 ? 1 : (performance.now() - batDau.current) / msBong
     return diemThang(tt.tu, tt.den, troiBong)
   }
+
+  /*
+    Hiệu ứng bàn thắng (T514, AC-32.4).
+
+    Nhận ra từ loại của dòng đang hiện, và **mỗi bàn một lần**: khoá gồm cả
+    phút và người ghi, nên hai bàn liền nhau thì hiệu ứng thứ hai **thay** hiệu
+    ứng đang chạy chứ không xếp hàng (trường hợp biên ở mục 5 của spec).
+  */
+  const khoaBanThang =
+    suKien && suKien.loai === 'ban-thang'
+      ? `${suKien.phut}|${suKien.cacCauThu[0] ?? ''}`
+      : null
+
+  /*
+    Hiệu ứng sống theo ĐỒNG HỒ CỦA NÓ, không theo dòng đang hiển thị.
+
+    Bản đầu của T514 gắn đời sống hiệu ứng vào `suKien.loai === 'ban-thang'`, và
+    nó **không hiện lên được**: một dòng chỉ được hiển thị trong một nhịp — 70ms
+    ở mức Nhanh — rồi dòng sau đẩy nó đi, trong khi hiệu ứng phải chạy 1,5 giây.
+    Đo trên một trận có bàn thắng: 0 trong 383 mẫu thấy nó.
+
+    Nay chỗ ghi bàn, người ghi và mốc thời gian được **chụp lại** vào một ref
+    ngay lúc dòng bàn thắng xuất hiện, nên hiệu ứng chạy đủ 1,5 giây dù dòng
+    tường thuật đã sang chuyện khác.
+  */
+  const anMung = useRef<{
+    readonly batDau: number
+    readonly nguoi: string | null
+    readonly diem: Diem
+  } | null>(null)
+  const khoaAnMungCu = useRef<string | null>(null)
+  if (khoaBanThang !== null && khoaBanThang !== khoaAnMungCu.current) {
+    khoaAnMungCu.current = khoaBanThang
+    anMung.current = {
+      batDau: performance.now(),
+      nguoi: suKien?.cacCauThu[0] ?? null,
+      diem: { x: bong.x, y: bong.y },
+    }
+  }
+
+  const tienHieuUng = anMung.current
+    ? Math.min(
+        1,
+        (performance.now() - anMung.current.batDau) /
+          THOI_GIAN_HIEU_UNG_BAN_THANG,
+      )
+    : 1
+  /** Có đang trong 1,5 giây của một bàn thắng hay không. */
+  const dangAnMung = tienHieuUng < 1
+  const nguoiGhiBan = dangAnMung ? (anMung.current?.nguoi ?? null) : null
+  const diemAnMung = anMung.current?.diem ?? bong
 
   /*
     "Thời điểm trận" liên tục, tính bằng phút: phút đồng hồ cộng phần đã trôi
@@ -801,7 +933,7 @@ export function San2D(props: Props) {
             aria-hidden="true"
           />
         )}
-        {bong && (
+        {(
           <circle
             cx={viTriBongVe().x}
             cy={viTriBongVe().y}
@@ -811,6 +943,46 @@ export function San2D(props: Props) {
             strokeWidth={0.3 * tiLe}
             aria-hidden="true"
           />
+        )}
+
+        {/*
+          Vòng sáng lan ra từ chỗ ghi bàn (AC-32.4). Giảm chuyển động thì
+          không vẽ — chỉ còn chữ, đúng AC-32.6.
+        */}
+        {dangAnMung && !giamChuyenDong && (
+          <circle
+            cx={diemAnMung.x}
+            cy={diemAnMung.y}
+            r={banKinh * (1 + VONG_SANG_NO_GAP * tienHieuUng)}
+            fill="none"
+            stroke="var(--co-vang)"
+            strokeWidth={1.2 * tiLe * (1 - tienHieuUng)}
+            opacity={1 - tienHieuUng}
+            aria-hidden="true"
+          />
+        )}
+
+        {/*
+          KÊNH CHỮ của hiệu ứng (AC-32.4, AC-32.6, hiến pháp P9).
+
+          Nó **không** tắt khi giảm chuyển động: một dòng chữ đứng yên không
+          phải là chuyển động, và nó là thứ duy nhất còn lại ở chế độ ấy — nên
+          thông tin "vừa có bàn thắng" không đi qua một kênh duy nhất là hình.
+        */}
+        {dangAnMung && (
+          <text
+            x={giuaX}
+            y={leY + khung.cao * 0.3}
+            textAnchor="middle"
+            fontSize={7 * tiLe}
+            fontWeight={800}
+            fill="var(--co-vang)"
+            stroke="var(--co-net)"
+            strokeWidth={0.4 * tiLe}
+            opacity={giamChuyenDong ? 1 : 1 - tienHieuUng * 0.3}
+          >
+            {SAN_2D.hieuUngBanThang}
+          </text>
         )}
 
         {cacDiem.map((d) => {
@@ -828,7 +1000,16 @@ export function San2D(props: Props) {
           >
             <title>{d.moTa}</title>
             <circle
-              r={banKinh}
+              r={
+                /*
+                  Điểm người ghi bàn phóng to (AC-32.4), nhưng chặn ở đúng khoảng
+                  trống giữa hai viền — xem `PHI_THEM_NGUOI_GHI_BAN`.
+                */
+                d.playerId === nguoiGhiBan && dangAnMung && !giamChuyenDong
+                  ? banKinh +
+                    PHI_THEM_NGUOI_GHI_BAN * tiLe * (1 - tienHieuUng)
+                  : banKinh
+              }
               fill={d.mauNen}
               stroke={d.noiBat ? 'var(--co-vang)' : 'var(--co-net-mo)'}
               strokeWidth={(d.noiBat ? 1.4 : 0.5) * tiLe}

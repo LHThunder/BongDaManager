@@ -918,6 +918,7 @@ export const SAN_2D_EN: BanDich<typeof SAN_2D_VI> = {
   tieuDe: 'The pitch',
   an: 'Hide the pitch',
   hien: 'Show the pitch',
+  hieuUngBanThang: 'GOAL!',
   moTaSan: (nha: string, khach: string) =>
     `2D pitch: ${nha} are playing left to right, ${khach} right to left.`,
   moTaDiem: (

@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | 30 AC (US-28 → US-32), 11 quyết định D89–D100 |
-| **Tiến độ** | 10/20 |
+| **Tiến độ** | 13/20 |
 | **Sửa đổi** | 2026-11-18 — chẻ lần đầu từ plan |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -158,7 +158,7 @@ xem được (hiến pháp P6), và là một commit.
 > Lát này **độc lập với lát 38–40**: nó chỉ cần lát 37 để có nhịp chậm mà xem
 > hiệu ứng. Muốn thấy thêm một thứ rõ rệt ngay sau lát đầu thì làm 37 → 41.
 
-- [ ] **T513** [P] — Quả bóng luôn có mặt, và đứng đúng chỗ theo loại dòng
+- [x] **T513** [P] — Quả bóng luôn có mặt, và đứng đúng chỗ theo loại dòng
   - File: sửa `src/ui/components/San2D.tsx`, sửa `src/ui/san2D.test.ts`
   - Xong khi: bóng được vẽ ở **mọi** dòng tường thuật; dòng khai cuộc và hết hiệp → bóng ở **điểm giao bóng giữa sân**; dòng không mang đường bóng và cũng không phải hai loại ấy (`thay-nguoi`, `kiet-suc`) → bóng **giữ chỗ cuối cùng**; trận đang tạm dừng hay đã kết thúc vẫn có bóng; phép kiểm `hinhSan` cho cả ba loại dòng.
   - Bằng chứng: **số**.
@@ -166,14 +166,14 @@ xem được (hiến pháp P6), và là một commit.
   - Phụ thuộc: T500
   - ⚠️ Gốc của việc này: bóng **đã** được vẽ từ spec 001 nhưng chỉ khi dòng đang hiện mang đường bóng, mà `thay-nguoi`, `kiet-suc`, khai cuộc và hết hiệp đều truyền đường bóng rỗng — riêng "kiệt sức" là 5 dòng một trận.
 
-- [ ] **T514** — Hiệu ứng bàn thắng ba phần, và chuỗi hai ngôn ngữ
+- [x] **T514** — Hiệu ứng bàn thắng ba phần, và chuỗi hai ngôn ngữ
   - File: sửa `src/ui/components/San2D.tsx`, sửa `src/ui/ngonNgu/vi.ts`, sửa `src/ui/ngonNgu/en.ts`
-  - Xong khi: dòng `'ban-thang'` đang hiện thì sân vẽ **ba phần cùng lúc** — vòng tròn bán kính lớn dần từ chỗ ghi bàn, điểm người ghi bàn tăng bán kính, và dòng chữ "BÀN THẮNG!" / "GOAL!" trên mặt sân; bán kính phóng to bị chặn **dưới khoảng giãn** giữa hai người cùng vùng (R45); giảm chuyển động → **chỉ còn chữ**; phép kiểm "điểm không chồng khít" chạy cả ở trạng thái đang có hiệu ứng.
+  - Xong khi: dòng `'ban-thang'` đang hiện thì sân vẽ **ba phần cùng lúc** — vòng tròn bán kính lớn dần từ chỗ ghi bàn, điểm người ghi bàn tăng bán kính, và dòng chữ "BÀN THẮNG!" / "GOAL!" trên mặt sân; bán kính phóng to bị chặn **dưới khoảng cách gần nhất giữa hai điểm đo được trên sân** — không phải dưới khoảng giãn của hai người cùng vùng, vì cặp chật nhất là cặp khác vùng (R45); giảm chuyển động → **chỉ còn chữ**; phép kiểm "điểm không chồng khít" chạy cả ở trạng thái đang có hiệu ứng.
   - Bằng chứng: **số** cho biên và cho việc chỉ-còn-chữ; **mắt** cho cảm giác.
   - AC: AC-32.4, AC-32.6
   - Phụ thuộc: T513
 
-- [ ] **T515** [P] — Nhịp lặng 1,5 giây sau bàn thắng (D100)
+- [x] **T515** [P] — Nhịp lặng 1,5 giây sau bàn thắng (D100)
   - File: sửa `src/hooks/useMatch.ts`
   - Xong khi: phút vừa mô phỏng có sự kiện `'ban-thang'` thì hẹn giờ cho phút kế tiếp dài thêm ~1500ms; **`dangChay` không đổi** nên nút Tạm dừng / Tiếp tục không nhấp nháy chữ (AC-32.5); bàn thắng ở phút cuối **không** chặn việc trận kết thúc và việc lưu vào lịch sử; chế độ "chạy hết trận" không bị ảnh hưởng (nó không đi qua vòng đồng hồ); nhịp lặng xảy ra **cả khi đang ẩn sân**.
   - Bằng chứng: **số**.
@@ -367,6 +367,58 @@ mẫu **ngay sau mỗi khung vẽ**):
 - Tỉ lệ bước-đầu trên bước-giữa **không dùng được** làm bằng chứng: nhịp khung
   do `setTimeout` sinh ra dao động mạnh nên bước mỗi khung dao động theo.
 - Không lỗi console.
+
+## Phase 41 — hai lần sai biên, và một hiệu ứng không bao giờ hiện
+
+**1. Hiệu ứng bàn thắng chạy 0 trên 383 mẫu, trong một trận 1–0.** Bản đầu của
+T514 gắn **tuổi thọ** hiệu ứng vào `suKien.loai === 'ban-thang'`, tức vào dòng
+tường thuật đang hiện. Nhưng một dòng chỉ ở trên màn hình đúng **một nhịp** — 70ms
+ở mức Nhanh — còn hiệu ứng phải dài 1500ms, nên nó bị cắt trước khi kịp vẽ một
+khung. Sửa bằng một **ảnh chụp** vào ref (chỗ ghi bàn, người ghi, mốc thời gian) có
+**đồng hồ riêng**: dòng sự kiện chỉ còn là thứ **kích hoạt**, không phải thứ **duy
+trì**. Đo lại: 91 mẫu có vòng sáng và chữ, mỗi hiệu ứng 1468 và 1465ms.
+
+**2. Biên phóng to điểm người ghi bàn sai HAI lần, cả hai vì suy từ cấu trúc mà
+không đo.** Đây là rủi ro R45 thành thật, và nó thành thật hai lần:
+- Bản đầu `min(BAN_KINH, BUOC_GIAN / 2)` = **3,4** — gần sáu lần mức cho phép.
+- Bản hai `BUOC_GIAN - 2 * BAN_KINH` = **1,2**, suy từ khoảng trống giữa hai người
+  **cùng một vùng**. Vẫn gần gấp đôi, vì cặp chật nhất trên sân không phải cặp
+  cùng vùng mà là một cặp **khác vùng**, nơi hai đội chỉ lệch nhau `LECH_DOI` = 4.
+
+Sàn thật chỉ biết được bằng cách **đo**: 10 mã trận × 7 quân số × mọi dòng tường
+thuật = **5905 khung**, khoảng cách gần nhất giữa hai điểm là **đúng 4,0 đơn vị**
+(`BUOC_GIAN / 2`), tức **1,176 bán kính**. Và đo riêng **330 bàn thắng** thì chính
+người ghi bàn là một nửa của cặp chật nhất ấy — biên này thật sự bị ràng, không
+phải lo xa. Chốt `(BUOC_GIAN / 2 - BAN_KINH) * 3 / 4` = **0,45**, chỉ lấy ba phần tư
+chỗ trống để còn chứa hai lớp dịch tâm điểm đứng sau `hinhSan`.
+
+**3. Phép kiểm "điểm không chồng khít" của spec 002 KHÔNG bắt được R45, và đó
+không phải lỗi của nó.** Hiệu ứng không dịch tâm điểm nào, nên phép kiểm đo
+khoảng cách tâm vẫn xanh y nguyên dù điểm có phì gấp đôi. T514 vì thế thêm một
+describe mới đo **cùng một ngưỡng** nhưng bằng **bán kính đã phóng to**, trên mọi
+bàn thắng của 70 trận — chạy cả ở trạng thái đang có hiệu ứng, đúng tiêu chí T514.
+
+**Số đo thật của lát 41** (bản build, mức Nhanh, rAF thay bằng `setTimeout`):
+- Quả bóng có mặt ở **383/383 mẫu** của một trận trọn vẹn, kể cả những dòng
+  `thay-nguoi` và `kiet-suc` trước đây làm nó biến mất (AC-32.1 → AC-32.3).
+- Hiệu ứng bàn thắng: **1468ms** và **1465ms** cho hai bàn liền nhau; bán kính vòng
+  sáng lớn nhất **26,97** so với **8** lúc không có hiệu ứng.
+- Điểm người ghi bàn: bán kính **3,4 → 3,85** đúng như biên đã chốt.
+- Nhịp lặng: bốn khoảng nhịp dài nhất **1597 / 1591 / 1590 / 1567ms** đúng ở bốn phút
+  có bàn thắng, so với trung vị **94ms**; nút Tạm dừng **không đổi chữ** một lần
+  nào (AC-32.5).
+- Không lỗi console.
+
+**4. Một việc lộ ra nằm NGOÀI lát này, không sửa ở đây — thuộc AC-30.5 / T510.**
+Đo trên mức vẽ thật (sau cả nội suy lẫn dao động), một trận 90 phút ở mức Nhanh:
+**250 trên 692 khung (36,1%)** có hai điểm cách nhau **dưới một bán kính**, chỗ chật
+nhất chỉ **0,034 bán kính** — tức hai điểm gần như trùng. Nguyên nhân **không phải**
+hiệu ứng bàn thắng: `hinhSan` chỉ bảo đảm giãn **TẠI mốc**, còn nội suy cho hai
+điểm đi **băng qua nhau** giữa hai mốc, và dao động khép thêm tới hai đơn vị mỗi
+trục. Hai lớp ấy thuộc Phase 38 và 39 đã commit, còn AC-30.5 được bảng phủ AC giao
+cho **T510**, nên việc này đợi Phase 40 — không tự mở rộng phạm vi ở lát 41. Hai
+phép kiểm thuần hiện có không thể thấy điều này: `san2D.test.ts` chỉ đọc toạ độ
+của `hinhSan`, còn `daoDong.test.ts` chỉ đo cặp **cùng vùng** và **cùng hàng**.
 
 - **Phạm vi thật của "thêm một mức tốc độ" rộng hơn danh sách file trông thấy.**
   Đã grep: `MucTocDo` xuất hiện ở `useMatch.ts` (4 chỗ) và

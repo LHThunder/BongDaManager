@@ -15,9 +15,12 @@ import {
 import type { SuKien } from '../engine/suKien'
 import { MS_MOI_PHUT } from '../hooks/useMatch'
 import {
+  CAO,
   hinhSan,
   khungSan,
   KHUNG_SAN,
+  PHI_THEM_NGUOI_GHI_BAN,
+  RONG,
   thoiGianChuyen,
   type DiemCauThu,
 } from './components/San2D'
@@ -271,5 +274,110 @@ describe('nhịp di chuyển của điểm trên sân', () => {
       expect(t, `${ms}ms`).toBeGreaterThanOrEqual(0)
       expect(Number.isInteger(t), `${ms}ms -> ${t}`).toBe(true)
     }
+  })
+})
+
+describe('quả bóng luôn có mặt (AC-32.1 → AC-32.3, T513)', () => {
+  const tt = tranMau(11)
+  const cacSuKien = dongSuKien(chayHetTran(tt))
+
+  function suKienLoai(loai: SuKien['loai']): SuKien | undefined {
+    return cacSuKien.find((sk) => sk.loai === loai)
+  }
+
+  it('dòng có đường bóng: bóng ở cuối đường đó', () => {
+    const sk = cacSuKien.find((x) => x.duongBong.length > 0)
+    expect(sk, 'trận nào cũng phải có một pha bóng').toBeDefined()
+    const h = veTu(tt, sk as SuKien)
+    const cuoi = h.duongBong[h.duongBong.length - 1]
+    expect(h.bongTaiMoc).toEqual(cuoi)
+  })
+
+  it('khai cuộc và hết hiệp: bóng ở điểm giao bóng giữa sân (AC-32.2)', () => {
+    for (const loai of ['bat-dau', 'het-hiep'] as const) {
+      const sk = suKienLoai(loai)
+      if (!sk) continue
+      const h = veTu(tt, { ...sk, duongBong: [], vung: null })
+      expect(h.bongTaiMoc, loai).toEqual({ x: RONG / 2, y: CAO / 2 })
+    }
+  })
+
+  it('thay người và kiệt sức: KHÔNG nói gì về bóng, để nó giữ chỗ cũ (AC-32.3)', () => {
+    /*
+      Đây là gốc của cả T513: trước đó những dòng này làm quả bóng **biến
+      mất** khỏi sân, và riêng "kiệt sức" là năm dòng một trận. `null` ở đây là
+      một câu trả lời có nghĩa — "giữ chỗ cũ" — chứ không phải một giá trị
+      thiếu.
+    */
+    const mau = suKienLoai('bat-dau') as SuKien
+    for (const loai of ['thay-nguoi', 'kiet-suc'] as const) {
+      const h = veTu(tt, { ...mau, loai, duongBong: [], vung: null })
+      expect(h.bongTaiMoc, loai).toBeNull()
+    }
+  })
+
+  it('trước giờ bóng lăn, chưa có dòng nào: cũng không nói gì', () => {
+    expect(veTu(tt, null).bongTaiMoc).toBeNull()
+  })
+})
+
+describe('điểm người ghi bàn phóng to vẫn đếm được (AC-32.4, R45, T514)', () => {
+  /*
+    Đây là phép kiểm "điểm không chồng khít" của AC-15.2 chạy LẠI ở trạng
+    thái đang có hiệu ứng — cùng một ngưỡng ("tâm người kia không được nằm
+    trong lòng điểm này"), nhưng đo bằng bán kính ĐÃ PHÓNG TO.
+
+    Phép kiểm cũ của spec 002 không bắt được R45: hiệu ứng không dịch tâm
+    điểm nào, nên nó vẫn xanh y nguyên dù điểm người ghi bàn có phì to gấp đôi.
+    Và cả hai lần tôi chọn biên này bằng cách suy từ cấu trúc đều sai, nên
+    ngưỡng ở đây đo trên **mọi bàn thắng của 10 mã trận × 7 quân số** chứ
+    không tin một lập luận nào.
+  */
+  it('bán kính đã phóng to vẫn không trùm tâm ai, ở mọi bàn thắng', () => {
+    let soBan = 0
+    let chatNhat = Infinity
+    for (const ma of MA_TRAN_CO_DINH) {
+      for (const n of QUAN_SO_CHAY_DUOC) {
+        const tt = chayHetTran(tranMau(n, ma))
+        for (const sk of dongSuKien(tt)) {
+          if (sk.loai !== 'ban-thang') continue
+          const ghi = sk.cacCauThu[0]
+          if (ghi == null) continue
+          const { cacDiem, khung, banKinh } = veTu(tt, sk)
+          const nguoi = cacDiem.find((d) => d.playerId === ghi)
+          if (nguoi == null) continue
+          soBan += 1
+
+          const tiLe = khung.rong / RONG
+          const phongTo = banKinh + PHI_THEM_NGUOI_GHI_BAN * tiLe
+          for (const d of cacDiem) {
+            if (d.playerId === ghi) continue
+            const khoang = Math.hypot(d.x - nguoi.x, d.y - nguoi.y)
+            chatNhat = Math.min(chatNhat, khoang / banKinh)
+            expect(
+              khoang,
+              `${ma} quân số ${n} phút ${sk.phut}: ${ghi} ↔ ${d.playerId} cách ${khoang.toFixed(2)}, bán kính phóng to ${phongTo.toFixed(2)}`,
+            ).toBeGreaterThanOrEqual(phongTo)
+          }
+        }
+      }
+    }
+    // Lưỡng mẫu phải đủ dày để câu "ở mọi bàn thắng" có nghĩa.
+    expect(soBan, 'số bàn thắng đã đo').toBeGreaterThan(100)
+    // Sàn đo được là đúng `BUOC_GIAN / 2` = 4 đơn vị, tức 1,176 bán kính.
+    expect(chatNhat).toBeCloseTo(4 / 3.4, 3)
+  })
+
+  it('biên phì thêm không được lớn hơn chỗ trống mà sàn đo được cho phép', () => {
+    /*
+      Phát biểu lại cùng một điều bằng số học thuần, để ai định nới hằng số
+      ấy lên thì đỏ ngay ở đây, không phải đợi vòng 70 trận ở trên.
+    */
+    const { banKinh, khung } = veTu(tranMau(11))
+    const tiLe = khung.rong / RONG
+expect(banKinh + PHI_THEM_NGUOI_GHI_BAN * tiLe).toBeLessThan(
+      (4 / 3.4) * banKinh,
+    )
+    expect(PHI_THEM_NGUOI_GHI_BAN).toBeGreaterThan(0)
   })
 })

@@ -1108,6 +1108,7 @@ export const SAN_2D_VI = {
   tieuDe: 'Sân đấu',
   an: 'Ẩn sân',
   hien: 'Hiện sân',
+  hieuUngBanThang: 'BÀN THẮNG!',
   moTaSan: (nha: string, khach: string) =>
     `Sân 2D: ${nha} đá từ trái sang phải, ${khach} đá từ phải sang trái.`,
   /** Nhãn cho từng điểm tròn, để trình đọc màn hình đọc được (P9). */
