@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **ID** | `005-lifelike-pitch-motion` |
-| **Status** | Clarified (2026-11-18) |
+| **Status** | Planned (2026-11-18) |
 | **Created** | 2026-11-18 |
 | **Branch** | `005-lifelike-pitch-motion` |
 
