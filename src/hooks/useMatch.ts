@@ -29,16 +29,35 @@ import { useAppStore } from '../store/appStore'
   nhanh hay chậm — không đụng một dòng nào của engine.
 */
 
-export type MucTocDo = 'thuong' | 'nhanh' | 'rat-nhanh'
+export type MucTocDo = 'cham' | 'thuong' | 'nhanh' | 'rat-nhanh'
 
-/** Mili-giây thực tế cho mỗi phút trận. Mức thường lấy từ spec mục 6. */
+/**
+ * Mili-giây thực tế cho mỗi phút trận.
+ *
+ * `cham` là mức của spec 005 (T500): một phút trận dài **1000ms**, nên trận 90
+ * phút xem hết trong khoảng một phút rưỡi. Nhịp này mới đủ dài để mắt theo
+ * được một cầu thủ chạy từ chỗ cũ tới chỗ mới: ở 200ms, cả quãng đường có thể
+ * bằng một phần ba sân phải gói trong 180ms, nên mọi cú di chuyển đều thành cú
+ * rướn.
+ *
+ * `rat-nhanh` giữ nguyên 20ms, nhưng ở nhịp ấy `thoiGianChuyen` trả 0 — thôi
+ * nội suy hoàn toàn (AC-29.4): 18ms không đủ cho mắt đọc một chuyển động nào, nên
+ * vẽ đường đi chỉ sinh ra cú giật.
+ */
 export const MS_MOI_PHUT: Readonly<Record<MucTocDo, number>> = {
+  cham: 1000,
   thuong: 200,
   nhanh: 70,
   'rat-nhanh': 20,
 }
 
+/*
+  Thứ tự này là thứ tự các nút hiện trên màn hình, nên `cham` đứng đầu: nó là
+  mức mặc định, và để mức mặc định nằm giữa dãy thì người dùng khó đọc ra
+  mình đang ở đâu trong thang.
+*/
 export const CAC_MUC_TOC_DO: readonly MucTocDo[] = [
+  'cham',
   'thuong',
   'nhanh',
   'rat-nhanh',
@@ -130,7 +149,14 @@ export function useMatch() {
   const tran = useAppStore((s) => s.tran)
   const dangChay = useAppStore((s) => s.tranDangChay)
   const datDangChay = useAppStore((s) => s.datTranDangChay)
-  const [tocDo, datTocDo] = useState<MucTocDo>('thuong')
+  /*
+    Mặc định là `cham`, không `thuong` (AC-29.5, T500). Mở một trận ra là thấy
+    ngay nhịp giống một trận đấu; ai chỉ cần tỉ số thì đã có "Chạy hết trận".
+    Mức này KHÔNG được lưu xuống đĩa, nên mỗi trận lại bắt đầu từ đây — đúng
+    như AC-29.5 viết, và là một trong những phát hiện MEDIUM còn mở của
+    `/analyze` nếu sau này muốn nhớ lựa chọn.
+  */
+  const [tocDo, datTocDo] = useState<MucTocDo>('cham')
   const [lyDoKhongBatDau, datLyDoKhongBatDau] = useState<
     readonly LyDoKhongBatDau[]
   >([])

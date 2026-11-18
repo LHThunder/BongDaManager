@@ -793,6 +793,7 @@ export const TRAN_DAU_EN: BanDich<typeof TRAN_DAU_VI> = {
   chayHet: 'Play the match out',
   nhanTocDo: 'Speed',
   tocDo: {
+    cham: 'Slow',
     thuong: 'Normal',
     nhanh: 'Fast',
     ratNhanh: 'Very fast',

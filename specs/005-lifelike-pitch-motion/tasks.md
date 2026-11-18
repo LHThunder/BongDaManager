@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | 30 AC (US-28 → US-32), 11 quyết định D89–D100 |
-| **Tiến độ** | 0/20 |
+| **Tiến độ** | 3/20 |
 | **Sửa đổi** | 2026-11-18 — chẻ lần đầu từ plan |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -41,7 +41,7 @@ xem được (hiến pháp P6), và là một commit.
 > Lát này một mình đã giải quyết phần lớn điều người dùng phàn nàn ("rất nhanh,
 > không tự nhiên"), nên nó nằm đầu có chủ đích: làm tới đây rồi dừng vẫn đáng.
 
-- [ ] **T500** — Mức tốc độ Chậm 1000ms, và nó là mặc định
+- [x] **T500** — Mức tốc độ Chậm 1000ms, và nó là mặc định
   - File: sửa `src/hooks/useMatch.ts`, sửa `src/ui/components/BangDieuKhienTran.tsx`, sửa `src/ui/ngonNgu/vi.ts`, sửa `src/ui/ngonNgu/en.ts`
   - Xong khi: `MucTocDo` có thêm `'cham'`; `MS_MOI_PHUT.cham = 1000`; `CAC_MUC_TOC_DO` xếp `cham` **đầu tiên**; `useState<MucTocDo>('cham')`; `KHOA_TOC_DO` có khoá mới; nhãn "Chậm" / "Slow" trong **cùng commit** (P8); `npx tsc --noEmit` sạch — đây là lưới bắt mọi `Record<MucTocDo, …>` còn thiếu khoá; Tab tới được mức mới và chọn được bằng bàn phím (P9).
   - Bằng chứng: **số** (trình biên dịch + đọc DOM).
@@ -49,7 +49,7 @@ xem được (hiến pháp P6), và là một commit.
   - Phụ thuộc: —
   - ⚠️ `'cham'` của `MucTocDo` **khác** `'cham'` của chỉ thị `'toc-do-chuyen-bong'` trong `domain/instructions` (xem `thongKeBen.test.ts:110`). Hai union khác nhau, trùng tên là trùng ngẫu nhiên — **đừng gộp**, và đừng đặt lại tên một trong hai chỉ vì thấy giống.
 
-- [ ] **T501** — Thời lượng di chuyển giãn theo nhịp, bỏ trần 280ms
+- [x] **T501** — Thời lượng di chuyển giãn theo nhịp, bỏ trần 280ms
   - File: sửa `src/ui/components/San2D.tsx`, sửa `src/ui/san2D.test.ts`
   - Xong khi: `thoiGianChuyen(ms) = round(ms × 0,9)`, và trả **0** khi `ms < 40` (mức Rất nhanh thôi nội suy, đi đúng đường `msChuyen <= 0` đã có ở `San2D.tsx:523`); hằng số `THOI_GIAN_CHUYEN_TOI_DA` bị xoá cùng phép kiểm trần của nó; bốn phép kiểm mới xanh: `1000 → 900`, `200 → 180`, `70 → 63`, `20 → 0`; phép kiểm "ở mọi mức, cú chuyển chỗ kết thúc trước nhịp kế tiếp" **giữ nguyên** và vẫn xanh; **không đổi engine**.
   - Bằng chứng: **số**.
@@ -57,12 +57,13 @@ xem được (hiến pháp P6), và là một commit.
   - Phụ thuộc: T500
   - ⚠️ Phép kiểm ấy duyệt `Object.entries(MS_MOI_PHUT)` nên nó **tự** kiểm luôn mức mới — đó là lý do T500 phải xong trước.
 
-- [ ] **T502** — Xem lát 37 chạy: mặc định đúng, không còn quãng đứng im cuối nhịp
+- [x] **T502** — Xem lát 37 chạy: mặc định đúng, cú di chuyển dài ra theo nhịp
   - File: — *(kiểm trên bản build)*
-  - Xong khi: mở một trận thì mức Chậm đã được chọn sẵn; đo trên trận đang phát ở mức Chậm: quãng không đổi toạ độ giữa hai chặng **≤ 300ms** — lấy đúng ngưỡng của spec, **không** lấy 100ms theo công thức 0,9: sau T512 người sung sức chỉ dùng 75% nhịp nên quãng ấy thành 250ms, và một tiêu chí xong viết theo công thức sẽ tự sai ở lát sau (phát hiện HIGH số 4 của `/analyze`); ở mức Rất nhanh **không khung nào** được yêu cầu mà toạ độ vẫn đúng mốc; không lỗi console.
+  - Xong khi: mở một trận thì mức Chậm đã được chọn sẵn và bốn nhãn hiện đúng thứ tự; đo trên trận đang phát ở mức Chậm: **một chặng di chuyển dài ~900ms**, tức ~90% nhịp, thay vì bị trần 280ms cắt (AC-29.1, AC-29.2); ở mức Rất nhanh **không khung nào** được xin mà toạ độ vẫn đổi đúng mốc (AC-29.4); không lỗi console.
   - Bằng chứng: **số** (thay rAF bằng `setTimeout` để đo, như Phase 35).
-  - AC: AC-29.1, AC-29.3
+  - AC: AC-29.1, AC-29.2, AC-29.4, AC-29.5
   - Phụ thuộc: T501
+  - ⚠️ **Tiêu chí cũ đã bị dọn sang T508.** Bản chẻ đầu đòi "quãng không đổi toạ độ ≤ 300ms" — đo thật ở lát 37 ra **2114ms**, và đó không phải lỗi: giữa hai tình huống không ai có đích mới, nên không ai di chuyển. "Luôn luôn di chuyển" là việc của **lớp dao động ở lát 39**, và T508 đã có đúng tiêu chí ấy.
 
 ---
 
@@ -249,15 +250,47 @@ xem được (hiến pháp P6), và là một commit.
 
 ## Ghi chú thực thi
 
+## Phase 37 — ba thứ chỉ biết được khi làm thật
+
+**1. Dự đoán của ghi chú bên dưới đã SAI, và đây là sự thật.** Ghi chú ấy
+đoán "một trong ba phép kiểm sẽ đỏ khi vòng duyệt gặp nhịp 1000ms, nơi D93 đổi
+hành vi". Đọc thân hai describe trước khi sửa thì thấy: **thêm nhịp 1000ms
+không làm đỏ gì cả** — cả describe D88 chỉ dùng tỉ lệ, không dùng `MS_MOI_PHUT`,
+và phép kiểm "chặng kết thúc trước nhịp kế tiếp" vẫn đúng vì 900 ≤ 1000. Thứ
+đỏ lên là mức **20ms**, và đỏ ngay ở lát 37 chứ không phải lát 40: khi
+`thoiGianChuyen(20)` trả **0**, phép kiểm tính `thoiLuong / thoiLuong` = `0/0` =
+`NaN`, lớp nội suy kẹp `NaN` về 0, nên điểm nằm ở điểm đầu thay vì đích. Tức
+phép kiểm đỏ vì **phép tính của chính nó**, không vì hành vi sản phẩm sai.
+
+**2. Lệch khỏi danh sách file đã khai, nói ra chứ không lặng lẽ:** T501 phải
+chạm thêm `src/ui/noiSuy.test.ts` — một file không có trong danh sách của nó —
+để thêm một `continue` cho những mức thôi nội suy (kèm chú thích vì sao), và để
+đổi tên một phép kiểm từ "ở CẢ BA mức tốc độ" thành "ở MỊI mức tốc độ" — giờ
+có bốn mức. Describe bất biến toạ độ tại mốc **không bị sửa một dòng** (R38).
+
+**3. Tiêu chí của T502 đòi một thứ lát 37 không thể có.** Đo thật: quãng không
+đổi toạ độ lên tới **2114ms** ở mức Chậm. Không phải lỗi — giữa hai tình huống
+không ai có đích mới nên không ai di chuyển, và đó chính là lý do lớp dao động
+ở lát 39 tồn tại. `/analyze` đã sửa ngưỡng của T502 từ 100ms sang 300ms nhưng
+không thấy rằng **cả tiêu chí ấy thuộc lát khác**. Nay T502 đo đúng thứ lát 37
+chứng minh được, còn "≤ 300ms" ở lại T508.
+
+**Số đo thật của lát 37** (bản build, cổng 4173, rAF thay bằng `setTimeout` vì
+pane không được vẽ): mức Chậm được chọn sẵn khi mở trận, bốn nhãn đúng thứ
+tự Chậm → Thường → Nhanh → Rất nhanh; hai chặng di chuyển đo được **914,1ms và
+916,7ms** (trước T501 là 280ms, bị trần cắt); mức Rất nhanh **0 khung** được xin
+trong ~1 giây mà toạ độ vẫn đổi qua 29 giá trị; không lỗi console.
+
 - **Phạm vi thật của "thêm một mức tốc độ" rộng hơn danh sách file trông thấy.**
   Đã grep: `MucTocDo` xuất hiện ở `useMatch.ts` (4 chỗ) và
   `BangDieuKhienTran.tsx` (4 chỗ), và chỉ có **hai** `Record<MucTocDo, …>`
   (`MS_MOI_PHUT`, `KHOA_TOC_DO`). Nhưng **hai file test cũng chạm**:
   `noiSuy.test.ts:3` và `san2D.test.ts:16` đều `import { MS_MOI_PHUT }` rồi
   duyệt `Object.entries` — nên thêm một mức là **tự động** mở rộng ba phép kiểm
-  ở đó sang mức mới. Đó là tin tốt (chúng kiểm hộ), nhưng phải biết trước, vì
-  một trong ba sẽ **đỏ** cho tới khi T512 xong: vòng duyệt ở
-  `noiSuy.test.ts:238` sẽ gặp nhịp 1000ms, nơi D93 đổi hành vi.
+  ở đó sang mức mới. Đó là tin tốt: chúng kiểm hộ mức mới.
+  *(Sửa ngày 2026-11-18 sau khi làm Phase 37: câu dự đoán cũ ở đây — "một trong ba
+  sẽ đỏ cho tới khi T512 xong vì gặp nhịp 1000ms" — đã sai. Xem mục "Phase 37 —
+  ba thứ chỉ biết được khi làm thật" ở trên.)*
 - **Chuỗi phụ thuộc dài nhất** đi qua `San2D.tsx`: T500 → T501 → T503 → T504 →
   T508 → T510 → T512 → T516 → T517 → T518 → T519, tức **11 mắt** — dài hơn spec
   004 (9 mắt). Lý do không phải logic mà là **một file**: `San2D.tsx` (689 dòng)

@@ -848,6 +848,7 @@ export const TRAN_DAU_VI = {
   chayHet: 'Chạy hết trận',
   nhanTocDo: 'Tốc độ',
   tocDo: {
+    cham: 'Chậm',
     thuong: 'Thường',
     nhanh: 'Nhanh',
     ratNhanh: 'Rất nhanh',

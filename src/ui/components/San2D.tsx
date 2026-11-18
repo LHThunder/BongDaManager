@@ -263,15 +263,21 @@ interface Props extends DuLieuVe {
   readonly msMoiPhut: number
 }
 
-/** Thời gian chuyển chỗ dài nhất, dùng khi đồng hồ chạy đủ thong thả. */
-export const THOI_GIAN_CHUYEN_TOI_DA = 280
-
 /**
  * Chừa lại 10% để cú chuyển chỗ KẾT THÚC trước khi tình huống sau tới.
  * Mốc tình huống cách nhau trung bình ~1,15 phút trận, nên 0,9 là biên an
  * toàn kể cả ở những đoạn dày sự kiện nhất.
  */
 const TI_LE_KIP = 0.9
+
+/**
+ * Dưới nhịp này thì thôi nội suy hẳn (AC-29.4, quyết định D97).
+ *
+ * Ở mức Rất nhanh (20ms một phút trận) một cú di chuyển chỉ dài 18ms — khoảng
+ * một khung hình 60Hz. Mắt không đọc được chuyển động nào trong khoảng ấy, nên
+ * vẽ đường đi không mang lại gì mà chỉ làm điểm bị giật khi khung hình rơi.
+ */
+const NHIP_TOI_THIEU_DE_NOI_SUY = 40
 
 /**
  * Thời gian một điểm đi từ chỗ cũ tới chỗ mới, buộc theo nhịp đồng hồ trận.
@@ -286,9 +292,16 @@ const TI_LE_KIP = 0.9
  * đội hình đi. Sân 5 cũng ~1,88 người mỗi tình huống nhưng trên một đội hình
  * năm người, tức **37%** — mắt đọc chuyển động theo tỉ lệ, không theo số
  * tuyệt đối, nên cùng một lỗi ở sân 5 thành ra loạn.
+ *
+ * **Trần cứng 280ms đã bị bỏ (T501, quyết định D91).** Nó sinh ra để chữa đúng
+ * lỗi ở trên — một con số đặt cứng dài hơn khoảng cách giữa hai mốc — nhưng
+ * công thức theo tỉ lệ thì **không bao giờ** vượt nhịp, nên lý do tồn tại của
+ * trần đã hết. Giữ nó thì ở nhịp 1000ms một cú di chuyển dài 280ms rồi điểm
+ * **đứng im 720ms** — chậm hơn nhưng giật hơn, đúng cái bẫy spec 005 mục 1 ghi.
  */
 export function thoiGianChuyen(msMoiPhut: number): number {
-  return Math.min(THOI_GIAN_CHUYEN_TOI_DA, Math.round(msMoiPhut * TI_LE_KIP))
+  if (!(msMoiPhut >= NHIP_TOI_THIEU_DE_NOI_SUY)) return 0
+  return Math.round(msMoiPhut * TI_LE_KIP)
 }
 
 export interface HinhSan {

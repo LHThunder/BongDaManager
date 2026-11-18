@@ -19,7 +19,6 @@ import {
   khungSan,
   KHUNG_SAN,
   thoiGianChuyen,
-  THOI_GIAN_CHUYEN_TOI_DA,
   type DiemCauThu,
 } from './components/San2D'
 
@@ -236,19 +235,34 @@ describe('nhịp di chuyển của điểm trên sân', () => {
     }
   })
 
-  it('mức Thường cho 180ms, Nhanh 63ms, Rất nhanh 18ms', () => {
+  it('mức Chậm cho 900ms, Thường 180ms, Nhanh 63ms', () => {
+    expect(thoiGianChuyen(1000)).toBe(900)
     expect(thoiGianChuyen(200)).toBe(180)
     expect(thoiGianChuyen(70)).toBe(63)
-    expect(thoiGianChuyen(20)).toBe(18)
   })
 
   /*
-    Đồng hồ chậm tới đâu thì chuyển chỗ cũng không được lê quá 280ms: quá dài
-    thì điểm còn đang bò trong khi dòng tường thuật đã kể xong tình huống.
+    Mức Rất nhanh thôi nội suy hẳn (AC-29.4, D97): 18ms không đủ cho mắt đọc một
+    chuyển động nào, nên vẽ đường đi chỉ sinh ra cú giật. **Số 0 ở đây là một
+    quyết định, không phải một giá trị biên bị bỏ quên** — `San2D` đọc
+    `msChuyen <= 0` là "vẽ một lần, không nội suy", và đó là đường đã có sẵn từ
+    trước. Đừng "dọn" nhánh ấy đi vì tưởng nó là code chết.
   */
-  it('đồng hồ rất chậm vẫn không vượt trần 280ms', () => {
-    expect(thoiGianChuyen(10_000)).toBe(THOI_GIAN_CHUYEN_TOI_DA)
-    expect(thoiGianChuyen(400)).toBe(THOI_GIAN_CHUYEN_TOI_DA)
+  it('mức Rất nhanh trả 0 — thôi nội suy', () => {
+    expect(thoiGianChuyen(20)).toBe(0)
+    expect(thoiGianChuyen(39)).toBe(0)
+    expect(thoiGianChuyen(40)).toBe(36)
+  })
+
+  /*
+    Trần cứng 280ms đã bỏ (T501, D91): công thức theo tỉ lệ không bao giờ vượt
+    nhịp, nên lý do tồn tại của trần đã hết. Giữ trần thì ở nhịp 1000ms điểm
+    đi 280ms rồi đứng im 720ms — chậm hơn nhưng giật hơn.
+  */
+  it('đồng hồ càng chậm thì cú di chuyển càng dài, không bị trần cắt', () => {
+    expect(thoiGianChuyen(400)).toBe(360)
+    expect(thoiGianChuyen(10_000)).toBe(9000)
+    expect(thoiGianChuyen(2000)).toBeGreaterThan(thoiGianChuyen(1000))
   })
 
   it('không bao giờ trả về số âm hay số lẻ', () => {

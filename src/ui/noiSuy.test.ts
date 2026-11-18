@@ -234,7 +234,7 @@ describe('thể lực đổi DÁNG, không đổi thời lượng (AC-25.7, D88)
   lực không được phép đụng vào thời lượng ấy.
 */
 describe('không điểm nào còn đang đi khi tình huống kế tiếp tới (AC-25.3)', () => {
-  it('ở CẢ BA mức tốc độ, cú chuyển chỗ kết thúc trước nhịp kế tiếp', () => {
+  it('ở MỊI mức tốc độ, cú chuyển chỗ kết thúc trước nhịp kế tiếp', () => {
     for (const [muc, msMoiPhut] of Object.entries(MS_MOI_PHUT)) {
       expect(
         thoiGianChuyen(msMoiPhut),
@@ -255,6 +255,14 @@ describe('không điểm nào còn đang đi khi tình huống kế tiếp tới
 
     for (const [muc, msMoiPhut] of Object.entries(MS_MOI_PHUT)) {
       const thoiLuong = thoiGianChuyen(msMoiPhut)
+      /*
+        Mức nào thôi nội suy thì không có "thời lượng" để nói tới (AC-29.4,
+        D97): `San2D` vẽ một lần tại toạ độ mốc và không gọi lớp nội suy. Thêm
+        dòng này ở T501, khi `thoiGianChuyen` bắt đầu trả 0 ở mức Rất nhanh —
+        không có nó thì `thoiLuong / thoiLuong` là `0/0`, tức `NaN`, và phép kiểm
+        đỏ vì một lý do không liên quan gì tới điều nó muốn chứng minh.
+      */
+      if (thoiLuong === 0) continue
       for (const doMet of [0, 0.5, 1]) {
         // Tại đúng mốc kết thúc: `San2D` tính tỉ lệ = (đã trôi) / thời lượng.
         const tiLe = thoiLuong / thoiLuong
