@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **ID** | `005-lifelike-pitch-motion` |
-| **Status** | Draft (2026-11-18) |
+| **Status** | Clarified (2026-11-18) |
 | **Created** | 2026-11-18 |
 | **Branch** | `005-lifelike-pitch-motion` |
 
@@ -87,11 +87,11 @@ nhảy**.
 
 **Acceptance criteria:**
 
-- [ ] AC-28.1 — KHI trận đang phát theo đồng hồ THÌ **mọi** điểm cầu thủ PHẢI đổi vị trí liên tục; KHÔNG điểm nào được đứng nguyên một chỗ lâu hơn ngưỡng ở mục 6.
+- [ ] AC-28.1 — KHI trận đang phát theo đồng hồ THÌ **mọi** điểm cầu thủ PHẢI đổi vị trí liên tục; KHÔNG điểm nào được đứng nguyên một chỗ lâu hơn **300ms**.
 - [ ] AC-28.2 — KHI một người không được tình huống nào nhắc tới trong nhiều phút liền THÌ điểm của anh ta VẪN PHẢI di chuyển quanh vị trí của mình, và PHẢI không rời khỏi vùng sân của vị trí ấy.
 - [ ] AC-28.3 — KHI một tình huống diễn ra ở một vùng THÌ đúng tại phút của tình huống đó, những người tham gia PHẢI có mặt trong vùng ấy; chuyển động lúc chờ KHÔNG được làm sai vùng.
 - [ ] AC-28.4 — KHI hai người đang đứng chờ gần nhau THÌ chuyển động chờ của họ PHẢI không trùng nhịp với nhau, để hai đội không "thở" đồng loạt như một khối máy.
-- [ ] AC-28.5 — KHI trận đang tạm dừng THÌ hệ thống PHẢI xử lý chuyển động chờ theo đúng điều đã chốt ở mục 8 — tạm dừng không được mơ hồ là "dừng hay không dừng".
+- [ ] AC-28.5 — KHI trận đang tạm dừng THÌ **mọi chuyển động PHẢI dừng hẳn**, kể cả dao động chờ: sân đóng băng để người dùng đọc được vị trí từng người trước khi quyết định thay người, và để chữ "tạm dừng" có đúng một nghĩa.
 
 ### US-29: Nhịp xem được, chuyển động thong thả
 
@@ -101,11 +101,11 @@ tới chỗ mới**.
 
 **Acceptance criteria:**
 
-- [ ] AC-29.1 — KHI người dùng chọn mức tốc độ chậm nhất THÌ một cú di chuyển PHẢI chiếm gần hết khoảng giữa hai tình huống, KHÔNG để lại quãng đứng im nào dài hơn ngưỡng ở mục 6.
+- [ ] AC-29.1 — KHI người dùng chọn mức tốc độ chậm nhất THÌ một cú di chuyển PHẢI chiếm gần hết khoảng giữa hai tình huống, KHÔNG để lại quãng đứng im nào dài hơn **300ms**.
 - [ ] AC-29.2 — KHI nhịp đồng hồ chậm lại THÌ thời lượng một cú di chuyển PHẢI giãn theo; KHÔNG được giữ nguyên thời lượng cũ rồi thêm một quãng đứng im vào cuối nhịp.
 - [ ] AC-29.3 — KHI người dùng đổi mức tốc độ giữa trận THÌ chuyển động PHẢI theo nhịp mới ngay ở tình huống kế tiếp, và KHÔNG điểm nào bị giật về chỗ cũ hay nhảy tới đích.
-- [ ] AC-29.4 — KHI người dùng chọn mức nhanh nhất, nơi một phút trận chỉ dài vài chục mili-giây, THÌ hệ thống PHẢI xử lý theo điều đã chốt ở mục 8, và dù chọn gì cũng KHÔNG được để một điểm bị giật khi đang đi nửa đường.
-- [ ] AC-29.5 — KHI mở một trận lần đầu THÌ mức tốc độ mặc định PHẢI là mức đã chốt ở mục 8, và người dùng PHẢI đổi được sang mức khác ngay trong lúc trận đang chạy.
+- [ ] AC-29.4 — KHI người dùng chọn mức nhanh nhất, nơi một phút trận chỉ dài vài chục mili-giây, THÌ hệ thống PHẢI thôi nội suy: các điểm nhảy thẳng tới vị trí tại mốc, và KHÔNG điểm nào được bị giật khi đang đi nửa đường — ở nhịp ấy không có chuyển động nào đọc được bằng mắt, nên vẽ đường đi chỉ sinh ra cú giật.
+- [ ] AC-29.5 — KHI mở một trận lần đầu THÌ mức tốc độ mặc định PHẢI là mức chậm nhất (một phút trận dài 1000ms), và người dùng PHẢI đổi được sang mức khác ngay trong lúc trận đang chạy.
 
 ### US-30: Chuyển động trông như người chạy
 
@@ -116,11 +116,11 @@ bị dịch chỗ**.
 **Acceptance criteria:**
 
 - [ ] AC-30.1 — KHI một cú di chuyển kết thúc và cú sau bắt đầu THÌ điểm PHẢI đi tiếp mà không có khoảnh khắc đứng yên nào ở giữa; tốc độ tại mốc PHẢI không về không.
-- [ ] AC-30.2 — KHI bóng chuyển từ vùng này sang vùng khác THÌ điểm bóng PHẢI tới đích trước những cầu thủ đi cùng hướng, tức rõ ràng nhanh hơn người.
-- [ ] AC-30.3 — KHI những người của một hàng ngang (hàng phòng ngự, hàng tiền vệ) không tham gia tình huống THÌ các điểm của hàng ấy PHẢI giữ ngang hàng nhau trong ngưỡng lệch đã chốt ở mục 8, như một hàng bốn thật, chứ không trôi rời rạc.
-- [ ] AC-30.4 — KHI bóng ở một phần sân THÌ cả khối đội hình PHẢI nghiêng về phía ấy theo mức đã chốt ở mục 8, mà hình dáng sơ đồ vẫn nhận ra được.
+- [ ] AC-30.2 — KHI bóng chuyển từ vùng này sang vùng khác THÌ điểm bóng PHẢI đi **theo đường thẳng và nhanh khoảng ba lần người**, nên nó tới đích hẳn trước những cầu thủ đi cùng hướng — mắt theo bóng trước, người theo sau, như một đường chuyền.
+- [ ] AC-30.3 — KHI những người của một hàng ngang (hàng phòng ngự, hàng tiền vệ) không tham gia tình huống THÌ các điểm của hàng ấy PHẢI giữ ngang hàng nhau trong **một phần tư khoảng cách giữa hai người trong hàng**, như một hàng bốn thật, chứ không trôi rời rạc.
+- [ ] AC-30.4 — KHI bóng ở một phần sân THÌ cả khối đội hình PHẢI nghiêng nhẹ về phía ấy — khoảng **một phần mười chiều dài sân** — đủ để thấy đội đang dồn lên hay lùi về, mà sơ đồ đang dùng VẪN nhận ra được (4-4-2 vẫn ra 4-4-2).
 - [ ] AC-30.5 — KHI xem bất kỳ mười giây nào của một trận đang chạy THÌ KHÔNG điểm nào được ra ngoài vạch biên, và KHÔNG hai điểm nào được nằm khít lên nhau tới mức người xem chỉ thấy một.
-- [ ] AC-30.6 — KHI một cầu thủ đã xuống thể lực THÌ sự chênh lệch so với người còn sung sức PHẢI nhận ra được bằng mắt, theo đúng cách đã chốt ở mục 8 (giữ cách hiện tại, hay cho anh ta đi chậm thật khi nhịp đã đủ thong thả).
+- [ ] AC-30.6 — KHI một cầu thủ đã xuống thể lực THÌ ở những nhịp còn dư thời gian, điểm của anh ta PHẢI **đi chậm thật**: tới đích muộn hơn một người cùng lúc còn sung sức, nhưng VẪN phải tới trước khi tình huống kế tiếp tới. Ở nhịp không đủ dư thời gian, độ chênh PHẢI vẫn nhận ra được bằng dáng chạy (xuất phát muộn hơn, đi phần lớn quãng đường sau).
 
 ### US-31: Những lời hứa cũ không được rơi
 
@@ -155,7 +155,7 @@ có**, để **tôi không phải đánh đổi khả năng dùng được lấy
 | Tình huống | Hành vi mong đợi |
 |---|---|
 | Phút 0, chưa có tình huống nào | Mọi điểm vẫn động quanh chỗ đứng của mình; sân không đứng chết trước giờ bóng lăn |
-| Trận đang tạm dừng | Theo điều chốt ở mục 8; dù chốt gì cũng phải nhất quán với nghĩa của chữ "tạm dừng" |
+| Trận đang tạm dừng | Mọi chuyển động dừng hẳn, kể cả dao động chờ (AC-28.5) |
 | Trận đã kết thúc | Sân giữ vị trí cuối, không chuyển động vô nghĩa sau tiếng còi |
 | Một người bị thẻ đỏ rời sân | Điểm của anh ta biến mất gọn, không để lại điểm ma đang dao động |
 | Thay người giữa trận | Người mới xuất hiện tại vị trí của mình, không trượt từ mép ảnh vào |
@@ -169,6 +169,16 @@ có**, để **tôi không phải đánh đổi khả năng dùng được lấy
 
 ## 6. Yêu cầu phi chức năng
 
+- **Nhịp đồng hồ trận (chốt ngày 2026-11-18):** thêm một mức **chậm nhất
+  là 1000ms cho một phút trận** — trận 90 phút xem hết trong khoảng một
+  phút rưỡi, mỗi cú di chuyển dài gần một giây. Mức này là **mặc định** khi
+  mở một trận. Ba mức cũ (200ms, 70ms, 20ms) giữ nguyên, nhưng mức 20ms
+  thôi nội suy hoàn toàn (AC-29.4).
+- **Biên độ chuyển động chờ (chốt ngày 2026-11-18):** một người đứng ngoài
+  tình huống dao động quanh chỗ mình khoảng **một nửa khoảng cách giữa hai
+  cầu thủ đứng chung một vùng** — đủ để thấy rõ ai cũng đang động, chưa tới
+  mức 22 điểm trông như đang rung. Biên độ này **co theo khung sân**, vì khung
+  co lại theo quân số.
 - **Hiệu năng:**
   - Chạy hết một trận ở chế độ chạy ngay: **< 3 giây**, như spec 004 đã chốt.
   - Khi đang phát theo đồng hồ với 22 điểm luôn di chuyển: công việc mỗi khung
@@ -176,8 +186,9 @@ có**, để **tôi không phải đánh đổi khả năng dùng được lấy
     quá 50ms**. Số đo nền từ spec 004 để so: mỗi khung ≤ **0,3ms** ở mức
     Thường và ≤ **1,0ms** ở mức Nhanh, với chuyển động chỉ chạy ~90% thời
     gian — nên còn dư cho việc chạy liên tục, nhưng phải đo lại chứ không suy.
-  - Ngưỡng "đứng im" của AC-28.1 và AC-29.1: [NEEDS CLARIFICATION: bao lâu là
-    quá lâu? đề xuất 300ms thời gian thực, tức mắt không kịp đọc là "đã dừng"]
+  - Ngưỡng "đứng im" của AC-28.1 và AC-29.1 (chốt ngày 2026-11-18): **300ms**
+    thời gian thực — ngắn hơn một cái nháy mắt kéo dài, nên mắt khó đọc ra
+    là "đã dừng". Chặt, nhưng đúng với chữ "luôn luôn".
 - **Tái lập được (P1):** lớp chuyển động MUST NOT gọi nguồn ngẫu nhiên hay
   nguồn thời gian toàn cục nào để sinh dao động. Dao động của một người phải
   suy ra được từ danh tính của chính anh ta và đồng hồ trận, nên xem cùng một
@@ -213,45 +224,9 @@ có**, để **tôi không phải đánh đổi khả năng dùng được lấy
 
 ## 8. Câu hỏi mở
 
-> Dùng đúng cú pháp `[NEEDS CLARIFICATION: câu hỏi]` để `/clarify` quét được.
-> Chỉ khi mục này rỗng mới được chạy `/plan`.
+Không còn câu hỏi mở. Toàn bộ 11 điểm đã được chốt ngày **2026-11-18** —
+xem mục 11.
 
-- [NEEDS CLARIFICATION: Một phút trận nên dài bao nhiêu ở mức chậm nhất để
-  chuyển động trông tự nhiên? Hiện có ba mức: 200ms, 70ms, 20ms cho một phút
-  trận. Thêm một mức ~600ms (trận 90 phút xem hết trong ~54 giây) hay ~1000ms
-  (~90 giây)? Và có thêm hơn một mức chậm không?]
-- [NEEDS CLARIFICATION: Mức nào là mặc định khi mở một trận lần đầu? Giữ
-  "Thường" như hiện nay, hay lấy mức chậm mới làm mặc định vì nó mới là mức
-  trông giống một trận đấu?]
-- [NEEDS CLARIFICATION: Ở mức nhanh nhất (20ms một phút trận, tức một cú di
-  chuyển chỉ ~18ms) thì nội suy không còn nghĩa gì. Tắt hẳn nội suy ở mức ấy
-  và cho các điểm nhảy thẳng tới mốc, hay bỏ luôn mức ấy, hay giữ nguyên như
-  hiện tại?]
-- [NEEDS CLARIFICATION: Biên độ chuyển động chờ của một người đứng ngoài tình
-  huống nên bao nhiêu? Quá nhỏ thì vẫn trông như đứng im, quá lớn thì 22 điểm
-  trông như đang rung. Đo theo tỉ lệ khung sân hay theo khoảng cách giữa hai
-  cầu thủ gần nhau?]
-- [NEEDS CLARIFICATION: Cả khối đội hình có nghiêng theo bóng không (AC-30.4)?
-  Nếu có thì nghiêng bao nhiêu — đủ thấy đội đang dồn lên hay lùi về, nhưng
-  không tới mức làm sơ đồ 4-4-2 trông như một hình khác?]
-- [NEEDS CLARIFICATION: Bóng nên nhanh hơn người bao nhiêu lần (AC-30.2)? Và
-  bóng có cần đi theo đường cong như người, hay đường thẳng thì đúng hơn với
-  một đường chuyền?]
-- [NEEDS CLARIFICATION: Trận đang tạm dừng thì chuyển động chờ có dừng theo
-  không (AC-28.5)? Dừng hẳn thì chữ "tạm dừng" rõ nghĩa; vẫn động nhẹ thì sân
-  trông sống nhưng người dùng có thể tưởng trận chưa dừng.]
-- [NEEDS CLARIFICATION: Có mở lại quyết định D88 của spec 004 không? D88 chốt
-  "thể lực đổi dáng chuyển động, không đổi thời lượng" vì lúc ấy không có đủ
-  thời gian trong một nhịp. Nhịp chậm mới thì có dư, nên người kiệt sức có thể
-  đi chậm thật — nhưng đổi là mở lại một quyết định đã chốt và phải sửa cả
-  phép kiểm hiện có.]
-- [NEEDS CLARIFICATION: AC-25.3 của spec 004 ("không điểm nào còn đang di
-  chuyển dở khi tình huống kế tiếp tới") nên được thay thế hẳn, hay phát biểu
-  lại thành "không điểm nào bị giật khi tình huống kế tiếp tới"? Xem mục 10.]
-- [NEEDS CLARIFICATION: Hàng ngang được lệch nhau bao nhiêu thì vẫn là "ngang
-  hàng" (AC-30.3)? Hẹp quá thì bốn hậu vệ trông như bị hàn vào một thanh;
-  rộng quá thì không còn ra hàng nào.]
-- [NEEDS CLARIFICATION: Ngưỡng "đứng im quá lâu" ở mục 6 chốt là bao nhiêu?]
 
 ## 9. Giả định
 
@@ -277,11 +252,41 @@ tài liệu ấy; dưới đây là quan hệ, và `/clarify` phải chốt dòn
 
 | AC của spec 004 | Spec này làm gì |
 |---|---|
-| AC-25.3 — "không điểm nào còn đang di chuyển dở khi tình huống kế tiếp tới" | **Thay thế.** "Luôn luôn di chuyển" trái đúng chữ với nó. Ý định thật của AC ấy là *không bị giật sang đích mới* — ý định đó spec này giữ nguyên và phát biểu lại ở AC-29.3 và AC-30.1. Cách thay thế chính xác: xem câu hỏi mở |
+| AC-25.3 — "không điểm nào còn đang di chuyển dở khi tình huống kế tiếp tới" | **Thay thế hẳn, chốt ngày 2026-11-18.** "Luôn luôn di chuyển" trái đúng chữ với nó. Ý định thật của AC ấy là *không bị giật sang đích mới* — ý định đó spec này giữ nguyên và phát biểu lại ở AC-29.3 và AC-30.1. AC mới: "KHÔNG điểm nào bị **giật** khi tình huống kế tiếp tới" (AC-29.3, AC-30.1) |
 | AC-25.1 — chuyển động theo đường cong mềm, không gấp khúc | **Giữ**, và đi xa hơn: không chỉ mềm về hướng mà còn liền về tốc độ (AC-30.1) |
 | AC-25.2 — tại phút của tình huống, người tham gia có mặt đúng vùng | **Giữ nguyên, và nó là thứ chặn biên độ** của chuyển động chờ. Lớp dao động mới phải nằm riêng bên trên, không được nới lỏng bất biến "đúng mốc, không gần đúng" của lớp nội suy hiện có |
 | AC-25.4, AC-25.5 — trận cũ đấu lại đúng kết quả; mọi con số không đổi | **Giữ** (AC-31.2), và đây là lý do non-goal "không đổi engine" là ràng buộc cứng |
 | AC-25.6 — tôn trọng giảm chuyển động | **Giữ** (AC-31.1), và mở rộng sang cả chuyển động chờ |
-| AC-25.7 + quyết định D88 — thể lực đổi dáng, không đổi thời lượng | **Xem lại** (AC-30.6). D88 bị chốt như thế vì nhịp cũ không có đủ thời gian; nhịp chậm mới thì có |
+| AC-25.7 + quyết định D88 — thể lực đổi dáng, không đổi thời lượng | **Mở lại, chốt ngày 2026-11-18** (AC-30.6): ở nhịp còn dư thời gian, người kiệt sức đi chậm thật và tới đích muộn hơn. D88 vẫn đúng ở những nhịp không dư, nên hai hành vi phải cùng tồn tại |
 | AC-25.8 — kiệt sức vẫn có nhãn chữ | **Giữ** (AC-31.6) |
 | AC-25.9 — hai ngân sách: chạy ngay < 3 giây, và khung vẽ gọn trong một nhịp | **Giữ cả hai** (AC-31.3, AC-31.4), siết thêm một chữ: phải đúng ở **mọi** mức tốc độ, kể cả mức chậm mới |
+
+## 11. Nhật ký làm rõ
+
+Toàn bộ 11 câu hỏi mở đã chốt ngày **2026-11-18**, qua ba lượt hỏi.
+
+| # | Câu hỏi | Quyết định | Đi vào |
+|---|---|---|---|
+| 1 | Một phút trận dài bao nhiêu ở mức chậm nhất? | **1000ms** — trận 90 phút xem hết trong ~1,5 phút, mỗi cú di chuyển ~950ms. Một mức chậm, không phải hai | mục 6, AC-29.1 |
+| 2 | Mức nào là mặc định khi mở trận? | **Mức chậm mới**. Mở trận ra là thấy ngay nhịp giống một trận đấu; ai chỉ cần tỉ số thì đã có "Chạy hết trận" | mục 6, AC-29.5 |
+| 3 | Mức "Rất nhanh" (20ms) xử lý thế nào? | **Tắt hẳn nội suy ở mức ấy**, cho điểm nhảy thẳng tới mốc. Ở 18ms không có chuyển động nào đọc được, nên vẽ đường đi chỉ sinh ra cú giật | AC-29.4 |
+| 4 | Có mở lại D88 (thể lực đổi dáng, không đổi thời lượng)? | **Mở lại.** Ở nhịp còn dư thời gian, người kiệt sức đi **chậm thật** và tới đích muộn hơn, nhưng vẫn trước tình huống kế tiếp. D88 vẫn đúng ở những nhịp không dư, nên **hai hành vi phải cùng tồn tại** | AC-30.6, mục 10 |
+| 5 | Biên độ dao động lúc đứng chờ? | **Một nửa khoảng cách giữa hai cầu thủ đứng chung một vùng**, và co theo khung sân | mục 6, AC-28.2 |
+| 6 | Cả khối đội hình có nghiêng theo bóng? | **Có, nhẹ** — khoảng một phần mười chiều dài sân, đủ thấy đội dồn lên hay lùi về mà sơ đồ vẫn nhận ra được | AC-30.4 |
+| 7 | Bóng di chuyển thế nào so với người? | **Nhanh ~3 lần, đi đường thẳng** như một đường chuyền: mắt theo bóng trước, người theo sau | AC-30.2 |
+| 8 | Tạm dừng thì dao động có dừng? | **Dừng hẳn.** Tạm dừng là đóng băng cả sân, để đọc được vị trí từng người trước khi thay người | AC-28.5, mục 5 |
+| 9 | AC-25.3 của spec 004 xử lý thế nào? | **Thay thế hẳn** bằng "không điểm nào bị giật khi tình huống kế tiếp tới" — giữ ý định thật, bỏ cách diễn đạt đã lạc hậu. Spec 004 KHÔNG bị sửa ngược | mục 10, AC-29.3, AC-30.1 |
+| 10 | "Đứng im quá lâu" là bao lâu? | **300ms** thời gian thực | mục 6, AC-28.1, AC-29.1 |
+| 11 | Hàng ngang lệch bao nhiêu vẫn là ngang hàng? | **Một phần tư** khoảng cách giữa hai người trong hàng | AC-30.3 |
+
+**Ghi chú về câu 2.** Đây là quyết định đổi trải nghiệm mặc định của cả ứng
+dụng: xem một trận từ 18 giây thành ~1,5 phút. Nó đúng với yêu cầu "giống một
+trận đấu thật nhất có thể", nhưng nếu sau khi xem thử thấy sốt ruột thì đây
+là chỗ đầu tiên nên đổi lại — đổi mặc định rẻ hơn nhiều so với đổi mô hình
+chuyển động.
+
+**Ghi chú về câu 4.** Mở lại D88 nghĩa là lớp chuyển động phải có **hai chế độ
+thể lực** tùy nhịp: đổi thời lượng khi nhịp có dư, đổi dáng khi không. Phép
+kiểm đã chốt của D88 vì thế phải sửa chứ không bỏ: nó vẫn là lưới duy nhất
+bắt được lỗi "kéo dài thời lượng ở nhịp không có dư", tức điểm còn bay dở khi
+tình huống kế tiếp tới.
