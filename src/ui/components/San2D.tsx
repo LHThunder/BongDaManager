@@ -287,8 +287,37 @@ export function nghiengKhoiTheoBong(
   return PHAN_CO_KHOI * (tiBong - tiNguoi) * khung.rong
 }
 
+/**
+ * Một phần ba sân của đội: thủ môn không được rời khỏi đó (AC-30.7, T521).
+ *
+ * **Ngoại lệ duy nhất của AC-28.3**, và nó đến từ mắt người dùng ở T518 chứ không
+ * từ một phép kiểm: đo trên bản dev, thủ môn đội khách chạy từ `x = 54,5` tới
+ * `85,2` trong một trận — ra tới gần giữa sân. Hai thứ cộng lại: engine có lúc liệt
+ * kê thủ môn là người tham gia một tình huống ở xa khung thành (và AC-28.3 bắt đặt
+ * người tham gia vào đúng vùng ấy), và lớp co khối của T510 kéo thêm.
+ *
+ * Dải bị thu lại đúng một biên độ dao động (`BUOC_GIAN / 8`), vì lớp dao động cộng
+ * vào **sau** `hinhSan`: trừ sẵn thì chỗ **được vẽ** mới thật sự nằm trong một phần
+ * ba sân, chứ không phải chỉ có toạ độ tại mốc.
+ */
+export function daiThuMon(
+  laDoiNha: boolean,
+  khung: KhungSan,
+): { readonly tu: number; readonly den: number } {
+  const tiLe = tiLeKhung(khung)
+  const le = LE_TOI_THIEU * tiLe
+  const leX = (RONG - khung.rong) / 2
+  const mot3 = khung.rong / 3
+  const chuaDao = (BUOC_GIAN * tiLe) / 8
+  return laDoiNha
+    ? { tu: leX + le, den: leX + mot3 - chuaDao }
+    : { tu: leX + khung.rong - mot3 + chuaDao, den: leX + khung.rong - le }
+}
+
 export interface DiemCauThu {
   readonly playerId: string
+  /** Thủ môn được đối xử riêng — xem `daiThuMon` và AC-30.7. */
+  readonly laThuMon: boolean
   readonly x: number
   readonly y: number
   readonly mauNen: string
@@ -485,14 +514,30 @@ export function hinhSan({
     for (const x of tren) {
       // Người tham gia tình huống dịch TỚI chỗ bóng; người khác giữ chỗ.
       const noiBat = thamGia.has(x.playerId)
-      const diChuyen = noiBat && vungSuKien !== null
-      const { x: cx, y: cy } = toaDo(
+      /*
+        **Thủ môn không bao giờ bị dịch đi đâu cả** (AC-30.7, T521): anh ta
+        đứng ở vùng của mình, kể cả khi dòng tường thuật liệt kê anh ta là
+        người tham gia. Một cú cứu thùa thì vốn đã diễn ra ở vùng của anh ta,
+        nên không mất gì; còn những dòng liệt kê anh ta ở xa khung thành là
+        thứ đã kéo thủ môn đội khách ra tới `x = 85,2` trước T521.
+      */
+      const laThuMon = x.viTriO === 'GK'
+      const diChuyen = noiBat && vungSuKien !== null && !laThuMon
+      /*
+        Thủ môn cũng **không co theo khối**, và còn bị kẹp vào một phần ba sân
+        của mình — phép kẹp ấy hiện không ràng vào đâu, nó là lưới giữ AC-30.7
+        đúng nếu sau này có sơ đồ đặt thủ môn ở một dải khác.
+      */
+      const { x: xTho, y: cy } = toaDo(
         diChuyen && vungSuKien ? vungSuKien : x.vung,
         diChuyen
           ? 0
-          : dichX + nghiengKhoiTheoBong(x.vung, vungSuKien, khung),
+          : dichX +
+            (laThuMon ? 0 : nghiengKhoiTheoBong(x.vung, vungSuKien, khung)),
         khung,
       )
+      const dai = laThuMon ? daiThuMon(laDoiNha, khung) : null
+      const cx = dai ? kep(xTho, dai.tu, dai.den) : xTho
       const lechY = diChuyen
         ? (lechThamGia.get(x.playerId) ?? 0)
         : (lech.get(x.playerId) ?? 0)
@@ -500,6 +545,7 @@ export function hinhSan({
 
       cacDiem.push({
         playerId: x.playerId,
+        laThuMon,
         x: cx,
         y: kep(cy + lechY, leY + le, leY + khung.cao - le),
         mauNen: doiTren.mauAo,
@@ -1023,18 +1069,6 @@ export function San2D(props: Props) {
             aria-hidden="true"
           />
         )}
-        {(
-          <circle
-            cx={viTriBongVe().x}
-            cy={viTriBongVe().y}
-            r={1.5 * tiLe}
-            fill="var(--co-vang)"
-            stroke="var(--co-net)"
-            strokeWidth={0.3 * tiLe}
-            aria-hidden="true"
-          />
-        )}
-
         {/*
           Vòng sáng lan ra từ chỗ ghi bàn (AC-32.4). Giảm chuyển động thì
           không vẽ — chỉ còn chữ, đúng AC-32.6.
@@ -1050,29 +1084,6 @@ export function San2D(props: Props) {
             opacity={1 - tienHieuUng}
             aria-hidden="true"
           />
-        )}
-
-        {/*
-          KÊNH CHỮ của hiệu ứng (AC-32.4, AC-32.6, hiến pháp P9).
-
-          Nó **không** tắt khi giảm chuyển động: một dòng chữ đứng yên không
-          phải là chuyển động, và nó là thứ duy nhất còn lại ở chế độ ấy — nên
-          thông tin "vừa có bàn thắng" không đi qua một kênh duy nhất là hình.
-        */}
-        {dangAnMung && (
-          <text
-            x={giuaX}
-            y={leY + khung.cao * 0.3}
-            textAnchor="middle"
-            fontSize={7 * tiLe}
-            fontWeight={800}
-            fill="var(--co-vang)"
-            stroke="var(--co-net)"
-            strokeWidth={0.4 * tiLe}
-            opacity={giamChuyenDong ? 1 : 1 - tienHieuUng * 0.3}
-          >
-            {SAN_2D.hieuUngBanThang}
-          </text>
         )}
 
         {cacDiem.map((d) => {
@@ -1137,6 +1148,50 @@ export function San2D(props: Props) {
           </g>
           )
         })}
+
+        {/*
+          QUẢ BÓNG VẼ SAU CÁC ĐIỂM NGƯỜI (T520, AC-32.1).
+
+          Trong SVG, vẽ sau là nằm trên. Bản đầu của T513 vẽ bóng ngay sau
+          đường bóng, tức **trước** 22 điểm cầu thủ — đo trên bản build một
+          trận trọn vẹn: **40,5% số khung** có tâm bóng nằm trong lòng một điểm,
+          tức bị che hẳn. Mắt người dùng bắt được ở T518, gọi đúng tên là "bóng
+          đang bị chìm". Quả bóng là thứ mắt người xem bám vào, nên nó phải nằm
+          trên cùng — cùng với kênh chữ của hiệu ứng bàn thắng, vì một dòng chữ
+          bị điểm đè lên cũng là một kênh thông tin bị mất (P9).
+        */}
+        <circle
+          cx={viTriBongVe().x}
+          cy={viTriBongVe().y}
+          r={1.5 * tiLe}
+          fill="var(--co-vang)"
+          stroke="var(--co-net)"
+          strokeWidth={0.3 * tiLe}
+          aria-hidden="true"
+        />
+
+        {/*
+          KÊNH CHỮ của hiệu ứng (AC-32.4, AC-32.6, hiến pháp P9).
+
+          Nó **không** tắt khi giảm chuyển động: một dòng chữ đứng yên không
+          phải là chuyển động, và nó là thứ duy nhất còn lại ở chế độ ấy — nên
+          thông tin "vừa có bàn thắng" không đi qua một kênh duy nhất là hình.
+        */}
+        {dangAnMung && (
+          <text
+            x={giuaX}
+            y={leY + khung.cao * 0.3}
+            textAnchor="middle"
+            fontSize={7 * tiLe}
+            fontWeight={800}
+            fill="var(--co-vang)"
+            stroke="var(--co-net)"
+            strokeWidth={0.4 * tiLe}
+            opacity={giamChuyenDong ? 1 : 1 - tienHieuUng * 0.3}
+          >
+            {SAN_2D.hieuUngBanThang}
+          </text>
+        )}
       </svg>
     </figure>
   )

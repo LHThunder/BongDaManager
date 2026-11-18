@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | 30 AC (US-28 → US-32), 11 quyết định D89–D100 |
-| **Tiến độ** | 18/20 |
+| **Tiến độ** | 20/22 |
 | **Sửa đổi** | 2026-11-18 — chẻ lần đầu từ plan |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -214,13 +214,39 @@ xem được (hiến pháp P6), và là một commit.
 
 ---
 
+## Phase 43 — Lát 43: Hai lỗi mắt người dùng bắt được ở T518
+
+> Hai task này sinh ra **sau** khi người dùng xem thật một trận (T518) và chỉ ra ba
+> điều. Hai điều đầu là **lỗi của chính spec này** và sửa ở đây. Điều thứ ba — bóng
+> dính chân người dẫn, qua người, chuyền và sút, đường bóng liên tục — là **tính
+> năng mới**, không thuộc spec này: nó cần một mô hình chuyển động giữa hai mốc mà
+> engine hiện không kể ra. Để cho spec 006.
+
+- [x] **T520** [P] — Quả bóng và chữ "BÀN THẮNG!" vẽ **sau** các điểm cầu thủ
+  - File: sửa `src/ui/components/San2D.tsx`
+  - Xong khi: trong SVG, quả bóng và kênh chữ của hiệu ứng nằm **sau** `cacDiem.map` theo thứ tự phần tử, nên không điểm người nào đè lên được ở **bất kỳ khung nào**; đo trên ứng dụng đang chạy: chỉ số thứ tự của bóng lớn hơn chỉ số của điểm người cuối cùng.
+    - *Tiêu chí này đã được sửa lúc làm, và đây là lần thứ năm cùng một thói xấu.* Bản đầu đòi "**0% số khung** có bóng bị che" — nhưng thứ đo được là "tâm bóng nằm trong lòng một điểm", mà điều ấy **vẫn xảy ra 33,8% số khung sau khi sửa** và đúng ra phải xảy ra: bóng ở trong chân một người thì nó phải chồng lên điểm của người ấy. Thứ phải đúng không phải là "không chồng" mà là "**vẽ sau cùng**", và nó đúng bằng **cấu trúc** chứ không theo tỉ lệ phần trăm.
+  - Bằng chứng: **số** (thứ tự phần tử trong DOM + tỉ lệ khung bị che).
+  - AC: AC-32.1
+  - Phụ thuộc: T513, T514
+
+- [x] **T521** — Thủ môn ở lại một phần ba sân của mình
+  - File: sửa `src/ui/components/San2D.tsx`, sửa `src/ui/san2D.test.ts`
+  - Xong khi: `hinhSan` kẹp toạ độ dọc của thủ môn vào **một phần ba sân đội anh ta**, kể cả khi anh ta là người tham gia tình huống ở vùng khác; thủ môn **không** nhận dịch co khối; phép kiểm mới chạy 10 mã trận × 7 quân số × mọi dòng; hai phép kiểm "số điểm" và "điểm không chồng khít" vẫn xanh; đo trên bản build: biên dọc của cả hai thủ môn **dưới một phần ba chiều dài sân** (trước khi sửa: 30,6 đơn vị, tới `x = 85,2` của thủ môn đội khách).
+  - Bằng chứng: **số**.
+  - AC: AC-30.7, AC-28.3
+  - Phụ thuộc: T510
+  - ⚠️ Đây là **ngoại lệ duy nhất** của AC-28.3, đã ghi thẳng vào spec mục 3. Không nới ngoại lệ ra cho vị trí nào khác.
+
+---
+
 ## Bảng phủ AC
 
 | AC | Task |
 |---|---|
 | AC-28.1 | T506, T507, T508, T518 |
 | AC-28.2 | T506, T507 |
-| AC-28.3 | T508, T510 |
+| AC-28.3 | T508, T510, T521 |
 | AC-28.4 | T506, T507, T518 |
 | AC-28.5 | T508 |
 | AC-29.1 | T501, T502, T518 |
@@ -234,6 +260,7 @@ xem được (hiến pháp P6), và là một commit.
 | AC-30.4 | T510, T518 |
 | AC-30.5 | T510 |
 | AC-30.6 | T512 |
+| AC-30.7 | T521 |
 | AC-31.1 | T509, T516 |
 | AC-31.2 | T516 |
 | AC-31.3 | T517 |
@@ -241,7 +268,7 @@ xem được (hiến pháp P6), và là một commit.
 | AC-31.5 | T500 |
 | AC-31.6 | T516 |
 | AC-31.7 | T508 |
-| AC-32.1 | T513, T516 |
+| AC-32.1 | T513, T516, T520 |
 | AC-32.2 | T513, T516 |
 | AC-32.3 | T513, T516 |
 | AC-32.4 | T514, T516 |
@@ -607,4 +634,45 @@ Claude **không được hợp thành ảnh**, nên `requestAnimationFrame` đư
 **Còn lại của Phase 42:** T518 — **người dùng tự xem một trận ở mức Chậm trên trình
 duyệt của mình và phán**. Không phép kiểm nào thay được, và đó là lý do cả spec này
 tồn tại. T519 (tick 30 AC, đóng spec) phụ thuộc T518.
+
+## Phase 43 — hai lỗi mắt người dùng bắt được, và một tiêu chí tôi viết sai lần nữa
+
+**Cả hai lỗi đều lọt qua mọi phép kiểm của sáu lát trước, và lý do thì giống nhau ở cả
+hai: phép kiểm của spec này đều đọc `hinhSan`, mà `hinhSan` không biết gì về thứ tự
+vẽ, cũng không biết vị trí nào là thủ môn.**
+
+**1. Bóng bị chìm (T520).** Trong SVG, vẽ sau là nằm trên. T513 vẽ bóng ngay sau
+đường bóng, tức **trước** 22 điểm cầu thủ — đo được **40,5% số khung** có tâm bóng
+nằm trong lòng một điểm, tức bị che hẳn. Phép kiểm "quả bóng luôn có mặt" của
+T513 vẫn xanh suốt vì nó kiểm `bongTaiMoc` — một **toạ độ**, không phải một thứ
+**nhìn thấy được**. Nay bóng và kênh chữ của hiệu ứng vẽ sau cùng.
+
+**2. Thủ môn lên giữa sân (T521).** Đo trước khi sửa: thủ môn đội khách chạy từ
+`x = 54,5` tới `85,2` (biên **30,6**), thủ môn đội nhà biên 11. Hai nguồn cộng lại:
+engine có lúc liệt kê thủ môn là người tham gia một tình huống ở xa khung thành
+(và AC-28.3 bắt đặt người tham gia vào đúng vùng ấy), cộng lớp co khối của T510.
+Luật mới đơn giản hơn mọi phương án kẹp: **thủ môn không bao giờ bị dịch đi đâu
+cả**, kể cả khi được liệt kê là người tham gia. Một cú cứu thùa vốn đã diễn ra ở
+vùng của anh ta nên không mất gì. Đo lại: biên dọc còn **1 đơn vị** (đội nhà) và
+**2 đơn vị** (đội khách).
+
+Hai phương án kẹp đã thử và bị loại — cả hai đều **kẹp toạ độ rồi để nguyên việc
+kéo**, và phép kiểm "điểm không chồng khít" của spec 002 đỏ ngay: kẹp dồn thủ môn về
+biên và đặt anh ta đè lên người khác (0,90 và 0,62 đơn vị trên bán kính 3,4). Để
+anh ta ở **đúng vùng của mình** thì không va ai, vì đó là chỗ đã được chứng minh là
+an toàn từ spec 002.
+
+**3. Tiêu chí "0% số khung có bóng bị che" của chính T520 là sai, lần thứ năm của
+cùng một thói xấu.** Sau khi sửa, tâm bóng **vẫn** nằm trong lòng một điểm ở
+**33,8% số khung** — và đúng ra phải thế: bóng trong chân một người thì phải chồng
+lên điểm của người ấy. Thứ phải đúng là "**vẽ sau cùng**", đo bằng **thứ tự phần tử
+trong DOM** (bóng ở chỉ số 24, điểm người cuối cùng ở 23), và nó đúng cho **mọi**
+khung chứ không theo tỉ lệ phần trăm.
+
+**Việc thứ ba người dùng nêu ở T518 KHÔNG làm ở đây.** "Cầu thủ có bóng chạy hoặc
+qua người với bóng trong chân, hoặc chuyền và sút; thấy đường bóng liên tục" cần
+một mô hình chuyển động **giữa hai mốc** mà engine không kể ra: ai đang giữ bóng,
+bóng đi theo ai, lúc nào rời chân. Đó cũng là nơi giải luôn điều người dùng gọi là
+"teleport" — đo được: quãng một người đi trong **một nhịp** có trung vị 3,9 đơn vị
+nhưng lớn nhất **46,3**, tức gần nửa sân trong một giây. Để cho **spec 006**.
 

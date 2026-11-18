@@ -4,7 +4,7 @@
 |---|---|
 | **ID** | `005-lifelike-pitch-motion` |
 | **Status** | Planned (2026-11-18) |
-| **Sửa đổi** | 2026-11-18 — thêm US-32 (quả bóng luôn hiện, hiệu ứng bàn thắng) sau khi plan đã Approved |
+| **Sửa đổi** | 2026-11-18 — thêm US-32 (quả bóng luôn hiện, hiệu ứng bàn thắng) sau khi plan đã Approved; 2026-11-18 — thêm AC-30.7 và siết AC-32.1 sau khi người dùng xem thật ở T518 |
 | **Created** | 2026-11-18 |
 | **Branch** | `005-lifelike-pitch-motion` |
 
@@ -95,7 +95,13 @@ nhảy**.
   > hình đổi, nên "không đứng im quá 300ms" **không đạt được** và cũng không
   > có nghĩa: một phút trận ở đó chỉ dài 20ms.
 - [ ] AC-28.2 — KHI một người không được tình huống nào nhắc tới trong nhiều phút liền THÌ điểm của anh ta VẪN PHẢI di chuyển quanh vị trí của mình, và PHẢI không rời khỏi vùng sân của vị trí ấy.
-- [ ] AC-28.3 — KHI một tình huống diễn ra ở một vùng THÌ đúng tại phút của tình huống đó, những người tham gia PHẢI có mặt trong vùng ấy; chuyển động lúc chờ KHÔNG được làm sai vùng.
+- [ ] AC-28.3 — KHI một tình huống diễn ra ở một vùng THÌ đúng tại phút của tình huống đó, những người tham gia PHẢI có mặt trong vùng ấy — **trừ thủ môn, xem AC-30.7**; chuyển động lúc chờ KHÔNG được làm sai vùng.
+
+  > *Ngoại lệ thủ môn thêm ngày 2026-11-18, sau khi người dùng xem thật (T518).*
+  > Đo được: thủ môn đội khách chạy từ `x = 54,5` tới `85,2` trong một trận, tức
+  > ra tới gần giữa sân, vì engine có lúc liệt kê anh ta là người tham gia một
+  > tình huống ở xa khung thành. Một thủ môn đứng giữa sân làm cả hình mất nghĩa,
+  > nên AC-30.7 đứng trên AC này khi hai bên đánh nhau.
 - [ ] AC-28.4 — KHI hai người đang đứng chờ gần nhau THÌ chuyển động chờ của họ PHẢI không trùng nhịp với nhau, để hai đội không "thở" đồng loạt như một khối máy.
 - [ ] AC-28.5 — KHI trận đang tạm dừng THÌ **mọi chuyển động PHẢI dừng hẳn**, kể cả dao động chờ: sân đóng băng để người dùng đọc được vị trí từng người trước khi quyết định thay người, và để chữ "tạm dừng" có đúng một nghĩa.
 
@@ -127,6 +133,7 @@ bị dịch chỗ**.
 - [ ] AC-30.4 — KHI bóng ở một phần sân THÌ cả khối đội hình PHẢI nghiêng nhẹ về phía ấy — khoảng **một phần mười chiều dài sân** — đủ để thấy đội đang dồn lên hay lùi về, mà sơ đồ đang dùng VẪN nhận ra được (4-4-2 vẫn ra 4-4-2).
 - [ ] AC-30.5 — KHI xem bất kỳ mười giây nào của một trận đang chạy THÌ KHÔNG điểm nào được ra ngoài vạch biên, và KHÔNG hai điểm nào được nằm khít lên nhau tới mức người xem chỉ thấy một.
 - [ ] AC-30.6 — KHI một cầu thủ đã xuống thể lực THÌ ở những nhịp còn dư thời gian, điểm của anh ta PHẢI **đi chậm thật**: tới đích muộn hơn một người cùng lúc còn sung sức, nhưng VẪN phải tới trước khi tình huống kế tiếp tới. Ở nhịp không đủ dư thời gian, độ chênh PHẢI vẫn nhận ra được bằng dáng chạy (xuất phát muộn hơn, đi phần lớn quãng đường sau).
+- [ ] AC-30.7 — KHI trận đang chạy THÌ điểm của **thủ môn** PHẢI luôn nằm trong **một phần ba sân của đội mình**, kể cả khi dòng tường thuật liệt kê anh ta là người tham gia một tình huống ở vùng khác, và kể cả khi cả khối đội hình đang co về phía bóng — thủ môn **không** co theo khối.
 
 ### US-31: Những lời hứa cũ không được rơi
 
@@ -157,7 +164,12 @@ quan trọng nhất của nó**.
 
 **Acceptance criteria:**
 
-- [ ] AC-32.1 — KHI trận đang chạy THÌ quả bóng PHẢI luôn có mặt trên sân, kể cả ở những phút mà dòng tường thuật không kể một pha bóng nào; KHÔNG lúc nào bóng được biến mất.
+- [ ] AC-32.1 — KHI trận đang chạy THÌ quả bóng PHẢI luôn có mặt trên sân, kể cả ở những phút mà dòng tường thuật không kể một pha bóng nào; KHÔNG lúc nào bóng được biến mất, **và cũng không được bị một điểm cầu thủ đè lên che mất**.
+
+  > *Mệnh đề sau thêm ngày 2026-11-18, sau khi người dùng xem thật (T518).* Bản đầu
+  > của T513 vẽ bóng **trước** các điểm người, mà trong SVG thì vẽ sau là nằm trên:
+  > đo được **40,5% số khung** có tâm bóng nằm trong lòng một điểm cầu thủ. "Có mặt"
+  > mà người xem không thấy thì không phải có mặt.
 - [ ] AC-32.2 — KHI dòng đang hiện là khai cuộc hay hết hiệp THÌ bóng PHẢI nằm ở điểm giao bóng giữa sân.
 - [ ] AC-32.3 — KHI dòng đang hiện không kể một pha bóng và cũng không phải khai cuộc hay hết hiệp (thay người, kiệt sức) THÌ bóng PHẢI giữ đúng chỗ nó được thấy lần cuối, KHÔNG nhảy về giữa sân.
 - [ ] AC-32.4 — KHI một bàn thắng được ghi THÌ sân PHẢI hiện một hiệu ứng gồm ba phần cùng lúc: một vòng sáng lan ra từ chỗ ghi bàn, điểm của người ghi bàn phóng to, và dòng chữ "BÀN THẮNG!"; dòng chữ ấy PHẢI có cả tiếng Việt và tiếng Anh.

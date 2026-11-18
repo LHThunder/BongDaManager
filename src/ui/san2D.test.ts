@@ -18,6 +18,7 @@ import { MS_MOI_PHUT } from '../hooks/useMatch'
 import { bienDoTuKhoangGian, lechDaoDong } from './daoDong'
 import {
   CAO,
+  daiThuMon,
   hinhSan,
   khungSan,
   KHUNG_SAN,
@@ -460,7 +461,16 @@ describe('khối đội hình co về phía bóng (AC-30.4, AC-28.3, T510)', () 
         if (!sk.vung || sk.cacCauThu.length === 0) continue
         const { cacDiem, khung } = veTu(tt, sk)
         const mong = toaDo(vungTrenSan(sk.vung, sk.doi), 0, khung)
-        const thamGia = cacDiem.filter((d) => sk.cacCauThu.includes(d.playerId))
+        /*
+          **Thủ môn bị loại khỏi phép kiểm này, và đó là một ngoại lệ đã ghi
+          thẳng vào spec mục 3** (AC-28.3 câu "trừ thủ môn", AC-30.7): engine có
+          lúc liệt kê thủ môn là người tham gia một tình huống ở xa khung thành,
+          mà một thủ môn đứng giữa sân thì làm cả hình mất nghĩa. Không nới
+          ngoại lệ này ra cho vị trí nào khác.
+        */
+        const thamGia = cacDiem.filter(
+          (d) => sk.cacCauThu.includes(d.playerId) && !d.laThuMon,
+        )
         if (thamGia.length === 0) continue
         soTinhHuong += 1
         for (const d of thamGia) {
@@ -604,5 +614,73 @@ describe('hàng ngang vẫn ra hàng ngang (AC-30.3, T511)', () => {
       vuot.length,
       'biên độ gấp ba phải phá ngưỡng ở rất nhiều thời điểm',
     ).toBeGreaterThan(CAC_THOI_DIEM.length / 4)
+  })
+})
+
+describe('thủ môn ở lại một phần ba sân của mình (AC-30.7, T521)', () => {
+  /*
+    Phép kiểm này sinh ra từ **mắt người dùng**, không từ một lập luận: xem thật
+    một trận ở T518 rồi nói "thủ môn di chuyển lên quá cao". Đo lại thì đúng: thủ
+    môn đội khách chạy từ `x = 54,5` tới `85,2` trong một trận.
+  */
+  it('mọi dòng của 10 mã trận × 7 quân số: thủ môn không rời một phần ba sân nhà', () => {
+    let soThuMon = 0
+    for (const ma of MA_TRAN_CO_DINH) {
+      for (const n of QUAN_SO_CHAY_DUOC) {
+        const tt = chayHetTran(tranMau(n, ma))
+        for (const sk of [null, ...dongSuKien(tt)]) {
+          const { cacDiem, khung } = veTu(tt, sk)
+          const tm = cacDiem.filter((d) => d.laThuMon)
+          expect(tm.length, `${ma} quân số ${n}`).toBeLessThanOrEqual(2)
+          for (const d of tm) {
+            soThuMon += 1
+            // Đội nhà ở nửa trái của khung, đội khách ở nửa phải.
+            const laNha = d.x < khung.rong / 2
+            const dai = daiThuMon(laNha, khung)
+            expect(
+              d.x,
+              `${ma} quân số ${n} phút ${sk?.phut ?? 0}: ${d.playerId} ở x=${d.x.toFixed(1)}, dải [${dai.tu.toFixed(1)}; ${dai.den.toFixed(1)}]`,
+            ).toBeGreaterThanOrEqual(dai.tu)
+            expect(d.x).toBeLessThanOrEqual(dai.den)
+          }
+        }
+      }
+    }
+    expect(soThuMon, 'số lượt thủ môn đã đo').toBeGreaterThan(1000)
+  })
+
+  it('thủ môn KHÔNG bị kéo tới vùng của tình huống, dù được liệt kê là người tham gia', () => {
+    const tt = chayHetTran(tranMau(11, MA_TRAN_CO_DINH[0]))
+    const dung = new Map(veTu(tt, null).cacDiem.map((d) => [d.playerId, d.x]))
+    let soLan = 0
+    for (const sk of dongSuKien(tt)) {
+      const { cacDiem } = veTu(tt, sk)
+      for (const d of cacDiem) {
+        if (!d.laThuMon || !sk.cacCauThu.includes(d.playerId)) continue
+        soLan += 1
+        expect(
+          d.x,
+          `phút ${sk.phut} (${sk.loai}): ${d.playerId} là người tham gia`,
+        ).toBeCloseTo(dung.get(d.playerId) ?? -1, 10)
+      }
+    }
+    // Nếu con số này về 0 thì phép kiểm trên không còn chứng minh gì.
+    expect(soLan, 'số lần thủ môn được liệt kê là người tham gia').toBeGreaterThan(5)
+  })
+
+  it('thủ môn KHÔNG co theo khối: bóng ở đâu cũng đứng một chỗ', () => {
+    const tt = chayHetTran(tranMau(11, MA_TRAN_CO_DINH[1]))
+    const dung = new Map(veTu(tt, null).cacDiem.map((d) => [d.playerId, d.x]))
+    const cac = dongSuKien(tt).filter((sk) => sk.vung)
+    expect(cac.length).toBeGreaterThan(10)
+    for (const sk of cac) {
+      for (const d of veTu(tt, sk).cacDiem) {
+        if (!d.laThuMon || sk.cacCauThu.includes(d.playerId)) continue
+        expect(d.x, `phút ${sk.phut} (${sk.loai})`).toBeCloseTo(
+          dung.get(d.playerId) ?? -1,
+          10,
+        )
+      }
+    }
   })
 })
