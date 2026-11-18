@@ -4,7 +4,7 @@
 |---|---|
 | **ID** | `005-lifelike-pitch-motion` |
 | **Status** | Planned (2026-11-18) |
-| **Sửa đổi** | 2026-11-18 — thêm US-32 (quả bóng luôn hiện, hiệu ứng bàn thắng) sau khi plan đã Approved; 2026-11-18 — thêm AC-30.7 và siết AC-32.1 sau khi người dùng xem thật ở T518; 2026-11-18 — thêm AC-30.8 và AC-32.8, cũng từ T518; 2026-11-18 — thêm AC-30.9 (bóng đi hết đường, bỏ đường kẻ) |
+| **Sửa đổi** | 2026-11-18 — thêm US-32 (quả bóng luôn hiện, hiệu ứng bàn thắng) sau khi plan đã Approved; 2026-11-18 — thêm AC-30.7 và siết AC-32.1 sau khi người dùng xem thật ở T518; 2026-11-18 — thêm AC-30.8 và AC-32.8, cũng từ T518; 2026-11-18 — thêm AC-30.9 (bóng đi hết đường, bỏ đường kẻ); 2026-11-18 — thêm AC-30.10 và AC-30.11 (tốc độ gần đều, không vòng rộng) |
 | **Created** | 2026-11-18 |
 | **Branch** | `005-lifelike-pitch-motion` |
 
@@ -136,6 +136,18 @@ bị dịch chỗ**.
 - [ ] AC-30.7 — KHI trận đang chạy THÌ điểm của **thủ môn** PHẢI luôn nằm trong **một phần ba sân của đội mình**, kể cả khi dòng tường thuật liệt kê anh ta là người tham gia một tình huống ở vùng khác, và kể cả khi cả khối đội hình đang co về phía bóng — thủ môn **không** co theo khối.
 - [ ] AC-30.8 — KHI hai đội đứng theo sơ đồ THÌ hàng phòng ngự của một đội PHẢI đứng **giữa tiền đạo đối phương và khung thành của mình**, không được đứng trước mặt họ; và bốn hàng của hai đội PHẢI xen kẽ nhau dọc sân theo đúng thứ tự bóng đá: thủ môn nhà → hậu vệ nhà → tiền đạo khách → tiền vệ nhà → tiền vệ khách → tiền đạo nhà → hậu vệ khách → thủ môn khách.
 - [ ] AC-30.9 — KHI một pha bóng đi qua nhiều vùng THÌ quả bóng PHẢI **đi hết đường ấy** — qua từng vùng theo đúng thứ tự, tốc độ đều — chứ KHÔNG được nhảy thẳng tới điểm cuối; và khi bóng đã đi đường của mình thì **KHÔNG cần vẽ đường kẻ chỉ hướng nữa**.
+- [ ] AC-30.10 — KHI nhiều điểm cùng di chuyển THÌ tốc độ của chúng PHẢI gần nhau: quãng dài hơn thì **đi lâu hơn**, không phải **đi nhanh hơn**. Trên dải quãng đường thật của một trận, tỉ lệ giữa tốc độ lớn nhất và nhỏ nhất PHẢI dưới **bốn lần**.
+
+  > *Thêm ngày 2026-11-18, sau khi người dùng xem thật (T518): "đôi khi quá nhanh
+  > đôi khi quá chậm".* Đo được trước khi sửa: mọi chặng dùng chung một thời
+  > lượng, nên tốc độ tỉ lệ **thẳng** với quãng phải đi — quãng trong một nhịp
+  > trải từ 2,3 tới 47,4 đơn vị, tức chênh nhau hơn **hai mươi lần**.
+
+- [ ] AC-30.11 — KHI một điểm vừa đi một chặng dài rồi phải đi một chặng ngắn THÌ nó PHẢI giảm tốc, chứ đường cong KHÔNG được phồng ra thành một vòng rộng: đường đi thật của một điểm trong một nhịp KHÔNG được dài hơn đường chim bay quá **năm lần**.
+
+  > *Cũng từ T518.* Đo được trước khi sửa: có chặng đi **3,9 đơn vị** theo đường
+  > chim bay nhưng điểm chạy hết **37,2 đơn vị** — gấp **9,57 lần**. Điểm không bay
+  > tới đích, nó bay một vòng.
 
   > *Thêm ngày 2026-11-18, sau khi người dùng xem thật (T518): "tôi muốn bóng di
   > chuyển tự nhiên hơn, không cần hiện đường màu vàng cũng được."* Đường kẻ

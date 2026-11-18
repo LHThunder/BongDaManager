@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | 30 AC (US-28 → US-32), 11 quyết định D89–D100 |
-| **Tiến độ** | 23/25 |
+| **Tiến độ** | 25/27 |
 | **Sửa đổi** | 2026-11-18 — chẻ lần đầu từ plan |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -273,6 +273,24 @@ xem được (hiến pháp P6), và là một commit.
 
 ---
 
+## Phase 46 — Lát 46: Tốc độ gần đều, và hết vòng rộng
+
+- [x] **T525** — Quãng dài thì đi lâu hơn, không đi nhanh hơn
+  - File: sửa `src/ui/noiSuy.ts`, sửa `src/ui/noiSuy.test.ts`, sửa `src/ui/components/San2D.tsx`
+  - Xong khi: thời lượng một chặng nhân thêm hệ số `(quãng / quãng chuẩn) ^ 0,75`, chặn trong `[0,12; 1]`; tỉ lệ tốc độ trên dải quãng thật **dưới 4 lần**; không chặng nào vượt một nhịp ở cả bốn mức; hai nhánh thể lực của D93 vẫn còn tiếng nói.
+  - Bằng chứng: **số**.
+  - AC: AC-30.10
+  - Phụ thuộc: T512
+
+- [x] **T526** — Tiếp tuyến vào bị chặn theo dây cung của chính chặng ấy
+  - File: sửa `src/ui/noiSuy.ts`, sửa `src/ui/noiSuy.test.ts`
+  - Xong khi: `huongVao` lớn hơn dây cung bị thu về đúng một dây cung, **giữ nguyên hướng**; độ vòng đo trên ứng dụng (đường đi thật chia đường chim bay) lớn nhất **dưới 5** (trước: 9,57); phép kiểm "tốc độ tại mốc không về 0" được **sửa mốc so** sang tốc độ đã chặn, không bỏ.
+  - Bằng chứng: **số**.
+  - AC: AC-30.11, AC-30.1
+  - Phụ thuộc: T503
+
+---
+
 ## Bảng phủ AC
 
 | AC | Task |
@@ -296,6 +314,8 @@ xem được (hiến pháp P6), và là một commit.
 | AC-30.7 | T521 |
 | AC-30.8 | T523 |
 | AC-30.9 | T524 |
+| AC-30.10 | T525 |
+| AC-30.11 | T526 |
 | AC-31.1 | T509, T516 |
 | AC-31.2 | T516 |
 | AC-31.3 | T517 |
@@ -790,4 +810,46 @@ nên nó nằm yên. Một quả bóng thật không nằm yên ba giây giữa 
 điều đó là **mô hình người giữ bóng** — bóng dính chân người dẫn, qua người,
 rời chân khi chuyền hay sút — và đó là **spec 006**, không phải một hằng số của spec
 này.
+
+## Phase 46 — hai nguồn của cảm giác "teleport", đo được cả hai
+
+Người dùng nói ở T518: "đôi khi quá nhanh đôi khi quá chậm, cầu thủ như đang
+teleport". Đo ra **hai nguồn khác nhau**, và chỉ một trong hai là thứ tôi đoán:
+
+**1. Tốc độ tỉ lệ THỬNG với quãng phải đi (T525).** Mọi chặng dùng chung một thời
+lượng, mà quãng một người đi trong một nhịp trải từ **2,3 đến 47,4 đơn vị** —
+chênh nhau hơn hai mươi lần. Nên cùng một lúc, người này nhích vài đơn vị còn
+người kia băng nửa sân. Sửa bằng luật `thời lượng ∝ quãng ^ 0,75`, nên
+`tốc độ ∝ quãng ^ 0,25`: quãng chênh 20 lần thì tốc độ chỉ chênh **dưới 4 lần**.
+
+**2. Đường cong phồng thành vòng rộng (T526) — cái này tôi không đoán ra, phải đo
+mới thấy.** `huongVao` là vận tốc của chặng **trước**; chặng trước dài mà chặng này
+ngắn thì tiếp tuyến lớn hơn dây cung và đường Hermite phồng ra. Đo trên ứng dụng:
+có chặng **đường chim bay 3,9 đơn vị mà điểm chạy hết 37,2** — gấp 9,57 lần. Điểm
+không bay tới đích, nó bay một vòng. Và T525 **làm nặng thêm** nguồn này trước khi
+T526 chữa: chặng ngắn đi nhanh hơn → vận tốc ra lớn hơn → tiếp tuyến của chặng
+sau lại lớn hơn nữa. Đó là lý do đo lại ngay sau T525 thấy **xấu đi**, và là lý do
+phải làm cả hai.
+
+**Số đo** (mức Chậm, ~1150 mẫu mỗi lượt, độ vòng = đường đi thật / đường chim bay):
+
+| | trước | sau |
+|---|---|---|
+| độ vòng trung vị | 1,74 | **1,53** |
+| độ vòng phân vị 90 | 2,65 | **2,46** |
+| độ vòng lớn nhất | 9,57 | **4,12** |
+| bước mỗi khung > 3 đơn vị | — | 54 trên ~25.000 mẫu, và hai cái lớn nhất là do **máy lấy mẫu trễ** (dt = 51ms), không phải ứng dụng nhảy |
+
+**Một phép đo phải bỏ đi, lần thứ sáu của cùng một thói xấu.** Tôi định dùng "tỉ lệ
+giữa phân vị 99 và phân vị 10 của tốc độ tức thời" làm thước. Nó vô dụng ở đây vì
+hai lẽ: phân vị thấp chính là **dao động chờ** chứ không phải một cú di chuyển; và
+khi máy lấy mẫu cách nhau 4ms thì một bước vẽ bình thường cho ra "1149 đơn
+vị/giây". Thước dùng được là **độ vòng** và **phân bố bước mỗi khung**, vì cả hai
+không phụ thuộc nhịp lấy mẫu.
+
+**Vẫn còn, và vẫn là spec 006:** engine chỉ cho **một mốc mỗi phút trận**. Trong một
+nhịp, hoặc mọi người dùng chung thời lượng (tốc độ khác nhau) hoặc chung tốc độ
+(người xong sớm đứng chờ). T525 chọn điểm giữa, nhưng không xóa được cái gốc: muốn
+mọi điểm luôn di chuyển có mục đích thì phải có **mốc trung gian giữa hai phút**, tức
+mô hình người giữ bóng của spec 006.
 

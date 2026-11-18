@@ -6,8 +6,11 @@ import {
   doMetTuTheLuc,
   huongRaKhoiMoc,
   MU_KIET_SUC,
+  heSoTheoQuang,
   NHIP_CO_DU,
   noiSuyCong,
+  PHAN_NHIP_TOI_THIEU,
+  QUANG_CHUAN,
   PHAN_NHIP_KIET_SUC,
   PHAN_NHIP_SUNG_SUC,
   thoiLuongCuaNguoi,
@@ -185,12 +188,21 @@ describe('đường đi mềm và nằm trong khung sân (AC-25.1)', () => {
       { x: 0.5, y: 0 },
     ]) {
       /*
-        Chuẩn hoá theo ĐỘ LỚN CỦA TỐC ĐỘ VÀO, không theo dây cung của chặng
-        này: tốc độ vào là của **chặng trước**, và nó hoàn toàn có thể nhỏ hơn
-        hay lớn hơn dây cung hiện tại. Lần đầu viết phép kiểm này tôi chia cho
-        dây cung và nó đỏ oan ở tiếp tuyến (5, 40).
+        Chuẩn hoá theo tốc độ vào **đã bị chặn theo dây cung** (T525).
+
+        Tốc độ vào là của **chặng trước** và có thể nhỏ hay lớn hơn dây cung
+        hiện tại — lần đầu viết phép kiểm này tôi chia cho dây cung và nó đỏ
+        oan ở tiếp tuyến (5, 40). Nhưng từ T525, tiếp tuyến **lớn hơn dây cung**
+        bị chặn lại đúng một dây cung: một người đang chạy nhanh mà chỉ cần xê
+        dịch hai bước thì phải giảm tốc. Điều phép kiểm này giữ vẫn nguyên —
+        **tốc độ tại mốc không về 0** — chỉ là mốc so bây giờ phải là tốc độ **đã
+        chặn**, nếu không thì nó đòi một điều chính lớp này cố ý không làm nữa.
       */
-      const tocDoVao = Math.hypot(huongVao.x, huongVao.y)
+      const dayCung = Math.hypot(den.x - tu.x, den.y - tu.y)
+      const tocDoVao = Math.min(
+        Math.hypot(huongVao.x, huongVao.y),
+        dayCung,
+      )
       for (const doMet of [0, 0.5, 1]) {
         const p = viTriTaiThoiDiem(tu, den, eps, { huongVao, doMet })
         const diDuoc = Math.hypot(p.x - tu.x, p.y - tu.y)
@@ -458,6 +470,74 @@ describe('không điểm nào bị GIẬT khi tình huống kế tiếp tới (A
       expect(Number.isFinite(p.x) && Number.isFinite(p.y), `b${i}`).toBe(true)
       expect(p.x >= KHUNG.xTu && p.x <= KHUNG.xDen, `b${i} x=${p.x}`).toBe(true)
       expect(p.y >= KHUNG.yTu && p.y <= KHUNG.yDen, `b${i} y=${p.y}`).toBe(true)
+    }
+  })
+})
+
+describe('quãng dài thì ĐI LÂU HƠN, không phải đi NHANH HƠN (AC-30.10, T525)', () => {
+  /*
+    Người dùng nói ở T518: "đôi khi quá nhanh đôi khi quá chậm, cầu thủ như đang
+    teleport". Đo trên ứng dụng ở mức Chậm, tốc độ tức thời của các điểm đang đi:
+    phân vị 10 là **4,2** đơn vị/giây, phân vị 99 là **162,5** — chên nhau **38,7 lần**.
+    Nguyên nhân: mọi chặng dùng cùng một thời lượng, nên tốc độ tỉ lệ THỬNG với
+    quãng phải đi.
+  */
+  /** Quãng thật đo được trên ứng dụng: trung vị 2,3 — phân vị 90 là 9,2 — lớn nhất 47,4. */
+  const CAC_QUANG = [2.3, 4, 9.2, 16, 25, 36, 47.4]
+
+  function tocDo(quang: number, doMet = 0): number {
+    const thoiLuong = thoiLuongCuaNguoi(1000, 900, doMet, quang, QUANG_CHUAN)
+    return quang / (thoiLuong / 1000)
+  }
+
+  it('dải tốc độ bó lại dưới BỐN lần, thay vì hơn hai mươi lần', () => {
+    const cac = CAC_QUANG.map((q) => tocDo(q))
+    const ti = Math.max(...cac) / Math.min(...cac)
+    expect(ti, `tốc độ: ${cac.map((v) => v.toFixed(1)).join(', ')}`).toBeLessThan(4)
+
+    // Và đây là thứ nó thay: cùng thời lượng thì tỉ lệ chính là tỉ lệ quãng.
+    const tiCu = Math.max(...CAC_QUANG) / Math.min(...CAC_QUANG)
+    expect(tiCu).toBeGreaterThan(20)
+  })
+
+  it('quãng dài hơn thì thời lượng dài hơn, không nhảy cóc', () => {
+    const cac = CAC_QUANG.map((q) => thoiLuongCuaNguoi(1000, 900, 0, q, QUANG_CHUAN))
+    for (let i = 1; i < cac.length; i += 1) {
+      expect(cac[i] as number, `quãng ${CAC_QUANG[i]}`).toBeGreaterThanOrEqual(
+        cac[i - 1] as number,
+      )
+    }
+  })
+
+  it('không chặng nào vượt một nhịp, cũng không chặng nào ngắn tới mức không thấy', () => {
+    for (const [muc, ms] of Object.entries(MS_MOI_PHUT)) {
+      const chung = thoiGianChuyen(ms)
+      if (chung === 0) continue
+      for (const q of [0.01, ...CAC_QUANG, 500]) {
+        for (const met of [0, 1]) {
+          const t = thoiLuongCuaNguoi(ms, chung, met, q, QUANG_CHUAN)
+          expect(t, `mức ${muc}, quãng ${q}, mệt ${met}`).toBeLessThanOrEqual(ms)
+          expect(t).toBeGreaterThan(0)
+        }
+      }
+    }
+  })
+
+  it('hệ số nằm trong dải đã chốt, với mọi đầu vào kể cả đầu vào vô lý', () => {
+    for (const q of [-5, 0, 0.001, 1, 40, 1000, Number.NaN]) {
+      const h = heSoTheoQuang(q, QUANG_CHUAN)
+      expect(h, `quãng ${q}`).toBeGreaterThanOrEqual(PHAN_NHIP_TOI_THIEU)
+      expect(h).toBeLessThanOrEqual(1)
+    }
+    expect(heSoTheoQuang(QUANG_CHUAN, QUANG_CHUAN)).toBe(1)
+    expect(heSoTheoQuang(10, 0)).toBe(PHAN_NHIP_TOI_THIEU)
+  })
+
+  it('thể lực vẫn còn tiếng nói: cùng quãng thì kiệt sức đi lâu hơn (D93)', () => {
+    for (const q of CAC_QUANG) {
+      const kho = thoiLuongCuaNguoi(1000, 900, 0, q, QUANG_CHUAN)
+      const kiet = thoiLuongCuaNguoi(1000, 900, 1, q, QUANG_CHUAN)
+      expect(kiet, `quãng ${q}`).toBeGreaterThan(kho)
     }
   })
 })

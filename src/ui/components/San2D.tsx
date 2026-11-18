@@ -10,6 +10,7 @@ import { bienDoTuKhoangGian, lechDaoDong } from '../daoDong'
 import {
   doMetTuTheLuc,
   huongRaKhoiMoc,
+  QUANG_CHUAN,
   thoiLuongCuaNguoi,
   viTriTaiThoiDiem,
   type Diem,
@@ -941,7 +942,19 @@ export function San2D(props: Props) {
         tu: tuDau,
         den: { x: d.x, y: d.y },
         huongVao: vanTocCuaChang(truoc, troi, met, gioiHan),
-        thoiLuong: thoiLuongCuaNguoi(msMoiPhut, msChuyen, met),
+        /*
+          Thời lượng còn phụ thuộc **quãng phải đi** (T525, AC-30.10): quãng dài
+          thì đi lâu hơn chứ không đi nhanh hơn. Trước T525 mọi chặng cùng một
+          thời lượng, nên tốc độ tỉ lệ thẳng với quãng và dải tốc độ trên sân rộng
+          tới **38,7 lần** (đo ở mức Chậm, phân vị 99 so với phân vị 10).
+        */
+        thoiLuong: thoiLuongCuaNguoi(
+          msMoiPhut,
+          msChuyen,
+          met,
+          Math.hypot(d.x - tuDau.x, d.y - tuDau.y),
+          QUANG_CHUAN * tiLe,
+        ),
       })
     }
 
