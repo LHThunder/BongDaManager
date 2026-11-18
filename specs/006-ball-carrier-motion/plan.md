@@ -89,10 +89,10 @@ engine (KHÔNG đổi hành vi)
 
 | # | Quyết định | Phương án đã chọn | Phương án loại bỏ | Lý do |
 |---|---|---|---|---|
-| **D101** | Hình dạng của dữ liệu loại bước | **Trường MỚI `cacBuocBong: readonly BuocBong[]`** với `BuocBong = { vung: VungSan; loai: LoaiHanhDong \| null }`. `duongBong` **giữ nguyên** | (a) Đổi kiểu phần tử của `duongBong`; (b) một mảng loại song song | (a) phá mọi chỗ đang đọc `duongBong` — `San2D.tsx` bốn chỗ, và mọi bản ghi trận đã lưu; (b) hai mảng chỉ khớp nhau bằng chỉ số là chỗ dễ lệch nhất. `loai` để `null` ở **phần tử cuối** khi nó là `vungKetThuc` được nối thêm — chuỗi mất bóng / phạm lỗi / ra ngoài return **trước** khi push hành động, nên phần tử cuối ấy không có hành động nào |
+| **D101** | Hình dạng của dữ liệu loại bước | **Trường MỚI, KHAI TUẾ CHỌN: `cacBuocBong?: readonly BuocBong[]`** với `BuocBong = { vung: VungSan; loai: LoaiHanhDong \| null }`. `duongBong` **giữ nguyên** | (a) Đổi kiểu phần tử của `duongBong`; (b) một mảng loại song song | (a) phá mọi chỗ đang đọc `duongBong` — `San2D.tsx` bốn chỗ, và mọi bản ghi trận đã lưu; (b) hai mảng chỉ khớp nhau bằng chỉ số là chỗ dễ lệch nhất. **Tuỳ chọn chứ không bắt buộc**, vì bản ghi trận cũ trong IndexedDB **thiếu** trường này: kiểu phải nói thật điều ấy để giao diện **buộc phải gác** (D110). Phụ phẩm kiểm được: ba chỗ dựng `SuKien` bằng tay trong `suKien.test.ts` và `tuongThuat.test.ts` **không cần sửa**. `loai` để `null` ở **phần tử cuối** khi nó là `vungKetThuc` được nối thêm — chuỗi mất bóng / phạm lỗi / ra ngoài return **trước** khi push hành động, nên phần tử cuối ấy không có hành động nào |
 | **D102** | Lớp pha bóng sống ở đâu | **Module thuần mới `src/ui/phaBong.ts`**, nhận (sự kiện, kết quả `hinhSan`, nhịp) và trả một **dòng thời gian**; `San2D` chỉ đọc | (a) Nhét vào `hinhSan`; (b) nhét vào `noiSuy.ts` | (a) `hinhSan` trả **một bộ toạ độ**, và chín phép kiểm thuần đang đọc đúng hình dạng ấy — đổi nó thành dòng thời gian là viết lại cả lưới; (b) phá bất biến "tỉ lệ 0 và 1 trả đúng mốc" của `noiSuy.ts`, thứ đang giữ AC-28.3 và AC-25.2 của spec 004. Tách riêng còn cho tắt độc lập ở mức Rất nhanh và khi giảm chuyển động |
 | **D103** | Ai giữ bóng | **Quy tắc tất định theo loại sự kiện**, bảng ở mục 3.1 | Chọn người gần bóng nhất | Người gần nhất đổi theo từng nhịp nên quyền giữ bóng nhảy lung tung — đúng thứ spec này sinh ra để chữa. Quy tắc theo loại sự kiện đọc được từ `cacCauThu`, mà thứ tự của nó do `nguoiThamGiaTinhHuong` quy định rõ |
-| **D104** | Bóng đi theo người hay người đi theo bóng | **Trong một đoạn `re-bong`, người giữ bóng đi theo ĐƯỜNG CỦA BÓNG**; ở các đoạn khác, bóng tự bay còn người đi chặng của mình | Bóng bám chân người (bóng là hàm của người) | Bóng bám chân thì nó không bao giờ đi hết đường chuyền — mất đúng thứ T524 vừa làm được. Chiều ngược lại giữ cả hai: bóng đi đường thật, người dẫn bóng bám nó |
+| **D104** | Bóng đi theo người hay người đi theo bóng | **Trong một đoạn `re-bong`, người giữ bóng đi theo ĐƯỜNG CỦA BÓNG**; ở các đoạn khác, bóng tự bay còn người đi chặng của mình. **Khi nhịp KHÔNG có pha bóng nào** (`thay-nguoi`, `kiet-suc`, hay dòng có `duongBong` rỗng), bóng **bám chân người giữ bóng**, kể cả lớp dao động của anh ta — bóng đứng im cả nhịp chính là nguồn của con số **3144ms** mà spec này sinh ra để chữa (phát hiện số 2 của `/analyze`) | Bóng bám chân người (bóng là hàm của người) | Bóng bám chân thì nó không bao giờ đi hết đường chuyền — mất đúng thứ T524 vừa làm được. Chiều ngược lại giữ cả hai: bóng đi đường thật, người dẫn bóng bám nó |
 | **D105** | Người giữ bóng về mốc của mình thế nào | **Đoạn cuối của anh ta là một đường thẳng từ chỗ rời bóng về đúng mốc `hinhSan`** của chính anh ta | Để anh ta đứng lại chỗ bóng | Bất biến "tại tỉ lệ 1, mọi điểm ở đúng mốc" là thứ giữ AC-28.3; phá nó là phá cả lưới của spec 004 và 005 |
 | **D106** | Hai nhóm di chuyển khác nhau | **Mở rộng `nghiengKhoiTheoBong` thêm một tham số vai trò**: đồng đội của người giữ bóng được kéo thêm về phía khung thành đối phương, đối phương được kéo thêm về phía bóng. **Tổng mọi lực kéo vẫn bị chặn ở một phần mười chiều dài sân** (AC-30.4 của spec 005) | Một lớp "di chuyển không bóng" riêng | Đã có sẵn một lớp làm đúng việc ấy với một biên đã chứng minh; thêm lớp thứ hai là thêm một nguồn dịch chuyển nữa mà trật tự tám hàng (AC-30.8) phải chịu |
 | **D107** | Mức tốc độ thứ năm | Thêm `rat-cham: 2000` vào `MS_MOI_PHUT`, xếp **đầu** `CAC_MUC_TOC_DO`; **mặc định giữ `cham`** | Đổi mặc định sang mức mới | Mặc định `cham` là quyết định D97 của spec 005, người dùng đã xem và nói "vừa"; đổi mặc định là đổi một thứ đã được phán |
@@ -100,6 +100,7 @@ engine (KHÔNG đổi hành vi)
 | **D109** | Đi vòng qua đối thủ | **Hàm thuần trong `phaBong.ts`**: nếu một điểm đối phương nằm trong hành lang quanh đoạn đang rê, đường của người dẫn bóng **lệch sang bên** một lượng bị chặn ở **một nửa khoảng cách hai hàng** | Né bằng cách đổi mốc đến | Đổi mốc là đổi chỗ đứng tại mốc — phá AC-28.3. Lệch có biên giữ được cả AC-30.5 lẫn AC-30.8 |
 | **D110** | Trận lưu từ trước | **Thiếu `cacBuocBong` → rơi về cách vẽ của spec 005**: bóng đi hết `duongBong`, không dẫn bóng, không vòng sáng | Đoán loại bước từ vùng | Đoán sẽ cho trận cũ xem ra một pha **khác** với thứ engine đã kể lúc chạy thật. Người dùng đã chốt: xem như bây giờ |
 | **D111** | Mức Rất nhanh và giảm chuyển động | **Tắt cả lớp pha bóng**, dùng lại đúng điều kiện `msChuyen <= 0` và `giamChuyenDong` đã có | Giữ một dạng rút gọn | Ở nhịp 20ms không có gì đọc được bằng mắt; thêm một nhánh là thêm một chỗ phải test cho một mức dùng để tua |
+| **D112** | Ai nhận một đường chuyền (mục 3.2) | **Đồng đội đứng gần vùng đích của bước ấy nhất**, hòa thì lấy `playerId` nhỏ hơn | (a) Giữ nguyên người giữ bóng tới mốc cuối; (b) rút thêm dữ liệu từ engine | (a) là bản đầu của plan này, và nó **tự vô hiệu hoá AC-35.2** — `/analyze` bắt đúng chỗ ấy; (b) phải rút thêm số ngẫu nhiên, tức **đổi kết quả trận** — ranh giới người dùng vừa vạch. Luật suy là tất định, hợp lý theo hình, và không đổi một con số nào |
 
 ### 3.1 Quy tắc "ai đang giữ bóng" (D103)
 
@@ -116,10 +117,25 @@ engine (KHÔNG đổi hành vi)
 | `the-vang`, `the-do`, `thay-nguoi`, `kiet-suc` | người liên quan, **không phải pha bóng** | **giữ nguyên người cũ** (đã chốt ở `/clarify`) |
 | `bat-dau`, `het-hiep` | không ai | không ai; bóng ở điểm giao bóng |
 
+### 3.2 Ai nhận một đường chuyền (D112)
+
 Trong **một** pha bóng, quyền giữ bóng đi theo các bước: một đoạn `chuyen` hay
-`tat-canh` chuyển bóng sang người nhận — mà engine **không** nói người nhận là ai, nên
-giao diện giữ nguyên người giữ bóng cho tới mốc cuối, rồi áp bảng trên. Đây là chỗ
-"suy ở tầng giao diện" mà người dùng đã chấp nhận ở câu hỏi 1.
+`tat-canh` chuyển bóng sang **người nhận**, mà engine không nói người nhận là ai.
+
+**Luật suy (D112):** người nhận là **đồng đội đứng gần vùng đích của bước ấy nhất**,
+theo toạ độ `hinhSan` của chính nhịp đó, trừ chính người vừa chuyền; hòa thì lấy
+`playerId` nhỏ hơn để luật **tất định**. Bước cuối cùng của pha không áp luật này:
+người giữ bóng sau cùng do **bảng 3.1** quyết, vì đó là thứ engine có nói.
+
+Đây đúng là loại "suy ở tầng giao diện" mà người dùng đã chấp nhận ở câu hỏi 1 của
+`/clarify`, và **giá của nó phải nói thật**: người nhận là một **suy diễn**, không phải
+một sự thật của trận — engine chưa bao giờ tính ra anh ta. Nó tất định, nó hợp lý theo
+hình, và nó **không đổi một con số nào** của trận. Không được viết vào dòng tường
+thuật, không được vào thống kê, không được lưu xuống đĩa.
+
+*(Phát hiện số 1 của `/analyze` ngày 2026-11-19: bản đầu của mục này viết "giữ nguyên
+người giữ bóng cho tới mốc cuối", tức AC-35.2 không bao giờ đạt — một AC đã hứa mà
+plan tự vô hiệu hoá.)*
 
 ## 4. Mô hình dữ liệu
 
@@ -152,7 +168,7 @@ SuKien {
 |---|---|
 | AC-33.1 | `dongThoiGianPhaBong` gán người giữ bóng cho từng đoạn; lớp vẽ đặt bóng cách tâm người ấy dưới một bán kính |
 | AC-33.2 | D104: trong đoạn `re-bong`, người và bóng dùng **chung một đường** |
-| AC-33.3 | Mỗi bước của pha bóng là một đoạn nên bóng luôn có đoạn để đi; đo lại như T513 |
+| AC-33.3 | Mỗi bước của pha bóng là một đoạn; **và ở nhịp không có pha bóng, bóng bám chân người giữ bóng kể cả lớp dao động** (D104) — đó mới là chỗ sinh ra 3144ms |
 | AC-33.4 | D108 — vòng nét đứt, kèm chuỗi cho trình đọc màn hình (P8) |
 | AC-33.5 | `nguoiGiuBong` trả `null` ở `bat-dau` / `het-hiep` / sau bàn thắng; lớp vẽ vẫn vẽ bóng |
 | AC-33.6 | D107 — mức `rat-cham: 2000` |
@@ -161,7 +177,7 @@ SuKien {
 | AC-34.3 | `phaBong.ts` là hàm thuần của (sự kiện, nhịp, tỉ lệ) — không `Math.random`, không `performance.now()` |
 | AC-34.4 | `tuongThichV5.test.ts` **không sửa, chỉ chạy**: so từng ký tự mọi dòng tường thuật; cộng `PHIEN_BAN_ENGINE === 5` |
 | AC-35.1, AC-35.4 | `thoiLuongDoan`: đoạn `chuyen`/`sut` dùng `msChuyen / 3` như D95 của spec 005; đoạn `re-bong` dùng thời lượng của **người**, nên chênh đúng ba lần |
-| AC-35.2 | Đoạn `chuyen` kết thúc ở vùng của bước kế tiếp; người giữ bóng đổi **đúng lúc** đoạn ấy xong |
+| AC-35.2 | **D112** (luật suy người nhận, mục 3.2) + đoạn `chuyen` kết thúc ở vùng của bước kế tiếp; người giữ bóng đổi **đúng lúc** đoạn ấy xong |
 | AC-35.3 | Bước `sut` có `vung` là vùng dứt điểm; đích là khung thành của đội bị sút, lấy từ `vungKetThuc` |
 | AC-35.5 | `thoiLuongDoan` + đích đến; **không** thêm hình vẽ nào |
 | AC-36.1 | D106 — mọi người không bóng đều nhận một lực kéo khác 0 khi bóng đổi vùng |
@@ -177,6 +193,10 @@ SuKien {
   không vượt một nhịp; thiếu `cacBuocBong` thì trả đúng **một** đoạn (D110); hàm thuần
   — thay `Math.random` và `Date.now` thành hàm ném lỗi rồi gọi; `lechTranhNguoi` có
   biên với mọi đầu vào kể cả `NaN`.
+- **Unit — `phaBong.test.ts`, AC dạng so sánh (hiến pháp P5):** `thoiLuongDoan` với
+  **cùng một quãng đường** phải cho đoạn `chuyen`/`sut` nhanh hơn đoạn `re-bong`
+  **ít nhất ba lần**, ở cả năm mức tốc độ. P5 bắt buộc AC so sánh có test tự động,
+  không được chỉ đo trên bản build (phát hiện số 5 của `/analyze`).
 - **Unit — `san2D.test.ts` (sửa):** ba phép kiểm bất biến chạy lại nguyên trạng; thêm
   phép kiểm "bóng cách người giữ bóng dưới một bán kính" trên 10 mã trận.
 - **Unit — `noiSuy.test.ts` (sửa):** mức thứ năm tự động vào ba phép kiểm duyệt

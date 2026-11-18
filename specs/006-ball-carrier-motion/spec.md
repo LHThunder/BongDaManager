@@ -135,6 +135,13 @@ sút và một pha dẫn bóng**, để **tôi đọc được trận mà không
 
 - [ ] AC-35.1 — KHI bóng rời chân (chuyền hoặc sút) THÌ nó PHẢI đi **nhanh hơn người giữ bóng ít nhất ba lần**, nên nó tới đích hẳn trước những cầu thủ đang chạy cùng hướng.
 - [ ] AC-35.2 — KHI một đường chuyền tới một đồng đội THÌ bóng PHẢI tới **đúng chân** người nhận (trong một bán kính điểm), và người ấy PHẢI trở thành người giữ bóng **ngay khi bóng tới**, không sớm hơn.
+
+  > *Làm rõ ngày 2026-11-19 sau `/analyze`, phát hiện số 1.* Engine **không nói ai
+  > nhận** một đường chuyền — nó chỉ kể bước ấy là một đường chuyền và đi tới vùng
+  > nào. "Người nhận" ở AC này vì thế là một **suy diễn của lớp vẽ** (quyết định
+  > D112: đồng đội đứng gần vùng đích nhất), đúng loại suy diễn người dùng đã chấp
+  > nhận ở câu hỏi 1 của `/clarify`. Nó tất định và **không đổi một con số nào** của
+  > trận; nó không được vào dòng tường thuật hay thống kê.
 - [ ] AC-35.3 — KHI dòng tường thuật kể một cú sút THÌ bóng PHẢI đi **về phía khung thành của đội bị sút**, và kết thúc ở nơi dòng ấy kể (vào lưới, ra ngoài, hay thủ môn cản).
 - [ ] AC-35.4 — KHI đặt một pha dẫn bóng cạnh một đường chuyền cùng quãng đường THÌ **thời gian đi phải khác nhau ít nhất ba lần**, tức người xem đọc ra được hai thứ khác nhau mà không cần chữ.
 - [ ] AC-35.5 — KHI vẽ một đường chuyền và một cú sút THÌ hai thứ chỉ được khác nhau ở **tốc độ và đích đến**: sút nhanh hơn chuyền và đi về khung thành, chuyền tới chân đồng đội. KHÔNG thêm vệt sáng, không đổi độ cong, không thêm hình vẽ nào khác.

@@ -52,8 +52,9 @@ là một commit.
   - Phụ thuộc: T600
 
 - [ ] **T602** — Lớp vẽ dùng dòng thời gian: chuyền và sút vụt đi, rê bóng thì không
-  - File: sửa `src/ui/components/San2D.tsx`, sửa `src/ui/san2D.test.ts`
-  - Xong khi: đoạn `chuyen` / `tat-canh` / `sut` dùng thời lượng `msChuyen / BONG_NHANH_GAP` như D95; đoạn `re-bong` dùng thời lượng **của người**; đo trên bản build: hai đoạn **cùng quãng đường** chênh nhau **ít nhất ba lần** về thời gian; cú sút kết thúc ở vùng dứt điểm của dòng; ba phép kiểm bất biến vẫn xanh.
+  - File: sửa `src/ui/components/San2D.tsx`, sửa `src/ui/san2D.test.ts`, sửa `src/ui/phaBong.test.ts`
+  - Xong khi: đoạn `chuyen` / `tat-canh` / `sut` dùng thời lượng `msChuyen / BONG_NHANH_GAP` như D95; đoạn `re-bong` dùng thời lượng **của người**; cú sút kết thúc ở vùng dứt điểm của dòng; ba phép kiểm bất biến vẫn xanh.
+  - Xong khi (hiến pháp P5, phát hiện số 5 của `/analyze`): **phép kiểm thuần** cho `thoiLuongDoan` — cùng một quãng đường thì đoạn `chuyen`/`sut` nhanh hơn đoạn `re-bong` **ít nhất ba lần**, ở **cả năm mức tốc độ**. AC-35.1 và AC-35.4 là AC dạng so sánh nên **không được chỉ đo trên bản build**; con số đo trên build là bằng chứng thứ hai, không phải thứ nhất.
   - Bằng chứng: **số** cho tỉ lệ ba lần; **mắt** cho "nhìn ra đó là một đường chuyền".
   - AC: AC-35.1, AC-35.3, AC-35.4, AC-35.5
   - Phụ thuộc: T601
@@ -65,6 +66,8 @@ là một commit.
 - [ ] **T603** — `nguoiGiuBong`: quy tắc tất định theo từng loại sự kiện
   - File: sửa `src/ui/phaBong.ts`, sửa `src/ui/phaBong.test.ts`
   - Xong khi: hàm trả người giữ bóng theo **đúng bảng 3.1 của plan**, và phép kiểm phủ **từng** `LoaiSuKien` trong mười bốn loại — kể cả ba loại trả `null` (`bat-dau`, `het-hiep`, sau `ban-thang`) và hai loại lấy **phần tử thứ hai** (`cuu-thua` lấy thủ môn, `mat-bong` lấy người cướp được).
+  - Xong khi (D112, phát hiện số 1 của `/analyze`): `nguoiNhanChuyen` trả **đồng đội đứng gần vùng đích của bước nhất**, trừ chính người vừa chuyền; hòa thì lấy `playerId` nhỏ hơn nên luật **tất định**; phép kiểm: gọi hai lần trên cùng một đầu vào ra cùng một người, và người ấy **luôn thuộc đội đang cầm bóng**.
+  - ⚠️ **Người nhận là một SUY DIỄN, không phải sự thật của trận** — engine chưa bao giờ tính ra anh ta. Nó được phép tồn tại **chỉ trong lớp vẽ**: không được vào dòng tường thuật, không vào thống kê, không lưu xuống đĩa.
   - Bằng chứng: **số**.
   - AC: AC-33.5, AC-35.2
   - Phụ thuộc: T601
@@ -80,6 +83,9 @@ là một commit.
 - [ ] **T605** — Bóng dính chân, và vòng nét đứt quanh người giữ bóng
   - File: sửa `src/ui/components/San2D.tsx`, sửa `src/ui/ngonNgu/vi.ts`, sửa `src/ui/ngonNgu/en.ts`, sửa `src/ui/san2D.test.ts`
   - Xong khi: khi bóng không đang bay, nó cách tâm người giữ bóng **dưới một bán kính điểm**, đo trên 10 mã trận; vòng **nét đứt** quanh người ấy, bán kính lớn hơn viền "tham gia tình huống" nên không lẫn, tương phản với mặt cỏ **≥ 4,5:1** ở cả hai chế độ màu; chuỗi cho trình đọc màn hình đủ Việt–Anh (P8); ba phép kiểm bất biến vẫn xanh.
+  - Xong khi (phát hiện số 2 của `/analyze`): ở nhịp **không có pha bóng nào** (`thay-nguoi`, `kiet-suc`, dòng có đường bóng rỗng), bóng **bám chân người giữ bóng kể cả lớp dao động** của anh ta — nếu không thì bóng đứng im cả nhịp, đúng nguồn của **3144ms** mà spec này sinh ra để chữa.
+  - Xong khi (R45 của spec 005, phát hiện số 4 của `/analyze`): bán kính vòng bị chặn dưới **sàn đã đo 1,80 bán kính** (khoảng cách gần nhất giữa hai điểm, đo trên 10 mã trận × 7 quân số sau T523), và phép kiểm "điểm không chồng khít" chạy **ở trạng thái đang có vòng**.
+  - ⚠️ Spec 005 mắc đúng lỗi "phì to một điểm mà không đặt biên" **hai lần** ở R45. Một vòng quanh điểm cũng là phì to dấu chân của nó.
   - Bằng chứng: **số** cho khoảng cách và tương phản; **mắt** cho "không lẫn với dấu ▲".
   - AC: AC-33.1, AC-33.4, AC-33.5
   - Phụ thuộc: T603
@@ -91,6 +97,7 @@ là một commit.
 - [ ] **T606** — Người giữ bóng đi theo đường của bóng, rồi về mốc của mình
   - File: sửa `src/ui/phaBong.ts`, sửa `src/ui/components/San2D.tsx`, sửa `src/ui/phaBong.test.ts`
   - Xong khi: trong một đoạn `re-bong`, người giữ bóng và quả bóng dùng **chung một đường** (D104); đoạn cuối của anh ta là **một đường thẳng về đúng mốc `hinhSan`** của chính anh ta (D105); đo trên bản build: khoảng cách người–bóng trong suốt đoạn rê luôn dưới một bán kính.
+  - Xong khi (AC-35.2, D112): khi một đoạn `chuyen` kết thúc, bóng ở **trong một bán kính** quanh người nhận đã suy ra, và quyền giữ bóng chuyển sang anh ta **đúng lúc ấy** — không sớm hơn một khung nào; đo bằng chính dòng thời gian, không đo bằng mắt.
   - Bằng chứng: **số**.
   - AC: AC-33.2, AC-34.1, AC-35.2
   - Phụ thuộc: T605
@@ -106,6 +113,7 @@ là một commit.
 - [ ] **T608** — Đo: quả bóng không còn đứng yên
   - File: — *(đo trên bản build)*
   - Xong khi: một trận trọn vẹn ở mức Chậm, quả bóng **không đứng yên quá 300ms** liên tục (trước spec này đo được **3144ms**, và tỉ lệ khung có bóng di chuyển là 35,5%); ghi cả hai con số mới vào mô tả commit.
+  - Xong khi (phát hiện số 2 của `/analyze`): đo **riêng một phút `kiet-suc`** và **một phút `thay-nguoi`** — hai loại dòng không mang pha bóng nào, và là chỗ con số 3144ms sinh ra. Đo trung bình cả trận sẽ giấu đúng hai phút ấy.
   - Bằng chứng: **số**.
   - AC: AC-33.3
   - Phụ thuộc: T606
