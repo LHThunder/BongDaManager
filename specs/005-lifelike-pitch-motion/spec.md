@@ -230,10 +230,14 @@ xem mục 11.
 
 ## 9. Giả định
 
-- **Vị trí tại mốc do lớp hiện có quyết định, và spec này không đổi cách tính
-  ấy.** Spec này chỉ thêm chuyển động *giữa* các mốc và *quanh* một mốc. Nếu
-  lúc lập plan thấy buộc phải đổi cách tính vị trí tại mốc thì đó là một spec
-  khác, phải dừng và hỏi.
+- **Vị trí tại mốc do lớp hiện có quyết định, và spec này chỉ đổi nó ở MỘT
+  chỗ đã được duyệt.** Ban đầu giả định này ghi là spec này **không** đổi cách
+  tính vị trí tại mốc, và dặn rằng gặp chỗ buộc phải đổi thì **dừng và hỏi**.
+  Lúc lập plan đã gặp: AC-30.4 (khối đội hình nghiêng theo bóng) không làm được
+  mà không dịch chỗ đứng. Đã hỏi ngày **2026-11-18** và được duyệt (quyết định
+  **D94** ở `plan.md`), kèm ba ràng buộc: chỉ dịch người **không tham gia** tình
+  huống, biên **một phần mười chiều dài sân**, và vẫn kỉp vào mặt cỏ. Mọi việc
+  khác của spec này vẫn chỉ là chuyển động *giữa* các mốc và *quanh* một mốc.
 - **Chuyển động không cần lưu.** Nó suy lại được từ dòng sự kiện đã lưu, nên
   định dạng bản ghi và tệp sao lưu không đổi.
 - **"Tự nhiên" chỉ người dùng phán được.** Phiên làm việc của trợ lý không vẽ
@@ -278,6 +282,7 @@ Toàn bộ 11 câu hỏi mở đã chốt ngày **2026-11-18**, qua ba lượt h
 | 9 | AC-25.3 của spec 004 xử lý thế nào? | **Thay thế hẳn** bằng "không điểm nào bị giật khi tình huống kế tiếp tới" — giữ ý định thật, bỏ cách diễn đạt đã lạc hậu. Spec 004 KHÔNG bị sửa ngược | mục 10, AC-29.3, AC-30.1 |
 | 10 | "Đứng im quá lâu" là bao lâu? | **300ms** thời gian thực | mục 6, AC-28.1, AC-29.1 |
 | 11 | Hàng ngang lệch bao nhiêu vẫn là ngang hàng? | **Một phần tư** khoảng cách giữa hai người trong hàng | AC-30.3 |
+| 12 | *(hỏi lúc lập plan)* Nghiêng khối theo bóng buộc đổi cách tính vị trí tại mốc — đúng chỗ giả định mục 9 dặn phải dừng và hỏi. Làm đường nào? | **Làm trong lớp quyết định chỗ đứng**, chỉ dịch người không tham gia tình huống, có biên và vẫn kỉp vào mặt cỏ. Hai đường bị loại: lớp lệch chỉ-để-vẽ (chỗ vẽ khác chỗ phép kiểm đang dùng), và bỏ AC-30.4 | mục 9, D94 |
 
 **Ghi chú về câu 2.** Đây là quyết định đổi trải nghiệm mặc định của cả ứng
 dụng: xem một trận từ 18 giây thành ~1,5 phút. Nó đúng với yêu cầu "giống một

@@ -3,15 +3,15 @@
 | | |
 |---|---|
 | **Spec** | `./spec.md` |
-| **Status** | Reviewed — chờ MỘT xác nhận (xem D94) |
+| **Status** | Approved (2026-11-18) |
 | **Updated** | 2026-11-18 |
 
 > Tài liệu này mô tả **HOW**. Không thêm yêu cầu mới — nếu cần thì quay lại sửa `spec.md`.
 
-> **Một quyết định phải hỏi trước khi `/tasks`:** D94. Mục 9 của spec ghi "nếu
-> lúc lập plan thấy buộc phải đổi cách tính vị trí tại mốc thì đó là một spec
-> khác, phải dừng và hỏi" — và AC-30.4 (khối đội hình nghiêng theo bóng) đúng
-> là như vậy. Bảy quyết định còn lại không phụ thuộc câu trả lời ấy.
+> **D94 đã hỏi và đã chốt ngày 2026-11-18.** Mục 9 của spec dặn phải dừng và
+> hỏi trước khi đổi cách tính vị trí tại mốc, và AC-30.4 buộc đổi đúng chỗ
+> ấy. Người dùng chọn **làm trong `hinhSan`** — xem mục 10. Giả định ở mục 9
+> của spec đã được sửa theo, không sửa ngược những gì đã đóng.
 
 ## 1. Kiểm tra hiến pháp (Constitution check)
 
@@ -92,7 +92,7 @@ AC-25.2 của spec 004) vẫn đúng sau khi sân "luôn luôn động".
 | **D91** | Thời lượng một cú di chuyển | Bỏ trần cứng: `thoiGianChuyen = round(msMoiPhut × 0,9)`, và trả **0** khi nhịp dưới 40ms | Giữ `min(280, ms × 0,9)` | Ở nhịp 1000ms, trần 280 cho 280ms đi + **720ms đứng im** — đúng cái bẫy spec mục 1 đã ghi. Trần ấy sinh ra để chữa lỗi "đặt cứng 280ms dài hơn khoảng cách hai mốc" (chú thích `San2D.tsx:277`); công thức theo tỉ lệ **không bao giờ** vượt nhịp nên lý do tồn tại của trần đã hết. 10% chừa lại ở nhịp 1000ms là 100ms — dưới ngưỡng đứng im 300ms, và lớp dao động phủ nốt |
 | **D92** | Bỏ cú phanh ở mốc (AC-30.1) | Thời gian **đi đều** (bỏ smoothstep cho cầu thủ), còn độ mềm của đường đi vẫn do Hermite lo; tiếp tuyến vào mốc được chuẩn theo **tốc độ của chặng trước** nên tốc độ liên tục qua mốc. Chỉ làm mượt lúc **xuất phát từ trạng thái đứng yên** (chặng đầu, vừa mở sân, vừa hết tạm dừng) | (a) Giữ smoothstep; (b) spline Catmull-Rom đi qua ba mốc liên tiếp | (a) smoothstep có vận tốc 0 ở **cả hai** đầu — chính cú phanh AC-30.1 cấm; (b) spline cần biết mốc **kế tiếp**, mà engine chỉ tiết lộ tình huống sau khi nó xảy ra. Không có lookahead, nên tính liên tục chỉ làm được theo chiều **nhìn về sau** — đúng việc tham số `huongVao` của `noiSuyCong` đang làm |
 | **D93** | Hai chế độ thể lực (AC-30.6) | Nhịp **≥ 500ms** là "có dư": người sung sức dùng 75% nhịp, người kiệt sức tới 95% → chênh ~25%, mắt đọc được. Nhịp < 500ms giữ đúng **D88**: cùng thời lượng, khác dáng | Áp một chế độ cho mọi nhịp | Ở nhịp 70ms, 75% so với 95% là chênh 14ms — không ai thấy, mà rủi ro điểm còn bay dở khi nhịp sau tới thì tăng. Ở nhịp 20ms thì vô nghĩa hoàn toàn. Hai chế độ là cái giá của việc mở lại D88, và phép kiểm của D88 **sửa chứ không bỏ**: nó vẫn là lưới duy nhất bắt lỗi "kéo dài thời lượng ở nhịp không có dư" |
-| **D94** | Nghiêng khối theo bóng và giữ hàng ngang làm ở đâu | **Trong `hinhSan`**, và chỉ dịch những người **KHÔNG tham gia** tình huống. ⚠️ **Chờ xác nhận** — xem mục 10 | (a) Lớp lệch chỉ-để-vẽ, không đụng `hinhSan`; (b) bỏ AC-30.4 khỏi spec | Chỗ đứng tại mốc đúng nghĩa là việc của `hinhSan`: làm ngoài nó thì chỗ VẼ khác chỗ mà phép kiểm "điểm không chồng khít" (`san2D.test.ts:155`) và mô tả cho trình đọc màn hình đang dùng — hai điểm có thể chồng nhau mà không test nào thấy. Chỉ dịch người không tham gia là thứ giữ AC-28.3 đúng tuyệt đối: người tham gia vẫn được đặt thẳng vào vùng của tình huống. **Nhưng** mục 9 của spec dặn phải hỏi trước khi đổi cách tính toạ độ tại mốc |
+| **D94** | Nghiêng khối theo bóng và giữ hàng ngang làm ở đâu | **Trong `hinhSan`** (chốt ngày 2026-11-18 sau khi hỏi), và chỉ dịch những người **KHÔNG tham gia** tình huống | (a) Lớp lệch chỉ-để-vẽ, không đụng `hinhSan`; (b) bỏ AC-30.4 khỏi spec | Chỗ đứng tại mốc đúng nghĩa là việc của `hinhSan`: làm ngoài nó thì chỗ VẼ khác chỗ mà phép kiểm "điểm không chồng khít" (`san2D.test.ts:155`) và mô tả cho trình đọc màn hình đang dùng — hai điểm có thể chồng nhau mà không test nào thấy. Chỉ dịch người không tham gia là thứ giữ AC-28.3 đúng tuyệt đối: người tham gia vẫn được đặt thẳng vào vùng của tình huống. **Nhưng** mục 9 của spec dặn phải hỏi trước khi đổi cách tính toạ độ tại mốc |
 | **D95** | Bóng (AC-30.2) | Bóng có chặng riêng: **đường thẳng**, thời lượng `msChuyen / 3` | Giữ nguyên (bóng nhảy tức thì); hoặc cho bóng đi đường cong như người | Hiện bóng được vẽ thẳng bằng `cx`/`cy` tại toạ độ thô (`San2D.tsx:621`) nên nó **nhảy** — không đạt AC-30.2. Một đường chuyền không cong như một người chạy, nên Hermite ở đây là sai về chất |
 | **D96** | Vòng khung hình (AC-28.1, AC-28.5, AC-31.7) | **Tách hai việc:** một effect khoá theo `khoaMoc` dựng dữ liệu chặng (như hiện nay), một effect khác giữ vòng `requestAnimationFrame` **chạy liên tục** khi trận đang chạy, khoá theo `[dangChay, giamChuyenDong]` | Một effect làm cả hai như hiện nay | Vòng hiện tại thoát khi hết `msChuyen`, nên không thể "luôn luôn động". Tách ra thì giữ nguyên tính chất quý nhất của code cũ: vẽ lại vì đổi ngôn ngữ hay đổi màu **không** làm các điểm chạy lại từ đầu, vì dữ liệu chặng chỉ dựng lại khi toạ độ đích đổi. Tạm dừng là `dangChay = false` → vòng tắt, sân đóng băng |
 | **D97** | Mức tốc độ mới | Thêm `cham: 1000` vào `MS_MOI_PHUT`, xếp đầu `CAC_MUC_TOC_DO`, và `useState<MucTocDo>('cham')` làm mặc định. Mức `rat-nhanh` thôi nội suy nhờ `thoiGianChuyen` trả 0 (D91) | Thêm nhãn riêng cho "tắt nội suy" | Đường `msChuyen <= 0` **đã có** trong `San2D.tsx:523` và nghĩa của nó đúng là "vẽ một lần, không nội suy". Tái dùng nó thì không thêm nhánh nào, và lớp dao động cũng tắt theo cùng điều kiện — ở nhịp 20ms các điểm vốn đã đổi chỗ mỗi 20ms nên dao động thêm là vô nghĩa |
@@ -134,7 +134,7 @@ nay, nên việc đổi mặc định sang "Chậm" không cần migration và k
 | AC-30.1 không phanh ở mốc | D92 |
 | AC-30.2 bóng thẳng, nhanh ~3 lần | D95 |
 | AC-30.3 hàng ngang giữ ngang hàng | **Phần lớn đã đúng sẵn**: người cùng một hàng có cùng `dai` nên cùng toạ độ ngang. Việc của plan là **giữ** nó đúng sau khi thêm hai lớp kia: biên độ dao động và độ nghiêng khối phải bị chặn trong một phần tư khoảng giãn. Test: một hàng bốn, chạy qua nhiều thời điểm, độ lệch luôn dưới ngưỡng |
-| AC-30.4 khối nghiêng theo bóng ~1/10 chiều dài sân | D94 ⚠️ |
+| AC-30.4 khối nghiêng theo bóng ~1/10 chiều dài sân | D94 |
 | AC-30.5 không ra ngoài biên, không chồng khít | `gioiHan` đã kẹp (`San2D.tsx:463`) + `lechTrongVung` đã giãn + biên độ dao động bị chặn dưới khoảng giãn |
 | AC-30.6 kiệt sức đi chậm thật khi nhịp có dư | D93 |
 | AC-31.1 giảm chuyển động tắt cả hai lớp | `useGiamChuyenDong` đã có, thêm một điều kiện cho lớp dao động |
@@ -210,7 +210,7 @@ không tự nhiên"), nên nếu chỉ làm tới đó rồi dừng thì vẫn �
    liên tục; tạm dừng đóng băng; giảm chuyển động tắt cả hai lớp; hai prop mới
    xuống `San2D`. (AC-28.1 → AC-28.5, AC-31.1, AC-31.7)
 4. **Phase 40 — Đội hình có tổ chức.** Nghiêng khối theo bóng và giữ hàng ngang
-   (chờ D94); hai chế độ thể lực. (AC-30.3, AC-30.4, AC-30.6)
+   (D94); hai chế độ thể lực. (AC-30.3, AC-30.4, AC-30.6)
 5. **Phase 41 — Kiểm tay, đo ngân sách, đóng spec.** Bốn tổ hợp; một lượt giảm
    chuyển động; đo hai ngân sách ở bốn mức tốc độ; người dùng xem và phán;
    tick 23 AC. (AC-31.2 → AC-31.4, AC-31.6)
@@ -220,7 +220,7 @@ không tự nhiên"), nên nếu chỉ làm tới đó rồi dừng thì vẫn �
 mặt AC nhưng cùng chạm `San2D.tsx`. Chuỗi phụ thuộc dài nhất là 37 → 38 → 39 →
 40 → 41, tức năm mắt — ngắn hơn spec 004.
 
-## 10. Câu phải hỏi trước khi `/tasks` (D94)
+## 10. D94 — đã hỏi, đã chốt
 
 Mục 9 của spec ghi: *"Vị trí tại mốc do lớp hiện có quyết định, và spec này
 không đổi cách tính ấy… Nếu lúc lập plan thấy buộc phải đổi cách tính vị trí tại
@@ -228,9 +228,10 @@ mốc thì đó là một spec khác, phải dừng và hỏi."*
 
 AC-30.4 (khối đội hình nghiêng theo bóng) **buộc phải đổi đúng chỗ ấy**: nghiêng
 khối nghĩa là người không tham gia tình huống đứng lệch đi so với chỗ `hinhSan`
-đang tính. Ba đường:
+đang tính. Đã hỏi ngày **2026-11-18**; người dùng chọn **đường (a)**. Ba đường
+đã cân:
 
-- **(a) Làm trong `hinhSan`** — khuyến nghị. Chỗ đứng tại mốc là việc của nó;
+- **(a) Làm trong `hinhSan`** — **ĐÃ CHỌN** (cũng là khuyến nghị). Chỗ đứng tại mốc là việc của nó;
   phép kiểm "điểm không chồng khít" và mô tả cho trình đọc màn hình đều đọc từ
   đó, nên làm ở đây thì không có chỗ nào nói khác chỗ nào. Cái giá: giả định ở
   mục 9 của spec phải sửa một câu, và `san2D.test.ts` cần thêm phép kiểm rằng
@@ -242,5 +243,9 @@ khối nghĩa là người không tham gia tình huống đứng lệch đi so v
 - **(c) Bỏ AC-30.4** khỏi spec 005, làm 22 AC còn lại. Cái giá: mất một trong
   những thứ làm sân trông "có tổ chức", và phải sửa `spec.md` trước khi `/tasks`.
 
-Bảy quyết định còn lại (D89 → D93, D95 → D97) **không phụ thuộc** câu trả lời
-này, nên lát 37 → 39 làm được ngay dù chưa chốt.
+**Hệ quả của việc chọn (a), ghi ra để lát 40 không phải đoán lại:** giả định
+ở mục 9 của `spec.md` đã được sửa một câu (ghi trong nhật ký làm rõ, dòng 12);
+`hinhSan` được phép dịch chỗ đứng, nhưng **chỉ của người không tham gia tình
+huống**, **có biên một phần mười chiều dài sân**, và vẫn đi qua phép kẹp vào
+mặt cỏ đã có. `san2D.test.ts` phải thêm một phép kiểm rằng nghiêng khối không
+đẩy ai ra khỏi vùng của mình — đó là lưới giữ AC-28.3 và AC-30.5.
