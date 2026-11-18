@@ -5,6 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Status** | Approved (2026-11-18) |
 | **Updated** | 2026-11-18 |
+| **Sửa đổi** | 2026-11-18 — spec thêm US-32 (quả bóng luôn hiện, hiệu ứng bàn thắng) → thêm **D98–D100**, thêm lát 41, lát đóng spec thành 42 |
 
 > Tài liệu này mô tả **HOW**. Không thêm yêu cầu mới — nếu cần thì quay lại sửa `spec.md`.
 
@@ -17,7 +18,7 @@
 
 | Nguyên tắc | Tuân thủ? | Ghi chú |
 |---|---|---|
-| P1 Giả lập tái lập được | ✅ | Không chạm `src/engine/`. Lớp chuyển động không gọi `Math.random`: dao động chờ là hàm thuần của `(playerId, thời điểm trận)` — xem **D90**. Cùng một trận xem lại ở cùng nhịp cho cùng chuyển động |
+| P1 Giả lập tái lập được | ✅ | Nhịp lặng sau bàn thắng (D100) đổi **nhịp đồng hồ thật**, không đổi thứ tự hay số lượng phút engine bước qua, nên kết quả trận không đổi một dòng. Không chạm `src/engine/`. Lớp chuyển động không gọi `Math.random`: dao động chờ là hàm thuần của `(playerId, thời điểm trận)` — xem **D90**. Cùng một trận xem lại ở cùng nhịp cho cùng chuyển động |
 | P2 Luật bóng đá tách khỏi giao diện | ✅ (có lập luận, xem dưới) | Nghiêng khối và giữ hàng ngang là **trình bày**, không phải luật |
 | P3 Dữ liệu người dùng bất khả xâm phạm | ✅ | Không ghi gì. Mức tốc độ không được lưu xuống đĩa (nó là `useState` trong `useMatch`), nên đổi mặc định không cần migration |
 | P4 Offline, không gọi mạng | ✅ | Không thêm phụ thuộc nào; SVG viết tay như cũ |
@@ -57,7 +58,10 @@ từ spec 002 và chưa ai coi là vi phạm P2.
   - `src/ui/pages/TrangTran.tsx` — truyền hai prop mới xuống `San2D`. **Đây là
     nơi DUY NHẤT dựng `<San2D>`** (đã grep: `TrangLichSu` không vẽ sân), nên
     đường dẫn trạng thái chỉ phải nối một chỗ.
-  - `src/ui/ngonNgu/vi.ts`, `src/ui/ngonNgu/en.ts` — khối `TRAN_DAU.tocDo`.
+  - `src/ui/ngonNgu/vi.ts`, `src/ui/ngonNgu/en.ts` — khối `TRAN_DAU.tocDo`, và
+    một chuỗi mới cho hiệu ứng bàn thắng (US-32).
+  - `src/hooks/useMatch.ts` — thêm nhịp lặng sau bàn thắng trong vòng đồng hồ
+    (US-32). Đây là lần duy nhất spec này chạm vào vòng đồng hồ.
 - **KHÔNG chạm:** `src/engine/`, `src/domain/`, `src/storage/`, `src/services/`.
 
 ## 3. Kiến trúc giải pháp
@@ -96,6 +100,10 @@ AC-25.2 của spec 004) vẫn đúng sau khi sân "luôn luôn động".
 | **D95** | Bóng (AC-30.2) | Bóng có chặng riêng: **đường thẳng**, thời lượng `msChuyen / 3` | Giữ nguyên (bóng nhảy tức thì); hoặc cho bóng đi đường cong như người | Hiện bóng được vẽ thẳng bằng `cx`/`cy` tại toạ độ thô (`San2D.tsx:621`) nên nó **nhảy** — không đạt AC-30.2. Một đường chuyền không cong như một người chạy, nên Hermite ở đây là sai về chất |
 | **D96** | Vòng khung hình (AC-28.1, AC-28.5, AC-31.7) | **Tách hai việc:** một effect khoá theo `khoaMoc` dựng dữ liệu chặng (như hiện nay), một effect khác giữ vòng `requestAnimationFrame` **chạy liên tục** khi trận đang chạy, khoá theo `[dangChay, giamChuyenDong]` | Một effect làm cả hai như hiện nay | Vòng hiện tại thoát khi hết `msChuyen`, nên không thể "luôn luôn động". Tách ra thì giữ nguyên tính chất quý nhất của code cũ: vẽ lại vì đổi ngôn ngữ hay đổi màu **không** làm các điểm chạy lại từ đầu, vì dữ liệu chặng chỉ dựng lại khi toạ độ đích đổi. Tạm dừng là `dangChay = false` → vòng tắt, sân đóng băng |
 | **D97** | Mức tốc độ mới | Thêm `cham: 1000` vào `MS_MOI_PHUT`, xếp đầu `CAC_MUC_TOC_DO`, và `useState<MucTocDo>('cham')` làm mặc định. Mức `rat-nhanh` thôi nội suy nhờ `thoiGianChuyen` trả 0 (D91) | Thêm nhãn riêng cho "tắt nội suy" | Đường `msChuyen <= 0` **đã có** trong `San2D.tsx:523` và nghĩa của nó đúng là "vẽ một lần, không nội suy". Tái dùng nó thì không thêm nhánh nào, và lớp dao động cũng tắt theo cùng điều kiện — ở nhịp 20ms các điểm vốn đã đổi chỗ mỗi 20ms nên dao động thêm là vô nghĩa |
+
+| **D98** | Quả bóng luôn có mặt (AC-32.1 → AC-32.3) | Bóng có **chỗ riêng được nhớ lại**: dòng mang đường bóng thì lấy điểm cuối của đường ấy; dòng khai cuộc / hết hiệp đưa bóng về điểm giao bóng; dòng còn lại (thay người, kiệt sức) **giữ chỗ cũ** | (a) Luôn giữ chỗ cuối; (b) để nguyên như hiện tại | Hiện bóng chỉ được vẽ khi dòng đang hiện có đường bóng, mà `thay-nguoi`, `kiet-suc`, khai cuộc và hết hiệp đều truyền đường bóng rỗng — nên bóng biến mất ở những dòng ấy, kể cả 5 dòng kiệt sức một trận. (a) đơn giản hơn nhưng để bóng nằm lệch lúc khai cuộc, mà điểm giao bóng là thứ người xem biết trước |
+| **D99** | Hiệu ứng bàn thắng (AC-32.4, AC-32.6) | Vẽ trong `San2D` bằng SVG sẵn có: một vòng tròn bán kính lớn dần từ chỗ ghi bàn, điểm người ghi bàn tăng bán kính, và một dòng chữ trên mặt sân. Nhận ra bàn thắng từ `loai === 'ban-thang'` của dòng đang hiện; chỗ ghi bàn từ `vung`, người ghi từ phần tử đầu của `cacCauThu`. Giảm chuyển động → **chỉ còn chữ** | (a) Một lớp HTML phủ lên sân; (b) rung khung sân | (a) phải tự định vị theo pixel, trong khi SVG đã có đúng hệ toạ độ của sân và đã co theo quân số; (b) bị loại từ lúc hỏi — dễ gây chóng mặt. Chữ là kênh thứ hai, nên P9 đạt bằng cấu trúc chứ không bằng cẩn thận |
+| **D100** | Nhịp lặng 1,5 giây sau bàn thắng (AC-32.5) | **Kéo dài riêng nhịp kế tiếp** của vòng đồng hồ trong `useMatch`: phút vừa mô phỏng có bàn thắng thì hẹn giờ cho phút sau dài thêm ~1500ms. **KHÔNG** đổi `dangChay` | (a) Gọi `tamDung()` rồi `tiepTuc()` sau 1,5 giây | (a) làm nút Tạm dừng / Tiếp tục đổi trạng thái ngay trước mắt người dùng — đúng điều AC-32.5 cấm. Kéo dài một nhịp thì trạng thái "đang chạy" không đổi một giây nào, nên AC-32.5 đạt bằng cấu trúc. Nhịp lặng không phụ thuộc việc sân đang hiện hay ẩn: dòng tường thuật và tỉ số cũng cần một nhịp để đọc, và gắn nó vào một công tắc hiển thị là buộc vòng đồng hồ biết một việc nó không nên biết |
 
 ## 4. Mô hình dữ liệu
 
@@ -143,6 +151,13 @@ nay, nên việc đổi mặc định sang "Chậm" không cần migration và k
 | AC-31.4 mỗi khung gọn trong một nhịp ở MỌI mức | Lát 41 đo; nền đã có từ Phase 35 spec 004 |
 | AC-31.5 nhãn mức mới hai thứ tiếng, đi được bằng bàn phím | D97 + `fieldset` radio sẵn có |
 | AC-31.6 kiệt sức vẫn có nhãn chữ | Không chạm dòng tường thuật |
+| AC-32.1 bóng luôn có mặt | D98 |
+| AC-32.2 khai cuộc / hết hiệp: bóng ở giữa sân | D98, phân loại theo `loai` của dòng đang hiện |
+| AC-32.3 dòng khác: bóng giữ chỗ cũ | D98, chỗ cuối giữ trong một ref |
+| AC-32.4 ba phần của hiệu ứng + chữ hai thứ tiếng | D99 |
+| AC-32.5 nhịp lặng 1,5 giây, không đổi nghĩa nút Tạm dừng | D100 |
+| AC-32.6 giảm chuyển động thì chỉ còn chữ, đồng hồ vẫn lặng | D99 + D100 (nhịp lặng không phải chuyển động nên không tắt theo) |
+| AC-32.7 tạm dừng / hết trận bóng vẫn có mặt | D98 độc lập với vòng khung hình của D96 |
 | AC-31.7 ẩn/hiện sân không chạy lại chặng cũ | D96: lúc dựng lại, `dang.current` rỗng nên chặng mới bắt đầu từ chính toạ độ mốc hiện tại |
 
 ## 7. Chiến lược kiểm thử
@@ -188,6 +203,8 @@ và câu "giống một trận thật" thì phải mắt người dùng.
 | **R41** Vòng chạy liên tục ở nhịp 1000ms: một chặng dài gấp 5 lần nên số khung mỗi chặng tăng ~5 lần, và duty cycle lên 100% | Thấp | TB | Công việc **mỗi khung** không đổi (cùng 22 điểm, cùng phép tính), nên tổng việc mỗi giây xấp xỉ như cũ — nhịp dài hơn thì ít chặng hơn. Nền đo được: ≤0,3ms mỗi khung ở Thường. AC-31.4 bắt đo lại ở cả bốn mức |
 | **R42** Ai đó "dọn" đường `msChuyen <= 0` ở mức Rất nhanh vì tưởng là code chết | Thấp | Thấp | Chú thích tại chỗ + phép kiểm `thoiGianChuyen(20) === 0` |
 | **R43** `MucTocDo` thêm một giá trị làm vỡ một `Record` nào chưa thấy | Thấp | Thấp | Đây là lỗi biên dịch, không phải lỗi chạy: `tsc --noEmit` bắt hết trước khi commit |
+| **R44** Người dùng tưởng nhịp lặng 1,5 giây là ứng dụng treo | TB | Thấp | Hiệu ứng chạy trong đúng nhịp ấy nên có thứ để nhìn; D100 không đổi `dangChay` nên nút và chữ trên nút không nhấp nháy. Khi ẩn sân thì vẫn có dòng tường thuật mới để đọc |
+| **R45** Điểm người ghi bàn phóng to rồi chồng lên điểm bên cạnh — phá AC-30.5 | TB | Thấp | Bán kính phóng to bị chặn dưới khoảng giãn giữa hai người cùng vùng, và phép kiểm "điểm không chồng khít" chạy cả ở trạng thái đang có hiệu ứng |
 | **R33** (kế thừa) Ai đó sửa engine để chiều một tính năng hiển thị | Thấp | **Cao** | `git diff src/engine/` phải rỗng ở mọi lát; ghi vào tiêu chí xong của từng task chạm gần engine |
 
 **Rollback:** mọi thứ đi qua hai công tắc đã có — `useGiamChuyenDong` (tắt cả
@@ -211,14 +228,19 @@ không tự nhiên"), nên nếu chỉ làm tới đó rồi dừng thì vẫn �
    xuống `San2D`. (AC-28.1 → AC-28.5, AC-31.1, AC-31.7)
 4. **Phase 40 — Đội hình có tổ chức.** Nghiêng khối theo bóng và giữ hàng ngang
    (D94); hai chế độ thể lực. (AC-30.3, AC-30.4, AC-30.6)
-5. **Phase 41 — Kiểm tay, đo ngân sách, đóng spec.** Bốn tổ hợp; một lượt giảm
+5. **Phase 41 — Thấy bóng, thấy bàn thắng.** Quả bóng luôn có mặt và đứng
+   đúng chỗ theo loại dòng; hiệu ứng bàn thắng ba phần; nhịp lặng 1,5 giây.
+   Chuỗi mới đủ hai thứ tiếng. (AC-32.1 → AC-32.7)
+6. **Phase 42 — Kiểm tay, đo ngân sách, đóng spec.** Bốn tổ hợp; một lượt giảm
    chuyển động; đo hai ngân sách ở bốn mức tốc độ; người dùng xem và phán;
-   tick 23 AC. (AC-31.2 → AC-31.4, AC-31.6)
+   tick 30 AC. (AC-31.2 → AC-31.4, AC-31.6)
 
 **Chạy song song được:** lát 37 và lát 38 chạm hai chỗ khác nhau của
 `San2D.tsx` nên nên làm tuần tự để tránh xung đột; lát 39 độc lập với lát 40 về
 mặt AC nhưng cùng chạm `San2D.tsx`. Chuỗi phụ thuộc dài nhất là 37 → 38 → 39 →
-40 → 41, tức năm mắt — ngắn hơn spec 004.
+40 → 42, tức sáu mắt. Lát 41 (bóng và bàn thắng) **độc lập** với lát 38 → 40: nó
+chỉ cần lát 37 (để có nhịp chậm mà xem hiệu ứng), nên làm sớm hơn cũng được
+nếu muốn thấy thêm một thứ rõ rệt ngay sau lát đầu.
 
 ## 10. D94 — đã hỏi, đã chốt
 

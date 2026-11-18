@@ -4,6 +4,7 @@
 |---|---|
 | **ID** | `005-lifelike-pitch-motion` |
 | **Status** | Planned (2026-11-18) |
+| **Sửa đổi** | 2026-11-18 — thêm US-32 (quả bóng luôn hiện, hiệu ứng bàn thắng) sau khi plan đã Approved |
 | **Created** | 2026-11-18 |
 | **Branch** | `005-lifelike-pitch-motion` |
 
@@ -137,6 +138,28 @@ có**, để **tôi không phải đánh đổi khả năng dùng được lấy
 - [ ] AC-31.6 — KHI một cầu thủ kiệt sức THÌ tình trạng ấy PHẢI vẫn có mặt dưới dạng chữ; chuyển động KHÔNG được là cách duy nhất để biết.
 - [ ] AC-31.7 — KHI người dùng ẩn sân rồi hiện lại giữa trận THÌ các điểm PHẢI xuất hiện đúng chỗ của thời điểm hiện tại và đi tiếp, KHÔNG chạy lại từ đầu một cú di chuyển cũ.
 
+### US-32: Thấy quả bóng, và thấy bàn thắng
+
+Là một **người dùng**, tôi muốn **luôn thấy quả bóng ở đâu, và thấy sân reo lên
+khi có bàn thắng**, để **tôi theo được trận bằng mắt và cảm được khoảnh khắc
+quan trọng nhất của nó**.
+
+> *Thêm ngày 2026-11-18, sau khi plan đã Approved.* Quả bóng **đã** được vẽ từ
+> spec 001, nhưng chỉ ở những phút mà dòng tường thuật mang đường đi của bóng —
+> khai cuộc, hết hiệp, thay người và mọi dòng "kiệt sức" đều không mang, nên
+> quả bóng **biến mất** ở những dòng ấy. Đó là thứ người dùng nhìn thấy khi nói
+> "tôi muốn hiện cả quả bóng nữa".
+
+**Acceptance criteria:**
+
+- [ ] AC-32.1 — KHI trận đang chạy THÌ quả bóng PHẢI luôn có mặt trên sân, kể cả ở những phút mà dòng tường thuật không kể một pha bóng nào; KHÔNG lúc nào bóng được biến mất.
+- [ ] AC-32.2 — KHI dòng đang hiện là khai cuộc hay hết hiệp THÌ bóng PHẢI nằm ở điểm giao bóng giữa sân.
+- [ ] AC-32.3 — KHI dòng đang hiện không kể một pha bóng và cũng không phải khai cuộc hay hết hiệp (thay người, kiệt sức) THÌ bóng PHẢI giữ đúng chỗ nó được thấy lần cuối, KHÔNG nhảy về giữa sân.
+- [ ] AC-32.4 — KHI một bàn thắng được ghi THÌ sân PHẢI hiện một hiệu ứng gồm ba phần cùng lúc: một vòng sáng lan ra từ chỗ ghi bàn, điểm của người ghi bàn phóng to, và dòng chữ "BÀN THẮNG!"; dòng chữ ấy PHẢI có cả tiếng Việt và tiếng Anh.
+- [ ] AC-32.5 — KHI hiệu ứng bàn thắng chạy THÌ đồng hồ trận PHẢI lặng khoảng 1,5 giây rồi **tự** chạy tiếp, mà nút Tạm dừng / Tiếp tục KHÔNG được đổi nghĩa: người dùng PHẢI không thể tưởng là mình đã bấm Tạm dừng.
+- [ ] AC-32.6 — KHI người dùng bật chế độ giảm chuyển động THÌ hiệu ứng bàn thắng PHẢI chỉ còn phần chữ — không vòng sáng, không phóng to — nhưng đồng hồ VẪN lặng một nhịp, vì một nhịp lặng không phải là chuyển động.
+- [ ] AC-32.7 — KHI trận đang tạm dừng hoặc đã kết thúc THÌ quả bóng PHẢI vẫn có mặt: đóng băng sân không có nghĩa là bóng mất.
+
 ## 4. Luồng chính (happy path)
 
 1. Người dùng bắt đầu một trận → sân hiện 22 điểm, **tất cả đang động** ngay
@@ -165,6 +188,10 @@ có**, để **tôi không phải đánh đổi khả năng dùng được lấy
 | Cửa sổ bị ẩn hoặc khung hình không chạy một lúc | Khi quay lại, các điểm phải ở đúng vị trí của thời điểm hiện tại, không đứng lại ở nửa đường của một cú di chuyển đã cũ |
 | Máy yếu, khung hình rơi | Chuyển động thưa hơn là chấp nhận được, nhưng vị trí tại mốc vẫn phải đúng và không điểm nào bị nhảy ngược |
 | Người dùng đổi tốc độ liên tục nhiều lần trong một giây | Không điểm nào bị giật về chỗ cũ; nhịp cuối cùng là nhịp được áp dụng |
+| Hai bàn thắng ở hai phút liền nhau | Hiệu ứng mới **thay** hiệu ứng đang chạy, không xếp hàng và không chồng lên nhau; mỗi bàn vẫn được một nhịp lặng của riêng nó |
+| Bàn thắng ở phút cuối, cùng lúc tiếng còi mãn cuộc | Hiệu ứng vẫn chạy, và nhịp lặng KHÔNG được chặn việc trận kết thúc hay việc lưu trận vào lịch sử |
+| Đang ẩn sân mà có bàn thắng | Đồng hồ vẫn lặng một nhịp — dòng tường thuật và tỉ số cũng cần một nhịp để đọc — nhưng không có hiệu ứng hình vì không có sân |
+| Bàn thắng trong lúc "chạy hết trận" | Không hiệu ứng, không nhịp lặng: chế độ ấy chạy engine một lèo rồi vẽ một lần, và ngân sách 3 giây ở AC-31.3 cao hơn |
 | Mất mạng | Không ảnh hưởng: ứng dụng vốn không gọi mạng (hiến pháp P4) |
 
 ## 6. Yêu cầu phi chức năng
@@ -219,6 +246,9 @@ có**, để **tôi không phải đánh đổi khả năng dùng được lấy
 - [ ] Đo lại hai ngân sách ở mục 6 trên bản build, ghi số đo vào mô tả commit
 - [ ] Tự tay đi hết màn hình trận ở **cả hai ngôn ngữ và cả hai chế độ
       sáng/tối**, kèm một lượt với chế độ giảm chuyển động đang bật
+- [ ] Quả bóng có mặt ở **mọi** dòng tường thuật của một trận đầy đủ, và hiệu
+      ứng bàn thắng được xem tận mắt ở cả hai ngôn ngữ, một lượt có và một lượt
+      không có giảm chuyển động
 - [ ] Những AC của spec 004 mà spec này hứa giữ — AC-25.2, AC-25.5, AC-25.6,
       AC-25.8 — được kiểm lại, không AC nào rơi
 
@@ -282,6 +312,9 @@ Toàn bộ 11 câu hỏi mở đã chốt ngày **2026-11-18**, qua ba lượt h
 | 9 | AC-25.3 của spec 004 xử lý thế nào? | **Thay thế hẳn** bằng "không điểm nào bị giật khi tình huống kế tiếp tới" — giữ ý định thật, bỏ cách diễn đạt đã lạc hậu. Spec 004 KHÔNG bị sửa ngược | mục 10, AC-29.3, AC-30.1 |
 | 10 | "Đứng im quá lâu" là bao lâu? | **300ms** thời gian thực | mục 6, AC-28.1, AC-29.1 |
 | 11 | Hàng ngang lệch bao nhiêu vẫn là ngang hàng? | **Một phần tư** khoảng cách giữa hai người trong hàng | AC-30.3 |
+| 13 | *(thêm US-32)* Dòng không mang đường đi của bóng thì vẽ bóng ở đâu? | **Giữa sân** ở dòng khai cuộc và hết hiệp; **giữ chỗ cũ** ở thay người và kiệt sức. Loại: luôn giữ chỗ cuối (bóng không ở giữa sân lúc khai cuộc) | AC-32.2, AC-32.3 |
+| 14 | *(thêm US-32)* Hiệu ứng bàn thắng là gì? | **Vòng sáng lan ra + điểm người ghi bàn phóng to + chữ "BÀN THẮNG!"** — có cả kênh hình và kênh chữ nên đạt P9. Loại: chỉ chữ (không phải hiệu ứng); và rung khung sân (dễ gây chóng mặt) | AC-32.4, AC-32.6 |
+| 15 | *(thêm US-32)* Đồng hồ có dừng một nhịp khi ghi bàn? | **Có, ~1,5 giây rồi tự chạy tiếp.** Ràng buộc kèm theo: không được đổi nghĩa nút Tạm dừng / Tiếp tục | AC-32.5 |
 | 12 | *(hỏi lúc lập plan)* Nghiêng khối theo bóng buộc đổi cách tính vị trí tại mốc — đúng chỗ giả định mục 9 dặn phải dừng và hỏi. Làm đường nào? | **Làm trong lớp quyết định chỗ đứng**, chỉ dịch người không tham gia tình huống, có biên và vẫn kỉp vào mặt cỏ. Hai đường bị loại: lớp lệch chỉ-để-vẽ (chỗ vẽ khác chỗ phép kiểm đang dùng), và bỏ AC-30.4 | mục 9, D94 |
 
 **Ghi chú về câu 2.** Đây là quyết định đổi trải nghiệm mặc định của cả ứng
