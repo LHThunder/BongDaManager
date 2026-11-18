@@ -13,15 +13,20 @@ import {
   type TrangThaiTran,
 } from '../engine/tran'
 import type { SuKien } from '../engine/suKien'
+import type { DaiSan, VungSan } from '../engine/vung'
 import { MS_MOI_PHUT } from '../hooks/useMatch'
+import { bienDoTuKhoangGian, lechDaoDong } from './daoDong'
 import {
   CAO,
   hinhSan,
   khungSan,
   KHUNG_SAN,
+  nghiengKhoiTheoBong,
   PHI_THEM_NGUOI_GHI_BAN,
   RONG,
   thoiGianChuyen,
+  toaDo,
+  vungTrenSan,
   type DiemCauThu,
 } from './components/San2D'
 
@@ -65,6 +70,17 @@ function veTu(tt: TrangThaiTran, suKien: SuKien | null = null) {
     moTaDiem: () => '',
   })
 }
+
+/**
+ * Bốn dải của sân, viết lại ở đây để phép kiểm tính được chỗ đứng mong đợi.
+ *
+ * Cố tình **không** import từ `San2D.tsx`: một phép kiểm dùng chính hằng số của
+ * code thì không còn bắt được việc ai đó đổi hằng số ấy. Bộ số 9/32/56/79 là
+ * của spec 001 và đã được kiểm tay.
+ */
+const TI_LE_DAI_TEST: readonly [number, number, number, number] = [
+  0.09, 0.32, 0.56, 0.79,
+]
 
 /** Khoảng cách nhỏ nhất giữa hai điểm bất kỳ, kèm tên hai người đó. */
 function khoangGanNhat(cacDiem: readonly DiemCauThu[]): {
@@ -379,5 +395,214 @@ expect(banKinh + PHI_THEM_NGUOI_GHI_BAN * tiLe).toBeLessThan(
       (4 / 3.4) * banKinh,
     )
     expect(PHI_THEM_NGUOI_GHI_BAN).toBeGreaterThan(0)
+  })
+})
+
+describe('khối đội hình co về phía bóng (AC-30.4, AC-28.3, T510)', () => {
+  const o = (dai: DaiSan): VungSan => ({ id: `giua-${dai}`, dai, cot: 'giua' })
+
+  it('biên là đúng một phần mười chiều dài sân, ở đúng cặp dải xa nhau nhất', () => {
+    const khung = khungSan(11)
+    expect(nghiengKhoiTheoBong(o(0), o(3), khung)).toBeCloseTo(khung.rong / 10, 10)
+    expect(nghiengKhoiTheoBong(o(3), o(0), khung)).toBeCloseTo(-khung.rong / 10, 10)
+
+    // Không cặp nào được vượt biên ấy.
+    for (const a of [0, 1, 2, 3] as const) {
+      for (const b of [0, 1, 2, 3] as const) {
+        expect(
+          Math.abs(nghiengKhoiTheoBong(o(a), o(b), khung)),
+          `dải ${a} khi bóng ở dải ${b}`,
+        ).toBeLessThanOrEqual(khung.rong / 10 + 1e-9)
+      }
+    }
+  })
+
+  it('người đứng ĐÚNG dải có bóng không dịch một đơn vị nào', () => {
+    /*
+      Đây là tính chất chống đỡ cả AC-30.5: khoảng lệch duy nhất tách một người
+      không tham gia khỏi người tham gia đứng cùng dải là `LECH_DOI` = 4, sát ngay
+      ngưỡng phân biệt 3,4. Bản đầu của T510 dịch cả khối 3,43 đơn vị và ăn gọn
+      khoảng ấy.
+    */
+    const khung = khungSan(11)
+    for (const dai of [0, 1, 2, 3] as const) {
+      expect(nghiengKhoiTheoBong(o(dai), o(dai), khung)).toBe(0)
+    }
+  })
+
+  it('mọi dịch đều hướng VÀO phía bóng, nên không ai bị đẩy ra mép cỏ', () => {
+    /*
+      Bản thứ hai của T510 dịch nguyên `r/10` theo dấu, đẩy người ở dải ngoài
+      cùng vào phép kẹp mặt cỏ — mà phép kẹp dồn mọi người bị kẹp về đúng một
+      toạ độ: đo ra hai điểm cách nhau 0,00.
+    */
+    const khung = khungSan(11)
+    for (const nguoi of [0, 1, 2, 3] as const) {
+      for (const bong of [0, 1, 2, 3] as const) {
+        const d = nghiengKhoiTheoBong(o(nguoi), o(bong), khung)
+        const veBong = (TI_LE_DAI_TEST[bong] - TI_LE_DAI_TEST[nguoi]) * d
+        expect(veBong, `dải ${nguoi}, bóng ở ${bong}`).toBeGreaterThanOrEqual(0)
+      }
+    }
+  })
+
+  it('người tham gia vẫn đứng ĐÚNG vùng của tình huống (AC-28.3)', () => {
+    /*
+      Giới hạn mà D94 đặt cho quyền đổi cách tính toạ độ tại mốc: được co cả
+      khối, nhưng **không được dịch người tham gia**. Phép kiểm so với toạ độ
+      **tính được** của vùng chứ không so các điểm với nhau — AC-28.3 là phát
+      biểu về vùng.
+    */
+    let soTinhHuong = 0
+    for (const n of QUAN_SO_CHAY_DUOC) {
+      const tt = chayHetTran(tranMau(n, MA_TRAN_CO_DINH[1]))
+      for (const sk of dongSuKien(tt)) {
+        if (!sk.vung || sk.cacCauThu.length === 0) continue
+        const { cacDiem, khung } = veTu(tt, sk)
+        const mong = toaDo(vungTrenSan(sk.vung, sk.doi), 0, khung)
+        const thamGia = cacDiem.filter((d) => sk.cacCauThu.includes(d.playerId))
+        if (thamGia.length === 0) continue
+        soTinhHuong += 1
+        for (const d of thamGia) {
+          expect(
+            d.x,
+            `quân số ${n} phút ${sk.phut} (${sk.loai}): ${d.playerId}`,
+          ).toBeCloseTo(mong.x, 10)
+        }
+      }
+    }
+    expect(soTinhHuong, 'số tình huống đã đo').toBeGreaterThan(100)
+  })
+
+  it('co khối không làm hai điểm chồng khít, trên 10 mã trận (AC-30.5)', () => {
+    /*
+      Phép kiểm AC-15.2 của spec 002 chỉ chạy một mã trận. Lớp này dịch 16 trên
+      22 điểm, nên lưới phải dày hơn — và chính nó đã bắt được hai bản sai.
+    */
+    let chatNhat = Infinity
+    for (const ma of MA_TRAN_CO_DINH) {
+      for (const n of QUAN_SO_CHAY_DUOC) {
+        const tt = chayHetTran(tranMau(n, ma))
+        for (const sk of dongSuKien(tt)) {
+          const { cacDiem, banKinh } = veTu(tt, sk)
+          const { khoang, cap } = khoangGanNhat(cacDiem)
+          chatNhat = Math.min(chatNhat, khoang / banKinh)
+          expect(
+            khoang,
+            `${ma} quân số ${n} phút ${sk.phut} (${sk.loai}): ${khoang.toFixed(2)} — ${cap}`,
+          ).toBeGreaterThanOrEqual(khoangPhanBiet(banKinh))
+        }
+      }
+    }
+    expect(chatNhat).toBeGreaterThanOrEqual(1)
+  })
+
+  it('sơ đồ vẫn nhận ra được: thứ tự dải không đảo, khoảng giữa hai dải co tối đa một phần bảy', () => {
+    /*
+      "4-4-2 vẫn ra 4-4-2" đo được bằng hai câu: thứ tự các dải trên trục dọc
+      không đảo, và khoảng cách giữa hai dải liền nhau không co quá hệ số đã
+      chọn. Hệ số < 1 nên cả hai đúng bằng cấu trúc; phép kiểm là lưới giữ nó.
+    */
+    const khung = khungSan(11)
+    for (const bong of [0, 1, 2, 3] as const) {
+      const sau = ([0, 1, 2, 3] as const).map(
+        (dai) =>
+          TI_LE_DAI_TEST[dai] * khung.rong +
+          nghiengKhoiTheoBong(o(dai), o(bong), khung),
+      )
+      for (let i = 1; i < sau.length; i += 1) {
+        const truoc =
+          (TI_LE_DAI_TEST[i] - TI_LE_DAI_TEST[i - 1]) * khung.rong
+        const nay = (sau[i] as number) - (sau[i - 1] as number)
+        expect(nay, `bóng ở dải ${bong}, giữa dải ${i - 1} và ${i}`).toBeGreaterThan(0)
+        expect(nay).toBeGreaterThanOrEqual(truoc * (1 - 1 / 7) - 1e-9)
+      }
+    }
+  })
+})
+
+describe('hàng ngang vẫn ra hàng ngang (AC-30.3, T511)', () => {
+  /*
+    AC-30.3 đúng ở **ba lớp cộng lại**, không ở một lớp nào: `hinhSan` cho cả
+    hàng cùng một toạ độ dọc, co khối áp **đều** cho cả hàng (cùng dải thì cùng
+    dịch), còn dao động mới là thứ duy nhất tách họ ra. Nên phép kiểm phải đo
+    **tổng** của cả ba, chứ không đo riêng lớp dao động như `daoDong.test.ts`.
+
+    `tasks.md` dặn: nếu phép kiểm này xanh ngay thì đừng tưởng là viết sai — hãy
+    thử tăng biên độ lên gấp ba và xem nó có đỏ không. Đó là phép kiểm cuối.
+  */
+  const KHOANG_GIAN = 8
+  const NGUONG = KHOANG_GIAN / 4
+  const BIEN_DO = bienDoTuKhoangGian(KHOANG_GIAN)
+  const CAC_THOI_DIEM = Array.from({ length: 300 }, (_, i) => i * 0.137)
+
+  const tt = chayHetTran(tranMau(11, MA_TRAN_CO_DINH[1]))
+
+  /** Một hàng thật: những người cùng đội, cùng toạ độ dọc, không tham gia. */
+  function motHang(suKien: SuKien | null): readonly DiemCauThu[] {
+    const { cacDiem } = veTu(tt, suKien)
+    const nhom = new Map<string, DiemCauThu[]>()
+    for (const d of cacDiem) {
+      if (d.noiBat) continue
+      const khoa = `${d.mauNen}|${d.x.toFixed(6)}`
+      const danh = nhom.get(khoa) ?? []
+      danh.push(d)
+      nhom.set(khoa, danh)
+    }
+    let to: readonly DiemCauThu[] = []
+    for (const danh of nhom.values()) if (danh.length > to.length) to = danh
+    return to
+  }
+
+  function traiRaBaoNhieu(
+    hang: readonly DiemCauThu[],
+    t: number,
+    heSo: number,
+  ): number {
+    const bien = { doc: BIEN_DO.doc * heSo, ngang: BIEN_DO.ngang * heSo }
+    const cacX = hang.map((d) => d.x + lechDaoDong(d.playerId, t, bien).x)
+    return Math.max(...cacX) - Math.min(...cacX)
+  }
+
+  it('một hàng bốn có thật trên sân, và `hinhSan` cho họ cùng một toạ độ dọc', () => {
+    const hang = motHang(null)
+    expect(hang.length, 'sơ đồ 11 người phải có một hàng từ ba người').toBeGreaterThanOrEqual(3)
+    for (const d of hang) expect(d.x).toBeCloseTo(hang[0]?.x ?? 0, 10)
+  })
+
+  it('qua hàng trăm thời điểm trận, hàng lệch dưới một phần tư khoảng giãn', () => {
+    const hang = motHang(null)
+    for (const t of CAC_THOI_DIEM) {
+      expect(traiRaBaoNhieu(hang, t, 1), `t=${t}`).toBeLessThan(NGUONG)
+    }
+  })
+
+  it('cả khi đang có tình huống, tức co khối đang áp', () => {
+    const cac = dongSuKien(tt).filter(
+      (sk) => sk.vung && sk.cacCauThu.length > 0,
+    )
+    expect(cac.length).toBeGreaterThan(10)
+    for (const sk of cac.slice(0, 40)) {
+      const hang = motHang(sk)
+      if (hang.length < 3) continue
+      for (const d of hang) expect(d.x).toBeCloseTo(hang[0]?.x ?? 0, 10)
+      for (const t of CAC_THOI_DIEM.slice(0, 40)) {
+        expect(
+          traiRaBaoNhieu(hang, t, 1),
+          `phút ${sk.phut} (${sk.loai}) t=${t}`,
+        ).toBeLessThan(NGUONG)
+      }
+    }
+  })
+
+  it('phép kiểm này CÓ RĂNG: biên độ gấp ba thì hàng tan', () => {
+    const hang = motHang(null)
+    const vuot = CAC_THOI_DIEM.filter(
+      (t) => traiRaBaoNhieu(hang, t, 3) >= NGUONG,
+    )
+    expect(
+      vuot.length,
+      'biên độ gấp ba phải phá ngưỡng ở rất nhiều thời điểm',
+    ).toBeGreaterThan(CAC_THOI_DIEM.length / 4)
   })
 })

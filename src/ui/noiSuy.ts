@@ -128,6 +128,48 @@ export function tiLeTheoDoMet(t: number, doMet: number): number {
 }
 
 /**
+ * Nhịp từ đâu trở lên thì coi là **có dư thời gian** (quyết định D93).
+ *
+ * Dưới ngưỡng này, 75% so với 95% một nhịp là chên nhau vài chục mili giây —
+ * không ai thấy, mà rủi ro điểm còn bay dở khi nhịp sau tới thì tăng. Ở nhịp
+ * 20ms thì vô nghĩa hoàn toàn.
+ */
+export const NHIP_CO_DU = 500
+
+/** Người sung sức dùng bao nhiêu phần nhịp, khi nhịp có dư (D93). */
+export const PHAN_NHIP_SUNG_SUC = 0.75
+
+/** Người kiệt sức dùng bao nhiêu phần nhịp, khi nhịp có dư (D93). */
+export const PHAN_NHIP_KIET_SUC = 0.95
+
+/**
+ * Một người đi hết chặng của mình trong bao lâu (AC-30.6, D93).
+ *
+ * **Hai chế độ, và đó là cái giá của việc mở lại D88:**
+ *
+ * - Nhịp **có dư** (≥ `NHIP_CO_DU`): người kiệt sức **đi chậm thật** — dùng tới 95%
+ *   nhịp trong khi người sung sức chỉ dùng 75%, nên anh ta tới đích **muộn hơn**
+ *   thấy được. Vẫn **trước** nhịp sau, vì 95% < 100%.
+ * - Nhịp **không dư**: mọi người cùng một thời lượng, đúng D88 — độ chênh chỉ
+ *   còn ở **dáng** (`tiLeTheoDoMet`), không ở thời lượng.
+ *
+ * `thoiLuongChung` là thời lượng mà lớp vẽ đã tính cho nhịp này; 0 nghĩa là mức
+ * này thôi nội suy (AC-29.4), lúc ấy không có "thời lượng" nào để nói tới.
+ */
+export function thoiLuongCuaNguoi(
+  msMoiPhut: number,
+  thoiLuongChung: number,
+  doMet: number,
+): number {
+  if (!(thoiLuongChung > 0)) return 0
+  if (!(msMoiPhut >= NHIP_CO_DU)) return thoiLuongChung
+  const met = kep01(doMet)
+  const phan =
+    PHAN_NHIP_SUNG_SUC + met * (PHAN_NHIP_KIET_SUC - PHAN_NHIP_SUNG_SUC)
+  return Math.round(msMoiPhut * phan)
+}
+
+/**
  * Hệ số kéo tiếp tuyến vào: 0 là gãy góc, 1 là nối đúng tốc độ chặng trước.
  *
  * T503 đưa nó từ **0,55 lên 1**. 0,55 làm đường đi mềm về **hướng** nhưng cắt

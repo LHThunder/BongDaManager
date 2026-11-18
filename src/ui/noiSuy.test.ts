@@ -6,7 +6,11 @@ import {
   doMetTuTheLuc,
   huongRaKhoiMoc,
   MU_KIET_SUC,
+  NHIP_CO_DU,
   noiSuyCong,
+  PHAN_NHIP_KIET_SUC,
+  PHAN_NHIP_SUNG_SUC,
+  thoiLuongCuaNguoi,
   tiLeRoiDungYen,
   TRON_TOI_DA,
   tiLeTheoDoMet,
@@ -207,7 +211,18 @@ describe('đường đi mềm và nằm trong khung sân (AC-25.1)', () => {
   })
 })
 
-describe('thể lực đổi DÁNG, không đổi thời lượng (AC-25.7, D88)', () => {
+/*
+  Thể lực có **HAI NHÁNH** từ T512 (AC-30.6, quyết định D93), và đây là chỗ
+  phải thấy cả hai:
+
+  - **Nhịp không dư** — đúng D88 của spec 004: cùng thời lượng, khác dáng.
+  - **Nhịp có dư** — D93 mở lại D88: người kiệt sức đi **chậm thật**, tới đích
+    muộn hơn, nhưng vẫn trước nhịp sau.
+
+  D88 **không bị bỏ**: nó vẫn là lưới duy nhất bắt lỗi "kéo dài thời lượng ở
+  nhịp không có dư" — thứ chỉ vỡ ở mức Rất nhanh, nơi cả nhịp chỉ có 20ms.
+*/
+describe('thể lực: nhịp không dư đổi DÁNG (D88), nhịp có dư đi CHẬM THẬT (AC-30.6, D93)', () => {
   it('độ mệt suy từ thể lực: đầy là 0, dưới ngưỡng kiệt sức là 1', () => {
     expect(doMetTuTheLuc(THE_LUC_DAY)).toBe(0)
     expect(doMetTuTheLuc(THE_LUC_DAY + 20)).toBe(0)
@@ -255,12 +270,13 @@ describe('thể lực đổi DÁNG, không đổi thời lượng (AC-25.7, D88)
     expect(MU_KIET_SUC).toBeGreaterThan(1)
   })
 
-  it('người kiệt sức KHÔNG được đi lâu hơn: cùng mốc thời gian, cùng đích', () => {
+  it('LỚP DÁNG không được đổi thời lượng: cùng tỉ lệ 1 là cùng đích', () => {
     /*
-      Phép kiểm chống đúng cái bẫy mà D88 nói tới. Nếu ai đó sửa lớp này
-      thành "kéo dài thời lượng theo thể lực" thì `viTriTaiThoiDiem` tại tỉ
-      lệ 1 sẽ không còn là đích — và AC-25.3 vỡ mà không ai thấy, vì nó chỉ
-      vỡ ở mức tốc độ nhanh nhất.
+      Phép kiểm chống đúng cái bẫy mà D88 nói tới, và nó vẫn đúng nguyên sau
+      D93: thứ D93 kéo dài là **thời lượng chặng** (`thoiLuongCuaNguoi`, một con
+      số mili giây), chứ không phải **dáng** (`tiLeTheoDoMet`, một hàm trên
+      đoạn [0,1]). Lớp dáng phải trả đúng đích tại tỉ lệ 1 với **mọi** độ mệt
+      — ai gộp hai việc ấy vào một lớp thì đỏ ở đây.
     */
     const tu: Diem = { x: 0, y: 0 }
     const den: Diem = { x: 50, y: 50 }
@@ -278,57 +294,155 @@ describe('thể lực đổi DÁNG, không đổi thời lượng (AC-25.7, D88)
     expect(kiet.x).toBeLessThan(khoe.x)
     expect(khoe.x - kiet.x).toBeGreaterThan(8)
   })
-})
 
-/*
-  Theo kịp nhịp đồng hồ ở mọi mức tốc độ (T425, AC-25.3).
+  // ---- Nhánh hai: nhịp CÓ DƯ thì thể lực đổi cả THỎI LƯỢNG (AC-30.6, D93) ----
 
-  Đây là chỗ AC-25.3 và AC-25.7 có thể đánh nhau, và là lý do D88 tồn tại.
-  Phép kiểm dưới đây buộc hai điều phải cùng đúng bằng SỐ, không bằng mắt:
-  thời lượng một cú di chuyển không bao giờ vượt một nhịp đồng hồ, và thể
-  lực không được phép đụng vào thời lượng ấy.
-*/
-describe('không điểm nào còn đang đi khi tình huống kế tiếp tới (AC-25.3)', () => {
-  it('ở MỊI mức tốc độ, cú chuyển chỗ kết thúc trước nhịp kế tiếp', () => {
-    for (const [muc, msMoiPhut] of Object.entries(MS_MOI_PHUT)) {
-      expect(
-        thoiGianChuyen(msMoiPhut),
-        `mức ${muc}: ${msMoiPhut}ms một phút trận`,
-      ).toBeLessThanOrEqual(msMoiPhut)
+  it('nhịp có dư: kiệt sức dùng 95% nhịp, sung sức 75%', () => {
+    expect(thoiLuongCuaNguoi(1000, 900, 0)).toBe(750)
+    expect(thoiLuongCuaNguoi(1000, 900, 1)).toBe(950)
+    expect(thoiLuongCuaNguoi(NHIP_CO_DU, 450, 0)).toBe(
+      Math.round(NHIP_CO_DU * PHAN_NHIP_SUNG_SUC),
+    )
+    expect(PHAN_NHIP_KIET_SUC).toBeLessThan(1)
+  })
+
+  it('nhịp có dư: kiệt sức tới đích MUỘN HƠN, nhưng vẫn trước nhịp sau', () => {
+    for (const ms of [500, 700, 1000, 2500]) {
+      const chung = Math.round(ms * 0.9)
+      const kho = thoiLuongCuaNguoi(ms, chung, 0)
+      const kiet = thoiLuongCuaNguoi(ms, chung, 1)
+      expect(kiet, `nhịp ${ms}ms`).toBeGreaterThan(kho)
+      // "đi chậm thật" phải đọc được bằng mắt: chênh tứ một phần năm nhịp.
+      expect(kiet - kho).toBeGreaterThanOrEqual(ms * 0.19)
+      expect(kiet, `nhịp ${ms}ms`).toBeLessThan(ms)
     }
   })
 
-  it('thể lực KHÔNG đụng vào thời lượng — kiệt sức vẫn về đích đúng nhịp', () => {
+  it('nhịp có dư: càng mệt càng lâu, không nhảy cóc', () => {
+    const cac = [0, 0.25, 0.5, 0.75, 1].map((m) =>
+      thoiLuongCuaNguoi(1000, 900, m),
+    )
+    for (let i = 1; i < cac.length; i += 1) {
+      expect(cac[i] as number).toBeGreaterThanOrEqual(cac[i - 1] as number)
+    }
+  })
+
+  it('nhịp KHÔNG dư: mọi độ mệt cùng một thời lượng — đúng D88', () => {
+    for (const ms of [40, 70, 200, NHIP_CO_DU - 1]) {
+      const chung = Math.round(ms * 0.9)
+      for (const met of [0, 0.5, 1]) {
+        expect(
+          thoiLuongCuaNguoi(ms, chung, met),
+          `nhịp ${ms}ms, mệt ${met}`,
+        ).toBe(chung)
+      }
+    }
+  })
+
+  it('mức thôi nội suy thì không có thời lượng nào để nói tới (AC-29.4)', () => {
+    for (const met of [0, 0.5, 1]) {
+      expect(thoiLuongCuaNguoi(20, 0, met)).toBe(0)
+      expect(thoiLuongCuaNguoi(1000, 0, met)).toBe(0)
+    }
+    // Đầu vào vô lý không được làm nó trả NaN: hàm này chạy mỗi khung vẽ.
+    expect(thoiLuongCuaNguoi(Number.NaN, 900, 1)).toBe(900)
+    expect(thoiLuongCuaNguoi(1000, 900, Number.NaN)).toBe(750)
+  })
+})
+
+/*
+  Không điểm nào bị GIẬT khi tình huống kế tiếp tới (AC-29.3, AC-30.1).
+
+  **Describe này thay cho describe cũ "không điểm nào còn đang đi khi tình huống kế
+  tiếp tới (AC-25.3)" của spec 004, và đó là một việc có chủ đích, không phải một
+  lần đổi tên cho đẹp.** Spec 005 mục 10 chốt thay thế hẳn AC-25.3: "luôn luôn
+  di chuyển" trái đúng chữ với "không điểm nào còn đang đi". Ý định thật của AC
+  ấy — **không bị giật sang đích mới** — được giữ nguyên và phát biểu lại ở
+  AC-29.3 và AC-30.1.
+
+  Và từ T512 nó phải đúng ở **cả hai chế độ thể lực** (D93), ở **cả bốn mức tốc
+  độ** — vì chính nhánh "nhịp có dư" là thứ dám kéo dài thời lượng một chặng,
+  tức dám đẩy một điểm còn bay dở sang nhịp sau nếu ai đó chọn sai hệ số.
+*/
+describe('không điểm nào bị GIẬT khi tình huống kế tiếp tới (AC-29.3, AC-30.1)', () => {
+  it('ở cả bốn mức và cả hai chế độ, chặng kết thúc TRƯỚC nhịp kế tiếp', () => {
+    for (const [muc, msMoiPhut] of Object.entries(MS_MOI_PHUT)) {
+      const chung = thoiGianChuyen(msMoiPhut)
+      expect(chung, `mức ${muc}: ${msMoiPhut}ms một phút trận`).toBeLessThanOrEqual(
+        msMoiPhut,
+      )
+      for (const met of [0, 0.25, 0.5, 0.75, 1]) {
+        const rieng = thoiLuongCuaNguoi(msMoiPhut, chung, met)
+        expect(
+          rieng,
+          `mức ${muc} (${msMoiPhut}ms), mệt ${met}`,
+        ).toBeLessThanOrEqual(msMoiPhut)
+      }
+    }
+  })
+
+  it('ở mức còn nội suy, chặng riêng của mọi độ mệt đều có thật (không 0, không NaN)', () => {
+    for (const [muc, msMoiPhut] of Object.entries(MS_MOI_PHUT)) {
+      const chung = thoiGianChuyen(msMoiPhut)
+      if (chung === 0) continue
+      for (const met of [0, 0.5, 1]) {
+        const rieng = thoiLuongCuaNguoi(msMoiPhut, chung, met)
+        expect(Number.isFinite(rieng), `mức ${muc}, mệt ${met}`).toBe(true)
+        expect(rieng, `mức ${muc}, mệt ${met}`).toBeGreaterThan(0)
+      }
+    }
+  })
+
+  it('tại cuối chặng RIÊNG của mình, điểm ở ĐÚNG đích — cả hai chế độ', () => {
     /*
-      Giả lập đúng cách `San2D` chạy: tại mốc thời gian bằng `thoiGianChuyen`,
-      tỉ lệ là 1, và điểm phải ở ĐÚNG đích — với mọi độ mệt, ở mọi mức tốc độ.
-      Nếu ai đó sửa lớp này thành "kéo dài thời lượng theo thể lực" thì phép
-      kiểm này đỏ ngay, thay vì để lỗi lộ ra ở mức Rất nhanh nơi chỉ còn 2ms dư.
+      Giả lập đúng cách `San2D` chạy từ T512: tỉ lệ đã đi = (đã trôi) chia cho
+      thời lượng **riêng của người ấy**, chứ không chia cho một con số chung.
+      Chia sai mẫu số thì người kiệt sức bị đẩy tới đích sớm — đúng cú giật mà
+      AC-29.3 cấm, và cũng là cách lặng lẽ nhất để vô hiệu hoá cả D93.
     */
     const tu: Diem = { x: 5, y: 5 }
     const den: Diem = { x: 95, y: 55 }
 
     for (const [muc, msMoiPhut] of Object.entries(MS_MOI_PHUT)) {
-      const thoiLuong = thoiGianChuyen(msMoiPhut)
-      /*
-        Mức nào thôi nội suy thì không có "thời lượng" để nói tới (AC-29.4,
-        D97): `San2D` vẽ một lần tại toạ độ mốc và không gọi lớp nội suy. Thêm
-        dòng này ở T501, khi `thoiGianChuyen` bắt đầu trả 0 ở mức Rất nhanh —
-        không có nó thì `thoiLuong / thoiLuong` là `0/0`, tức `NaN`, và phép kiểm
-        đỏ vì một lý do không liên quan gì tới điều nó muốn chứng minh.
-      */
-      if (thoiLuong === 0) continue
-      for (const doMet of [0, 0.5, 1]) {
-        // Tại đúng mốc kết thúc: `San2D` tính tỉ lệ = (đã trôi) / thời lượng.
-        const tiLe = thoiLuong / thoiLuong
-        const cuoi = viTriTaiThoiDiem(tu, den, tiLe, {
-          doMet,
+      const chung = thoiGianChuyen(msMoiPhut)
+      if (chung === 0) continue
+      for (const met of [0, 0.5, 1]) {
+        const rieng = thoiLuongCuaNguoi(msMoiPhut, chung, met)
+        const cuoi = viTriTaiThoiDiem(tu, den, rieng / rieng, {
+          doMet: met,
           gioiHan: KHUNG,
           huongVao: { x: -300, y: 200 },
         })
-        expect(cuoi, `mức ${muc}, mệt ${doMet}`).toEqual(den)
+        expect(cuoi, `mức ${muc}, mệt ${met}`).toEqual(den)
       }
     }
+  })
+
+  it('giữa chặng, người kiệt sức còn xa đích hơn hẳn — đo theo ĐỒNG HỒ THẬT', () => {
+    /*
+      Phép kiểm này là thứ phân biệt hai chế độ của D93, vì nó đo ở **cùng
+      một mốc thời gian thật** cho hai người, đúng như mắt người xem: 500ms sau
+      khi cả hai xuất phát, ai đang ở đâu.
+    */
+    const tu: Diem = { x: 0, y: 0 }
+    const den: Diem = { x: 90, y: 0 }
+    const viTri = (msMoiPhut: number, met: number, daTroi: number) => {
+      const rieng = thoiLuongCuaNguoi(msMoiPhut, thoiGianChuyen(msMoiPhut), met)
+      return viTriTaiThoiDiem(tu, den, daTroi / rieng, {
+        doMet: met,
+        gioiHan: KHUNG,
+      }).x
+    }
+
+    // Nhịp có dư: chậm thật, nên chính thời lượng cũng đẩy anh ta ra sau.
+    const coDu = viTri(1000, 0, 500) - viTri(1000, 1, 500)
+    expect(coDu).toBeGreaterThan(20)
+
+    // Nhịp không dư: cùng thời lượng, chênh chỉ còn do dáng — nhỏ hơn, nhưng
+    // vẫn phải còn (AC-30.6 câu sau).
+    const khongDu = viTri(200, 0, 90) - viTri(200, 1, 90)
+    expect(khongDu).toBeGreaterThan(5)
+    expect(khongDu).toBeLessThan(coDu)
   })
 
   it('ở mức nhanh nhất, cú di chuyển vẫn chia được thành nhiều bước', () => {

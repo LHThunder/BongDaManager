@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | 30 AC (US-28 → US-32), 11 quyết định D89–D100 |
-| **Tiến độ** | 13/20 |
+| **Tiến độ** | 16/20 |
 | **Sửa đổi** | 2026-11-18 — chẻ lần đầu từ plan |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -128,7 +128,7 @@ xem được (hiến pháp P6), và là một commit.
 
 ## Phase 40 — Lát 40: Đội hình có tổ chức
 
-- [ ] **T510** — Khối đội hình nghiêng theo bóng (D94)
+- [x] **T510** — Khối đội hình nghiêng theo bóng (D94)
   - File: sửa `src/ui/components/San2D.tsx`, sửa `src/ui/san2D.test.ts`
   - Xong khi: `hinhSan` dịch chỗ đứng theo vùng của bóng, **chỉ với người KHÔNG tham gia tình huống**, biên **một phần mười chiều dài sân**, và vẫn đi qua phép kẹp vào mặt cỏ đã có; phép kiểm mới: nghiêng khối **không** đẩy ai ra khỏi vùng của mình (AC-28.3) và **không** làm hai điểm chồng khít (AC-30.5); hai phép kiểm sẵn có "số điểm trên sân" và "điểm không chồng khít" vẫn xanh.
   - Bằng chứng: **số** cho ba điều trên; **mắt** cho câu "sơ đồ 4-4-2 vẫn ra 4-4-2".
@@ -136,7 +136,7 @@ xem được (hiến pháp P6), và là một commit.
   - Phụ thuộc: T508
   - ⚠️ Đây là chỗ D94 cho phép đổi cách tính vị trí tại mốc, và quyền ấy **chỉ** tới đó: không dịch người tham gia tình huống, không vượt biên, không bỏ phép kẹp.
 
-- [ ] **T511** — Hàng ngang vẫn ra hàng ngang
+- [x] **T511** — Hàng ngang vẫn ra hàng ngang
   - File: sửa `src/ui/san2D.test.ts`, *(nếu phải siết biên)* sửa `src/ui/daoDong.ts`
   - Xong khi: phép kiểm — lấy một hàng bốn người, chạy qua nhiều thời điểm trận, độ lệch ngang giữa hai người trong hàng **luôn dưới một phần tư** khoảng giãn; nếu đỏ thì **siết biên độ dao động**, không nới ngưỡng của phép kiểm.
   - Bằng chứng: **số**.
@@ -144,7 +144,7 @@ xem được (hiến pháp P6), và là một commit.
   - Phụ thuộc: T510
   - ⚠️ Phần lớn AC-30.3 **đã đúng sẵn** (người cùng hàng có cùng toạ độ ngang). Task này là lưới **giữ** nó đúng sau khi thêm dao động và nghiêng khối — nên nếu nó xanh ngay từ đầu thì đừng tưởng là viết sai: hãy thử tăng biên độ lên gấp ba và xem nó có đỏ không.
 
-- [ ] **T512** — Hai chế độ thể lực (D93, mở lại D88)
+- [x] **T512** — Hai chế độ thể lực (D93, mở lại D88)
   - File: sửa `src/ui/noiSuy.ts`, sửa `src/ui/noiSuy.test.ts`, sửa `src/ui/components/San2D.tsx`
   - Xong khi: nhịp **≥ 500ms** → người sung sức dùng 75% nhịp, người kiệt sức tới 95%, nên kiệt sức tới đích **muộn hơn** mà vẫn **trước** nhịp sau; nhịp < 500ms → giữ đúng D88 (cùng thời lượng, khác dáng); describe "thể lực đổi DÁNG" được **SỬA thành hai nhánh, không bỏ**; describe "không điểm nào còn đang đi khi tình huống kế tiếp tới (AC-25.3)" đổi tên và đổi nội dung sang AC mới — "không điểm nào bị **giật**" — và phủ **cả hai** chế độ ở **cả bốn** mức tốc độ; **describe "toạ độ tại mốc" không sửa một dòng (R38)**; **không đổi engine**.
   - Bằng chứng: **số**.
@@ -419,6 +419,80 @@ trục. Hai lớp ấy thuộc Phase 38 và 39 đã commit, còn AC-30.5 đượ
 cho **T510**, nên việc này đợi Phase 40 — không tự mở rộng phạm vi ở lát 41. Hai
 phép kiểm thuần hiện có không thể thấy điều này: `san2D.test.ts` chỉ đọc toạ độ
 của `hinhSan`, còn `daoDong.test.ts` chỉ đo cặp **cùng vùng** và **cùng hàng**.
+
+## Phase 40 — ba lần sai, và một lần tôi báo động sai
+
+**1. Nghiêng khối sai hai lần, và cả hai lần phép kiểm AC-15.2 của spec 002 là thứ
+bắt được.** Một spec đóng từ hai lần trước đứng ra canh đúng chỗ nó sinh ra để
+canh — đáng ghi lại, vì đó là lý lẽ cụ thể cho việc **không sửa ngược phép kiểm
+của spec đã đóng**:
+- **Bản một — dịch cả khối theo tỉ lệ đều.** Hai dải giữa cho dịch **3,43** đơn
+  vị, mà `LECH_DOI` = **4** là khoảng lệch **duy nhất** tách một người không tham
+  gia khỏi người tham gia đứng cùng dải. Dịch triệt tiêu gần hết khoảng ấy: hai
+  điểm còn cách **0,57** đơn vị trên bán kính 3,4.
+- **Bản hai — dịch nguyên `r/10` theo dấu** (có dải chết ở khu giữa sân để tránh
+  dải nguy hiểm 0,6–7,4 đơn vị ở trên). Lần này vỡ ở **phép kẹp mặt cỏ**: dịch 10
+  đơn vị đẩy người ở dải ngoài cùng ra khỏi cỏ, mà phép kẹp thì dồn **mọi người
+  bị kẹp về đúng một toạ độ** — thủ môn đội nhà và một tiền đạo đội khách cách
+  nhau **0,00**.
+- **Bản đúng — CO khối về phía bóng, không trượt khối theo bóng.** Dịch của mỗi
+  người tỉ lệ với khoảng cách từ dải của anh ta tới dải có bóng (hệ số 1/7, nên
+  người xa nhất dịch đúng `r/10`). Ba tính chất thành đúng **bằng cấu trúc**, không
+  bằng cẩn thận: dịch bằng **0** ở đúng dải có bóng nên khoảng lệch 4 đơn vị không
+  bị ăn; mọi dịch **hướng vào trong** nên không ai bị đẩy ra mép cỏ; hệ số < 1 nên
+  thứ tự các dải không đảo — 4-4-2 vẫn ra 4-4-2, chỉ gọn lại một phần bảy.
+
+**2. T511 xanh ngay từ lần chạy đầu, và `tasks.md` đã dặn đúng việc phải làm.** Lời
+dặn "nếu nó xanh ngay thì đừng tưởng là viết sai — hãy thử tăng biên độ lên gấp ba"
+đã thành một phép kiểm thứ tư trong file: biên độ gấp ba thì hàng tan ở hơn một
+phần tư các thời điểm đo. Một phép kiểm xanh mà không ai biết nó có đỏ được hay
+không thì không phải một lưới.
+
+**3. T512: thời lượng riêng phải nằm TRONG dữ liệu chặng.** D93 cho mỗi người một
+thời lượng khác nhau, nên tỉ lệ đã đi phải chia theo thời lượng của **chính chặng
+đó** — cả lúc vẽ lẫn lúc dựng chặng mới từ chỗ điểm đang đứng. Chia theo một con
+số chung thì hai chế độ của D93 không khác gì nhau, và người kiệt sức bị đẩy tới
+đích sớm — đúng cú giật AC-29.3 cấm. Vì thế `ChuyenDiemDang` có thêm trường
+`thoiLuong`.
+
+**4. Cảnh báo AC-30.5 ở ghi chú Phase 41 LÀ BÁO ĐỘNG SAI, và lỗi là ở phép đo của
+tôi.** Ghi chú ấy nói "250/692 khung có hai điểm dưới một bán kính" và để lại cho
+Phase 40. Đó lại là **một triệu chứng dễ đo**, lần thứ ba của cùng một thói xấu. AC-30.5
+cấm hai điểm **nằm khít tới mức người xem chỉ thấy một**, nên tính chất phải đo là
+**một CẶP CỤ THỂ nằm dưới ngưỡng liên tục bao lâu**, không phải "có bất kỳ cặp nào
+dưới ngưỡng ở khung này" — chỉ số sau gộp cả một chuỗi các cặp **khác nhau** thành
+một đợt dài 1620ms, trong khi chính điểm đang đo dịch 73 đơn vị trong đợt ấy.
+
+Đo lại theo đúng tính chất, có theo dõi danh tính từng cặp, một trận 90 phút ở mức
+Nhanh: **169 lượt cặp**, **trung vị 16ms** (một khung hình), **dài nhất 73ms**,
+**không lượt nào quá 300ms**, và chỗ gần nhất của lượt dài nhất là **1,79** trên bán
+kính 3,4 — hai vòng phủ nhau một phần, hai viền vẫn tách. Hai cầu thủ **băng qua
+nhau trong hai khung hình** không phải "nằm khít tới mức chỉ thấy một" — đó đúng là
+thứ cầu thủ thật làm. Nên không siết biên độ dao động, và không nới ngưỡng của
+phép kiểm nào.
+
+**Số đo thật của lát 40** (bản build, rAF thay bằng `setTimeout`):
+- **Trọng tâm khối trên trục dọc chạy từ 34,9 tới 52,0** — biên độ **17,1 đơn vị**
+  trên chiều dài 100, tức cả khối thật sự dồn lên và lùi về thấy được (AC-30.4).
+  Dịch của một người không bao giờ vượt `r/10` = 10 — phép kiểm thuần phủ cả 16
+  cặp (dải người × dải bóng).
+- **Chặng riêng theo thể lực, đo từ phút 69 ở mức Chậm** (1000ms một phút), 131
+  chặng qua 13 nhịp: lúc đi xong trải từ **758ms tới 962ms**, trung vị 905ms — đúng
+  dải 750–950 mà D93 đặt ra, và **không chặng nào chạm 1000ms**, tức không ai còn bay
+  dở khi nhịp sau tới (AC-30.6, AC-29.3).
+- **Cặp điểm nằm dưới một bán kính**: 169 lượt, trung vị 16ms, dài nhất 73ms, 0
+  lượt quá 300ms (AC-30.5).
+- **Phép kiểm thuần**: không điểm nào chồng khít trên **10 mã trận × 7 quân số ×
+  mọi dòng tường thuật**; người tham gia đứng đúng toạ độ vùng ở hơn 100 tình huống
+  (AC-28.3); hàng ngang lệch dưới một phần tư khoảng giãn qua 300 thời điểm trận, cả
+  khi đang có tình huống (AC-30.3).
+- Không lỗi console.
+
+**Describe đã sửa và describe không đụng tới:** describe D88 được **sửa thành hai
+nhánh** chứ không bỏ (nó vẫn là lưới duy nhất bắt lỗi "kéo dài thời lượng ở nhịp
+không dư"); describe AC-25.3 đổi thành "không điểm nào bị **giật**" (AC-29.3, AC-30.1)
+và phủ cả hai chế độ ở cả bốn mức; describe "toạ độ tại mốc" **không sửa một
+dòng** (R38) — `git diff` của file ấy không có một dòng nào thuộc describe đó.
 
 - **Phạm vi thật của "thêm một mức tốc độ" rộng hơn danh sách file trông thấy.**
   Đã grep: `MucTocDo` xuất hiện ở `useMatch.ts` (4 chỗ) và

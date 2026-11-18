@@ -10,6 +10,7 @@ import { bienDoTuKhoangGian, lechDaoDong } from '../daoDong'
 import {
   doMetTuTheLuc,
   huongRaKhoiMoc,
+  thoiLuongCuaNguoi,
   viTriTaiThoiDiem,
   type Diem,
   type KhungKep,
@@ -180,7 +181,14 @@ function kep(v: number, tu: number, den: number): number {
   return Math.min(Math.max(v, tu), den)
 }
 
-function toaDo(
+/**
+ * Toạ độ tâm của một vùng, đã kẹp vào mặt cỏ.
+ *
+ * Xuất ra ngoài để phép kiểm của T510 tính được **chỗ đúng ra phải đứng** của một
+ * người tham gia tình huống, thay vì chỉ so các điểm với nhau — AC-28.3 là phát
+ * biểu về **vùng**, nên phép kiểm phải biểu diễn được vùng thành toạ độ.
+ */
+export function toaDo(
   vung: VungSan,
   dichX: number,
   khung: KhungSan,
@@ -220,6 +228,63 @@ function lechTrongVung(
     danh.forEach((x, i) => ra.set(x.playerId, dau + i * buocGian))
   }
   return ra
+}
+
+/**
+ * Khối đội hình nghiêng theo bóng tối đa bao nhiêu: **một phần mười chiều dài
+ * sân** (AC-30.4, quyết định D94).
+ *
+ * Ngưỡng này là do người dùng chốt lúc `/clarify`: đủ để thấy đội đang dồn lên
+ * hay lùi về, mà sơ đồ vẫn nhận ra được. Bốn dải cách nhau ~0,23 chiều dài, nên
+ * 0,1 là **chưa đầy một nửa** khoảng giữa hai dải: một hàng bốn không bao giờ trôi
+ * sang chỗ của hàng bên.
+ */
+const BIEN_NGHIENG_KHOI = 1 / 10
+
+/**
+ * Hệ số co khối: dịch bao nhiêu phần của khoảng cách từ một dải tới dải có bóng.
+ *
+ * Chọn sao cho người ở dải **xa bóng nhất** dịch đúng `BIEN_NGHIENG_KHOI` chiều
+ * dài sân: hai dải ngoài cùng cách nhau 0,7 chiều dài, nên 0,1 / 0,7 = 1/7.
+ */
+const PHAN_CO_KHOI =
+  BIEN_NGHIENG_KHOI /
+  ((TI_LE_DAI[TI_LE_DAI.length - 1] as number) - (TI_LE_DAI[0] as number))
+
+/**
+ * Một người KHÔNG tham gia dịch bao nhiêu theo trục dọc, vì bóng đang ở dải
+ * nào (AC-30.4, quyết định D94).
+ *
+ * **Cả khối CO VỀ phía bóng, không phải cả khối trượt theo bóng** — dịch của mỗi
+ * người tỉ lệ với khoảng cách từ dải của anh ta tới dải có bóng, nên người đứng
+ * **đúng dải có bóng không dịch một đơn vị nào**. Đó không phải thẩm mỹ: hai bản
+ * trước của T510 dịch **cả khối một lượng như nhau** và đều phá AC-30.5, hai kiểu
+ * khác nhau, cả hai chỉ lộ ra khi đo trên 10 mã trận:
+ * - Dịch theo tỉ lệ đều → hai dải giữa cho dịch **3,43**, đúng bằng `LECH_DOI` = 4,
+ *   tức triệt tiêu khoảng lệch duy nhất tách một người không tham gia khỏi người
+ *   tham gia đứng cùng dải: hai điểm còn cách **0,57** đơn vị.
+ * - Dịch nguyên `r/10` theo dấu → đẩy những người ở dải ngoài cùng vào **phép kẹp
+ *   mặt cỏ**, mà phép kẹp thì dồn mọi người bị kẹp về **đúng một toạ độ**: thủ
+ *   môn đội nhà và một tiền đạo đội khách cách nhau **0,00** đơn vị.
+ *
+ * Co về phía bóng tránh được cả hai bằng cấu trúc, không bằng cẩn thận: mọi dịch
+ * đều **hướng vào trong**, nên không ai bị đẩy ra mép cỏ; dịch bằng 0 ở đúng dải
+ * có bóng, nên khoảng lệch với người tham gia không hề bị ăn; và hệ số < 1 nên
+ * thứ tự các dải không đảo — 4-4-2 vẫn ra 4-4-2, chỉ gọn lại một phần bảy.
+ *
+ * Trả 0 khi không biết bóng ở đâu (chưa có dòng nào, hay dòng không mang vùng):
+ * đứng theo sơ đồ là câu trả lời đúng khi chưa có thông tin.
+ */
+export function nghiengKhoiTheoBong(
+  vungNguoi: VungSan,
+  vungBong: VungSan | null,
+  khung: KhungSan,
+): number {
+  if (vungBong == null) return 0
+  const tiBong = TI_LE_DAI[vungBong.dai]
+  const tiNguoi = TI_LE_DAI[vungNguoi.dai]
+  if (tiBong == null || tiNguoi == null) return 0
+  return PHAN_CO_KHOI * (tiBong - tiNguoi) * khung.rong
 }
 
 export interface DiemCauThu {
@@ -380,6 +445,13 @@ export function hinhSan({
   const vungSuKien = suKien?.vung ? vungTrenSan(suKien.vung, suKien.doi) : null
 
   /*
+    Khối đội hình co về phía bóng (AC-30.4, D94) áp **chỉ** cho người KHÔNG tham
+    gia tình huống: người tham gia vẫn được đặt thẳng vào vùng của tình huống,
+    không xê dịch một đơn vị nào — đó là thứ giữ AC-28.3 đúng tuyệt đối, và
+    cũng là giới hạn mà D94 đặt ra cho quyền đổi cách tính toạ độ tại mốc.
+  */
+
+  /*
     Người tham gia dồn về CÙNG một vùng, nên phải giãn họ ra y như đã giãn
     những người đứng chung một ô (T132). Không giãn thì hai điểm nằm khít
     lên nhau và người xem chỉ thấy MỘT — pha tranh chấp hay bàn thắng có
@@ -416,7 +488,9 @@ export function hinhSan({
       const diChuyen = noiBat && vungSuKien !== null
       const { x: cx, y: cy } = toaDo(
         diChuyen && vungSuKien ? vungSuKien : x.vung,
-        diChuyen ? 0 : dichX,
+        diChuyen
+          ? 0
+          : dichX + nghiengKhoiTheoBong(x.vung, vungSuKien, khung),
         khung,
       )
       const lechY = diChuyen
@@ -582,6 +656,15 @@ interface ChuyenDiemDang {
   readonly tu: Diem
   readonly den: Diem
   readonly huongVao: Diem | null
+  /**
+   * Chặng này dài bao lâu, **riêng của người này** (AC-30.6, D93).
+   *
+   * Trước T512 cả 22 điểm dùng chung một `msChuyen`. Giờ người kiệt sức có
+   * chặng dài hơn ở những nhịp có dư, nên tỉ lệ đã đi được phải chia theo
+   * thời lượng của chính anh ta — chia theo một con số chung thì hai chế độ
+   * của D93 không khác gì nhau.
+   */
+  readonly thoiLuong: number
 }
 
 export function San2D(props: Props) {
@@ -670,11 +753,16 @@ export function San2D(props: Props) {
   useEffect(() => {
     const bayGio = performance.now()
     const cu = dang.current
-    const troi = msChuyen <= 0 ? 1 : (bayGio - batDau.current) / msChuyen
 
     const moi = new Map<string, ChuyenDiemDang>()
     for (const d of cacDiem) {
       const truoc = cu.get(d.playerId)
+      const met = doMetTheoNguoi.get(d.playerId) ?? 0
+      // Tỉ lệ đã đi của chặng CŨ, theo thời lượng của chính chặng ấy (D93).
+      const troi =
+        truoc && truoc.thoiLuong > 0
+          ? (bayGio - batDau.current) / truoc.thoiLuong
+          : 1
       /*
         Xuất phát từ chỗ điểm ĐANG ĐỨNG, không từ mốc trước: đổi tốc độ hay
         có tình huống dồn dập thì cú trước có thể chưa đi hết, và bắt nó
@@ -683,7 +771,7 @@ export function San2D(props: Props) {
       const tuDau = truoc
         ? viTriTaiThoiDiem(truoc.tu, truoc.den, troi, {
             huongVao: truoc.huongVao,
-            doMet: doMetTheoNguoi.get(d.playerId) ?? 0,
+            doMet: met,
             gioiHan,
           })
         : { x: d.x, y: d.y }
@@ -691,12 +779,8 @@ export function San2D(props: Props) {
       moi.set(d.playerId, {
         tu: tuDau,
         den: { x: d.x, y: d.y },
-        huongVao: vanTocCuaChang(
-          truoc,
-          troi,
-          doMetTheoNguoi.get(d.playerId) ?? 0,
-          gioiHan,
-        ),
+        huongVao: vanTocCuaChang(truoc, troi, met, gioiHan),
+        thoiLuong: thoiLuongCuaNguoi(msMoiPhut, msChuyen, met),
       })
     }
 
@@ -765,7 +849,13 @@ export function San2D(props: Props) {
     Tỉ lệ đã đi được của cú di chuyển hiện tại — tính MỘT lần cho cả 22 điểm,
     để chúng không lệch nhau vài phần nghìn giây chỉ vì thứ tự vòng lặp.
   */
-  const troiQua = msChuyen <= 0 ? 1 : (performance.now() - batDau.current) / msChuyen
+  const bayGioVe = performance.now()
+
+  /** Tỉ lệ đã đi được của một người, theo thời lượng riêng của anh ta (D93). */
+  function troiQuaCua(tt: ChuyenDiemDang): number {
+    if (!(tt.thoiLuong > 0)) return 1
+    return (bayGioVe - batDau.current) / tt.thoiLuong
+  }
 
   /**
    * Chỗ vẽ của bóng ở thời điểm này (T505, AC-30.2).
@@ -852,7 +942,7 @@ export function San2D(props: Props) {
     if (giamChuyenDong) return { x: d.x, y: d.y }
     const tt = dang.current.get(d.playerId)
     const goc = tt
-      ? viTriTaiThoiDiem(tt.tu, tt.den, troiQua, {
+      ? viTriTaiThoiDiem(tt.tu, tt.den, troiQuaCua(tt), {
           huongVao: tt.huongVao,
           doMet: doMetTheoNguoi.get(d.playerId) ?? 0,
           gioiHan,
