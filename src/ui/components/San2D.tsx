@@ -6,6 +6,7 @@ import type { BenDoi, SuKien } from '../../engine/suKien'
 import type { BenTran } from '../../engine/tran'
 import { latVung, vungCuaViTri, type VungSan } from '../../engine/vung'
 import { useChuoi } from '../../hooks/useNgonNgu'
+import { bienDoTuKhoangGian, lechDaoDong } from '../daoDong'
 import {
   doMetTuTheLuc,
   huongRaKhoiMoc,
@@ -18,10 +19,14 @@ import type { BoChuoi } from '../ngonNgu'
 /*
   Sân 2D dạng điểm (US-10, quyết định D41).
 
-  SVG viết tay, KHÔNG thư viện đồ hoạ (P4) và KHÔNG vòng lặp animation: mỗi
-  điểm là một `<g>` có `transform`, di chuyển bằng CSS transition. 22 điểm
-  tròn không cần canvas, mà vòng lặp animation chính là thứ sẽ phá ngân sách 3
-  giây của AC-10.5 ở chế độ chạy hết trận.
+  SVG viết tay, KHÔNG thư viện đồ hoạ (P4): mỗi điểm là một `<g>` có
+  `transform`. 22 điểm tròn không cần canvas.
+
+  **CÓ vòng lặp animation, từ spec 004.** Câu cũ ở đây ghi "KHÔNG vòng lặp
+  animation... vòng lặp chính là thứ sẽ phá ngân sách 3 giây" — sai từ lúc lát 33
+  thêm nội suy, và spec 005 làm nó sai hơn nữa vì vòng giờ chạy liên tục. Ngân
+  sách 3 giây không bị đe doạ: chế độ "chạy hết trận" chạy engine một lèo rồi
+  vẽ MỘT lần, không đi qua vòng khung hình nào.
 
   Toạ độ suy từ lưới 12 vùng của D23, không phải một bảng toạ độ riêng — nhờ
   vậy chỗ bóng mà engine báo và chỗ người mà sân vẽ luôn nói cùng một thứ
@@ -262,6 +267,16 @@ interface DuLieuVe {
 interface Props extends DuLieuVe {
   /** Nhịp đồng hồ trận: bao nhiêu mili-giây cho một phút chơi. */
   readonly msMoiPhut: number
+  /**
+   * Phút ĐỒNG HỒ của trận (T508).
+   *
+   * **Không phải `suKien.phut`.** Đó là phút HIỂN THỊ, và nó không nhích khi
+   * một phút không có tình huống nào — bẫy đã biết từ spec 004, ghi ở D90.
+   * Dao động chờ bám vào con số này, nên bám sai là sân đứng chết hàng giây.
+   */
+  readonly phutDongHo: number
+  /** Trận đang chạy hay đang tạm dừng — tạm dừng thì đóng băng cả sân (AC-28.5). */
+  readonly dangChay: boolean
 }
 
 /**
@@ -503,7 +518,7 @@ interface ChuyenDiemDang {
 
 export function San2D(props: Props) {
   const { SAN_2D } = useChuoi()
-  const { nha, khach, msMoiPhut } = props
+  const { nha, khach, msMoiPhut, phutDongHo, dangChay } = props
   const msChuyen = thoiGianChuyen(msMoiPhut)
   const { khung, banKinh, cacDiem, duongBong } = hinhSan(props)
   const bong = duongBong[duongBong.length - 1]
@@ -622,25 +637,47 @@ export function San2D(props: Props) {
 
     dang.current = moi
     batDau.current = bayGio
-
-    if (giamChuyenDong || msChuyen <= 0) {
-      veLai()
-      return
-    }
-
-    let yeuCau = 0
-    const buoc = () => {
-      veLai()
-      if (performance.now() - batDau.current < msChuyen) {
-        yeuCau = requestAnimationFrame(buoc)
-      }
-    }
-    yeuCau = requestAnimationFrame(buoc)
-    return () => cancelAnimationFrame(yeuCau)
+    veLai()
     // `gioiHan` và `cacDiem` dựng lại mỗi lần vẽ; `khoaMoc` mới là thứ quyết
     // định có bắt đầu cú di chuyển mới hay không.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [khoaMoc, msChuyen, giamChuyenDong])
+
+  /*
+    Vòng khung hình, TÁCH khỏi việc dựng chặng (T508).
+
+    Trước T508, vòng này nằm trong cùng effect với việc dựng chặng và **tự
+    thoát** khi hết `msChuyen`, nên sau mỗi cú di chuyển là mọi điểm đứng im cho
+    tới tình huống sau — đo ở lát 37: tới **2114ms**. Tách ra thì vòng chạy
+    liên tục trong khi trận chạy, mà dự liệu chặng vẫn chỉ dựng lại khi toạ độ
+    đích đổi — nên vẽ lại vì đổi ngôn ngữ hay đổi chế độ màu vẫn **không**
+    làm các điểm chạy lại từ đầu, đúng tính chất quý nhất của code cũ.
+
+    Tạm dừng là `dangChay = false`: vòng tắt, không khung nào được xin, sân đóng
+    băng ở đúng khung cuối (AC-28.5, và AC-10.4 của spec 001 vẫn đúng).
+  */
+  useEffect(() => {
+    if (!dangChay || giamChuyenDong || msChuyen <= 0) return
+
+    let yeuCau = 0
+    const buoc = () => {
+      veLai()
+      yeuCau = requestAnimationFrame(buoc)
+    }
+    yeuCau = requestAnimationFrame(buoc)
+    return () => cancelAnimationFrame(yeuCau)
+  }, [dangChay, giamChuyenDong, msChuyen])
+
+  /*
+    Mốc thời gian thật của lần đổi phút gần nhất, để suy ra "thời điểm trận"
+    liên tục cho lớp dao động (T508, D90). Phải dùng mốc riêng chứ không dùng
+    `batDau` của chặng: nhiều phút liền có thể không đổi toạ độ nào, lúc ấy
+    `batDau` đứng im và dao động sẽ đứng im theo.
+  */
+  const batDauPhut = useRef(0)
+  useEffect(() => {
+    batDauPhut.current = performance.now()
+  }, [phutDongHo])
 
   /*
     Tỉ lệ đã đi được của cú di chuyển hiện tại — tính MỘT lần cho cả 22 điểm,
@@ -664,15 +701,42 @@ export function San2D(props: Props) {
     return diemThang(tt.tu, tt.den, troiBong)
   }
 
+  /*
+    "Thời điểm trận" liên tục, tính bằng phút: phút đồng hồ cộng phần đã trôi
+    trong nhịp. Đây là thứ duy nhất lớp dao động biết về thời gian, và nó là
+    thời gian CỦA TRẬN — nên xem lại cùng một trận ở cùng một nhịp thì chuyển
+    động giống hệt (P1, mục 6 của spec).
+  */
+  const thoiDiemTran =
+    phutDongHo +
+    (msMoiPhut > 0
+      ? Math.min(1, (performance.now() - batDauPhut.current) / msMoiPhut)
+      : 0)
+
+  /** Biên độ dao động chờ, đo theo khoảng giãn đã co theo khung sân (AC-28.2). */
+  const bienDoDao = bienDoTuKhoangGian(BUOC_GIAN * tiLe)
+
   function viTriVe(d: DiemCauThu): Diem {
     if (giamChuyenDong) return { x: d.x, y: d.y }
     const tt = dang.current.get(d.playerId)
-    if (!tt) return { x: d.x, y: d.y }
-    return viTriTaiThoiDiem(tt.tu, tt.den, troiQua, {
-      huongVao: tt.huongVao,
-      doMet: doMetTheoNguoi.get(d.playerId) ?? 0,
-      gioiHan,
-    })
+    const goc = tt
+      ? viTriTaiThoiDiem(tt.tu, tt.den, troiQua, {
+          huongVao: tt.huongVao,
+          doMet: doMetTheoNguoi.get(d.playerId) ?? 0,
+          gioiHan,
+        })
+      : { x: d.x, y: d.y }
+
+    /*
+      Dao động cộng vào SAU CÙNG, và chỉ cộng cho người — không cho bóng:
+      một quả bóng nằm yên thì nằm yên. Vị trí tại mốc của lớp nội suy
+      không bị đụng tới, nên bất biến của nó còn nguyên (D89).
+    */
+    const lech = lechDaoDong(d.playerId, thoiDiemTran, bienDoDao)
+    return {
+      x: kep(goc.x + lech.x, gioiHan.xTu, gioiHan.xDen),
+      y: kep(goc.y + lech.y, gioiHan.yTu, gioiHan.yDen),
+    }
   }
 
   return (

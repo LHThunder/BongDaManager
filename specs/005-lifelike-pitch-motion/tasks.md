@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | 30 AC (US-28 → US-32), 11 quyết định D89–D100 |
-| **Tiến độ** | 6/20 |
+| **Tiến độ** | 10/20 |
 | **Sửa đổi** | 2026-11-18 — chẻ lần đầu từ plan |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -95,29 +95,29 @@ xem được (hiến pháp P6), và là một commit.
 
 ## Phase 39 — Lát 39: Ai cũng sống
 
-- [ ] **T506** — Lớp dao động chờ, hàm thuần
+- [x] **T506** — Lớp dao động chờ, hàm thuần
   - File: tạo `src/ui/daoDong.ts`
   - Xong khi: `lechDaoDong(playerId, thoiDiemTran, bienDo)` trả về một **lệch** (không phải toạ độ) luôn nằm trong `bienDo`, và `bienDo` là **hai số cho hai trục**, mỗi trục tối đa **một phần tám khoảng giãn** (D89 đã siết sau `/analyze`); `phaCuaNguoi(playerId)` băm tất định từ chuỗi id; **không** gọi `Math.random`, `Date.now` hay `performance.now` — mọi thứ đi vào qua tham số (P1); file này không import gì từ `components/`.
   - Bằng chứng: **số**.
   - AC: AC-28.1, AC-28.2, AC-28.4
   - Phụ thuộc: —
 
-- [ ] **T507** [P] — Test lớp dao động
+- [x] **T507** [P] — Test lớp dao động
   - File: tạo `src/ui/daoDong.test.ts`
   - Xong khi: cùng `playerId` + cùng thời điểm trận → cùng lệch (P1); hai `playerId` khác nhau → hai pha khác nhau (AC-28.4); lệch luôn trong biên với mọi đầu vào, kể cả `NaN` và số âm; **hai điểm cùng một vùng, lệch ngược chiều nhau tối đa, vẫn cách nhau ít nhất ba phần tư khoảng giãn** (AC-30.5 và AC-15.2 của spec 002); **hai điểm cùng một hàng lệch nhau không quá một phần tư** (AC-30.3); khi thời điểm trận nhích đều thì lệch **đổi trong mọi cửa sổ 300ms** (AC-28.1); thay `Math.random` bằng một hàm ném lỗi rồi gọi vẫn chạy — đúng cách `generator.test.ts` và `tenNgauNhien.test.ts` đang kiểm.
   - Bằng chứng: **số**.
   - AC: AC-28.1, AC-28.2, AC-28.4
   - Phụ thuộc: T506
 
-- [ ] **T508** — Vòng khung hình chạy liên tục, hai prop mới, tạm dừng đóng băng
+- [x] **T508** — Vòng khung hình chạy liên tục, hai prop mới, tạm dừng đóng băng
   - File: sửa `src/ui/components/San2D.tsx`, sửa `src/ui/pages/TrangTran.tsx`
-  - Xong khi: **tách hai effect** — một dựng dữ liệu chặng, vẫn khoá theo `khoaMoc`; một giữ vòng `requestAnimationFrame`, khoá theo `[dangChay, giamChuyenDong]`; `San2D` nhận hai prop mới `phutDongHo` và `dangChay` từ `TrangTran` (chỗ dựng `<San2D>` **duy nhất** của repo); `dangChay = false` → **0 khung** và sân đóng băng, giữ thời điểm trận trong ref để lúc tiếp tục không nhảy; đổi ngôn ngữ giữa một chặng **không** làm toạ độ nhảy về đầu chặng; ẩn sân rồi hiện lại thì các điểm xuất hiện đúng chỗ hiện tại, không chạy lại chặng cũ; đo ở **từng mức còn nội suy** (Chậm, Thường, Nhanh): mọi điểm đổi toạ độ ít nhất một lần mỗi 300ms; ở mức Rất nhanh **không** đòi điều đó (AC-28.1 đã giới hạn sau `/analyze`); **sửa chú thích đầu file** — câu "KHÔNG vòng lặp animation" sai từ spec 004.
+  - Xong khi: **tách hai effect** — một dựng dữ liệu chặng, vẫn khoá theo `khoaMoc`; một giữ vòng `requestAnimationFrame`, khoá theo `[dangChay, giamChuyenDong]`; `San2D` nhận hai prop mới `phutDongHo` và `dangChay` từ `TrangTran` (chỗ dựng `<San2D>` **duy nhất** của repo); `dangChay = false` → **0 khung** và sân đóng băng, giữ thời điểm trận trong ref để lúc tiếp tục không nhảy; đổi ngôn ngữ giữa một chặng **không** làm toạ độ nhảy về đầu chặng; ẩn sân rồi hiện lại thì các điểm **không chạy lại một chặng cũ** — đo bằng quãng đi được ngay sau khi hiện: phải ở cỡ dao động, không phải cỡ một chặng (AC-31.7); đo ở **từng mức còn nội suy** (Chậm, Thường, Nhanh): mọi điểm đổi toạ độ ít nhất một lần mỗi 300ms; ở mức Rất nhanh **không** đòi điều đó (AC-28.1 đã giới hạn sau `/analyze`); **sửa chú thích đầu file** — câu "KHÔNG vòng lặp animation" sai từ spec 004.
   - Bằng chứng: **số**.
   - AC: AC-28.1, AC-28.3, AC-28.5, AC-31.7
   - Phụ thuộc: T506, T504 *(cùng chạm `San2D.tsx` nên làm sau lát 38, không song song)*
   - ⚠️ `phutDongHo` lấy từ `tran.phut` (phút ĐỒNG HỒ), **không** từ `suKien.phut` — phút hiển thị không nhích khi một phút không có tình huống nào, và dao động sẽ đứng chết hàng giây (bẫy đã biết từ Phase 34, ghi trong D90).
 
-- [ ] **T509** — Giảm chuyển động tắt **cả hai** lớp
+- [x] **T509** — Giảm chuyển động tắt **cả hai** lớp
   - File: sửa `src/ui/components/San2D.tsx`
   - Xong khi: giả lập `matchMedia('(prefers-reduced-motion: reduce)')` trả `matches: true` → 0 khung **và** lệch dao động bằng 0, mà toạ độ tại mốc vẫn đúng từng điểm.
   - Bằng chứng: **số**.
@@ -281,6 +281,55 @@ pane không được vẽ): mức Chậm được chọn sẵn khi mở trận, 
 tự Chậm → Thường → Nhanh → Rất nhanh; hai chặng di chuyển đo được **914,1ms và
 916,7ms** (trước T501 là 280ms, bị trần cắt); mức Rất nhanh **0 khung** được xin
 trong ~1 giây mà toạ độ vẫn đổi qua 29 giá trị; không lỗi console.
+
+## Phase 39 — một lỗi thật, và một thói xấu của chính tôi
+
+**1. Phép kiểm bắt đúng một lỗi thật trong hàm băm.** FNV-1a thuần trộn các bit
+THẤP rất tốt nhưng để các bit CAO gần như nguyên, mà phép chia cho 2^32 để ra pha
+lại đọc đúng các bit cao. Đo thật: mọi `playerId` dạng `cau-thu-N` cho pha dồn
+trong khoảng **5,6–5,8** trên dải 0–2π — tức cả 22 điểm dao động gần như cùng
+một nhịp, đúng cái "khối máy" mà AC-28.4 cấm. Sửa bằng ba dòng trộn cuối của
+murmur3; pha giờ trải từ 0,65 tới 3,86 trên mẫu 10 người.
+
+**Nhưng bản đầu của phép kiểm ấy cũng sai thiết kế**: nó chọn đúng **một cặp**
+id rồi đòi hai người lệch nhau. Hai cầu thủ hoàn toàn có thể tình cờ gần pha
+nhau mà cả sân vẫn không đồng loạt — đo thật thì `hv-1` và `hv-2` chỉ lệch
+0,218 trên biên 0,5. Tính chất đúng là **tập pha trải ra cả dải**, và đó cũng
+là thứ bắt được lỗi băm.
+
+**2. Bốn lần trong ba lát cắt, tiêu chí "Xong khi" đo sai thứ.** Đây là một thói
+xấu có hệ thống của tôi lúc chẻ task, nên ghi ra để đọc ba lát còn lại với con
+mắt nghi ngờ: tiêu chí hay được viết bằng một **triệu chứng dễ đo** thay vì
+bằng **tính chất cần đúng**.
+- Lát 37: "quãng không đổi toạ độ ≤ 300ms" — thuộc lát 39, không phải 37.
+- Lát 38: "không hai khung liền cùng toạ độ" — bắt cả việc làm tròn SVG.
+- Lát 39: "đổi ngôn ngữ không làm toạ độ nhảy về đầu chặng" — đo độ lệch thì
+  không phân biệt được với việc điểm đang đi bình thường; đo **vận tốc** mới
+  phân biệt được (chạy lại chặng thì vận tốc tụt hẳn).
+- Lát 39: "ẩn rồi hiện thì điểm ở đúng chỗ hiện tại" — đo ra lệch **46,62 đơn
+  vị**, nhưng đó là khoảng cách giữa một vị trí **người xem không bao giờ
+  thấy** (lúc ẩn, đang giữa chặng) và chỗ điểm đi tiếp. Dự liệu chặng nằm
+  trong một ref, chết cùng component, nên không phục hồi được — và cũng
+  **không cần**: điều AC-31.7 cấm là *chạy lại một chặng cũ*, và đo sau khi
+  hiện thì điểm chỉ đi **1,84 đơn vị trong 350ms** (cỡ dao động), không phải
+  cỡ một chặng. Tiêu chí đã viết lại theo đúng điều cần cấm.
+
+**Số đo thật của lát 39** (bản build, lấy mẫu ngay sau mỗi khung vẽ):
+- **Khoảng đứng im lâu nhất của một điểm: 0ms** ở cả ba mức còn nội suy (Chậm,
+  Thường, Nhanh) — ngưỡng là 300ms, và trước lát này con số ấy là **2114ms**.
+  Mọi điểm đổi toạ độ ở **mỗi** khung vẽ.
+- Tạm dừng: **0 khung** được xin trong 1,5 giây, toạ độ đóng băng (AC-28.5, và
+  AC-10.4 của spec 001 vẫn đúng); bấm Tiếp tục thì khung trở lại.
+- Đổi ngôn ngữ giữa chặng: vận tốc trung vị 4,26 → 4,62 đơn vị/giây, tỉ lệ
+  **1,08** — không tụt, tức chặng không bị dựng lại.
+- Giảm chuyển động: **0 khung**, và chỉ **3 bộ vị trí khác nhau trong 1,5 giây**
+  (đổi theo nhịp, không theo khung) — cả hai lớp đều tắt.
+- Không lỗi console.
+
+**Sửa một chú thích sai từ spec 004:** đầu `San2D.tsx` vẫn ghi "KHÔNG vòng lặp
+animation... vòng lặp chính là thứ sẽ phá ngân sách 3 giây". Sai từ lúc lát 33
+thêm nội suy. Nay nói đúng: có vòng lặp, chạy liên tục, và ngân sách 3 giây
+không bị đe doạ vì chế độ chạy hết trận không đi qua vòng khung hình nào.
 
 ## Phase 38 — hai thứ chỉ lộ ra khi làm thật
 
