@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **ID** | `006-ball-carrier-motion` |
-| **Status** | Draft (2026-11-18) |
+| **Status** | Clarified (2026-11-19) |
 | **Created** | 2026-11-18 |
 | **Branch** | `006-ball-carrier-motion` — **cắt từ `005-lifelike-pitch-motion`, không phải từ `main`** |
 
@@ -70,6 +70,10 @@ giữ bóng, bóng đi theo ai, lúc nào rời chân". Khi có nó thì bốn �
 - **Không đổi một con số nào của trận.** Tỉ số, từng dòng tường thuật, chỉ tiêu hai
   đội, điểm từng cầu thủ phải y hệt trước và sau spec này. Đây là **trình bày**, không
   phải luật bóng đá (hiến pháp P2).
+  > **Chốt ngày 2026-11-19:** "không đổi engine" của bốn spec trước ở spec này có
+  > nghĩa là **không đổi kết quả**, không phải "không chạm file". Được phép cho dữ
+  > liệu engine **đã tính sẵn** đi kèm ra ngoài; không được rút thêm một số ngẫu
+  > nhiên nào, không được đổi một kết cục nào. `PHIEN_BAN_ENGINE` vì thế **giữ 5**.
 - Không làm đồ hoạ 3D, không ảnh cầu thủ trên sân, không hoạt hình tay chân — sân vẫn
   là 2D dạng điểm (hiến pháp mục 1).
 - Không thêm loại tình huống mới vào trận (không "solo qua ba người", "đá phạt góc hai
@@ -99,7 +103,8 @@ theo được trận bằng mắt thay vì đoán xem chuyện gì đang xảy r
 - [ ] AC-33.1 — KHI trận đang chạy và bóng không đang bay THÌ PHẢI có **đúng một** cầu thủ đang giữ bóng, và quả bóng PHẢI nằm sát chân anh ta — cách tâm điểm của anh ta **không quá một bán kính điểm**.
 - [ ] AC-33.2 — KHI người giữ bóng di chuyển THÌ quả bóng PHẢI đi **cùng** anh ta trong suốt quãng đường ấy, KHÔNG được rời ra rồi đuổi theo sau, và KHÔNG được tới đích trước rồi đứng đợi.
 - [ ] AC-33.3 — KHI xem bất kỳ mười giây nào của một trận đang chạy ở một mức còn nội suy THÌ quả bóng PHẢI không đứng yên quá **300ms** liên tục. *(Đo được trước spec này: 3144ms.)*
-- [ ] AC-33.4 — KHI quyền giữ bóng đổi từ người này sang người khác THÌ người xem PHẢI nhận ra được bằng **ít nhất một kênh không phải màu sắc** (hiến pháp P9).
+- [ ] AC-33.4 — KHI một cầu thủ đang giữ bóng THÌ quanh điểm của anh ta PHẢI có một **vòng sáng** riêng, và vòng ấy PHẢI chuyển sang người khác đúng lúc quyền giữ bóng đổi. Dấu hiệu này PHẢI đọc được mà không dựa vào màu (hiến pháp P9), và PHẢI không lẫn với viền vàng của người tham gia tình huống hay dấu ▲ đã có từ spec 001.
+- [ ] AC-33.6 — KHI người dùng muốn ngắm một pha dẫn bóng THÌ PHẢI có một mức tốc độ **2000ms một phút trận** — chậm gấp đôi mức chậm nhất hiện nay — với nhãn đủ tiếng Việt và tiếng Anh, chọn được bằng bàn phím.
 - [ ] AC-33.5 — KHI không ai giữ bóng (bóng đang bay giữa hai người, hoặc bóng ở giữa sân trước giờ bóng lăn) THÌ ứng dụng PHẢI vẫn vẽ bóng đúng chỗ của nó và KHÔNG được gán nhầm cho một cầu thủ.
 
 ### US-34: Dẫn bóng và qua người
@@ -111,7 +116,13 @@ qua người cản**, để **một pha đi bóng trông như một pha đi bón
 **Acceptance criteria:**
 
 - [ ] AC-34.1 — KHI người giữ bóng phải đi một quãng dài trong một nhịp THÌ PHẢI thấy **người và bóng cùng đi** suốt quãng ấy, với khoảng cách giữa hai điểm luôn dưới một bán kính (AC-33.1).
-- [ ] AC-34.2 — KHI đường đi của người giữ bóng cắt qua chỗ đứng của một đối thủ THÌ anh ta PHẢI **đi vòng** qua điểm ấy, chứ KHÔNG đi xuyên qua nó: hai điểm KHÔNG được chồng khít tới mức người xem chỉ thấy một (giữ AC-30.5 của spec 005 và AC-15.2 của spec 002).
+- [ ] AC-34.2 — KHI dòng tường thuật kể một bước là **rê bóng** THÌ trên sân PHẢI thấy người giữ bóng tự mang bóng đi qua bước ấy — không phải một đường chuyền — và anh ta PHẢI **đi vòng** qua điểm của bất kỳ đối thủ nào nằm trên đường đi, chứ KHÔNG đi xuyên qua: hai điểm KHÔNG được chồng khít tới mức người xem chỉ thấy một (giữ AC-30.5 của spec 005 và AC-15.2 của spec 002).
+
+  > **"Qua người" là chuyện THẬT của trận, không phải cách vẽ** (chốt 2026-11-19).
+  > Engine đã phân loại từng bước của một pha bóng từ spec 001 — **chuyền, rê bóng,
+  > tạt cánh, sút** — nhưng dòng sự kiện phát ra ngoài **vứt mất phần loại**, chỉ
+  > giữ danh sách vùng. Spec này cho phần loại đi kèm ra ngoài. Đó là dữ liệu **đã
+  > tính sẵn**: không rút thêm số ngẫu nhiên nào, không đổi kết cục nào.
 - [ ] AC-34.3 — KHI xem cùng một trận hai lần ở cùng một mức tốc độ THÌ đường dẫn bóng PHẢI giống hệt nhau (hiến pháp P1).
 - [ ] AC-34.4 — KHI chuyển động mới đang bật THÌ tỉ số, **từng dòng tường thuật**, chỉ tiêu hai đội và điểm từng cầu thủ PHẢI không đổi so với trước spec này.
 
@@ -126,6 +137,7 @@ sút và một pha dẫn bóng**, để **tôi đọc được trận mà không
 - [ ] AC-35.2 — KHI một đường chuyền tới một đồng đội THÌ bóng PHẢI tới **đúng chân** người nhận (trong một bán kính điểm), và người ấy PHẢI trở thành người giữ bóng **ngay khi bóng tới**, không sớm hơn.
 - [ ] AC-35.3 — KHI dòng tường thuật kể một cú sút THÌ bóng PHẢI đi **về phía khung thành của đội bị sút**, và kết thúc ở nơi dòng ấy kể (vào lưới, ra ngoài, hay thủ môn cản).
 - [ ] AC-35.4 — KHI đặt một pha dẫn bóng cạnh một đường chuyền cùng quãng đường THÌ **thời gian đi phải khác nhau ít nhất ba lần**, tức người xem đọc ra được hai thứ khác nhau mà không cần chữ.
+- [ ] AC-35.5 — KHI vẽ một đường chuyền và một cú sút THÌ hai thứ chỉ được khác nhau ở **tốc độ và đích đến**: sút nhanh hơn chuyền và đi về khung thành, chuyền tới chân đồng đội. KHÔNG thêm vệt sáng, không đổi độ cong, không thêm hình vẽ nào khác.
 
 ### US-36: Người không có bóng cũng di chuyển có mục đích
 
@@ -136,6 +148,7 @@ không còn cảnh hai mươi người đứng chờ trong khi hai người ch�
 
 - [ ] AC-36.1 — KHI trận đang chạy ở một mức còn nội suy THÌ trong **mỗi nhịp**, **mọi** điểm cầu thủ PHẢI đổi chỗ theo một hướng có nghĩa, chứ không chỉ dao động quanh một chỗ cố định.
 - [ ] AC-36.2 — KHI người giữ bóng tiến về phía khung thành đối phương THÌ **ít nhất một đồng đội** PHẢI di chuyển lên theo, đủ để người xem thấy có một phương án chuyền.
+- [ ] AC-36.6 — KHI một đội đang giữ bóng THÌ **hai bên di chuyển theo hai nguyên tắc khác nhau**, và người xem PHẢI phân biệt được: đồng đội của người giữ bóng **dâng lên mở ra nhận bóng**, còn đối phương **lùi về hoặc ép theo bóng**. Hai đội KHÔNG được trông như một khối duy nhất trượt qua lại.
 - [ ] AC-36.3 — KHI bóng đổi từ đội này sang đội kia THÌ cả hai khối đội hình PHẢI dịch theo hướng mới trong nhịp kế tiếp.
 - [ ] AC-36.4 — KHI mọi người cùng di chuyển THÌ bốn bất biến của spec 005 PHẢI còn đúng: không hai điểm nào chồng khít (AC-30.5); thủ môn không rời một phần ba sân nhà (AC-30.7); bốn hàng của hai đội xen kẽ đúng thứ tự khi không có bóng ở gần (AC-30.8); không điểm nào ra ngoài vạch biên.
 - [ ] AC-36.5 — KHI đo trên một trận đầy đủ THÌ tỉ lệ giữa tốc độ lớn nhất và nhỏ nhất của các điểm **đang di chuyển** PHẢI vẫn dưới **bốn lần** (giữ AC-30.10), và đường đi thật của một điểm trong một nhịp KHÔNG dài hơn đường chim bay quá **năm lần** (giữ AC-30.11).
@@ -159,7 +172,7 @@ không còn cảnh hai mươi người đứng chờ trong khi hai người ch�
 |---|---|
 | Phút 0, chưa có dòng nào | Bóng ở điểm giao bóng giữa sân; chưa ai giữ bóng, và không được gán nhầm cho ai |
 | Dòng không kể pha bóng nào (thay người, kiệt sức) | Quyền giữ bóng và chỗ của bóng **giữ nguyên** như trước dòng ấy |
-| Dòng kể một pha nhưng không nêu ai tham gia | Phải có một quy tắc xác định, tất định, cho việc ai giữ bóng — không được nhảy lung tung giữa các nhịp |
+| Dòng kể một pha nhưng không nêu ai tham gia | **Người đang giữ bóng tiếp tục giữ** cho tới khi có dòng nêu người khác. Tất định, và không làm bóng giật |
 | Bàn thắng | Bóng kết thúc trong khung thành; hiệu ứng bàn thắng của spec 005 vẫn chạy, và nhịp lặng 1,5 giây vẫn đúng |
 | Hết hiệp / khai cuộc | Bóng về điểm giao bóng giữa sân (giữ AC-32.2 của spec 005) |
 | Người đang giữ bóng bị thẻ đỏ hoặc bị thay ra | Quyền giữ bóng phải chuyển cho ai đó, hoặc bóng thành "không ai giữ" — KHÔNG được để một điểm ma giữ bóng |
@@ -167,10 +180,10 @@ không còn cảnh hai mươi người đứng chờ trong khi hai người ch�
 | Hai pha bóng liền nhau ở hai vùng xa nhau | Bóng đi từ chỗ nó **đang đứng**, không nhảy về điểm đầu của pha mới (giữ cách làm của T524) |
 | Tạm dừng | Mọi thứ đóng băng, kể cả bóng và người giữ bóng (giữ AC-28.5) |
 | Giảm chuyển động bật | Không nội suy, không dao động, không dẫn bóng — vị trí tại từng mốc vẫn đúng (giữ AC-31.1) |
-| Mức Rất nhanh (20ms một phút) | Theo AC-29.4 của spec 005, mức này **thôi nội suy** — xem câu hỏi mở (6) |
+| Mức Rất nhanh (20ms một phút) | Mô hình giữ bóng **tắt theo**, cùng lúc với nội suy và dao động: ở nhịp ấy mắt không đọc được gì, vẽ thêm chỉ tốn ngân sách |
 | Ẩn sân rồi hiện lại | Các điểm và bóng xuất hiện đúng chỗ của thời điểm hiện tại, không chạy lại một cú di chuyển cũ (giữ AC-31.7) |
 | Sân 5 người (khung co lại) | Mọi khoảng cách và tốc độ co theo khung, như spec 002 và 005 đã làm |
-| Trận lưu từ trước spec này | Mở lại và đấu lại phải cho **đúng kết quả và đúng từng dòng sự kiện** như cũ |
+| Trận lưu từ trước spec này | Mở lại và đấu lại phải cho **đúng kết quả và đúng từng dòng sự kiện** như cũ. Bản ghi cũ **không có loại của từng bước**, nên sân vẽ nó **đúng như spec 005**: bóng đi hết đường, nhưng không dẫn bóng và không có vòng sáng. KHÔNG đoán bù, KHÔNG đòi người dùng đấu lại |
 | Mất mạng | Không ảnh hưởng: ứng dụng không gọi mạng (hiến pháp P4) |
 
 ## 6. Yêu cầu phi chức năng
@@ -211,27 +224,19 @@ không còn cảnh hai mươi người đứng chờ trong khi hai người ch�
 
 ## 8. Câu hỏi mở
 
-> Dùng đúng cú pháp `[NEEDS CLARIFICATION: câu hỏi]` để `/clarify` quét được.
-> Chỉ khi mục này rỗng mới được chạy `/plan`.
-
-- [NEEDS CLARIFICATION: **Câu hỏi lớn nhất của spec này.** Có được đổi engine để biết ai đang giữ bóng không? Hiện dòng sự kiện chỉ có vùng xảy ra, đường bóng đi qua và danh sách người tham gia — không có "ai giữ bóng". Hai đường: (a) **suy ra ở tầng giao diện** từ những thứ đã có, giữ nguyên `PHIEN_BAN_ENGINE` = 5 và `git diff src/engine/` rỗng như bốn spec trước, nhưng suy ra thì có lúc đoán sai; (b) **thêm dữ liệu vào engine**, chính xác hơn nhưng phải đổi phiên bản engine và trả lời cho được: trận đã lưu theo phiên bản cũ thì sao?]
-- [NEEDS CLARIFICATION: "Qua người" là **chuyện có thật của trận** (engine kể lại rằng pha ấy đi qua một đối thủ) hay chỉ là **cách vẽ** một pha đã có (người dẫn bóng tránh điểm nào nằm trên đường đi của mình)? Phương án sau không đổi một con số nào của trận; phương án trước đổi engine.]
-- [NEEDS CLARIFICATION: Giữa hai phút trận, dựng **bao nhiêu** mốc trung gian, và dựng theo nguyên tắc nào? Ví dụ: chia đường bóng thành từng chặng nhỏ, mỗi chặng một mốc; hay một mốc cố định mỗi 1/4 nhịp.]
-- [NEEDS CLARIFICATION: Người **không** giữ bóng di chuyển theo nguyên tắc gì — đuổi theo bóng, giữ cự ly đội hình, hay cả hai? Và mạnh tới đâu? Spec 005 đang cho cả khối co về phía bóng tối đa **một phần mười chiều dài sân** (AC-30.4); con số ấy giữ nguyên, tăng, hay thay bằng nguyên tắc khác?]
-- [NEEDS CLARIFICATION: Chuyền khác sút thế nào **trên hình**? Khác tốc độ, khác độ cong, hay có thêm dấu hiệu gì? Và một cú sút trượt/bị cản thì bóng dừng ở đâu?]
-- [NEEDS CLARIFICATION: Ở mức **Rất nhanh** (20ms một phút trận) spec 005 đã thôi nội suy và tắt dao động (AC-29.4). Mô hình giữ bóng có tắt theo không, hay vẫn chạy ở dạng rút gọn?]
-- [NEEDS CLARIFICATION: Có thêm một mức tốc độ **chậm hơn nữa** (ví dụ 2000ms một phút trận) để xem cho rõ pha dẫn bóng không? Hiện mức chậm nhất là 1000ms, mặc định từ spec 005.]
-- [NEEDS CLARIFICATION: Ngân sách vẽ — mô hình mới dựng bao nhiêu mốc mỗi nhịp là còn giữ được "mỗi khung gọn trong một nhịp ở cả bốn mức"? Có mức nào phải giảm số mốc không?]
-- [NEEDS CLARIFICATION: Khi dòng tường thuật **không nêu ai tham gia** (hoặc nêu người của cả hai đội, như một pha tranh chấp), ai được coi là đang giữ bóng? Cần một quy tắc tất định, vì quyền giữ bóng nhảy lung tung giữa hai nhịp sẽ làm bóng giật.]
-- [NEEDS CLARIFICATION: "Người xem nhận ra ai đang giữ bóng bằng một kênh không phải màu" (AC-33.4) — bằng cách nào? Vòng sáng quanh điểm, dấu hình, hay chính việc bóng nằm sát chân đã đủ?]
-- [NEEDS CLARIFICATION: Nếu chốt đổi engine (câu hỏi 1), thì những trận đã lưu theo `DB_VERSION` = 3 và `PHIEN_BAN_ENGINE` = 5 xử lý thế nào — vẫn đấu lại được, hay mất nút đấu lại? Hiến pháp P3 nói dữ liệu người dùng là bất khả xâm phạm.]
-- [NEEDS CLARIFICATION: Spec 005 còn T518 và T519 chưa xong. Spec 006 làm song song, hay đóng 005 trước rồi mới bắt đầu? Nếu song song thì T518 của 005 ("người dùng xem và phán") đánh giá bản nào?]
+**Không còn câu hỏi mở.** Mười hai câu đã chốt ngày 2026-11-19 — xem **Nhật ký làm
+rõ** ở cuối tài liệu. Spec sẵn sàng cho `/plan`, nhưng **sau khi spec 005 đóng**
+(quyết định số 2).
 
 ## 9. Giả định
 
 - Engine vẫn phát **một dòng mỗi phút trận**, kèm vùng, đường bóng và danh sách người
-  tham gia. Nếu giả định này đổi (câu hỏi mở 1 chốt theo hướng đổi engine) thì mục 1
-  và nhiều AC phải viết lại.
+  tham gia — **cộng loại của từng bước** (chuyền / rê bóng / tạt cánh / sút), là thứ
+  engine đã tính từ spec 001 nhưng chưa cho ra ngoài.
+- **Phần loại ấy đủ để dựng cả bốn user story.** Nếu lúc lập plan phát hiện nó
+  **không đủ** — ví dụ cần biết **ai** rê qua **ai** — thì phải dừng và hỏi lại, vì
+  thêm dữ liệu **chưa tính sẵn** là một quyết định khác hẳn: nó rút thêm số ngẫu nhiên
+  và đổi kết quả trận.
 - Mọi thứ spec 005 đã dựng còn nguyên và còn đúng: lớp nội suy có đường cong, dao động
   chờ, co khối theo bóng, bóng đi hết đường chuyền, thủ môn ở nhà, bốn hàng xen kẽ,
   hiệu ứng bàn thắng, nhịp lặng sau bàn thắng.
@@ -269,3 +274,34 @@ Và hai AC của spec đã đóng trước đó, đã cứu spec 005 bốn lần
 - **AC-10.2 của spec 001**, mệnh đề thứ nhất — người tham gia tình huống phải có mặt ở
   vùng có bóng. *(Mệnh đề "kèm đường đi của bóng" đã được spec 005 thay thế: bóng tự
   đi đường của nó, không vẽ đường kẻ.)*
+
+## Nhật ký làm rõ
+
+Mười hai câu hỏi mở của mục 8, chốt ngày **2026-11-19** qua ba lượt hỏi.
+
+| # | Câu hỏi | Quyết định | Vào đâu |
+|---|---|---|---|
+| 1 | Có được đổi engine để biết ai giữ bóng? | **Không đổi engine — suy ở giao diện.** Danh tính người giữ bóng suy từ những thứ dòng sự kiện đã có | mục 1, mục 9 |
+| 1b | *(hỏi thêm sau khi đọc engine)* "Không đổi engine" là không chạm file, hay không đổi kết quả? | **Không đổi KẾT QUẢ — chạm file được.** Cho loại của từng bước (chuyền / rê bóng / tạt cánh / sút) đi kèm ra ngoài; `PHIEN_BAN_ENGINE` giữ **5** vì không số nào đổi | mục 1, AC-34.2, mục 9 |
+| 2 | "Qua người" là chuyện thật hay cách vẽ? | **Chuyện thật của trận** — và hành động `rê bóng` **đã có sẵn** trong engine từ spec 001, chỉ chưa được cho ra ngoài | AC-34.2 |
+| 3 | Đóng spec 005 trước hay làm 006 song song? | **Đóng 005 trước**: T518, T519, rồi gộp vào `main`. Spec 006 chỉ bắt đầu `/plan` sau đó | mục 8 |
+| 4 | Dựng mốc trung gian thế nào? | **Mỗi bước của pha bóng là một mốc**, chia đều theo chiều dài. Không bịa mốc | AC-33.2, AC-34.1 |
+| 5 | Người không giữ bóng di chuyển theo nguyên tắc gì? | **Hai nhóm khác nhau**: đồng đội dâng lên mở ra nhận bóng, đối phương lùi về hoặc ép theo bóng | AC-36.2, AC-36.6 |
+| 6 | Ai giữ bóng khi dòng không nêu ai? | **Giữ nguyên người cũ** cho tới khi có dòng nêu người khác | mục 5 |
+| 7 | Chuyền khác sút thế nào trên hình? | **Chỉ khác tốc độ và đích đến.** Không vệt sáng, không đổi độ cong | AC-35.5 |
+| 8 | Mức Rất nhanh có tắt mô hình mới? | **Tắt theo**, cùng lúc với nội suy và dao động | mục 5 |
+| 9 | Có thêm một mức chậm hơn 1000ms? | **Có — thêm mức 2000ms một phút trận**, thành năm mức | AC-33.6 |
+| 10 | Ngân sách: bao nhiêu mốc mỗi nhịp? | **Không cần hỏi nữa** sau quyết định 4: số mốc **chính là số bước của pha bóng**, do engine quyết. Hai ngân sách ở mục 6 giữ nguyên và là lưới chặn | mục 6 |
+| 11 | Dấu hiệu "ai đang giữ bóng"? | **Thêm vòng sáng quanh điểm** người giữ bóng, không dựa vào màu | AC-33.4 |
+| 12 | Trận đã lưu (thiếu loại bước) xem ra sao? | **Xem như bây giờ**: rơi về cách vẽ của spec 005. Không đoán bù, không đòi đấu lại | mục 5 |
+
+**Một phát hiện làm đổi câu hỏi, đáng ghi lại.** Câu 1 và câu 2 lúc đầu mâu thuẫn
+nhau: người dùng chọn "không đổi engine" nhưng cũng chọn "qua người là chuyện thật",
+mà cách tôi đặt câu hỏi nói hai thứ ấy loại trừ nhau. Đọc lại engine thì thấy câu hỏi
+của tôi sai, không phải câu trả lời: `chuoiBong.ts` **đã** phân loại từng bước thành
+`chuyen | re-bong | tat-canh | sut` từ spec 001, và `tran.ts:720` còn ghi rõ `duongBong`
+là "dẫn xuất thuần từ `cacHanhDong`, không rút thêm số nào" — rồi **vứt mất phần
+loại** khi phát ra ngoài. Nên "qua người" là chuyện thật của trận **mà không cần
+đổi một con số nào**; thứ duy nhất phải hỏi lại là nghĩa của chữ "không đổi engine",
+và câu 1b chốt nó.
+
