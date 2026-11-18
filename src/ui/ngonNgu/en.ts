@@ -1001,6 +1001,8 @@ export const LICH_SU_EN: BanDich<typeof LICH_SU_VI> = {
       'Cannot be replayed: this match ran on an older engine version, so the same code now gives a different match.',
     'doi-da-bi-xoa':
       'Cannot be replayed: one of the two teams has been deleted, so there is no profile left to rebuild the fixture from.',
+    'ban-ghi-khong-dung-duoc':
+      'Cannot be replayed: this match was saved by an older build of the app and its record cannot be turned back into a match.',
   },
   daLoaiTranCu: (so: number) =>
     so === 1
@@ -1016,6 +1018,8 @@ export const LICH_SU_EN: BanDich<typeof LICH_SU_VI> = {
       'Cannot branch: this match ran on an older engine version, so a rerun would not match the old one even with nothing changed.',
     'doi-da-bi-xoa':
       'Cannot branch: one of the two teams has been deleted, so there is no profile left to rerun the match from.',
+    'ban-ghi-khong-dung-duoc':
+      'Cannot branch: this record cannot be turned back into a match, so no minute can be played on from. The match can still be reviewed in full.',
   },
   tieuDeDienBien: 'Match commentary',
 }
@@ -1042,6 +1046,8 @@ export const RE_PHAT_LAI_EN: BanDich<typeof RE_PHAT_LAI_VI> = {
   nutRoi: 'Leave the branch screen',
   phutNgoaiKhoang: (tu: number, den: number) =>
     `This minute cannot be branched from. Pick a minute between ${tu} and ${den} — the final minute is out because nothing is left to play after it.`,
+  banGhiKhongDungDuoc:
+    'Cannot branch: this match was saved by an older build of the app and its record cannot be turned back into a match. Matches played from now on will branch normally.',
   tieuDeSoSanh: 'Original match vs branch',
   moTaSoSanh:
     'Same match code, same two teams; only one decision differs, at the minute you picked.',

@@ -1,12 +1,15 @@
+import { LoiCauHinhTran, type LyDoKhongBatDau } from '../engine/batDau'
 import type { SuKien } from '../engine/suKien'
 import {
   apDungCanThiep,
   buocTiep,
+  dangKyTuTrangThai,
   dongSuKien,
   phutHiep1,
   phutHienThi,
   taoTran,
   tongPhutTran,
+  type BenTran,
   type CanThiep,
   type CauHinhTran,
   type DangKyBen,
@@ -77,9 +80,83 @@ export function cauHinhTuBanGhi(tran: TranDaLuu): CauHinhTran {
   }
 }
 
+/**
+ * Đăng ký của một bên, dựng từ trạng thái trận **để đem lưu** (T441).
+ *
+ * Vì sao không dùng thẳng `dangKyTuTrangThai` của engine: hàm ấy suy băng ghế
+ * bằng "`cacCauThu` trừ người xuất phát", và chú thích của nó nói rõ phép suy
+ * ấy dựa vào `cacCauThu` giữ đúng 18 người được đăng ký. Giao diện thì truyền
+ * CẢ ĐỘI vào `cacCauThu` — `ChonCapDau.tsx` phải đưa đủ hồ sơ cho mọi người
+ * có thể vào sân. Đội 30 người vì thế lưu ra bản ghi có 19 dự bị, quá trần 7,
+ * và bản ghi ấy không dựng lại được thành một trận: trước Phase 35 nó làm
+ * trắng cả trang lịch sử.
+ *
+ * Tập người ĐƯỢC ĐĂNG KÝ vẫn còn trong trạng thái trận, ở một chỗ không ai
+ * ngờ: **khoá của `theLuc`**. Engine đặt khoá ấy đúng một lần cho
+ * `trenSan ∪ duBi` lúc tạo trận (`engine/tran.ts:331`) và không bao giờ thêm
+ * khoá mới — thay người chỉ đổi giá trị, thẻ đỏ không đụng tới. Nên sau 90
+ * phút, tập khoá của `theLuc` vẫn là bản ghi bất biến của lần đăng ký, trong
+ * khi `duBi` thì đã đổi theo từng lần thay người.
+ *
+ * `cacCauThu` cũng bị tỉa về đúng tập ấy. Engine chỉ dùng `cacCauThu` như một
+ * từ điển hồ sơ tra theo id (`tran.ts` dòng 468, 513, 905, 939 — không chỗ
+ * nào duyệt cả danh sách để tính gì), nên tỉa bớt người không đăng ký KHÔNG
+ * đổi một nhịp nào của trận, mà bản ghi thì nhỏ lại và tự nhất quán.
+ */
+export function dangKyDeLuu(ben: BenTran): DangKyBen {
+  const dangKy = dangKyTuTrangThai(ben)
+  const daDangKy = new Set(Object.keys(ben.theLuc))
+  const xuatPhat = new Set(dangKy.trenSan)
+
+  return {
+    ...dangKy,
+    duBi: [...daDangKy].filter((id) => !xuatPhat.has(id)),
+    cacCauThu: ben.cacCauThu.filter((c) => daDangKy.has(c.id)),
+  }
+}
+
 /** Trạng thái phút 0 của một trận đã lưu — điểm xuất phát của mọi phép phát lại. */
 export function trangThaiDauTran(tran: TranDaLuu): TrangThaiTran {
   return taoTran(cauHinhTuBanGhi(tran))
+}
+
+export type LyDoKhongDungTran = 'ban-ghi-khong-dung-duoc'
+
+export type KetQuaDungTran =
+  | { readonly dungDuoc: true; readonly trangThai: TrangThaiTran }
+  | {
+      readonly dungDuoc: false
+      readonly lyDo: LyDoKhongDungTran
+      /** Lý do thô của engine, để ghi log hay dò lỗi — không đem cho người đọc. */
+      readonly cacLyDo: readonly LyDoKhongBatDau[]
+    }
+
+/**
+ * `trangThaiDauTran` nhưng TRẢ VỀ lý do thay vì ném (T440).
+ *
+ * `taoTran` từ chối một cấu hình bằng cách ném `LoiCauHinhTran`. Mọi đường
+ * của giao diện phải đi qua đây: một bản ghi cũ không dựng lại được thì người
+ * dùng phải đọc được một câu từ chối, đúng như khi đội đã bị xoá hay khi trận
+ * chạy bằng engine cũ hơn (AC-27.5, AC-27.6). Ném từ trong một `useMemo` là
+ * tháo cả cây React — trang trắng, phải tải lại, mất luôn cả phần XEM LẠI mà
+ * bản ghi vẫn làm được.
+ *
+ * Chỉ bắt `LoiCauHinhTran`. Mọi lỗi khác vẫn ném tiếp: chúng là lỗi lập
+ * trình, và che chúng đi là che một lỗi thật bằng một câu từ chối sai.
+ */
+export function thuTrangThaiDauTran(tran: TranDaLuu): KetQuaDungTran {
+  try {
+    return { dungDuoc: true, trangThai: trangThaiDauTran(tran) }
+  } catch (loi) {
+    if (loi instanceof LoiCauHinhTran) {
+      return {
+        dungDuoc: false,
+        lyDo: 'ban-ghi-khong-dung-duoc',
+        cacLyDo: loi.cacLyDo,
+      }
+    }
+    throw loi
+  }
 }
 
 export const PHUT_RE_TOI_THIEU = 1
@@ -266,7 +343,7 @@ export function dongSuKienNhanh(
   return [...truoc, ...sau]
 }
 
-export type LyDoKhongRe = 'phut-ngoai-khoang'
+export type LyDoKhongRe = 'phut-ngoai-khoang' | LyDoKhongDungTran
 
 export type KetQuaReNhanh =
   | {
@@ -280,8 +357,18 @@ export type KetQuaReNhanh =
     }
   | {
       readonly reDuoc: false
-      readonly lyDo: LyDoKhongRe
+      readonly lyDo: 'phut-ngoai-khoang'
       readonly khoangPhut: KhoangPhutRe
+    }
+  | {
+      /*
+        Bản ghi không dựng lại được thành một trận, nên KHÔNG có khoảng phút
+        nào để nói: khoảng ấy chỉ biết được sau `taoTran`, vì bù giờ hai hiệp
+        do hạt giống quyết. `null` ở đây là "chưa biết", không phải "rỗng".
+      */
+      readonly reDuoc: false
+      readonly lyDo: LyDoKhongDungTran
+      readonly khoangPhut: null
     }
 
 /**
@@ -296,7 +383,12 @@ export function reNhanh(
   phutRe: number,
   canThiepMoi: readonly CanThiep[] = [],
 ): KetQuaReNhanh {
-  const tt0 = trangThaiDauTran(tran)
+  const dung = thuTrangThaiDauTran(tran)
+  if (!dung.dungDuoc) {
+    return { reDuoc: false, lyDo: dung.lyDo, khoangPhut: null }
+  }
+
+  const tt0 = dung.trangThai
   const khoangPhut = khoangPhutRe(tt0)
   if (!phutReDuoc(tt0, phutRe)) {
     return { reDuoc: false, lyDo: 'phut-ngoai-khoang', khoangPhut }

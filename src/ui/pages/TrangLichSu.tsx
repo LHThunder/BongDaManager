@@ -69,7 +69,7 @@ export function TrangLichSu({ onQuayLai, onDauLai }: Props) {
     vì cả hai đều là chạy lại engine, nên hai lối không được phép có hai câu
     trả lời khác nhau cho cùng một trận (AC-27.5, AC-27.6).
   */
-  const lyDoKhongChayLai = dangMo
+  const lyDoTuBanGhi = dangMo
     ? matchRepo.lyDoKhongDauLai(dangMo, PHIEN_BAN_ENGINE, (teamId) =>
         teams.some((d) => d.id === teamId),
       )
@@ -81,14 +81,33 @@ export function TrangLichSu({ onQuayLai, onDauLai }: Props) {
     Phải dựng trạng thái đầu trận mới biết bù giờ hai hiệp dài bao nhiêu, nên
     nhớ lại theo bản ghi: một `taoTran` cho mỗi lần mở một trận, không phải
     mỗi lần vẽ.
+
+    `thuTrangThaiDauTran` chứ không `trangThaiDauTran` (T440): dựng trận từ
+    một bản ghi CÓ THỂ bị engine từ chối — bản ghi lưu bằng bản ứng dụng cũ
+    của một đội hơn 18 người ghi quá nhiều dự bị. Phép dựng ấy ném, mà ở đây
+    nó nằm trong một `useMemo`, nên trước Phase 35 một bản ghi như vậy tháo cả
+    cây React: trang trắng, phải tải lại. Nay nó thành lý do thứ ba, đứng cùng
+    chỗ với hai lý do đã có.
   */
-  const tranDauCuaBanGhi = useMemo(
+  const thuDungTran = useMemo(
     () =>
-      dangMo && lyDoKhongChayLai === null
-        ? phatLai.trangThaiDauTran(dangMo)
+      dangMo && lyDoTuBanGhi === null
+        ? phatLai.thuTrangThaiDauTran(dangMo)
         : null,
-    [dangMo, lyDoKhongChayLai],
+    [dangMo, lyDoTuBanGhi],
   )
+
+  /** Ba lý do, một chỗ: hai từ `matchRepo` và một từ phép dựng trận. */
+  type LyDoKhongChayLai =
+    | matchRepo.LyDoKhongDauLai
+    | phatLai.LyDoKhongDungTran
+
+  const lyDoKhongChayLai: LyDoKhongChayLai | null =
+    lyDoTuBanGhi ??
+    (thuDungTran && !thuDungTran.dungDuoc ? thuDungTran.lyDo : null)
+
+  const tranDauCuaBanGhi =
+    thuDungTran && thuDungTran.dungDuoc ? thuDungTran.trangThai : null
 
   const chonPhutDuoc = (sk: SuKien): boolean =>
     tranDauCuaBanGhi !== null &&

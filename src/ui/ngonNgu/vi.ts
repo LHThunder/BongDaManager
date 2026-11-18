@@ -914,6 +914,8 @@ export const LICH_SU_VI = {
       'Không đấu lại được: trận này chạy bằng phiên bản engine cũ hơn, nên cùng mã trận bây giờ sẽ ra một trận khác.',
     'doi-da-bi-xoa':
       'Không đấu lại được: một trong hai đội đã bị xoá, nên không còn hồ sơ để dựng lại cặp đấu.',
+    'ban-ghi-khong-dung-duoc':
+      'Không đấu lại được: bản ghi của trận này được lưu bằng một bản ứng dụng cũ hơn và không dựng lại được thành một trận.',
   } as Readonly<Record<string, string>>,
   daLoaiTranCu: (so: number) =>
     so === 1
@@ -931,6 +933,8 @@ export const LICH_SU_VI = {
       'Không rẽ nhánh được: trận này chạy bằng phiên bản engine cũ hơn, nên chạy lại sẽ không khớp với trận cũ dù không đổi gì.',
     'doi-da-bi-xoa':
       'Không rẽ nhánh được: một trong hai đội đã bị xoá, nên không còn hồ sơ để chạy lại trận.',
+    'ban-ghi-khong-dung-duoc':
+      'Không rẽ nhánh được: bản ghi của trận này không dựng lại được thành một trận, nên không phút nào chạy tiếp được. Trận vẫn xem lại được đầy đủ.',
   } as Readonly<Record<string, string>>,
   tieuDeDienBien: 'Diễn biến trận',
 } as const
@@ -964,6 +968,8 @@ export const RE_PHAT_LAI_VI = {
   nutRoi: 'Rời màn hình rẽ nhánh',
   phutNgoaiKhoang: (tu: number, den: number) =>
     `Phút này không rẽ nhánh được. Chọn một phút từ ${tu} tới ${den} — phút cuối không rẽ được vì sau nó không còn gì để chạy.`,
+  banGhiKhongDungDuoc:
+    'Không rẽ nhánh được: bản ghi của trận này được lưu bằng một bản ứng dụng cũ hơn và không dựng lại được thành một trận. Trận đá từ giờ sẽ rẽ nhánh được bình thường.',
   tieuDeSoSanh: 'Trận gốc so với trận rẽ nhánh',
   moTaSoSanh:
     'Cùng mã trận, cùng hai đội, chỉ khác một quyết định tại phút đã chọn.',

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { dungBaoCao } from '../engine/baoCao'
 import {
+  benMau,
   benMauQuanSo,
   cauHinhMau,
   MA_TRAN_CO_DINH,
@@ -14,8 +15,10 @@ import {
   phutHienThi,
   taoTran,
   tongPhutTran,
+  type BenTran,
   type CanThiep,
   type CauHinhTran,
+  type DangKyBen,
   type TrangThaiTran,
 } from '../engine/tran'
 import type { AnhChupDoi, TranDaLuu } from '../storage/db'
@@ -23,6 +26,7 @@ import type { AnhChupDoi, TranDaLuu } from '../storage/db'
 import {
   cauHinhTuBanGhi,
   chayNotTuDiemRe,
+  dangKyDeLuu,
   dongSuKienNhanh,
   khoangPhutRe,
   khoangPhutReHienThi,
@@ -30,6 +34,7 @@ import {
   phutReDuoc,
   phutThucTe,
   reNhanh,
+  thuTrangThaiDauTran,
   trangThaiDauTran,
 } from './phatLai'
 
@@ -89,8 +94,8 @@ function tranDaLuuMau(
     doiKhach: anhChup(tt.ben.khach.teamId),
     sanTrungLap: tt.sanTrungLap,
     doiCuaNguoiDung: tt.doiCuaNguoiDung,
-    nha: dangKyTuTrangThai(tt.ben.nha),
-    khach: dangKyTuTrangThai(tt.ben.khach),
+    nha: dangKyDeLuu(tt.ben.nha),
+    khach: dangKyDeLuu(tt.ben.khach),
     canThiep: tt.canThiep,
     cacSuKien: dongSuKien(tt),
     baoCao: dungBaoCao(tt),
@@ -285,6 +290,7 @@ describe('khoảng phút rẽ nhánh được (AC-27.8)', () => {
     expect(kq.reDuoc).toBe(false)
     if (kq.reDuoc) throw new Error('phải bị từ chối')
     expect(kq.lyDo).toBe('phut-ngoai-khoang')
+    if (kq.lyDo !== 'phut-ngoai-khoang') throw new Error('sai lý do')
     expect(kq.khoangPhut.tu).toBe(1)
     expect(kq.khoangPhut.den).toBeGreaterThan(1)
   })
@@ -653,5 +659,163 @@ describe('trận gốc không bị sửa (AC-27.7)', () => {
 
     if (!lan1.reDuoc || !lan2.reDuoc) throw new Error('phải rẽ được')
     expect(dongSuKien(lan2.cuoiTran)).toEqual(dongSuKien(lan1.cuoiTran))
+  })
+})
+
+/*
+  Đội đông hơn số được đăng ký (T440, T441).
+
+  Đây là hình dạng THẬT mà giao diện truyền vào: `ChonCapDau` đăng ký 11 người
+  xuất phát, 7 dự bị, nhưng `cacCauThu` là CẢ ĐỘI, vì engine cần hồ sơ của mọi
+  người có thể vào sân. Mọi fixture khác trong repo đều đúng 18 người, nên
+  không phép kiểm nào từng đi qua hình dạng này — và đó là lý do lỗi trang
+  trắng sống được qua bốn lát cắt.
+*/
+function benDoiDong(teamId: string, soNguoiThem: number): DangKyBen {
+  const ben = benMau(teamId)
+  const them = Array.from({ length: soNguoiThem }, (_, i) => ({
+    ...ben.cacCauThu[0],
+    id: `${teamId}-ngoai-dang-ky-${i}`,
+  }))
+  return { ...ben, cacCauThu: [...ben.cacCauThu, ...them] }
+}
+
+function cauHinhDoiDong(maTran: string, soNguoiThem = 12): CauHinhTran {
+  return {
+    maTran,
+    nha: benDoiDong('A', soNguoiThem),
+    khach: benDoiDong('B', soNguoiThem),
+    sanTrungLap: false,
+  }
+}
+
+function chayTron(cauHinh: CauHinhTran): TrangThaiTran {
+  let tt = taoTran(cauHinh)
+  const chanCung = tongPhutTran(tt) + 2
+  for (let i = 0; i < chanCung && !tt.ketThuc; i += 1) tt = buocTiep(tt)
+  return tt
+}
+
+function banGhiTu(tt: TrangThaiTran, dungDangKy: (ben: BenTran) => DangKyBen): TranDaLuu {
+  return {
+    id: 'luu-doi-dong',
+    maTran: tt.maTran,
+    phienBanEngine: tt.phienBanEngine,
+    ketThucLuc: 0,
+    tiSo: tt.tiSo,
+    quanSo: tt.quanSo,
+    thoiLuong: tt.thoiLuong,
+    doiChuNha: anhChup(tt.ben.nha.teamId),
+    doiKhach: anhChup(tt.ben.khach.teamId),
+    sanTrungLap: tt.sanTrungLap,
+    doiCuaNguoiDung: tt.doiCuaNguoiDung,
+    nha: dungDangKy(tt.ben.nha),
+    khach: dungDangKy(tt.ben.khach),
+    canThiep: tt.canThiep,
+    cacSuKien: dongSuKien(tt),
+    baoCao: dungBaoCao(tt),
+  }
+}
+
+describe('bản ghi của đội đông hơn số đăng ký (T440, T441)', () => {
+  it('phép suy của engine ra quá nhiều dự bị — đây là gốc của lỗi', () => {
+    const tt = chayTron(cauHinhDoiDong(MA_TRAN_CO_DINH[0]))
+
+    /*
+      Phép kiểm này khẳng định hành vi của engine, không phải của ta: nó ghim
+      LÝ DO `dangKyDeLuu` phải tồn tại. Ngày nào engine đọc `BenTran.duBi` thay
+      vì suy lại, phép kiểm này đỏ lên — và đó là tin tốt, đọc ghi chú rồi bỏ
+      `dangKyDeLuu` đi được.
+    */
+    expect(dangKyTuTrangThai(tt.ben.nha).duBi).toHaveLength(19)
+    expect(dangKyDeLuu(tt.ben.nha).duBi).toHaveLength(7)
+    expect(dangKyDeLuu(tt.ben.nha).cacCauThu).toHaveLength(18)
+  })
+
+  it('bản ghi lưu bằng phép suy cũ thì KHÔNG dựng lại được — và nói ra chứ không ném', () => {
+    const tt = chayTron(cauHinhDoiDong(MA_TRAN_CO_DINH[1]))
+    const banGhiCu = banGhiTu(tt, dangKyTuTrangThai)
+
+    const kq = thuTrangThaiDauTran(banGhiCu)
+
+    expect(kq.dungDuoc).toBe(false)
+    if (kq.dungDuoc) throw new Error('phải bị từ chối')
+    expect(kq.lyDo).toBe('ban-ghi-khong-dung-duoc')
+    expect(kq.cacLyDo.map((l) => l.loai)).toContain('chua-dung-du-bi')
+  })
+
+  it('rẽ nhánh một bản ghi như thế cũng từ chối, không làm sập', () => {
+    const tt = chayTron(cauHinhDoiDong(MA_TRAN_CO_DINH[2]))
+    const banGhiCu = banGhiTu(tt, dangKyTuTrangThai)
+
+    const kq = reNhanh(banGhiCu, 30, [])
+
+    expect(kq.reDuoc).toBe(false)
+    if (kq.reDuoc) throw new Error('phải bị từ chối')
+    expect(kq.lyDo).toBe('ban-ghi-khong-dung-duoc')
+    expect(kq.khoangPhut).toBeNull()
+  })
+
+  it('bản ghi lưu bằng `dangKyDeLuu` thì dựng lại được và rẽ nhánh được', () => {
+    const tt = chayTron(cauHinhDoiDong(MA_TRAN_CO_DINH[3]))
+    const banGhi = banGhiTu(tt, dangKyDeLuu)
+
+    expect(thuTrangThaiDauTran(banGhi).dungDuoc).toBe(true)
+    expect(reNhanh(banGhi, 30, []).reDuoc).toBe(true)
+  })
+
+  it('tỉa người ngoài đăng ký KHÔNG đổi một dòng nào của trận', () => {
+    /*
+      Đây là phép kiểm quan trọng nhất của nhóm này. `dangKyDeLuu` bỏ bớt
+      người khỏi `cacCauThu`, và nếu engine có chỗ nào duyệt cả danh sách ấy
+      để tính một con số thì việc tỉa bớt sẽ đổi kết quả trận — tức phá đúng
+      cái P1 mà cả spec này dựng trên.
+    */
+    for (const ma of MA_TRAN_CO_DINH.slice(0, 4)) {
+      const tt = chayTron(cauHinhDoiDong(ma))
+      const banGhi = banGhiTu(tt, dangKyDeLuu)
+      const phatLaiLai = chayTron(cauHinhTuBanGhi(banGhi))
+
+      expect(phatLaiLai.tiSo).toEqual(tt.tiSo)
+      expect(dongSuKien(phatLaiLai)).toEqual(dongSuKien(tt))
+    }
+  })
+
+  it('băng ghế đã lưu còn đủ cả người đã vào sân, sau khi thay người', () => {
+    /*
+      `BenTran.duBi` giảm đi mỗi lần thay người, nên lưu thẳng nó là băng ghế
+      CUỐI trận. `dangKyDeLuu` đi qua khoá của `theLuc` nên không bị vậy: người
+      vào sân ở phút 20 vẫn phải nằm trong băng ghế của bản ghi, nếu không thì
+      phát lại sẽ bị engine từ chối đúng cái can thiệp ấy và trận rẽ nhánh
+      "không đổi gì" sẽ ra khác trận gốc (AC-27.4).
+    */
+    let tt = taoTran(cauHinhDoiDong(MA_TRAN_CO_DINH[4]))
+    const nguoiVao = tt.ben.nha.duBi[0]
+    const chanCung = tongPhutTran(tt) + 2
+    for (let i = 0; i < chanCung && !tt.ketThuc; i += 1) {
+      if (tt.phut === 20) {
+        tt = apBuoc(tt, {
+          phut: 20,
+          doi: 'nha',
+          noiDung: { loai: 'thay-nguoi', ra: tt.ben.nha.trenSan[3], vao: nguoiVao },
+        })
+      }
+      tt = buocTiep(tt)
+    }
+
+    expect(tt.ben.nha.duBi).not.toContain(nguoiVao)
+    expect(dangKyDeLuu(tt.ben.nha).duBi).toContain(nguoiVao)
+    expect(dangKyDeLuu(tt.ben.nha).duBi).toHaveLength(7)
+
+    /*
+      Phát lại qua `reNhanh` chứ không `chayTron`: chỉ đường ấy mới xếp lại
+      những can thiệp đã lưu. Và đó chính là chỗ băng ghế sai sẽ lộ ra — engine
+      từ chối một lần thay người mà người vào không có trong băng ghế
+      (`cau-thu-khong-trong-du-bi`), nên trận phát lại sẽ lệch từ phút 20.
+    */
+    const banGhi = banGhiTu(tt, dangKyDeLuu)
+    const kq = reNhanh(banGhi, 1, [])
+    if (!kq.reDuoc) throw new Error('phải rẽ được')
+    expect(dongSuKien(kq.cuoiTran)).toEqual(dongSuKien(tt))
   })
 })

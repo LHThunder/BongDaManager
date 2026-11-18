@@ -4,8 +4,8 @@
 |---|---|
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
-| **Phạm vi** | 37 AC (US-24 → US-27) |
-| **Tiến độ** | 39/40 |
+| **Phạm vi** | 37 AC (US-24 → US-27) + 2 task sửa lỗi do T437 tìm ra (T440, T441) |
+| **Tiến độ** | 41/42 |
 | **Sửa đổi** | 2026-11-17 — chẻ lần đầu từ plan; cùng ngày sửa theo `/analyze` (1 CRITICAL + 4 HIGH); T439 bị chặn, xem ghi chú Phase 35 |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -335,11 +335,54 @@ lát cắt dọc ở `plan.md` mục 9; mỗi phase kết thúc là một ứng 
   - AC: AC-25.9
   - Phụ thuộc: T437
 
-- [ ] **T439** — Tick 37 AC và đóng spec *(CHẶN: xem ghi chú Phase 35 — một đường đi của US-27 làm trắng ứng dụng, chưa đóng spec được)*
+- [ ] **T439** — Tick 37 AC và đóng spec *(lỗi chặn đã sửa ở Phase 36; còn lại là đối chiếu 37 AC và đổi Status)*
   - File: sửa `specs/004-squad-tools-and-what-if/spec.md`
   - Xong khi: mọi AC ở mục 3 được tick có căn cứ; Definition of Done đủ chín mục; `Status` đổi thành **Done**; xác nhận `PHIEN_BAN_ENGINE` vẫn là 5 và định dạng tệp sao lưu không đổi.
   - AC: toàn bộ
   - Phụ thuộc: T438
+
+## Phase 36 — Lát 36: Sửa lỗi trang trắng mà T437 tìm ra
+
+> Hai task này KHÔNG có trong bản chẻ ban đầu. Chúng sinh ra từ phép kiểm tay
+> T437 và được người dùng chốt hướng ngày 2026-11-18: "chặn sập + sửa
+> `useMatch`", tức hướng (a) + (b) trong ghi chú Phase 35 — **không** chạm
+> `src/engine/`.
+
+- [x] **T440** — Dựng trận từ bản ghi: trả về lý do thay vì ném
+  - File: sửa `src/services/phatLai.ts`, sửa `src/hooks/useRePhatLai.ts`, sửa `src/ui/pages/TrangLichSu.tsx`, sửa `src/ui/components/RePhatLai.tsx`, sửa `src/ui/ngonNgu/vi.ts`, sửa `src/ui/ngonNgu/en.ts`, sửa `src/services/phatLai.test.ts`
+  - Xong khi: `thuTrangThaiDauTran` bắt `LoiCauHinhTran` và trả `{dungDuoc:false, lyDo:'ban-ghi-khong-dung-duoc'}`, mọi lỗi khác vẫn ném tiếp; trang lịch sử coi nó là lý do thứ ba đứng cùng chỗ hai lý do đã có, nên nút "Đấu lại" tắt và không còn nút rẽ nhánh nào; `useRePhatLai` không ném nữa; câu từ chối có đủ hai ngôn ngữ trong cùng commit (P8); test xanh — bản ghi hỏng thì **từ chối**, không ném; **không đổi engine**.
+  - AC: AC-27.5 và AC-27.6 cùng một lối (spec mục 5: "từ chối kèm lý do"), AC-11.4 (xem lại vẫn được)
+  - Phụ thuộc: T437
+
+- [x] **T441** — Bản ghi đem lưu mang đúng băng ghế đã đăng ký
+  - File: sửa `src/services/phatLai.ts`, sửa `src/hooks/useMatch.ts`, sửa `src/services/phatLai.test.ts`
+  - Xong khi: `dangKyDeLuu` suy tập người được đăng ký từ khoá của `theLuc` (bất biến suốt trận) thay vì từ `cacCauThu`; `useMatch.dungBanGhi` dùng nó; test xanh — đội 30 người lưu ra bản ghi 11 chính + 7 dự bị + 18 hồ sơ, bản ghi ấy dựng lại và rẽ nhánh được, **và** tỉa người ngoài đăng ký không đổi một dòng sự kiện nào trên 4 mã trận (P1); băng ghế đã lưu còn cả người đã vào sân giữa trận, nên phát lại không bị engine từ chối đúng cái can thiệp ấy (AC-27.4); **không đổi engine**, `PHIEN_BAN_ENGINE` giữ 5.
+  - AC: AC-27.1, AC-27.4, AC-25.4 (không đụng bản ghi cũ)
+  - Phụ thuộc: T440
+
+**Đã kiểm tay trên bản build, đúng ca đã làm trắng ứng dụng:** mở lại trận cũ
+của đội 29/30 người → hai câu từ chối hiện ra ở cả hai thứ tiếng, nút "Đấu
+lại" tắt, 0 nút rẽ nhánh, mà báo cáo và điểm từng cầu thủ vẫn xem được đầy đủ;
+`#root` còn nguyên, không lỗi console. Đá một trận MỚI giữa đúng hai đội ấy →
+bản ghi trong IndexedDB có 11/7/18 ở cả hai bên (trước là 11/18/29 và
+11/19/30) → mở lại có 19 nút rẽ nhánh, rẽ ở phút 11'+ đổi pressing thì ra bảng
+so sánh và mốc "TỪ PHÚT … TRỞ ĐI LÀ NHÁNH KHÁC"; rẽ mà không đổi gì thì 12/12
+chỉ tiêu "Giống trận gốc" và tỉ số y hệt (AC-27.4).
+
+**Bản ghi đã lưu trước bản sửa này KHÔNG tự lành.** Băng ghế thật của chúng
+không còn ở đâu để suy lại: `duBi` trong bản ghi đã là "cả đội trừ người xuất
+phát", nên không biết 7 người nào đã thật sự được đăng ký. Tỉa bừa 7 người đầu
+thì một lần thay người đã lưu có thể trỏ vào người không còn trong băng ghế,
+engine sẽ bỏ qua can thiệp ấy và trận "không đổi gì" sẽ ra khác trận gốc —
+phá đúng AC-27.4. Vì thế chúng nhận câu từ chối, và câu ấy nói thẳng là trận
+lưu bằng bản ứng dụng cũ hơn, còn trận đá từ giờ thì bình thường.
+
+**Còn mở, cùng gốc, ngoài phạm vi spec 004:** nút "Đấu lại cùng mã trận" ở
+trang trận vẫn im lặng với đội hơn 18 người. Nó đi qua `cauHinhDauLai` →
+`dangKyTuTrangThai` của engine (không phải bản ghi), nên chỉ sửa được bằng
+hướng (c) — một dòng trong `src/engine/tran.ts` — hoặc bằng việc cho
+`TrangTran.tsx` vẽ `lyDoKhongBatDau` như `ChonCapDau.tsx` đang vẽ. Cả hai nằm
+ngoài spec này.
 
 ---
 

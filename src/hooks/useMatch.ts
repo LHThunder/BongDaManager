@@ -8,7 +8,6 @@ import {
   buocTiep,
   cauHinhDauLai,
   chayHetTran,
-  dangKyTuTrangThai,
   dongSuKien,
   taoTran,
   type CanThiep,
@@ -17,6 +16,7 @@ import {
   type TrangThaiTran,
 } from '../engine/tran'
 import * as matchRepo from '../services/matchRepo'
+import { dangKyDeLuu } from '../services/phatLai'
 import type { TeamSummary } from '../services/teamRepo'
 import type { AnhChupDoi, TranDaLuu } from '../storage/db'
 import { useAppStore } from '../store/appStore'
@@ -84,8 +84,17 @@ function dungBanGhi(
     doiKhach: anhChupDoi(tt.ben.khach.teamId, teams),
     sanTrungLap: tt.sanTrungLap,
     doiCuaNguoiDung: tt.doiCuaNguoiDung,
-    nha: dangKyTuTrangThai(tt.ben.nha),
-    khach: dangKyTuTrangThai(tt.ben.khach),
+    /*
+      `dangKyDeLuu`, KHÔNG phải `dangKyTuTrangThai` (T441).
+
+      Hàm của engine suy băng ghế bằng "cả danh sách hồ sơ trừ người xuất
+      phát", mà danh sách hồ sơ ở đây là CẢ ĐỘI. Đội 30 người vì thế lưu ra
+      bản ghi có 19 dự bị — quá trần 7 — và bản ghi ấy không dựng lại được
+      thành một trận, nên trước Phase 35 mở nó trong lịch sử là trắng cả
+      trang. Chi tiết và bất biến dựa vào: `services/phatLai.ts`.
+    */
+    nha: dangKyDeLuu(tt.ben.nha),
+    khach: dangKyDeLuu(tt.ben.khach),
     canThiep: tt.canThiep,
     cacSuKien: dongSuKien(tt),
     baoCao: dungBaoCao(tt),

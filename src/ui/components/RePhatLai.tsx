@@ -60,13 +60,20 @@ export function RePhatLai({
   }
 
   if (dieuPhoi.lyDo !== null || !dieuPhoi.taiDiemRe) {
+    /*
+      Hai lý do khác hẳn nhau nên phải nói khác nhau (T440): "phút ngoài
+      khoảng" là chọn lại một phút khác là xong, còn "bản ghi không dựng được"
+      thì không phút nào cứu được — nói khoảng phút lúc ấy là chỉ sai đường.
+    */
     return (
       <section className="mt-6 rounded-lg border border-vien bg-nen-the p-4">
         <p role="status" className="text-sm text-canh-bao-chu">
-          {RE_PHAT_LAI.phutNgoaiKhoang(
-            dieuPhoi.khoangPhut.tu,
-            dieuPhoi.khoangPhut.den,
-          )}
+          {dieuPhoi.lyDo === 'ban-ghi-khong-dung-duoc'
+            ? RE_PHAT_LAI.banGhiKhongDungDuoc
+            : RE_PHAT_LAI.phutNgoaiKhoang(
+                dieuPhoi.khoangPhut.tu,
+                dieuPhoi.khoangPhut.den,
+              )}
         </p>
         <button
           type="button"

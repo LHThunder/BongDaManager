@@ -36,6 +36,13 @@ export interface ThayNguoiMoi {
   readonly vao: string
 }
 
+/*
+  Khoảng phút khi chưa dựng được trận: không phải "từ 0 tới 0 phút", mà là
+  "chưa biết". Giao diện không bao giờ vẽ nó, vì `lyDo` lúc ấy đã khác `null`
+  và màn hình nhánh chỉ hiện câu từ chối.
+*/
+const KHOANG_CHUA_BIET: phatLai.KhoangPhutRe = { tu: 0, den: 0 }
+
 export interface KetQuaNhanh {
   readonly cuoiTran: TrangThaiTran
   /** Dòng ghép: tới điểm rẽ là trận gốc, sau đó là nhánh (AC-27.2). */
@@ -72,16 +79,30 @@ export function useRePhatLai(
   banGhi: TranDaLuu,
   phutReHienThi: phatLai.PhutHienThi,
 ): DieuPhoiRePhatLai {
-  const tt0 = useMemo(() => phatLai.trangThaiDauTran(banGhi), [banGhi])
+  /*
+    Dựng trận từ bản ghi CÓ THỂ bị engine từ chối (T440) — bản ghi cũ của một
+    đội hơn 18 người ghi quá nhiều dự bị. Hook này nằm trong một component, nên
+    ném ở đây là tháo cả cây React. Lý do đi ra ngoài qua đúng kênh `lyDo` đã
+    có, cùng chỗ với "phút ngoài khoảng".
 
-  const khoangPhut = useMemo(() => phatLai.khoangPhutReHienThi(tt0), [tt0])
+    Trang lịch sử đã chặn trước nên đường này gần như không chạy tới. "Gần
+    như" là chưa đủ: hook là một bề mặt công khai, và một lần gọi từ chỗ khác
+    không được phép làm trắng ứng dụng.
+  */
+  const thuDung = useMemo(() => phatLai.thuTrangThaiDauTran(banGhi), [banGhi])
+  const tt0 = thuDung.dungDuoc ? thuDung.trangThai : null
+
+  const khoangPhut = useMemo(
+    () => (tt0 ? phatLai.khoangPhutReHienThi(tt0) : KHOANG_CHUA_BIET),
+    [tt0],
+  )
 
   const phutRe = useMemo(
-    () => phatLai.phutThucTe(tt0, phutReHienThi),
+    () => (tt0 ? phatLai.phutThucTe(tt0, phutReHienThi) : 0),
     [tt0, phutReHienThi],
   )
 
-  const reDuoc = phatLai.phutReDuoc(tt0, phutRe)
+  const reDuoc = tt0 !== null && phatLai.phutReDuoc(tt0, phutRe)
 
   /*
     Phát lại tới điểm rẽ chạy MỘT lần cho mỗi phút được chọn: đo từ
@@ -91,7 +112,9 @@ export function useRePhatLai(
   */
   const taiDiemRe = useMemo(
     () =>
-      reDuoc ? phatLai.phatLaiToiPhut(tt0, banGhi.canThiep, phutRe) : null,
+      reDuoc && tt0
+        ? phatLai.phatLaiToiPhut(tt0, banGhi.canThiep, phutRe)
+        : null,
     [reDuoc, tt0, banGhi, phutRe],
   )
 
@@ -166,7 +189,11 @@ export function useRePhatLai(
 
   return {
     khoangPhut,
-    lyDo: reDuoc ? null : 'phut-ngoai-khoang',
+    lyDo: thuDung.dungDuoc
+      ? reDuoc
+        ? null
+        : 'phut-ngoai-khoang'
+      : thuDung.lyDo,
     taiDiemRe,
     chiThiMoi,
     thayNguoiMoi,
