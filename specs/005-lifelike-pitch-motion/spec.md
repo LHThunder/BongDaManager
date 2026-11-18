@@ -88,7 +88,12 @@ nhảy**.
 
 **Acceptance criteria:**
 
-- [ ] AC-28.1 — KHI trận đang phát theo đồng hồ THÌ **mọi** điểm cầu thủ PHẢI đổi vị trí liên tục; KHÔNG điểm nào được đứng nguyên một chỗ lâu hơn **300ms**.
+- [ ] AC-28.1 — KHI trận đang phát theo đồng hồ **ở một mức tốc độ còn nội suy** THÌ **mọi** điểm cầu thủ PHẢI đổi vị trí liên tục; KHÔNG điểm nào được đứng nguyên một chỗ lâu hơn **300ms**.
+  > *Giới hạn "còn nội suy" thêm ngày 2026-11-18 sau `/analyze`.* Ở mức nhanh
+  > nhất, AC-29.4 đã chốt là thôi nội suy hoàn toàn và dao động chờ cũng tắt
+  > theo; ở đó một người ngoài tình huống giữ nguyên toạ độ cho tới khi đội
+  > hình đổi, nên "không đứng im quá 300ms" **không đạt được** và cũng không
+  > có nghĩa: một phút trận ở đó chỉ dài 20ms.
 - [ ] AC-28.2 — KHI một người không được tình huống nào nhắc tới trong nhiều phút liền THÌ điểm của anh ta VẪN PHẢI di chuyển quanh vị trí của mình, và PHẢI không rời khỏi vùng sân của vị trí ấy.
 - [ ] AC-28.3 — KHI một tình huống diễn ra ở một vùng THÌ đúng tại phút của tình huống đó, những người tham gia PHẢI có mặt trong vùng ấy; chuyển động lúc chờ KHÔNG được làm sai vùng.
 - [ ] AC-28.4 — KHI hai người đang đứng chờ gần nhau THÌ chuyển động chờ của họ PHẢI không trùng nhịp với nhau, để hai đội không "thở" đồng loạt như một khối máy.
@@ -201,11 +206,22 @@ quan trọng nhất của nó**.
   phút rưỡi, mỗi cú di chuyển dài gần một giây. Mức này là **mặc định** khi
   mở một trận. Ba mức cũ (200ms, 70ms, 20ms) giữ nguyên, nhưng mức 20ms
   thôi nội suy hoàn toàn (AC-29.4).
-- **Biên độ chuyển động chờ (chốt ngày 2026-11-18):** một người đứng ngoài
-  tình huống dao động quanh chỗ mình khoảng **một nửa khoảng cách giữa hai
-  cầu thủ đứng chung một vùng** — đủ để thấy rõ ai cũng đang động, chưa tới
-  mức 22 điểm trông như đang rung. Biên độ này **co theo khung sân**, vì khung
-  co lại theo quân số.
+- **Biên độ chuyển động chờ (chốt ngày 2026-11-18, siết lại cùng ngày sau
+  `/analyze`):** một người đứng ngoài tình huống dao động quanh chỗ mình, và
+  biên độ **khác nhau theo hai trục**:
+  - **Ngang sân** (trục mà những người cùng một vùng được giãn ra): tối đa
+    **một phần tám khoảng giãn**.
+  - **Dọc sân** (trục của một hàng ngang): tối đa **một phần tám khoảng
+    giãn**, để hai người cùng hàng lệch nhau không quá một phần tư — đúng
+    ngưỡng AC-30.3 đòi.
+
+  *Vì sao không phải "một nửa" như bản chốt đầu:* `/analyze` ngày 2026-11-18
+  tính ra hai chỗ vỡ. Một, hai người cùng hàng mỗi người lệch nửa khoảng giãn
+  là lệch nhau tới **một khoảng giãn**, tức **gấp bốn** ngưỡng của AC-30.3.
+  Hai, hai người cùng một vùng lệch về phía nhau mỗi bên nửa khoảng giãn thì
+  **trùng nhau hoàn toàn**, phá AC-30.5 và cả AC-15.2 của spec 002 đã đóng.
+  Một phần tám mỗi trục giữ cả ba AC đúng với biên an toàn gấp đôi. Biên độ
+  này **co theo khung sân**, vì khung co lại theo quân số.
 - **Hiệu năng:**
   - Chạy hết một trận ở chế độ chạy ngay: **< 3 giây**, như spec 004 đã chốt.
   - Khi đang phát theo đồng hồ với 22 điểm luôn di chuyển: công việc mỗi khung
@@ -279,10 +295,24 @@ xem mục 11.
   toạ độ, thời lượng, chi phí mỗi khung.
 - Số lượng điểm tối đa vẫn là 22, và sân vẫn là 2D dạng điểm (hiến pháp mục 1).
 
-## 10. Quan hệ với spec 004 — AC nào giữ, AC nào thay
+## 10. Quan hệ với spec 001 và spec 004 — AC nào giữ, AC nào thay
 
-Spec 004 đã `Done` ngày 2026-11-18 với 37 AC. Spec này **không sửa ngược**
-tài liệu ấy; dưới đây là quan hệ, và `/clarify` phải chốt dòng đầu tiên.
+Spec 001 và spec 004 đều đã `Done`. Spec này **không sửa ngược** hai tài liệu
+ấy — hồ sơ của quyết định lúc đó phải còn nguyên — nên nó nói ra ở đây nó thay
+thế những gì.
+
+### 10.1. Spec 001 — một mệnh đề bị thay thế
+
+| AC của spec 001 | Spec này làm gì |
+|---|---|
+| **AC-10.2**, mệnh đề thứ hai — "các cầu thủ còn lại PHẢI giữ vị trí đứng theo đội hình" | **Thay thế, phát hiện lúc `/analyze` ngày 2026-11-18.** Đây chính là thứ làm sân trông chết: 16 trong 22 điểm đứng yên hàng phút. US-28 và AC-30.4 của spec này cố ý làm ngược lại. **Mệnh đề thứ nhất của AC-10.2 — người tham gia tình huống phải di chuyển tới vùng có bóng, kèm đường đi của bóng — được GIỮ nguyên**, và AC-28.3 là lục canh của nó. Lưu ý: bằng chứng kiểm tay của AC-10.2 ("mọi cầu thủ KHÔNG tham gia đều giữ đúng một toạ độ suốt 14 mẫu") sẽ không còn đúng sau spec này — đó là chủ đích, không phải hỏng |
+| AC-10.4 — tạm dừng thì sân 2D dừng ở đúng trạng thái của phút đó | **Giữ, và nó củng cố AC-28.5.** Nếu lúc `/clarify` chọn "tạm dừng vẫn động nhẹ" thì sẽ có một mâu thuẫn nữa ở đây |
+| AC-10.5 — chạy hết trận không bị sân 2D làm chậm | **Giữ** (AC-31.3) |
+| AC-10.1, AC-10.3, AC-10.6 — đủ 22 điểm, làm nổi bật người tham gia, ẩn được sân | **Giữ, không chạm** |
+| AC-15.2 của spec 002 — không điểm nào chồng khít tới mức đếm thiếu người | **Giữ**, và nó là thứ chặn biên độ dao động ở mục 6 (AC-30.5) |
+| AC-9.3 của spec 001 — đổi tốc độ thì áp dụng ngay | **Giữ**, và nhịp lặng sau bàn thắng (AC-32.5) không được làm nó chậm hơn một nhịp — xem phát hiện MEDIUM số 6 của `/analyze`, còn mở |
+
+### 10.2. Spec 004 — bảng quan hệ
 
 | AC của spec 004 | Spec này làm gì |
 |---|---|
@@ -315,6 +345,9 @@ Toàn bộ 11 câu hỏi mở đã chốt ngày **2026-11-18**, qua ba lượt h
 | 13 | *(thêm US-32)* Dòng không mang đường đi của bóng thì vẽ bóng ở đâu? | **Giữa sân** ở dòng khai cuộc và hết hiệp; **giữ chỗ cũ** ở thay người và kiệt sức. Loại: luôn giữ chỗ cuối (bóng không ở giữa sân lúc khai cuộc) | AC-32.2, AC-32.3 |
 | 14 | *(thêm US-32)* Hiệu ứng bàn thắng là gì? | **Vòng sáng lan ra + điểm người ghi bàn phóng to + chữ "BÀN THẮNG!"** — có cả kênh hình và kênh chữ nên đạt P9. Loại: chỉ chữ (không phải hiệu ứng); và rung khung sân (dễ gây chóng mặt) | AC-32.4, AC-32.6 |
 | 15 | *(thêm US-32)* Đồng hồ có dừng một nhịp khi ghi bàn? | **Có, ~1,5 giây rồi tự chạy tiếp.** Ràng buộc kèm theo: không được đổi nghĩa nút Tạm dừng / Tiếp tục | AC-32.5 |
+| 16 | *(siết lại lúc `/analyze`)* Biên độ dao động một nửa khoảng giãn có đứng được không? | **Không** — hạ xuống **một phần tám mỗi trục**. Một nửa làm hai người cùng hàng lệch tới một khoảng giãn (gấp bốn ngưỡng AC-30.3) và cho hai người cùng vùng trùng khít (phá AC-30.5 và AC-15.2 của spec 002) | mục 6, AC-28.2, AC-30.3 |
+| 17 | *(siết lại lúc `/analyze`)* AC-28.1 có đúng ở mức Rất nhanh không? | **Không**, nên AC-28.1 nay giới hạn vào những mức **còn nội suy**. Ở 20ms một phút trận, nội suy và dao động đều tắt, nên "luôn luôn di chuyển" vừa không đạt được vừa không có nghĩa | AC-28.1, AC-29.4 |
+| 18 | *(siết lại lúc `/analyze`)* Spec này có phá AC nào của spec 001 không? | **Có** — mệnh đề thứ hai của AC-10.2 ("các cầu thủ còn lại phải giữ vị trí"), và đó chính là thứ làm sân trông chết. Spec 005 tuyên bố thay thế ở mục 10.1, không sửa ngược spec 001 | mục 10.1 |
 | 12 | *(hỏi lúc lập plan)* Nghiêng khối theo bóng buộc đổi cách tính vị trí tại mốc — đúng chỗ giả định mục 9 dặn phải dừng và hỏi. Làm đường nào? | **Làm trong lớp quyết định chỗ đứng**, chỉ dịch người không tham gia tình huống, có biên và vẫn kỉp vào mặt cỏ. Hai đường bị loại: lớp lệch chỉ-để-vẽ (chỗ vẽ khác chỗ phép kiểm đang dùng), và bỏ AC-30.4 | mục 9, D94 |
 
 **Ghi chú về câu 2.** Đây là quyết định đổi trải nghiệm mặc định của cả ứng

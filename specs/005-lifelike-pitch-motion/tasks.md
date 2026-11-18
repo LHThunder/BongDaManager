@@ -59,7 +59,7 @@ xem được (hiến pháp P6), và là một commit.
 
 - [ ] **T502** — Xem lát 37 chạy: mặc định đúng, không còn quãng đứng im cuối nhịp
   - File: — *(kiểm trên bản build)*
-  - Xong khi: mở một trận thì mức Chậm đã được chọn sẵn; đo trên trận đang phát ở mức Chậm: quãng không đổi toạ độ giữa hai chặng **≤ 100ms** (tức dưới ngưỡng 300ms của spec); ở mức Rất nhanh **không khung nào** được yêu cầu mà toạ độ vẫn đúng mốc; không lỗi console.
+  - Xong khi: mở một trận thì mức Chậm đã được chọn sẵn; đo trên trận đang phát ở mức Chậm: quãng không đổi toạ độ giữa hai chặng **≤ 300ms** — lấy đúng ngưỡng của spec, **không** lấy 100ms theo công thức 0,9: sau T512 người sung sức chỉ dùng 75% nhịp nên quãng ấy thành 250ms, và một tiêu chí xong viết theo công thức sẽ tự sai ở lát sau (phát hiện HIGH số 4 của `/analyze`); ở mức Rất nhanh **không khung nào** được yêu cầu mà toạ độ vẫn đúng mốc; không lỗi console.
   - Bằng chứng: **số** (thay rAF bằng `setTimeout` để đo, như Phase 35).
   - AC: AC-29.1, AC-29.3
   - Phụ thuộc: T501
@@ -95,21 +95,21 @@ xem được (hiến pháp P6), và là một commit.
 
 - [ ] **T506** — Lớp dao động chờ, hàm thuần
   - File: tạo `src/ui/daoDong.ts`
-  - Xong khi: `lechDaoDong(playerId, thoiDiemTran, bienDo)` trả về một **lệch** (không phải toạ độ) luôn nằm trong `bienDo`; `phaCuaNguoi(playerId)` băm tất định từ chuỗi id; **không** gọi `Math.random`, `Date.now` hay `performance.now` — mọi thứ đi vào qua tham số (P1); file này không import gì từ `components/`.
+  - Xong khi: `lechDaoDong(playerId, thoiDiemTran, bienDo)` trả về một **lệch** (không phải toạ độ) luôn nằm trong `bienDo`, và `bienDo` là **hai số cho hai trục**, mỗi trục tối đa **một phần tám khoảng giãn** (D89 đã siết sau `/analyze`); `phaCuaNguoi(playerId)` băm tất định từ chuỗi id; **không** gọi `Math.random`, `Date.now` hay `performance.now` — mọi thứ đi vào qua tham số (P1); file này không import gì từ `components/`.
   - Bằng chứng: **số**.
   - AC: AC-28.1, AC-28.2, AC-28.4
   - Phụ thuộc: —
 
 - [ ] **T507** [P] — Test lớp dao động
   - File: tạo `src/ui/daoDong.test.ts`
-  - Xong khi: cùng `playerId` + cùng thời điểm trận → cùng lệch (P1); hai `playerId` khác nhau → hai pha khác nhau (AC-28.4); lệch luôn trong biên với mọi đầu vào, kể cả `NaN` và số âm; khi thời điểm trận nhích đều thì lệch **đổi trong mọi cửa sổ 300ms** (AC-28.1); thay `Math.random` bằng một hàm ném lỗi rồi gọi vẫn chạy — đúng cách `generator.test.ts` và `tenNgauNhien.test.ts` đang kiểm.
+  - Xong khi: cùng `playerId` + cùng thời điểm trận → cùng lệch (P1); hai `playerId` khác nhau → hai pha khác nhau (AC-28.4); lệch luôn trong biên với mọi đầu vào, kể cả `NaN` và số âm; **hai điểm cùng một vùng, lệch ngược chiều nhau tối đa, vẫn cách nhau ít nhất ba phần tư khoảng giãn** (AC-30.5 và AC-15.2 của spec 002); **hai điểm cùng một hàng lệch nhau không quá một phần tư** (AC-30.3); khi thời điểm trận nhích đều thì lệch **đổi trong mọi cửa sổ 300ms** (AC-28.1); thay `Math.random` bằng một hàm ném lỗi rồi gọi vẫn chạy — đúng cách `generator.test.ts` và `tenNgauNhien.test.ts` đang kiểm.
   - Bằng chứng: **số**.
   - AC: AC-28.1, AC-28.2, AC-28.4
   - Phụ thuộc: T506
 
 - [ ] **T508** — Vòng khung hình chạy liên tục, hai prop mới, tạm dừng đóng băng
   - File: sửa `src/ui/components/San2D.tsx`, sửa `src/ui/pages/TrangTran.tsx`
-  - Xong khi: **tách hai effect** — một dựng dữ liệu chặng, vẫn khoá theo `khoaMoc`; một giữ vòng `requestAnimationFrame`, khoá theo `[dangChay, giamChuyenDong]`; `San2D` nhận hai prop mới `phutDongHo` và `dangChay` từ `TrangTran` (chỗ dựng `<San2D>` **duy nhất** của repo); `dangChay = false` → **0 khung** và sân đóng băng, giữ thời điểm trận trong ref để lúc tiếp tục không nhảy; đổi ngôn ngữ giữa một chặng **không** làm toạ độ nhảy về đầu chặng; ẩn sân rồi hiện lại thì các điểm xuất hiện đúng chỗ hiện tại, không chạy lại chặng cũ; đo ở mức Chậm: mọi điểm đổi toạ độ ít nhất một lần mỗi 300ms; **sửa chú thích đầu file** — câu "KHÔNG vòng lặp animation" sai từ spec 004.
+  - Xong khi: **tách hai effect** — một dựng dữ liệu chặng, vẫn khoá theo `khoaMoc`; một giữ vòng `requestAnimationFrame`, khoá theo `[dangChay, giamChuyenDong]`; `San2D` nhận hai prop mới `phutDongHo` và `dangChay` từ `TrangTran` (chỗ dựng `<San2D>` **duy nhất** của repo); `dangChay = false` → **0 khung** và sân đóng băng, giữ thời điểm trận trong ref để lúc tiếp tục không nhảy; đổi ngôn ngữ giữa một chặng **không** làm toạ độ nhảy về đầu chặng; ẩn sân rồi hiện lại thì các điểm xuất hiện đúng chỗ hiện tại, không chạy lại chặng cũ; đo ở **từng mức còn nội suy** (Chậm, Thường, Nhanh): mọi điểm đổi toạ độ ít nhất một lần mỗi 300ms; ở mức Rất nhanh **không** đòi điều đó (AC-28.1 đã giới hạn sau `/analyze`); **sửa chú thích đầu file** — câu "KHÔNG vòng lặp animation" sai từ spec 004.
   - Bằng chứng: **số**.
   - AC: AC-28.1, AC-28.3, AC-28.5, AC-31.7
   - Phụ thuộc: T506, T504 *(cùng chạm `San2D.tsx` nên làm sau lát 38, không song song)*
@@ -278,6 +278,11 @@ xem được (hiến pháp P6), và là một commit.
   (T512); **thay** bốn phép kiểm `thoiGianChuyen` (T501).
 - **P8 ở hai chỗ**, cùng commit với code: nhãn "Chậm" / "Slow" (T500) và chữ
   "BÀN THẮNG!" / "GOAL!" (T514).
+- **Một mệnh đề của spec 001 bị thay thế, đừng ngạc nhiên khi thấy.** AC-10.2
+  của spec 001 ghi "các cầu thủ còn lại PHẢI giữ vị trí đứng theo đội hình" và
+  đã được kiểm tay bằng 14 mẫu liên tiếp. US-28 và T510 cố ý làm ngược lại;
+  spec 005 mục 10.1 tuyên bố thay thế mệnh đề ấy. **Mệnh đề thứ nhất của AC-10.2
+  — người tham gia phải tới vùng có bóng — vẫn đúng và AC-28.3 canh nó.**
 - **Không tạo file nào ngoài danh sách trên.** Phát sinh thêm → dừng, cập nhật
   `plan.md` / `tasks.md` trước. Hai file mới duy nhất của spec này là
   `src/ui/daoDong.ts` và `src/ui/daoDong.test.ts`.
