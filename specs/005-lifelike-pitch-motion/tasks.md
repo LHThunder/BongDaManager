@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | 30 AC (US-28 → US-32), 11 quyết định D89–D100 |
-| **Tiến độ** | 25/27 |
+| **Tiến độ** | 27/27 — đóng ngày 2026-11-19 |
 | **Sửa đổi** | 2026-11-18 — chẻ lần đầu từ plan |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -199,14 +199,14 @@ xem được (hiến pháp P6), và là một commit.
   - AC: AC-31.3, AC-31.4
   - Phụ thuộc: T516
 
-- [ ] **T518** — Người dùng xem một trận và phán: tự nhiên hay chưa
+- [x] **T518** — Người dùng xem một trận và phán: tự nhiên hay chưa
   - File: — *(người dùng tự xem, trên trình duyệt của mình)*
   - Xong khi: người dùng xem trọn một trận ở mức Chậm trên trình duyệt thường của họ và nói ra — nhịp vừa chưa, dao động đủ hay quá, đường chạy có mềm, hiệu ứng bàn thắng có đáng. Mỗi điều chỉnh sau đó là một hằng số: nhịp, biên độ dao động, độ nghiêng khối, hệ số bóng.
   - Bằng chứng: **MẮT NGƯỜI DÙNG — không phép kiểm nào thay được task này**, và nó là lý do cả spec này tồn tại.
   - AC: AC-28.1, AC-28.4, AC-29.1, AC-30.1, AC-30.2, AC-30.3, AC-30.4 *(phần cảm giác)*
   - Phụ thuộc: T517
 
-- [ ] **T519** — Tick 30 AC và đóng spec
+- [x] **T519** — Tick 30 AC và đóng spec
   - File: sửa `specs/005-lifelike-pitch-motion/spec.md`
   - Xong khi: mọi AC ở mục 3 được tick **có căn cứ** (ghi rõ căn cứ là test nào hay kiểm tay thấy gì, như spec 004 mục 11 đã làm); Definition of Done đủ mục; `Status` đổi thành **Done**; xác nhận `PHIEN_BAN_ENGINE` vẫn 5, `DB_VERSION` vẫn 3, và `git diff src/engine/` rỗng trên cả spec.
   - AC: toàn bộ
@@ -852,4 +852,37 @@ nhịp, hoặc mọi người dùng chung thời lượng (tốc độ khác nha
 (người xong sớm đứng chờ). T525 chọn điểm giữa, nhưng không xóa được cái gốc: muốn
 mọi điểm luôn di chuyển có mục đích thì phải có **mốc trung gian giữa hai phút**, tức
 mô hình người giữ bóng của spec 006.
+
+## T518 — phán quyết của mắt người dùng
+
+**Người dùng tự chạy ứng dụng trên trình duyệt của mình và xem nhiều lượt, từ
+2026-11-18 sang 2026-11-19.** Ghi lại đúng những gì họ nói, theo thứ tự:
+
+1. **Nhịp ở mức Chậm: vừa.** Đó là câu trả lời cho câu hỏi trực tiếp về nhịp.
+2. **"Bóng đang bị chìm"** → đo ra 40,5% số khung có tâm bóng nằm trong lòng một
+   điểm cầu thủ, vì bóng được vẽ **trước** các điểm. Sửa ở **T520**.
+3. **"Thủ môn di chuyển lên quá cao"** → đo ra thủ môn đội khách chạy từ `x = 54,5`
+   tới `85,2`. Sửa ở **T521**.
+4. **"Tại sao hậu vệ lại luôn đứng trên tiền đạo đối phương"** → đo ra hậu vệ đội
+   nhà ở `x = 28` trong khi tiền đạo đội khách ở `x = 13`, tức tiền đạo nằm trong
+   vòng 5m50 suốt trận. **Lỗi bố cục có từ spec 001**, sống qua bốn spec. Sửa ở **T523**.
+5. **"Muốn quả bóng là hình quả bóng đen trắng giống thực tế"** → **T522**.
+6. **"Muốn bóng di chuyển tự nhiên hơn, không cần hiện đường màu vàng cũng được"**
+   → **T524**: bóng đi hết đường chuyền, đường kẻ bỏ hẳn.
+7. **"Đôi khi quá nhanh đôi khi quá chậm, cầu thủ như đang teleport"** → đo ra **hai**
+   nguồn: tốc độ tỉ lệ thẳng với quãng (chênh hơn 20 lần) và đường cong phồng thành
+   vòng rộng (có chặng đi 3,9 đơn vị mà chạy hết 37,2). Sửa ở **T525 và T526**.
+8. **"Cầu thủ có bóng chạy hoặc qua người với bóng trong chân, chuyền và sút, thấy
+   được đường bóng liên tục"** → **không thuộc spec này**. Đã thành **spec 006**
+   (`006-ball-carrier-motion`), đã viết và đã làm rõ xong ngày 2026-11-19.
+
+**Kết luận của T518, ghi thật:** nhịp đã **đạt**; sáu điều còn lại là **lỗi thật**, và
+**năm trong sáu** đã sửa xong trong chính spec này (Phase 43–46, bảy task T520–T526).
+Điều thứ sáu đủ lớn để thành một spec riêng.
+
+**Điều đáng ghi nhất của cả spec 005:** bốn lỗi trên đều **lọt qua 1239 phép kiểm**,
+và đều bị mắt người dùng bắt trong vài phút xem. Lý do giống nhau ở cả bốn: mọi
+phép kiểm đều đọc `hinhSan` — một **danh sách toạ độ** — nên không cái nào hỏi được
+"thứ tự vẽ thế nào", "vị trí nào là thủ môn", hay "tám hàng có đúng thứ tự không".
+T518 không phải một thủ tục — nó là lớp kiểm duy nhất có thể thấy những thứ ấy.
 

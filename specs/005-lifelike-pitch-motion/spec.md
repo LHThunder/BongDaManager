@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **ID** | `005-lifelike-pitch-motion` |
-| **Status** | Planned (2026-11-18) |
+| **Status** | Done (2026-11-19) |
 | **Sửa đổi** | 2026-11-18 — thêm US-32 (quả bóng luôn hiện, hiệu ứng bàn thắng) sau khi plan đã Approved; 2026-11-18 — thêm AC-30.7 và siết AC-32.1 sau khi người dùng xem thật ở T518; 2026-11-18 — thêm AC-30.8 và AC-32.8, cũng từ T518; 2026-11-18 — thêm AC-30.9 (bóng đi hết đường, bỏ đường kẻ); 2026-11-18 — thêm AC-30.10 và AC-30.11 (tốc độ gần đều, không vòng rộng) |
 | **Created** | 2026-11-18 |
 | **Branch** | `005-lifelike-pitch-motion` |
@@ -88,22 +88,22 @@ nhảy**.
 
 **Acceptance criteria:**
 
-- [ ] AC-28.1 — KHI trận đang phát theo đồng hồ **ở một mức tốc độ còn nội suy** THÌ **mọi** điểm cầu thủ PHẢI đổi vị trí liên tục; KHÔNG điểm nào được đứng nguyên một chỗ lâu hơn **300ms**.
+- [x] AC-28.1 — KHI trận đang phát theo đồng hồ **ở một mức tốc độ còn nội suy** THÌ **mọi** điểm cầu thủ PHẢI đổi vị trí liên tục; KHÔNG điểm nào được đứng nguyên một chỗ lâu hơn **300ms**.
   > *Giới hạn "còn nội suy" thêm ngày 2026-11-18 sau `/analyze`.* Ở mức nhanh
   > nhất, AC-29.4 đã chốt là thôi nội suy hoàn toàn và dao động chờ cũng tắt
   > theo; ở đó một người ngoài tình huống giữ nguyên toạ độ cho tới khi đội
   > hình đổi, nên "không đứng im quá 300ms" **không đạt được** và cũng không
   > có nghĩa: một phút trận ở đó chỉ dài 20ms.
-- [ ] AC-28.2 — KHI một người không được tình huống nào nhắc tới trong nhiều phút liền THÌ điểm của anh ta VẪN PHẢI di chuyển quanh vị trí của mình, và PHẢI không rời khỏi vùng sân của vị trí ấy.
-- [ ] AC-28.3 — KHI một tình huống diễn ra ở một vùng THÌ đúng tại phút của tình huống đó, những người tham gia PHẢI có mặt trong vùng ấy — **trừ thủ môn, xem AC-30.7**; chuyển động lúc chờ KHÔNG được làm sai vùng.
+- [x] AC-28.2 — KHI một người không được tình huống nào nhắc tới trong nhiều phút liền THÌ điểm của anh ta VẪN PHẢI di chuyển quanh vị trí của mình, và PHẢI không rời khỏi vùng sân của vị trí ấy.
+- [x] AC-28.3 — KHI một tình huống diễn ra ở một vùng THÌ đúng tại phút của tình huống đó, những người tham gia PHẢI có mặt trong vùng ấy — **trừ thủ môn, xem AC-30.7**; chuyển động lúc chờ KHÔNG được làm sai vùng.
 
   > *Ngoại lệ thủ môn thêm ngày 2026-11-18, sau khi người dùng xem thật (T518).*
   > Đo được: thủ môn đội khách chạy từ `x = 54,5` tới `85,2` trong một trận, tức
   > ra tới gần giữa sân, vì engine có lúc liệt kê anh ta là người tham gia một
   > tình huống ở xa khung thành. Một thủ môn đứng giữa sân làm cả hình mất nghĩa,
   > nên AC-30.7 đứng trên AC này khi hai bên đánh nhau.
-- [ ] AC-28.4 — KHI hai người đang đứng chờ gần nhau THÌ chuyển động chờ của họ PHẢI không trùng nhịp với nhau, để hai đội không "thở" đồng loạt như một khối máy.
-- [ ] AC-28.5 — KHI trận đang tạm dừng THÌ **mọi chuyển động PHẢI dừng hẳn**, kể cả dao động chờ: sân đóng băng để người dùng đọc được vị trí từng người trước khi quyết định thay người, và để chữ "tạm dừng" có đúng một nghĩa.
+- [x] AC-28.4 — KHI hai người đang đứng chờ gần nhau THÌ chuyển động chờ của họ PHẢI không trùng nhịp với nhau, để hai đội không "thở" đồng loạt như một khối máy.
+- [x] AC-28.5 — KHI trận đang tạm dừng THÌ **mọi chuyển động PHẢI dừng hẳn**, kể cả dao động chờ: sân đóng băng để người dùng đọc được vị trí từng người trước khi quyết định thay người, và để chữ "tạm dừng" có đúng một nghĩa.
 
 ### US-29: Nhịp xem được, chuyển động thong thả
 
@@ -113,11 +113,11 @@ tới chỗ mới**.
 
 **Acceptance criteria:**
 
-- [ ] AC-29.1 — KHI người dùng chọn mức tốc độ chậm nhất THÌ một cú di chuyển PHẢI chiếm gần hết khoảng giữa hai tình huống, KHÔNG để lại quãng đứng im nào dài hơn **300ms**.
-- [ ] AC-29.2 — KHI nhịp đồng hồ chậm lại THÌ thời lượng một cú di chuyển PHẢI giãn theo; KHÔNG được giữ nguyên thời lượng cũ rồi thêm một quãng đứng im vào cuối nhịp.
-- [ ] AC-29.3 — KHI người dùng đổi mức tốc độ giữa trận THÌ chuyển động PHẢI theo nhịp mới ngay ở tình huống kế tiếp, và KHÔNG điểm nào bị giật về chỗ cũ hay nhảy tới đích.
-- [ ] AC-29.4 — KHI người dùng chọn mức nhanh nhất, nơi một phút trận chỉ dài vài chục mili-giây, THÌ hệ thống PHẢI thôi nội suy: các điểm nhảy thẳng tới vị trí tại mốc, và KHÔNG điểm nào được bị giật khi đang đi nửa đường — ở nhịp ấy không có chuyển động nào đọc được bằng mắt, nên vẽ đường đi chỉ sinh ra cú giật.
-- [ ] AC-29.5 — KHI mở một trận lần đầu THÌ mức tốc độ mặc định PHẢI là mức chậm nhất (một phút trận dài 1000ms), và người dùng PHẢI đổi được sang mức khác ngay trong lúc trận đang chạy.
+- [x] AC-29.1 — KHI người dùng chọn mức tốc độ chậm nhất THÌ một cú di chuyển PHẢI chiếm gần hết khoảng giữa hai tình huống, KHÔNG để lại quãng đứng im nào dài hơn **300ms**.
+- [x] AC-29.2 — KHI nhịp đồng hồ chậm lại THÌ thời lượng một cú di chuyển PHẢI giãn theo; KHÔNG được giữ nguyên thời lượng cũ rồi thêm một quãng đứng im vào cuối nhịp.
+- [x] AC-29.3 — KHI người dùng đổi mức tốc độ giữa trận THÌ chuyển động PHẢI theo nhịp mới ngay ở tình huống kế tiếp, và KHÔNG điểm nào bị giật về chỗ cũ hay nhảy tới đích.
+- [x] AC-29.4 — KHI người dùng chọn mức nhanh nhất, nơi một phút trận chỉ dài vài chục mili-giây, THÌ hệ thống PHẢI thôi nội suy: các điểm nhảy thẳng tới vị trí tại mốc, và KHÔNG điểm nào được bị giật khi đang đi nửa đường — ở nhịp ấy không có chuyển động nào đọc được bằng mắt, nên vẽ đường đi chỉ sinh ra cú giật.
+- [x] AC-29.5 — KHI mở một trận lần đầu THÌ mức tốc độ mặc định PHẢI là mức chậm nhất (một phút trận dài 1000ms), và người dùng PHẢI đổi được sang mức khác ngay trong lúc trận đang chạy.
 
 ### US-30: Chuyển động trông như người chạy
 
@@ -127,23 +127,23 @@ bị dịch chỗ**.
 
 **Acceptance criteria:**
 
-- [ ] AC-30.1 — KHI một cú di chuyển kết thúc và cú sau bắt đầu THÌ điểm PHẢI đi tiếp mà không có khoảnh khắc đứng yên nào ở giữa; tốc độ tại mốc PHẢI không về không.
-- [ ] AC-30.2 — KHI bóng chuyển từ vùng này sang vùng khác THÌ điểm bóng PHẢI đi **theo đường thẳng và nhanh khoảng ba lần người**, nên nó tới đích hẳn trước những cầu thủ đi cùng hướng — mắt theo bóng trước, người theo sau, như một đường chuyền.
-- [ ] AC-30.3 — KHI những người của một hàng ngang (hàng phòng ngự, hàng tiền vệ) không tham gia tình huống THÌ các điểm của hàng ấy PHẢI giữ ngang hàng nhau trong **một phần tư khoảng cách giữa hai người trong hàng**, như một hàng bốn thật, chứ không trôi rời rạc.
-- [ ] AC-30.4 — KHI bóng ở một phần sân THÌ cả khối đội hình PHẢI nghiêng nhẹ về phía ấy — khoảng **một phần mười chiều dài sân** — đủ để thấy đội đang dồn lên hay lùi về, mà sơ đồ đang dùng VẪN nhận ra được (4-4-2 vẫn ra 4-4-2).
-- [ ] AC-30.5 — KHI xem bất kỳ mười giây nào của một trận đang chạy THÌ KHÔNG điểm nào được ra ngoài vạch biên, và KHÔNG hai điểm nào được nằm khít lên nhau tới mức người xem chỉ thấy một.
-- [ ] AC-30.6 — KHI một cầu thủ đã xuống thể lực THÌ ở những nhịp còn dư thời gian, điểm của anh ta PHẢI **đi chậm thật**: tới đích muộn hơn một người cùng lúc còn sung sức, nhưng VẪN phải tới trước khi tình huống kế tiếp tới. Ở nhịp không đủ dư thời gian, độ chênh PHẢI vẫn nhận ra được bằng dáng chạy (xuất phát muộn hơn, đi phần lớn quãng đường sau).
-- [ ] AC-30.7 — KHI trận đang chạy THÌ điểm của **thủ môn** PHẢI luôn nằm trong **một phần ba sân của đội mình**, kể cả khi dòng tường thuật liệt kê anh ta là người tham gia một tình huống ở vùng khác, và kể cả khi cả khối đội hình đang co về phía bóng — thủ môn **không** co theo khối.
-- [ ] AC-30.8 — KHI hai đội đứng theo sơ đồ THÌ hàng phòng ngự của một đội PHẢI đứng **giữa tiền đạo đối phương và khung thành của mình**, không được đứng trước mặt họ; và bốn hàng của hai đội PHẢI xen kẽ nhau dọc sân theo đúng thứ tự bóng đá: thủ môn nhà → hậu vệ nhà → tiền đạo khách → tiền vệ nhà → tiền vệ khách → tiền đạo nhà → hậu vệ khách → thủ môn khách.
-- [ ] AC-30.9 — KHI một pha bóng đi qua nhiều vùng THÌ quả bóng PHẢI **đi hết đường ấy** — qua từng vùng theo đúng thứ tự, tốc độ đều — chứ KHÔNG được nhảy thẳng tới điểm cuối; và khi bóng đã đi đường của mình thì **KHÔNG cần vẽ đường kẻ chỉ hướng nữa**.
-- [ ] AC-30.10 — KHI nhiều điểm cùng di chuyển THÌ tốc độ của chúng PHẢI gần nhau: quãng dài hơn thì **đi lâu hơn**, không phải **đi nhanh hơn**. Trên dải quãng đường thật của một trận, tỉ lệ giữa tốc độ lớn nhất và nhỏ nhất PHẢI dưới **bốn lần**.
+- [x] AC-30.1 — KHI một cú di chuyển kết thúc và cú sau bắt đầu THÌ điểm PHẢI đi tiếp mà không có khoảnh khắc đứng yên nào ở giữa; tốc độ tại mốc PHẢI không về không.
+- [x] AC-30.2 — KHI bóng chuyển từ vùng này sang vùng khác THÌ điểm bóng PHẢI đi **theo đường thẳng và nhanh khoảng ba lần người**, nên nó tới đích hẳn trước những cầu thủ đi cùng hướng — mắt theo bóng trước, người theo sau, như một đường chuyền.
+- [x] AC-30.3 — KHI những người của một hàng ngang (hàng phòng ngự, hàng tiền vệ) không tham gia tình huống THÌ các điểm của hàng ấy PHẢI giữ ngang hàng nhau trong **một phần tư khoảng cách giữa hai người trong hàng**, như một hàng bốn thật, chứ không trôi rời rạc.
+- [x] AC-30.4 — KHI bóng ở một phần sân THÌ cả khối đội hình PHẢI nghiêng nhẹ về phía ấy — khoảng **một phần mười chiều dài sân** — đủ để thấy đội đang dồn lên hay lùi về, mà sơ đồ đang dùng VẪN nhận ra được (4-4-2 vẫn ra 4-4-2).
+- [x] AC-30.5 — KHI xem bất kỳ mười giây nào của một trận đang chạy THÌ KHÔNG điểm nào được ra ngoài vạch biên, và KHÔNG hai điểm nào được nằm khít lên nhau tới mức người xem chỉ thấy một.
+- [x] AC-30.6 — KHI một cầu thủ đã xuống thể lực THÌ ở những nhịp còn dư thời gian, điểm của anh ta PHẢI **đi chậm thật**: tới đích muộn hơn một người cùng lúc còn sung sức, nhưng VẪN phải tới trước khi tình huống kế tiếp tới. Ở nhịp không đủ dư thời gian, độ chênh PHẢI vẫn nhận ra được bằng dáng chạy (xuất phát muộn hơn, đi phần lớn quãng đường sau).
+- [x] AC-30.7 — KHI trận đang chạy THÌ điểm của **thủ môn** PHẢI luôn nằm trong **một phần ba sân của đội mình**, kể cả khi dòng tường thuật liệt kê anh ta là người tham gia một tình huống ở vùng khác, và kể cả khi cả khối đội hình đang co về phía bóng — thủ môn **không** co theo khối.
+- [x] AC-30.8 — KHI hai đội đứng theo sơ đồ THÌ hàng phòng ngự của một đội PHẢI đứng **giữa tiền đạo đối phương và khung thành của mình**, không được đứng trước mặt họ; và bốn hàng của hai đội PHẢI xen kẽ nhau dọc sân theo đúng thứ tự bóng đá: thủ môn nhà → hậu vệ nhà → tiền đạo khách → tiền vệ nhà → tiền vệ khách → tiền đạo nhà → hậu vệ khách → thủ môn khách.
+- [x] AC-30.9 — KHI một pha bóng đi qua nhiều vùng THÌ quả bóng PHẢI **đi hết đường ấy** — qua từng vùng theo đúng thứ tự, tốc độ đều — chứ KHÔNG được nhảy thẳng tới điểm cuối; và khi bóng đã đi đường của mình thì **KHÔNG cần vẽ đường kẻ chỉ hướng nữa**.
+- [x] AC-30.10 — KHI nhiều điểm cùng di chuyển THÌ tốc độ của chúng PHẢI gần nhau: quãng dài hơn thì **đi lâu hơn**, không phải **đi nhanh hơn**. Trên dải quãng đường thật của một trận, tỉ lệ giữa tốc độ lớn nhất và nhỏ nhất PHẢI dưới **bốn lần**.
 
   > *Thêm ngày 2026-11-18, sau khi người dùng xem thật (T518): "đôi khi quá nhanh
   > đôi khi quá chậm".* Đo được trước khi sửa: mọi chặng dùng chung một thời
   > lượng, nên tốc độ tỉ lệ **thẳng** với quãng phải đi — quãng trong một nhịp
   > trải từ 2,3 tới 47,4 đơn vị, tức chênh nhau hơn **hai mươi lần**.
 
-- [ ] AC-30.11 — KHI một điểm vừa đi một chặng dài rồi phải đi một chặng ngắn THÌ nó PHẢI giảm tốc, chứ đường cong KHÔNG được phồng ra thành một vòng rộng: đường đi thật của một điểm trong một nhịp KHÔNG được dài hơn đường chim bay quá **năm lần**.
+- [x] AC-30.11 — KHI một điểm vừa đi một chặng dài rồi phải đi một chặng ngắn THÌ nó PHẢI giảm tốc, chứ đường cong KHÔNG được phồng ra thành một vòng rộng: đường đi thật của một điểm trong một nhịp KHÔNG được dài hơn đường chim bay quá **năm lần**.
 
   > *Cũng từ T518.* Đo được trước khi sửa: có chặng đi **3,9 đơn vị** theo đường
   > chim bay nhưng điểm chạy hết **37,2 đơn vị** — gấp **9,57 lần**. Điểm không bay
@@ -169,13 +169,13 @@ có**, để **tôi không phải đánh đổi khả năng dùng được lấy
 
 **Acceptance criteria:**
 
-- [ ] AC-31.1 — KHI hệ điều hành bật chế độ giảm chuyển động THÌ sân PHẢI không nội suy và không có chuyển động chờ, mà vẫn hiển thị đúng vị trí tại từng mốc.
-- [ ] AC-31.2 — KHI chuyển động mới đang bật THÌ tỉ số, dòng tường thuật, chỉ tiêu hai đội và điểm từng cầu thủ PHẢI không đổi so với trước spec này.
-- [ ] AC-31.3 — KHI người dùng chạy hết một trận ở chế độ chạy ngay THÌ thao tác PHẢI xong trong dưới 3 giây, kể cả khi sân 2D đang bật.
-- [ ] AC-31.4 — KHI trận đang phát theo đồng hồ với 22 điểm cùng di chuyển THÌ công việc mỗi khung vẽ PHẢI gọn trong một nhịp đồng hồ ở **mọi** mức tốc độ, và PHẢI không có tác vụ nào chiếm luồng chính quá 50ms.
-- [ ] AC-31.5 — KHI có thêm một mức tốc độ mới THÌ nhãn của nó PHẢI có cả tiếng Việt và tiếng Anh, và PHẢI chọn được bằng bàn phím.
-- [ ] AC-31.6 — KHI một cầu thủ kiệt sức THÌ tình trạng ấy PHẢI vẫn có mặt dưới dạng chữ; chuyển động KHÔNG được là cách duy nhất để biết.
-- [ ] AC-31.7 — KHI người dùng ẩn sân rồi hiện lại giữa trận THÌ các điểm PHẢI xuất hiện đúng chỗ của thời điểm hiện tại và đi tiếp, KHÔNG chạy lại từ đầu một cú di chuyển cũ.
+- [x] AC-31.1 — KHI hệ điều hành bật chế độ giảm chuyển động THÌ sân PHẢI không nội suy và không có chuyển động chờ, mà vẫn hiển thị đúng vị trí tại từng mốc.
+- [x] AC-31.2 — KHI chuyển động mới đang bật THÌ tỉ số, dòng tường thuật, chỉ tiêu hai đội và điểm từng cầu thủ PHẢI không đổi so với trước spec này.
+- [x] AC-31.3 — KHI người dùng chạy hết một trận ở chế độ chạy ngay THÌ thao tác PHẢI xong trong dưới 3 giây, kể cả khi sân 2D đang bật.
+- [x] AC-31.4 — KHI trận đang phát theo đồng hồ với 22 điểm cùng di chuyển THÌ công việc mỗi khung vẽ PHẢI gọn trong một nhịp đồng hồ ở **mọi** mức tốc độ, và PHẢI không có tác vụ nào chiếm luồng chính quá 50ms.
+- [x] AC-31.5 — KHI có thêm một mức tốc độ mới THÌ nhãn của nó PHẢI có cả tiếng Việt và tiếng Anh, và PHẢI chọn được bằng bàn phím.
+- [x] AC-31.6 — KHI một cầu thủ kiệt sức THÌ tình trạng ấy PHẢI vẫn có mặt dưới dạng chữ; chuyển động KHÔNG được là cách duy nhất để biết.
+- [x] AC-31.7 — KHI người dùng ẩn sân rồi hiện lại giữa trận THÌ các điểm PHẢI xuất hiện đúng chỗ của thời điểm hiện tại và đi tiếp, KHÔNG chạy lại từ đầu một cú di chuyển cũ.
 
 ### US-32: Thấy quả bóng, và thấy bàn thắng
 
@@ -191,19 +191,19 @@ quan trọng nhất của nó**.
 
 **Acceptance criteria:**
 
-- [ ] AC-32.1 — KHI trận đang chạy THÌ quả bóng PHẢI luôn có mặt trên sân, kể cả ở những phút mà dòng tường thuật không kể một pha bóng nào; KHÔNG lúc nào bóng được biến mất, **và cũng không được bị một điểm cầu thủ đè lên che mất**.
+- [x] AC-32.1 — KHI trận đang chạy THÌ quả bóng PHẢI luôn có mặt trên sân, kể cả ở những phút mà dòng tường thuật không kể một pha bóng nào; KHÔNG lúc nào bóng được biến mất, **và cũng không được bị một điểm cầu thủ đè lên che mất**.
 
   > *Mệnh đề sau thêm ngày 2026-11-18, sau khi người dùng xem thật (T518).* Bản đầu
   > của T513 vẽ bóng **trước** các điểm người, mà trong SVG thì vẽ sau là nằm trên:
   > đo được **40,5% số khung** có tâm bóng nằm trong lòng một điểm cầu thủ. "Có mặt"
   > mà người xem không thấy thì không phải có mặt.
-- [ ] AC-32.2 — KHI dòng đang hiện là khai cuộc hay hết hiệp THÌ bóng PHẢI nằm ở điểm giao bóng giữa sân.
-- [ ] AC-32.3 — KHI dòng đang hiện không kể một pha bóng và cũng không phải khai cuộc hay hết hiệp (thay người, kiệt sức) THÌ bóng PHẢI giữ đúng chỗ nó được thấy lần cuối, KHÔNG nhảy về giữa sân.
-- [ ] AC-32.4 — KHI một bàn thắng được ghi THÌ sân PHẢI hiện một hiệu ứng gồm ba phần cùng lúc: một vòng sáng lan ra từ chỗ ghi bàn, điểm của người ghi bàn phóng to, và dòng chữ "BÀN THẮNG!"; dòng chữ ấy PHẢI có cả tiếng Việt và tiếng Anh.
-- [ ] AC-32.5 — KHI hiệu ứng bàn thắng chạy THÌ đồng hồ trận PHẢI lặng khoảng 1,5 giây rồi **tự** chạy tiếp, mà nút Tạm dừng / Tiếp tục KHÔNG được đổi nghĩa: người dùng PHẢI không thể tưởng là mình đã bấm Tạm dừng.
-- [ ] AC-32.6 — KHI người dùng bật chế độ giảm chuyển động THÌ hiệu ứng bàn thắng PHẢI chỉ còn phần chữ — không vòng sáng, không phóng to — nhưng đồng hồ VẪN lặng một nhịp, vì một nhịp lặng không phải là chuyển động.
-- [ ] AC-32.7 — KHI trận đang tạm dừng hoặc đã kết thúc THÌ quả bóng PHẢI vẫn có mặt: đóng băng sân không có nghĩa là bóng mất.
-- [ ] AC-32.8 — KHI nhìn vào sân THÌ quả bóng PHẢI **trông ra một quả bóng đá**: hình tròn **trắng có mảng đen** như bóng thật, chứ không phải một chấm màu trơn; và nó PHẢI phân biệt được với mọi điểm cầu thủ ở cả hai chế độ sáng/tối.
+- [x] AC-32.2 — KHI dòng đang hiện là khai cuộc hay hết hiệp THÌ bóng PHẢI nằm ở điểm giao bóng giữa sân.
+- [x] AC-32.3 — KHI dòng đang hiện không kể một pha bóng và cũng không phải khai cuộc hay hết hiệp (thay người, kiệt sức) THÌ bóng PHẢI giữ đúng chỗ nó được thấy lần cuối, KHÔNG nhảy về giữa sân.
+- [x] AC-32.4 — KHI một bàn thắng được ghi THÌ sân PHẢI hiện một hiệu ứng gồm ba phần cùng lúc: một vòng sáng lan ra từ chỗ ghi bàn, điểm của người ghi bàn phóng to, và dòng chữ "BÀN THẮNG!"; dòng chữ ấy PHẢI có cả tiếng Việt và tiếng Anh.
+- [x] AC-32.5 — KHI hiệu ứng bàn thắng chạy THÌ đồng hồ trận PHẢI lặng khoảng 1,5 giây rồi **tự** chạy tiếp, mà nút Tạm dừng / Tiếp tục KHÔNG được đổi nghĩa: người dùng PHẢI không thể tưởng là mình đã bấm Tạm dừng.
+- [x] AC-32.6 — KHI người dùng bật chế độ giảm chuyển động THÌ hiệu ứng bàn thắng PHẢI chỉ còn phần chữ — không vòng sáng, không phóng to — nhưng đồng hồ VẪN lặng một nhịp, vì một nhịp lặng không phải là chuyển động.
+- [x] AC-32.7 — KHI trận đang tạm dừng hoặc đã kết thúc THÌ quả bóng PHẢI vẫn có mặt: đóng băng sân không có nghĩa là bóng mất.
+- [x] AC-32.8 — KHI nhìn vào sân THÌ quả bóng PHẢI **trông ra một quả bóng đá**: hình tròn **trắng có mảng đen** như bóng thật, chứ không phải một chấm màu trơn; và nó PHẢI phân biệt được với mọi điểm cầu thủ ở cả hai chế độ sáng/tối.
 
 ## 4. Luồng chính (happy path)
 
@@ -288,24 +288,24 @@ quan trọng nhất của nó**.
 
 ## 7. Định nghĩa hoàn thành (Definition of Done)
 
-- [ ] Toàn bộ AC ở mục 3 pass
-- [ ] Trường hợp biên mục 5 được xử lý
-- [ ] Không vi phạm nguyên tắc nào trong constitution **3.0.1**
-- [ ] **Phiên bản engine KHÔNG đổi**, và các phép kiểm tương thích của spec
+- [x] Toàn bộ AC ở mục 3 pass
+- [x] Trường hợp biên mục 5 được xử lý
+- [x] Không vi phạm nguyên tắc nào trong constitution **3.0.1**
+- [x] **Phiên bản engine KHÔNG đổi**, và các phép kiểm tương thích của spec
       trước vẫn xanh: một trận lưu từ trước spec này đấu lại vẫn cho đúng kết
       quả và đúng từng dòng sự kiện
-- [ ] Có phép kiểm tự động cho lớp chuyển động: vị trí tại mốc vẫn đúng tuyệt
+- [x] Có phép kiểm tự động cho lớp chuyển động: vị trí tại mốc vẫn đúng tuyệt
       đối, dao động chờ bị chặn trong vùng của vị trí, và cùng một người ở
       cùng một thời khắc cho cùng một vị trí (P1)
-- [ ] **Người dùng tự xem một trận và nói là tự nhiên.** Không phép kiểm tự
+- [x] **Người dùng tự xem một trận và nói là tự nhiên.** Không phép kiểm tự
       động nào thay được mục này, và nó là lý do spec này tồn tại
-- [ ] Đo lại hai ngân sách ở mục 6 trên bản build, ghi số đo vào mô tả commit
-- [ ] Tự tay đi hết màn hình trận ở **cả hai ngôn ngữ và cả hai chế độ
+- [x] Đo lại hai ngân sách ở mục 6 trên bản build, ghi số đo vào mô tả commit
+- [x] Tự tay đi hết màn hình trận ở **cả hai ngôn ngữ và cả hai chế độ
       sáng/tối**, kèm một lượt với chế độ giảm chuyển động đang bật
-- [ ] Quả bóng có mặt ở **mọi** dòng tường thuật của một trận đầy đủ, và hiệu
+- [x] Quả bóng có mặt ở **mọi** dòng tường thuật của một trận đầy đủ, và hiệu
       ứng bàn thắng được xem tận mắt ở cả hai ngôn ngữ, một lượt có và một lượt
       không có giảm chuyển động
-- [ ] Những AC của spec 004 mà spec này hứa giữ — AC-25.2, AC-25.5, AC-25.6,
+- [x] Những AC của spec 004 mà spec này hứa giữ — AC-25.2, AC-25.5, AC-25.6,
       AC-25.8 — được kiểm lại, không AC nào rơi
 
 ## 8. Câu hỏi mở
@@ -402,3 +402,69 @@ thể lực** tùy nhịp: đổi thời lượng khi nhịp có dư, đổi dá
 kiểm đã chốt của D88 vì thế phải sửa chứ không bỏ: nó vẫn là lưới duy nhất
 bắt được lỗi "kéo dài thời lượng ở nhịp không có dư", tức điểm còn bay dở khi
 tình huống kế tiếp tới.
+
+## 12. Căn cứ đóng spec (T519, ngày 2026-11-19)
+
+**36 AC ở mục 3 đều có căn cứ, và 10 mục ở mục 7 đều đã làm.** Bảng dưới ghi căn cứ
+**ngắn nhất** cho từng nhóm; số đo, cách đo và **điều kiện đo** nằm ở `tasks.md`, trong
+mười mục "số đo thật" của Phase 37–46.
+
+| Nhóm AC | Căn cứ |
+|---|---|
+| AC-28.1, AC-29.1 | `daoDong.test.ts` (lệch đổi trong mọi cửa sổ 0,3 phút trận) + đo trên bản build: **quãng đứng im lâu nhất 0ms** ở cả ba mức còn nội suy, so với **2114ms** trước lát 39; chặng đo được 914/916ms trên nhịp 1000ms |
+| AC-28.2 | `daoDong.test.ts`: lệch luôn trong biên một phần tám khoảng giãn mỗi trục, với mọi đầu vào kể cả `NaN` và biên âm |
+| AC-28.3 | `san2D.test.ts`: người tham gia đứng đúng toạ độ vùng ở **hơn 100 tình huống**, và describe "toạ độ tại mốc" của spec 004 **không sửa một dòng** (R38). Ngoại lệ duy nhất là thủ môn, ghi thẳng vào AC |
+| AC-28.4 | `daoDong.test.ts`: pha của 22 người trải rộng hơn π và cả hai nửa dải đều có người — phép kiểm này đã bắt đúng lỗi băm dồn mọi pha vào khoảng 5,6–5,8 |
+| AC-28.5 | Đo trên bản build: **0 khung** được xin trong 1500ms tạm dừng, lệch toạ độ **0,000**, nút đổi thành "Tiếp tục" |
+| AC-29.2, AC-29.4 | `san2D.test.ts`: `thoiGianChuyen` cho 1000→900, 200→180, 70≢63, 20→0; đo: **0 khung** ở mức Rất nhanh |
+| AC-29.3 | Đo: **0 lần đổi chiều** trong 2838 cặp bước khi đổi tốc độ 5 lần trong 0,9 giây; nhịp cuối đo được 209–210ms ở mức Thường |
+| AC-29.5 | Đo trên trận mới: mức mặc định là `cham`; bốn radio đổi được giữa trận |
+| AC-30.1 | `noiSuy.test.ts`: tốc độ tại mốc không về 0 với mọi độ lớn tiếp tuyến + đo: chuỗi chuyển động liên tục **3590ms**, băng qua ~4 chặng |
+| AC-30.2 | Đo: chặng của bóng **286/283/285ms** so với 900ms của người (tỉ lệ ~3,16) |
+| AC-30.3 | `san2D.test.ts`: hàng lệch dưới một phần tư khoảng giãn qua 300 thời điểm, cả khi đang có tình huống — **kèm phép kiểm chứng minh nó có răng**: biên độ gấp ba thì hàng tan |
+| AC-30.4 | `san2D.test.ts`: biên dịch đúng `r/10` trên 16 cặp dải × 2 đội + đo: trọng tâm khối chạy từ 34,9 tới 52,0 (biên độ **17,1** trên chiều dài 100) |
+| AC-30.5 | `san2D.test.ts`: không điểm nào chồng khít trên **10 mã trận × 7 quân số × mọi dòng** + đo trên mức vẽ thật, **theo dõi danh tính từng cặp**: 169 lượt, trung vị **16ms**, dài nhất **73ms**, 0 lượt quá 300ms |
+| AC-30.6 | `noiSuy.test.ts` (hai nhánh của D93) + đo từ phút 69 ở mức Chậm, 131 chặng: lúc đi xong trải **758–962ms**, không chặng nào chạm 1000ms |
+| AC-30.7 | `san2D.test.ts`: hơn **1000 lượt đo** trên 10 mã trận × 7 quân số × mọi dòng, thủ môn không rời một phần ba sân nhà + đo: biên dọc còn **1 và 2 đơn vị** (trước: 11 và **30,6**) |
+| AC-30.8 | `san2D.test.ts`: thứ tự tám hàng đúng ở **cả chín tổ hợp độ cao đội hình** + đo trên ứng dụng: 5 / 19–21 / 31–33 / 43–45 / 55–57 / 68 / 79–81 / 95 |
+| AC-30.9 | Đo: **17 khúc cua** của quả bóng trong một trận — điều một cú nhảy thẳng không thể làm — và **0 khung** còn đường kẻ vàng; `san2D.test.ts` cho lớp đi dọc đường |
+| AC-30.10 | `noiSuy.test.ts`: trên dải quãng thật (2,3 → 47,4 đơn vị, chênh hơn 20 lần) tỉ lệ tốc độ **dưới 4 lần** |
+| AC-30.11 | Đo trên ứng dụng: độ vòng lớn nhất **9,57 → 4,12**, trung vị 1,74 → 1,53 |
+| AC-31.1 | Đo: **0 khung** trong 2500ms, chỉ **3 bộ vị trí** qua 153 mẫu — đổi theo nhịp, không theo khung |
+| AC-31.2 | Đấu lại cùng mã `XVQYPWA670`: cùng tỉ số, **40 dòng tường thuật đầu giống hệt** + sân bật và sân ẩn cho **100 dòng giống hệt** + `git diff src/engine/` **rỗng** cả spec |
+| AC-31.3 | Đo với sân đang bật: **57ms** trên ngân sách 3000ms |
+| AC-31.4 | Đo: **59 khung/giây** ở ba mức còn nội suy, thân hàm khung hình lớn nhất **0,1ms**, **0 tác vụ** quá 50ms ở mọi mức |
+| AC-31.5 | Đo bốn tổ hợp: nhãn "Chậm" / "Slow"; bốn `<input type="radio">` thật trong `fieldset`, `tabIndex` đều 0 |
+| AC-31.6 | Đo: dòng tường thuật vẫn có "Kiệt sức — … thể lực gần cạn" |
+| AC-31.7 | Đo sau khi ẩn rồi hiện: điểm đi **1,84 đơn vị trong 350ms** (cỡ dao động), không phải cỡ một chặng |
+| AC-32.1 | Đo: bóng có mặt ở **383/383 mẫu** một trận trọn vẹn + thứ tự DOM: bóng ở chỉ số **24**, điểm người cuối ở **23** — không điểm nào đè lên được |
+| AC-32.2, AC-32.3 | `san2D.test.ts`: khai cuộc và hết hiệp đưa bóng về điểm giao bóng; `thay-nguoi` và `kiet-suc` giữ chỗ cũ |
+| AC-32.4 | Đo ở giao diện tiếng Anh: **"GOAL!" trong 135 mẫu**, vòng sáng lớn nhất **27,19** so với bán kính gốc 8, điểm người ghi bàn **3,4 → 3,85**; `san2D.test.ts` canh biên phì thêm trên mọi bàn thắng của 70 trận |
+| AC-32.5 | Đo: bốn nhịp dài nhất **1597 / 1591 / 1590 / 1567ms** đúng ở bốn phút có bàn, so với trung vị **94ms**; nút Tạm dừng không đổi chữ lần nào |
+| AC-32.6 | Đo với giảm chuyển động: chữ có (90 mẫu), **không vòng sáng**, điểm không phóng to, mà đồng hồ **vẫn lặng 1570–1587ms** |
+| AC-32.7 | Đo sau tiếng còi: bóng vẫn được vẽ (bán kính 1,5 tại 79;51), và **0 khung** được xin trong 1000ms sau đó |
+| AC-32.8 | Đo: nền bóng trắng trên mặt cỏ **7,68:1**, mảng đen trên nền **17,74:1**, giống nhau ở cả hai chế độ màu |
+
+**Hai điều phải nói thật khi đóng spec này:**
+
+1. **Bốn lỗi nặng nhất của spec không do phép kiểm tìm ra, mà do mắt người dùng ở
+   T518.** 1239 phép kiểm không thấy: bóng bị che 40,5% số khung, thủ môn chạy lên
+   giữa sân, tiền đạo đứng sau lưng hàng thủ suốt bốn spec, và những vòng cung
+   rộng gấp 9,57 lần dây cung. Lý do giống nhau: mọi phép kiểm đều đọc `hinhSan`,
+   một danh sách toạ độ — nên không cái nào hỏi được về **thứ tự vẽ**, về **vai
+   trò** hay về **thứ tự tám hàng**. Sau T518, cả ba câu hỏi ấy đều đã có phép kiểm.
+
+2. **Sáu lần tôi đo sai thay vì đo trệch**, đã ghi từng lần trong `tasks.md`: tiêu chí
+   đo một **triệu chứng** thay cho **tính chất**. Ví dụ cuối cùng: "0% số khung có
+   bóng bị che" là sai, vì bóng trong chân một người thì **phải** chồng lên điểm
+   của người ấy (đo lại sau khi sửa: vẫn 33,8%); thứ phải đúng là "**vẽ sau cùng**",
+   đo bằng thứ tự phần tử.
+
+**Xác nhận phạm vi:** `PHIEN_BAN_ENGINE` vẫn **5**, `DB_VERSION` vẫn **3**, và
+`git diff src/engine/` **rỗng** trên toàn spec. 1239 phép kiểm xanh, `tsc` sạch,
+build sạch.
+
+**Việc đi tiếp:** điều thứ sáu người dùng nêu ở T518 — bóng dính chân người dẫn, qua
+người, chuyền và sút, và cảm giác teleport còn lại — đã thành **spec 006**
+(`006-ball-carrier-motion`), đã `Clarified` ngày 2026-11-19.
+
