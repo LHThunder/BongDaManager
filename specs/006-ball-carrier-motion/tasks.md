@@ -4,8 +4,8 @@
 |---|---|
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
-| **Phạm vi** | 21 AC (US-33 → US-36), 11 quyết định D101–D111 |
-| **Tiến độ** | 8/19 |
+| **Phạm vi** | 21 AC (US-33 → US-36), 14 quyết định D101–D114 |
+| **Tiến độ** | 10/21 |
 | **Sửa đổi** | 2026-11-19 — chẻ lần đầu từ plan |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -109,6 +109,24 @@ là một commit.
   - AC: AC-34.3
   - Phụ thuộc: T606
   - ⚠️ Lưới của **R47**, và nó giữ luôn AC-28.3 của spec 005 cùng AC-25.2 của spec 004. Phải nằm ngay sau T606 chứ không để tới lát cuối: lát 50 và 51 đều dịch chỗ người, và nếu bất biến này vỡ thì phải biết nó vỡ từ lát nào.
+
+- [x] **T619** — Bóng lăn về chấm giao bóng sau một bàn thắng
+  - File: sửa `src/ui/components/San2D.tsx`, sửa `src/ui/san2D.test.ts`
+  - Xong khi: dòng `ban-thang` có thêm một bước cuối tới **chấm giao bóng**, và dòng thời gian của riêng dòng ấy trải trên `msMoiPhut + MS_LANG_SAU_BAN_THANG` (D113); đo trên bản build: không còn quãng đứng im nào của bóng rơi vào một dòng bàn thắng.
+  - Xong khi (R47): ba phép kiểm bất biến của `san2D.test.ts` và phép kiểm xương sống T607 **vẫn xanh** — bước thêm vào là bước của **đường VẼ**, `duongBong` và `bongTaiMoc` không đổi một phần tử nào.
+  - Bằng chứng: **số**.
+  - AC: AC-33.3
+  - Phụ thuộc: T606
+  - ⚠️ Phát sinh từ số đo của T608, không có trong bản chẻ đầu. Ba quãng đứng im dài nhất cả trận đều là bàn thắng.
+
+- [x] **T620** — Đồng hồ của lớp dao động thôi đóng băng
+  - File: sửa `src/ui/components/San2D.tsx`
+  - Xong khi: `thoiDiemTran` là một **bộ cộng dồn trong vòng khung hình**, không còn `Math.min(1, …)` và không còn đọc `phutDongHo` (D114); đo trên bản build: trong mọi quãng bóng đứng im, tổng toạ độ của cả 23 nhóm vẽ **đổi khác 0**.
+  - Xong khi (AC-28.5, AC-10.4 của spec 001): tạm dừng thì sân vẫn đóng băng — vòng khung hình tắt thì không ai cộng nữa, nên điều này đúng **bằng cấu trúc**, không cần thêm nhánh.
+  - Bằng chứng: **số**.
+  - AC: AC-33.3
+  - Phụ thuộc: —
+  - ⚠️ **Sửa một quyết định của spec 005** (D90, Phase 39). Người dùng đã chốt sửa ngày 2026-11-19 sau khi đọc số đo của lát 49.
 
 - [ ] **T608** — Đo: quả bóng không còn đứng yên
   - File: — *(đo trên bản build)*
@@ -464,3 +482,39 @@ quãng đứng im nào trên 300ms rơi vào một nhịp như vậy khi sân c�
 1289 phép kiểm xanh; `tuongThichV5.test.ts`, `phatLai.test.ts`, describe "toạ độ tại
 mốc không bao giờ sai" và ba phép kiểm bất biến của `san2D.test.ts` đều xanh;
 `git diff src/engine/` **rỗng hoàn toàn**.
+
+## Phase 49b — sửa hai nguyên nhân, và lộ ra nguyên nhân thứ ba
+
+Người dùng đọc số đo của lát 49 rồi chốt "sửa cả hai" (2026-11-19). D113 và D114
+sinh ra từ đó, kèm T619 và T620.
+
+**Cả hai đều làm đúng việc của nó** (một trận trọn vẹn, mức Chậm, 5445 mẫu /
+106 giây, ngưỡng "đứng im" siết về **đúng bằng không**):
+
+| | Trước T619/T620 | Sau |
+|---|---|---|
+| Quãng đứng im > 300ms rơi vào một dòng bàn thắng | **3** (tới 3503ms) | **0** |
+| Quãng đứng im > 300ms mà **cả sân** cũng đóng băng | **3** | **0** |
+| Tỉ lệ khung có bóng di chuyển | 83,5% | **92,2%** |
+| Khoảng cách bóng ↔ người giữ bóng, trung vị | 0,259 bán kính | **0,249** |
+
+**Một bài học về chính cách đo.** Ba quãng còn lại trên 300ms, soi kĩ thì **hai
+cái chỉ dài đúng BA MẮU**: bộ lấy mẫu `setInterval(16)` bị đói — trung vị khoảng
+cách hai mẫu là 16ms, nhưng có **20 lần vượt 100ms**, lần lâu nhất 1010ms. Hai mẫu
+cách nhau nửa giây mà bóng trùng toạ độ thì không chứng minh được gì — **đếm số
+mẫu của mỗi quãng phải là một cột trong bảng đo**, không phải thứ nghĩ ra sau.
+
+### Nguyên nhân thứ ba, chưa sửa
+
+Còn đúng **một** quãng đứng im thật trong cả trận: **2002ms trên 127 mẫu**, ở một
+dòng `pham-loi`, và **không có vòng nét đứt nào** trong suốt quãng ấy. Đó chính là
+trường hợp **2,82% đã đo ở lát 48**: người giữ bóng **không còn điểm nào trên
+sân** — anh ta nhận thẻ đỏ, hoặc bị thay ra — nên lớp vẽ gác bằng `cacDiem.find`,
+không vẽ vòng và bóng giữ đúng chỗ của dòng.
+
+Cách sửa nằm sẵn: lùi về **đúng luật D112** đã dùng cho người nhận — người gần
+quả bóng nhất trong đội của dòng ấy nhặt bóng lên. **Chưa làm**: nó không nằm
+trong danh sách task, và nó lộ ra sau khi người dùng đã chốt hai việc kia.
+
+**T608 vì thế vẫn để ngỏ**: AC-33.3 đòi không quãng nào quá 300ms, và còn một
+quãng 2002ms.

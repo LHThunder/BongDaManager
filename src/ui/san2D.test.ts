@@ -395,6 +395,7 @@ describe('XƯƠNG SỐNG — tại tỉ lệ 1, MỌI điểm vẫn ở đúng m
     let soDong = 0
     let soNguoiDanBong = 0
     let soDongCoNguoiCuoi = 0
+    let soDongBanThang = 0
 
     for (const ma of MA_TRAN_CO_DINH) {
       for (const n of QUAN_SO_CHAY_DUOC) {
@@ -416,7 +417,7 @@ describe('XƯƠNG SỐNG — tại tỉ lệ 1, MỌI điểm vẫn ở đúng m
             ? cacDiem.find((d) => d.playerId === giu)
             : undefined
           const choTho = buocTho[buocTho.length - 1]
-          const cacBuoc: readonly BuocDaQuyDoi[] =
+          const buocTheoNguoi: readonly BuocDaQuyDoi[] =
             diemCuoi && choTho
               ? [
                   ...buocTho.slice(0, -1),
@@ -426,6 +427,34 @@ describe('XƯƠNG SỐNG — tại tỉ lệ 1, MỌI điểm vẫn ở đúng m
                   },
                 ]
               : buocTho
+          /*
+            Dòng bàn thắng có thêm một bước về chấm giao bóng (T619, D113). Phép
+            kiểm này dựng lại **đúng chuỗi mà lớp vẽ dựng**, nên nó phải dựng cả
+            bước ấy — nếu không thì nó đang canh một thứ không còn chạy trên màn hình.
+          */
+          const laBanThang = sk.loai === 'ban-thang'
+          const cacBuoc: readonly BuocDaQuyDoi[] =
+            laBanThang && buocTheoNguoi.length > 0
+              ? [
+                  ...buocTheoNguoi,
+                  { diem: { x: RONG / 2, y: CAO / 2 }, loai: null },
+                ]
+              : buocTheoNguoi
+
+          if (laBanThang && buocTheoNguoi.length > 0) {
+            soDongBanThang += 1
+            /*
+              Hai thứ phải cùng đúng: đường **VẼ** kết thúc ở chấm giao bóng, còn
+              `duongBong` và `bongTaiMoc` — thứ engine kể và thứ được lưu xuống đĩa —
+              **không đổi một phần tử nào**. T619 là một việc của lớp vẽ, không phải
+              một việc của trận đấu.
+            */
+            const chot = cacBuoc[cacBuoc.length - 1] as BuocDaQuyDoi
+            expect(chot.diem).toEqual({ x: RONG / 2, y: CAO / 2 })
+            expect(duongBong.length, `${ma} phút ${sk.phut}`).toBe(
+              sk.duongBong.length,
+            )
+          }
 
           const benCamBong = sk.doi
           const cacNguoi: readonly NguoiTrenSan[] = cacDiem.map((d) => ({
@@ -488,6 +517,7 @@ describe('XƯƠNG SỐNG — tại tỉ lệ 1, MỌI điểm vẫn ở đúng m
     expect(soDong, 'số dòng đã duyệt').toBeGreaterThan(3000)
     expect(soNguoiDanBong, 'số cửa sổ cầm bóng đã đo').toBeGreaterThan(3000)
     expect(soDongCoNguoiCuoi, 'số dòng có người giữ bóng cuối').toBeGreaterThan(2000)
+    expect(soDongBanThang, 'số dòng bàn thắng đã đo').toBeGreaterThan(100)
   })
 })
 

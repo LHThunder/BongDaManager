@@ -425,7 +425,6 @@ export function TrangTran({ onRoiTran }: Props) {
               }}
               suKien={suKienDangXem}
               msMoiPhut={MS_MOI_PHUT[tocDo]}
-              phutDongHo={tran.phut}
               dangChay={dangChay}
               tenCauThu={(id) => tenTheoId.get(id) ?? id}
               soAo={(id) => soAoTheoId.get(id) ?? null}

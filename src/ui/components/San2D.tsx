@@ -5,6 +5,7 @@ import type { PositionId } from '../../domain/types'
 import type { BenDoi, LoaiSuKien, SuKien } from '../../engine/suKien'
 import type { BenTran } from '../../engine/tran'
 import { latVung, vungCuaViTri, type VungSan } from '../../engine/vung'
+import { MS_LANG_SAU_BAN_THANG } from '../../hooks/useMatch'
 import { useChuoi } from '../../hooks/useNgonNgu'
 import { bienDoTuKhoangGian, lechDaoDong } from '../daoDong'
 import {
@@ -440,14 +441,14 @@ interface DuLieuVe {
 interface Props extends DuLieuVe {
   /** Nhịp đồng hồ trận: bao nhiêu mili-giây cho một phút chơi. */
   readonly msMoiPhut: number
-  /**
-   * Phút ĐỒNG HỒ của trận (T508).
-   *
-   * **Không phải `suKien.phut`.** Đó là phút HIỂN THỊ, và nó không nhích khi
-   * một phút không có tình huống nào — bẫy đã biết từ spec 004, ghi ở D90.
-   * Dao động chờ bám vào con số này, nên bám sai là sân đứng chết hàng giây.
-   */
-  readonly phutDongHo: number
+  /*
+    `phutDongHo` đã bỏ ở T620.
+
+    Nó sinh ra ở T508 để lớp dao động có một đồng hồ của trận (D90). Nay đồng hồ
+    ấy là một bộ cộng dồn trong vòng khung hình (D114), nên sân không còn cần biết
+    phút đồng hồ là bao nhiêu. Giữ một prop không ai đọc là giữ một lời hứa sai về
+    thứ thành phần này phụ thuộc vào.
+  */
   /** Trận đang chạy hay đang tạm dừng — tạm dừng thì đóng băng cả sân (AC-28.5). */
   readonly dangChay: boolean
 }
@@ -931,7 +932,7 @@ interface ChuyenDiemDang {
 
 export function San2D(props: Props) {
   const { SAN_2D } = useChuoi()
-  const { nha, khach, suKien, msMoiPhut, phutDongHo, dangChay } = props
+  const { nha, khach, suKien, msMoiPhut, dangChay } = props
   const msChuyen = thoiGianChuyen(msMoiPhut)
 
   /*
@@ -1032,6 +1033,14 @@ export function San2D(props: Props) {
    * là cho bóng nhảy ngược về đó trong một khung — đúng cú giật AC-29.3 cấm.
    */
   const bongVeCuoi = useRef<Diem | null>(null)
+  /**
+   * Dòng thời gian đang chạy trải trên bao nhiêu mili-giây (T619, D113).
+   *
+   * Thường là `msMoiPhut`. Riêng dòng **bàn thắng** thì dài hơn: nhịp ấy được kéo
+   * thêm `MS_LANG_SAU_BAN_THANG` để người xem kịp đọc (AC-32.5), và quả bóng phải
+   * có đủ chỗ để vào lưới rồi lăn về chấm giao bóng trong suốt quãng ấy.
+   */
+  const nhipBong = useRef(0)
 
   /*
     Chỗ của bóng ở **mọi** dòng (AC-32.1): dòng này nói gì thì theo, không nói
@@ -1159,7 +1168,7 @@ export function San2D(props: Props) {
       ? cacDiem.find((d) => d.playerId === aiGiuBong)
       : undefined
     const cuoiTho = buocTho[buocTho.length - 1]
-    const cacBuoc: readonly BuocDaQuyDoi[] =
+    const buocTheoNguoi: readonly BuocDaQuyDoi[] =
       diemNguoiCuoi && cuoiTho
         ? [
             ...buocTho.slice(0, -1),
@@ -1167,10 +1176,36 @@ export function San2D(props: Props) {
           ]
         : buocTho
 
+    /*
+      SAU MỘT BÀN THẮNG, BÓNG LĂN VỀ CHẤM GIAO BÓNG (T619, D113).
+
+      Bảng 3.1 nói sau một bàn thắng thì **không ai** giữ bóng — đúng, bóng nằm
+      trong lưới. Nhưng nhịp ấy còn được kéo thêm `MS_LANG_SAU_BAN_THANG`, nên
+      nếu để nguyên thì quả bóng đứng im suốt 2,5 giây: đo ở lát 49, **ba quãng
+      đứng im dài nhất cả trận đều là bàn thắng** (3503, 2512, 1487ms).
+
+      Cho nó lăn về chấm giao bóng — điều thực sự xảy ra trên sân bóng — và trải
+      cả dòng thời gian trên **trọn nhịp lắng**, nên bóng tới chấm đúng lúc dòng
+      giao bóng kế tiếp nhận việc. **Không đổi bảng 3.1 một dòng nào**, và cũng
+      không đổi `duongBong` hay `bongTaiMoc`: bước thêm vào là bước của đường **vẽ**.
+    */
+    const laBanThang = suKien?.loai === 'ban-thang'
+    const cacBuoc: readonly BuocDaQuyDoi[] =
+      laBanThang && buocTheoNguoi.length > 0
+        ? [
+            ...buocTheoNguoi,
+            { diem: { x: RONG / 2, y: CAO / 2 }, loai: null },
+          ]
+        : buocTheoNguoi
+
+    const nhipNay =
+      msMoiPhut + (laBanThang ? MS_LANG_SAU_BAN_THANG : 0)
+    nhipBong.current = nhipNay
+
     const duongThoiGian = dongThoiGianPhaBong({
       batDau: choBongBatDau,
       cacBuoc,
-      msNhip: msMoiPhut,
+      msNhip: nhipNay,
       msNguoi: msChuyen,
       nhanhGap: BONG_NHANH_GAP,
     })
@@ -1221,24 +1256,46 @@ export function San2D(props: Props) {
     if (!dangChay || giamChuyenDong || msChuyen <= 0) return
 
     let yeuCau = 0
+    let truoc = performance.now()
     const buoc = () => {
+      /*
+        ĐỒNG HỒ CỦA LỚP DAO ĐỘNG CỘNG DỒN Ở ĐÂY (T620, D114).
+
+        Nó tiến đúng một đơn vị mỗi `msMoiPhut`, **đơn điệu và không bao giờ bão
+        hoà**. Bản trước là `phutDongHo + Math.min(1, …)` (D90 của spec 005), và câu
+        `Math.min` ấy chính là nguồn của việc **cả sân đóng băng**: một nhịp kéo dài
+        hơn `msMoiPhut` — nhịp lắng sau bàn thắng, hay `setTimeout` trôi dưới tải — làm
+        con số bão hoà và hai mươi hai điểm đứng lại cho tới phút sau. Đo ở lát 49:
+        trong một quãng 1265ms, tổng toạ độ của cả 23 nhóm vẽ đổi đúng **0,2 đơn vị**.
+
+        Bỏ `Math.min` mà giữ công thức cũ thì tệ hơn: mỗi ranh giới phút đồng hồ sẽ
+        **nhảy lùi** đúng phần vượt, tức cả sân giật cùng một lúc.
+
+        Đặt trong vòng khung hình chứ không trong lúc vẽ, vì hai lý do: một khung
+        cộng đúng một lần dù React vẽ lại mấy bận; và **tạm dừng đóng băng bằng cấu
+        trúc** (AC-28.5) — vòng tắt thì không ai cộng nữa, không cần thêm một nhánh nào.
+      */
+      const bayGio = performance.now()
+      if (msMoiPhut > 0) {
+        // Chặn một khung dài bất thường — tab bị ẩn rồi hiện lại — thành một cú nhảy.
+        const troi = Math.min(bayGio - truoc, msMoiPhut)
+        dongHoDao.current += troi / msMoiPhut
+      }
+      truoc = bayGio
       veLai()
       yeuCau = requestAnimationFrame(buoc)
     }
     yeuCau = requestAnimationFrame(buoc)
     return () => cancelAnimationFrame(yeuCau)
-  }, [dangChay, giamChuyenDong, msChuyen])
+  }, [dangChay, giamChuyenDong, msChuyen, msMoiPhut])
 
-  /*
-    Mốc thời gian thật của lần đổi phút gần nhất, để suy ra "thời điểm trận"
-    liên tục cho lớp dao động (T508, D90). Phải dùng mốc riêng chứ không dùng
-    `batDau` của chặng: nhiều phút liền có thể không đổi toạ độ nào, lúc ấy
-    `batDau` đứng im và dao động sẽ đứng im theo.
-  */
-  const batDauPhut = useRef(0)
-  useEffect(() => {
-    batDauPhut.current = performance.now()
-  }, [phutDongHo])
+  /**
+   * Đồng hồ của lớp dao động, tính bằng **nhịp** (T620, D114).
+   *
+   * Vòng khung hình cộng vào nó; chỗ này chỉ đọc. Xem chú thích trong vòng ấy về
+   * lý do nó không còn là `phutDongHo + Math.min(1, …)`.
+   */
+  const dongHoDao = useRef(0)
 
   /*
     Tỉ lệ đã đi được của cú di chuyển hiện tại — tính MỘT lần cho cả 22 điểm,
@@ -1248,8 +1305,9 @@ export function San2D(props: Props) {
 
   /** Tỉ lệ đã đi được của **nhịp**, mốc thời gian của cả pha bóng. */
   function tiLeNhipVe(): number {
-    if (!(msMoiPhut > 0)) return 1
-    return (bayGioVe - batDau.current) / msMoiPhut
+    const nhip = nhipBong.current > 0 ? nhipBong.current : msMoiPhut
+    if (!(nhip > 0)) return 1
+    return (bayGioVe - batDau.current) / nhip
   }
 
   /** Tỉ lệ đã đi được của một người, theo thời lượng riêng của anh ta (D93). */
@@ -1399,16 +1457,11 @@ export function San2D(props: Props) {
   const diemAnMung = anMung.current?.diem ?? bong
 
   /*
-    "Thời điểm trận" liên tục, tính bằng phút: phút đồng hồ cộng phần đã trôi
-    trong nhịp. Đây là thứ duy nhất lớp dao động biết về thời gian, và nó là
-    thời gian CỦA TRẬN — nên xem lại cùng một trận ở cùng một nhịp thì chuyển
-    động giống hệt (P1, mục 6 của spec).
+    "Thời điểm trận" liên tục, tính bằng nhịp — thứ duy nhất lớp dao động biết
+    về thời gian (D90, nay là D114). Nó chạy theo **nhịp của trận**: đổi mức tốc
+    độ thì nó chạy nhanh hay chậm theo, và tạm dừng thì nó đứng.
   */
-  const thoiDiemTran =
-    phutDongHo +
-    (msMoiPhut > 0
-      ? Math.min(1, (performance.now() - batDauPhut.current) / msMoiPhut)
-      : 0)
+  const thoiDiemTran = dongHoDao.current
 
   /** Biên độ dao động chờ, đo theo khoảng giãn đã co theo khung sân (AC-28.2). */
   const bienDoDao = bienDoTuKhoangGian(BUOC_GIAN * tiLe)
