@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | 21 AC (US-33 → US-36), 16 quyết định D101–D116 |
-| **Tiến độ** | 17/23 — T609 và T610 **bị bỏ** ngày 2026-11-19, xem Phase 50 |
+| **Tiến độ** | 18/23 — T609 và T610 **bị bỏ** ngày 2026-11-19, xem Phase 50 |
 | **Sửa đổi** | 2026-11-19 — chẻ lần đầu từ plan |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -238,13 +238,17 @@ là một commit.
 
 ## Phase 52 — Lát 52: Xem chậm, đo ngân sách, đóng spec
 
-- [ ] **T614** [P] — Mức tốc độ thứ năm: Rất chậm, 2000ms một phút trận
+- [x] **T614** [P] — Mức tốc độ thứ năm: Rất chậm, 2000ms một phút trận
   - File: sửa `src/hooks/useMatch.ts`, sửa `src/ui/components/BangDieuKhienTran.tsx`, sửa `src/ui/pages/TrangTran.tsx`, sửa `src/ui/ngonNgu/vi.ts`, sửa `src/ui/ngonNgu/en.ts`
   - Xong khi: `rat-cham: 2000` xếp **đầu** `CAC_MUC_TOC_DO`, **mặc định vẫn là `cham`** (D107); nhãn đủ hai thứ tiếng; chọn được bằng bàn phím; `noiSuy.test.ts` và `san2D.test.ts` tự động phủ mức mới qua ba phép kiểm duyệt `Object.entries(MS_MOI_PHUT)` và **vẫn xanh**.
   - Bằng chứng: **số**.
   - AC: AC-33.6
   - Phụ thuộc: —
   - ⚠️ **Phạm vi thật là năm file, không phải ba.** Đã grep: `MucTocDo` xuất hiện ở `useMatch.ts` (6), `BangDieuKhienTran.tsx` (7) và **`TrangTran.tsx` (2)** — file thứ ba này là chỗ dễ quên nhất. Hai file test **không sửa**: chúng tự duyệt bảng nên tự phủ mức mới; nếu phải sửa chúng thì nghĩa là mức mới phá một tính chất, không phải thiếu phép kiểm.
+  - ✅ **Làm xong 2026-11-19, và phạm vi thật hoá ra là BỐN file, không phải năm.** `TrangTran.tsx` đọc `tocDo` nhưng **không còn gọi tên kiểu `MucTocDo`** — T620 (D114) đã gỡ `phutDongHo` khỏi `Props` của sân, và hai chỗ gọi tên kiểu ấy đi theo. Con số "năm file" trong bản chẻ là đúng **lúc chẻ**; nó cũ đi vì một task sau đó.
+  - ✅ **Hai file test không phải sửa một dòng**, đúng như tiêu chí đặt ra: **năm vòng duyệt** `Object.entries(MS_MOI_PHUT)` (bốn ở `noiSuy.test.ts`, một ở `san2D.test.ts`) tự phủ mức mới và vẫn xanh. 1299 phép kiểm xanh, `npx tsc --noEmit` sạch.
+  - ✅ Kiểm trên bản dev: nút **"Very slow" / "Rất chậm"** hiện **đầu** thang, mặc định vẫn là Chậm, `thoiGianChuyen(2000)` = **1800ms** (đúng 90% một nhịp, cùng tỉ lệ như mọi mức khác).
+  - ⚠️ **Một lý lẽ cũ phải viết lại, không phải xoá.** Chú thích của `CAC_MUC_TOC_DO` nói "`cham` đứng đầu: nó là mức mặc định". Thêm `rat-cham` vào đầu thang làm hai tính chất ấy tách ra — mức mặc định giờ là phần tử **thứ hai**. Thang một chiều thắng, vì một thang tốc độ không đơn điệu thì không đọc được; chú thích mới ghi cả lý lẽ cũ và vì sao nó đổi.
 
 - [ ] **T615** — Kiểm tay bốn tổ hợp và bảng trường hợp biên
   - File: — *(kiểm trên bản build)*
@@ -668,3 +672,110 @@ phải 25.
 
 **Một AC đóng mà chưa làm, và nó được ghi thành nợ chứ không ghi thành xong:** AC-34.2
 (người rê bóng đi vòng qua đối thủ). Xem mục 12 của spec 007.
+
+## Số đo của T608 và T616 — đo ngày 2026-11-19 trên bản dev
+
+**Điều kiện đo:** bản dev (`npm run dev`), khung xem 1400×900, Alpha FC vs Beta FC 11
+người, mã trận **R6B8QRQFVT**, 90 phút, mức **Chậm**, sân 2D **đang bật**. Vì khung xem
+của ứng dụng không bao giờ ghép hình, `requestAnimationFrame` được thay bằng
+`setTimeout(16)` để vòng vẽ chạy được; bộ lấy mẫu `setInterval(16)` đọc `transform` của
+nhóm vẽ quả bóng.
+
+**Sức khoẻ của chính bộ lấy mẫu phải báo trước mọi con số khác** (bài học của lát 49b:
+hai "quãng đứng im" hoá ra là bộ lấy mẫu bị bỏ đói): khoảng giữa hai mẫu **lớn nhất 20ms**,
+**không** khoảng nào quá 100ms. Nên mọi quãng dưới đây là thật, không phải ảo.
+
+### T608 — quả bóng không còn đứng yên
+
+| | Trước spec 006 | Đo lại 2026-11-19 |
+|---|---|---|
+| Tỉ lệ khung có bóng di chuyển | **35,5%** | **93,8%** |
+| Quãng bóng đứng yên lâu nhất | **3144ms** | **1009ms** — và nó là nhịp lặng sau bàn thắng |
+| Quãng dài nhất **ngoài phút có bàn thắng** | — | **34ms** |
+
+Cả trận có **331 quãng đứng im**; **330 trong số đó dài 32–34ms**, tức đúng hai nhịp lấy
+mẫu — không phải một quãng đứng im mà là độ phân giải của phép đo. **Đúng một quãng** vượt
+300ms.
+
+**Đo riêng từng loại dòng không mang pha bóng** — chính chỗ con số 3144ms sinh ra:
+
+| Loại dòng | Phút | Quãng dài nhất |
+|---|---|---|
+| `kiet-suc` | 82', 85', 89' | **33ms, 34ms, 32ms** |
+| `the-do` | 29' | **33ms** |
+| `the-vang` | 10', 15', 50', 75' | **33ms** |
+| `thay-nguoi` | 8' (trận 20 phút riêng, thay người qua giao diện) | **32ms** |
+
+**Phụ phẩm: AC-28.5 được xác nhận bằng quan sát, không phải bằng lập luận.** Trong trận
+đo `thay-nguoi`, lúc tạm dừng để thay người, sân đứng im **13.957ms** liên tục (869 mẫu) —
+đúng điều phải xảy ra, và là bằng chứng trực tiếp rằng bộ cộng dồn của T620 đóng băng theo
+cấu trúc.
+
+**Một quãng duy nhất vượt ngưỡng, và nó là một xung đột giữa hai AC chứ không phải một
+lỗi.** Phút 38 có bàn thắng; quả bóng chạy từ chỗ cú sút **về chấm giao bóng** (50, 32) rồi
+**nằm đó 1009ms** chờ giao bóng lại. Đó chính là nhịp lặng `MS_LANG_SAU_BAN_THANG` mà
+**AC-32.5 của spec 005 cố tình đặt ra**, và cũng là điều một quả bóng thật làm. Nhưng
+AC-33.3 viết "bóng PHẢI không đứng yên quá 300ms liên tục", nên đọc đúng chữ thì nó vỡ.
+
+Đáng chú ý: **bàn thắng còn lại, phút 21, KHÔNG sinh quãng nào** — ở đó quả bóng trôi
+*qua* chấm giao bóng rồi đi luôn vào pha của phút 22 (50 → 49,1 → … → 38,4). Nên hành vi
+sau bàn thắng **không đồng nhất**: một bàn thì bóng dừng một giây trên chấm, bàn kia thì
+không. **Chưa sửa, và nói ra chứ không tự làm** — ngưỡng của AC-33.3 là của người dùng, và
+chọn giữa "nhịp lặng sau bàn thắng" và "bóng không bao giờ đứng quá 300ms" là quyết định
+của họ.
+
+### T616 — hai ngân sách
+
+| Phép đo | Ngưỡng | Đo được |
+|---|---|---|
+| Chạy hết một trận ở chế độ chạy ngay, **sân đang bật** | < 3 giây | **32ms** (nền spec 005: 57ms) |
+| Tác vụ chiếm luồng chính quá 50ms | 0 | **0** |
+
+Công việc mỗi khung vẽ, 4 giây mỗi mức:
+
+| Mức | Nhịp | Khung/giây | Trung vị | Lớn nhất | Gọn trong một nhịp |
+|---|---|---|---|---|---|
+| Rất chậm | 2000ms | 59,3 | 0,1ms | **0,2ms** | ✅ |
+| Chậm | 1000ms | 59,3 | 0,1ms | **0,3ms** | ✅ |
+| Thường | 200ms | 59,6 | 0,1ms | **0,2ms** | ✅ |
+| Nhanh | 70ms | 59,2 | 0,1ms | **0,3ms** | ✅ |
+| Rất nhanh | 20ms | — | — | — | **không có vòng vẽ** |
+
+Nền của spec 005 là 0,1ms mỗi khung và 59 khung/giây — **không đổi**, kể cả ở mức Rất chậm
+mới. Mức Rất nhanh không có số vì ở 20ms `thoiGianChuyen` trả 0 nên **thôi nội suy hoàn
+toàn** (AC-29.4): không có vòng vẽ để đo, và đó là thiết kế chứ không phải thiếu số.
+
+**AC-30.10 (dải tốc độ dưới bốn lần): giữ được, bằng phép kiểm thuần.** Phép kiểm của T525
+ở `noiSuy.test.ts` đo đúng tỉ lệ ấy và xanh; nó duyệt `Object.entries(MS_MOI_PHUT)` nên
+**giờ phủ cả mức Rất chậm** mà không phải sửa một dòng.
+
+**AC-30.11 (độ vòng dưới năm lần): KHÔNG đo được đáng tin trên bản build. Báo ra, không
+tự sửa.**
+
+Trung vị đo được là **1,53** — **khớp đúng con số 1,53 mà spec 005 ghi**, nên cách đo không
+sai về nguyên tắc. Nhưng **giá trị lớn nhất** thì không dùng được:
+
+| Lọc theo quãng chim bay | Số cặp | Trung vị | Lớn nhất | Số vượt 5 |
+|---|---|---|---|---|
+| ≥ 1 đơn vị | 443 | 1,82 | 86,7 | 53 |
+| ≥ 2 đơn vị | 350 | **1,53** | 24,2 | 17 |
+| ≥ 9,2 đơn vị (phân vị 90 của quãng thật) | 147 | 1,28 | 10,7 | 3 |
+
+**Lý do con số lớn nhất không dùng được, nói thẳng:** AC-30.11 đo "đường đi của một điểm
+**trong một nhịp**", mà **tôi không lấy được mốc đầu–cuối của một nhịp từ DOM**. Lớp dao
+động của spec 005 làm mọi điểm **không bao giờ đứng im**, nên không thể tìm biên nhịp bằng
+cách tìm chỗ điểm nghỉ; và tìm cực tiểu của tổng dịch chuyển thì ra chu kỳ **208ms** của
+chính lớp dao động, không phải 1000ms của nhịp. Phải bó tạm theo **phút của dòng tường
+thuật**, nên bất kỳ bó nào trùm hơn một nhịp đều cho đường đi dài mà đường chim bay ngắn —
+và tỉ số phồng lên.
+
+**Một giả thuyết của tôi đã bị số liệu bác bỏ, ghi lại để không ai đi lại đường ấy:** tôi
+đoán các điểm vòng nhiều là **người đang giữ bóng**, vì D104 cho anh ta đi theo đúng đường
+của quả bóng. Đo ra thì ngược: nhóm vượt 5 cách bóng trung bình **19,4 đơn vị**, nhóm dưới 5
+cách **24,3** — gần như không khác nhau, và cặp vòng nhất (24,2) cách bóng 5,4 đơn vị còn
+cặp thứ hai (22,1) cách **34,3**. Vậy nó **không** phải người giữ bóng.
+
+Hai đường đi tiếp, và cả hai cần người dùng chốt vì cả hai là việc ngoài danh sách task:
+(a) viết một **phép kiểm thuần ở lớp vẽ** dựng lại nội suy + lớp dao động + luật đi theo
+bóng rồi đo độ vòng — biên nhịp khi ấy **biết theo cấu trúc**, và đây đúng là cách T607,
+T611 và T622 đã làm; (b) cho ứng dụng lộ ra pha của nhịp để đo được từ ngoài.
