@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | 21 AC (US-33 → US-36), 11 quyết định D101–D111 |
-| **Tiến độ** | 6/19 |
+| **Tiến độ** | 8/19 |
 | **Sửa đổi** | 2026-11-19 — chẻ lần đầu từ plan |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -94,7 +94,7 @@ là một commit.
 
 ## Phase 49 — Lát 49: Chạy với bóng trong chân
 
-- [ ] **T606** — Người giữ bóng đi theo đường của bóng, rồi về mốc của mình
+- [x] **T606** — Người giữ bóng đi theo đường của bóng, rồi về mốc của mình
   - File: sửa `src/ui/phaBong.ts`, sửa `src/ui/components/San2D.tsx`, sửa `src/ui/phaBong.test.ts`
   - Xong khi: trong một đoạn `re-bong`, người giữ bóng và quả bóng dùng **chung một đường** (D104); đoạn cuối của anh ta là **một đường thẳng về đúng mốc `hinhSan`** của chính anh ta (D105); đo trên bản build: khoảng cách người–bóng trong suốt đoạn rê luôn dưới một bán kính.
   - Xong khi (AC-35.2, D112): khi một đoạn `chuyen` kết thúc, bóng ở **trong một bán kính** quanh người nhận đã suy ra, và quyền giữ bóng chuyển sang anh ta **đúng lúc ấy** — không sớm hơn một khung nào; đo bằng chính dòng thời gian, không đo bằng mắt.
@@ -102,7 +102,7 @@ là một commit.
   - AC: AC-33.2, AC-34.1, AC-35.2
   - Phụ thuộc: T605
 
-- [ ] **T607** — Xương sống: tại tỉ lệ 1, MỌI điểm vẫn ở đúng mốc — kể cả người dẫn bóng
+- [x] **T607** — Xương sống: tại tỉ lệ 1, MỌI điểm vẫn ở đúng mốc — kể cả người dẫn bóng
   - File: sửa `src/ui/san2D.test.ts`
   - Xong khi: phép kiểm chạy 10 mã trận × 7 quân số × mọi dòng; tại tỉ lệ 1 của mỗi nhịp, toạ độ **từng** điểm khớp `hinhSan` tới 10 chữ số — **kể cả** điểm của người đang dẫn bóng; describe "toạ độ tại mốc không bao giờ sai" của `noiSuy.test.ts` **không sửa một dòng**.
   - Bằng chứng: **số**.
@@ -379,3 +379,88 @@ không có pha bóng nào: **1,34 bán kính** (trước khi sửa lỗi (b): 9,
 1274 phép kiểm xanh; `tuongThichV5.test.ts`, `phatLai.test.ts`, describe "toạ độ tại
 mốc không bao giờ sai" và ba phép kiểm bất biến của `san2D.test.ts` đều xanh;
 `git diff src/engine/` **rỗng hoàn toàn** — lát này không chạm một file engine nào.
+
+## Phase 49 — ba thứ chỉ biết được khi đo
+
+**1. Bất biến R47 phải đúng bằng CẤU TRÚC, không bằng may mắn.** `viTriNguoiGiuBong`
+mở đầu bằng `if (t >= 1) return moc`. Đó không phải một câu gác thừa: một người
+dẫn bóng tới tận khi nhịp hết thì cửa sổ của anh ta kéo tới 1, và nhánh "đang cầm
+bóng" sẽ trả `viTriBong(1)` — đúng mốc **chỉ nếu** lớp vẽ còn làm đúng việc thay
+điểm cuối của đường bóng. Một bất biến đang giữ AC-28.3 của spec 005 và AC-25.2
+của spec 004 thì không được phụ thuộc vào một lớp khác còn làm đúng.
+
+**2. Điểm cuối của đường bóng phải là CHỖ ĐỨNG của người giữ bóng, không phải
+tâm vùng.** Engine nói bóng dừng ở **vùng** nào; `hinhSan` lại giãn những người tham
+gia ra khỏi tâm vùng để hai điểm không chồng nhau — đó chính là **1,31 bán kính**
+đo được ở lát 48. Cho bước cuối tới thẳng chân anh ta thu được hai thứ cùng lúc:
+AC-33.1, và bất biến R47 không còn phải trả giá bằng một cú giật ở khung cuối.
+**Không đổi một con số nào của trận**: `duongBong` và `bongTaiMoc` vẫn là vùng
+engine kể; chỉ đường **vẽ** của quả bóng kết thúc ở chân người.
+
+**3. Bảng 3.1 không nói ai MỞ một pha bóng.** Nó chỉ nói ai giữ bóng **sau** một
+dòng. Sau mỗi bàn thắng, sau mỗi hiệp và ở dòng đầu trận nó trả **không ai**, nên
+pha kế tiếp không có người dẫn bóng nào cho tới khi có một đường chuyền — quả
+bóng tự đi một mình, đúng cách vẽ của spec 005 mà spec này sinh ra để chữa. Người
+mở pha được suy bằng **đúng luật D112** đã dùng cho người nhận: đồng đội đứng gần
+chỗ pha bóng bắt đầu nhất.
+
+**Số đo thật của lát 49** (bản dev, mức Chậm, một trận trọn vẹn, 6280 mẫu / 108
+giây, rAF thay bằng `setTimeout`):
+
+| | Lát 47 | Lát 48 | Lát 49 |
+|---|---|---|---|
+| Khoảng cách bóng ↔ người giữ bóng, trung vị | — | 1,31 bán kính | **0,227 bán kính** |
+| — phân vị 90 | — | 5,62 | **0,374** |
+| — tỉ lệ khung dưới một bán kính | — | 32,4% | **98,1%** |
+| Tỉ lệ khung có bóng di chuyển | 42,9% | 84,3% | 83,5% |
+
+**AC-33.1 và AC-34.1 đạt**: 98,1% số khung có quả bóng nằm trong một bán kính quanh
+tâm người giữ bóng, trung vị **0,227 bán kính** — tức bóng ở **trong lòng điểm** của
+anh ta, không phải cạnh anh ta.
+
+### AC-33.3 CHƯA ĐẠT, và cả hai nguyên nhân đều nằm NGOÀI tầm của T606
+
+Cả trận chỉ có **7 quãng đứng im quá 300ms** trên tổng **335 quãng**. Soi từng cái
+một — kèm **tổng chuyển động của cả 23 nhóm vẽ** trong chính quãng ấy — thì không
+cái nào là lỗi của quả bóng:
+
+| Quãng | Có người giữ bóng? | Cả sân có động? | Là gì |
+|---|---|---|---|
+| 3503ms, 2512ms, 1487ms | **không** | có | **ba bàn thắng** |
+| 1265ms, 1231ms, 582ms | có | **0,2 / 0,3 / 2,5 đơn vị** | **cả sân đóng băng** |
+| 1233ms | có | 122,9 | dòng phút **90'**, vắt qua lúc trận kết thúc |
+
+**Nguyên nhân (a) — bàn thắng: bảng 3.1 nói sau một bàn thắng thì KHÔNG AI giữ
+bóng**, nên bóng nằm trong lưới suốt nhịp lắng 1,5 giây của AC-32.5. Đó là hệ quả
+trực tiếp của **D103**, một quyết định đã chốt.
+
+**Nguyên nhân (b) — cả sân đóng băng, không riêng quả bóng.** Đo được: trong quãng
+1265ms ấy, tổng toạ độ của **cả 23 nhóm vẽ** đổi đúng **0,2 đơn vị** — hai mươi hai
+cầu thủ cũng đứng im như quả bóng. Nguồn là `thoiDiemTran` ở `San2D.tsx`:
+
+```
+phutDongHo + Math.min(1, (performance.now() - batDauPhut.current) / msMoiPhut)
+```
+
+`Math.min(1, …)` đến từ **Phase 39 của spec 005** (D90). Khi một nhịp kéo dài hơn
+`msMoiPhut` — nhịp lắng sau bàn thắng, hay đơn giản là `setTimeout` trôi dưới tải — thì
+con số này **bão hoà**, và lớp dao động đứng lại cho tới phút sau. Cả sân hết thở.
+
+Sửa nó là sửa **một quyết định của spec 005**, không nằm trong danh sách task của
+spec này — nên nó đứng lại ở đây, chờ người dùng quyết.
+
+### Một việc T608 đòi mà không đo được
+
+T608 bảo đo riêng **một phút `thay-nguoi`**. Không có phút nào như vậy để đo:
+`tran.ts:1365` chỉ phát dòng `thay-nguoi` từ `canThiepChoAp`, tức **từ một lần thay
+người do người dùng bấm** — engine không tự thay người bao giờ. Hai trận đã đo
+không có dòng nào.
+
+Dòng `kiet-suc` thì có, nhưng cả hai trận đều rơi vào **phút 90'**, vắt qua lúc trận
+kết thúc, nên không tách được khỏi việc sân đóng băng lúc hết giờ. Điều đo được thay
+cho nó: **mọi nhịp không có pha bóng nào khác đều có bóng di chuyển** — không một
+quãng đứng im nào trên 300ms rơi vào một nhịp như vậy khi sân còn sống.
+
+1289 phép kiểm xanh; `tuongThichV5.test.ts`, `phatLai.test.ts`, describe "toạ độ tại
+mốc không bao giờ sai" và ba phép kiểm bất biến của `san2D.test.ts` đều xanh;
+`git diff src/engine/` **rỗng hoàn toàn**.

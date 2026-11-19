@@ -276,6 +276,184 @@ export function dongThoiGianPhaBong(tuyChon: {
   return ra
 }
 
+// ---------------------------------------------------------------------------
+// Người giữ bóng đi theo đường của bóng (spec 006, D104, D105, T606)
+// ---------------------------------------------------------------------------
+
+/** Một đoạn, kèm ai cầm bóng ở hai đầu của nó. */
+export interface DoanCoNguoi extends DoanPhaBong {
+  /** Ai cầm bóng khi đoạn này **bắt đầu**. */
+  readonly nguoiGiu: string | null
+  /** Ai cầm bóng khi đoạn này **kết thúc**. */
+  readonly nguoiNhan: string | null
+}
+
+/** Loại đoạn làm bóng **rời chân**, tức có người nhận ở đầu kia. */
+function roiChan(loai: LoaiDoan): boolean {
+  return loai === 'chuyen' || loai === 'tat-canh' || loai === 'sut'
+}
+
+/**
+ * Ai cầm bóng ở từng đoạn của một pha bóng (D112, mục 3.2 của plan).
+ *
+ * Quyền giữ bóng đi theo các bước: một đoạn `re-bong` không đổi người — anh ta
+ * dẫn bóng đi — còn một đoạn làm bóng rời chân thì chuyển sang **người nhận đã
+ * suy ra**. Bước **cuối cùng** không áp luật suy: người giữ bóng sau cùng do
+ * **bảng 3.1** quyết, vì đó là thứ engine có nói.
+ */
+export function ganNguoiGiuBong(tuyChon: {
+  readonly cacDoan: readonly DoanPhaBong[]
+  readonly nguoiBatDau: string | null
+  readonly nguoiKetThuc: string | null
+  readonly cacNguoi: readonly NguoiTrenSan[]
+}): readonly DoanCoNguoi[] {
+  const { cacDoan, nguoiBatDau, nguoiKetThuc, cacNguoi } = tuyChon
+  const ra: DoanCoNguoi[] = []
+
+  /*
+    KHÔNG AI CẦM BÓNG KHI NHỊP BẮT ĐẦU thì suy ra người mở pha bằng ĐÚNG luật
+    đã dùng cho người nhận: đồng đội đứng gần chỗ pha bóng bắt đầu nhất.
+
+    Chuyện này xảy ra thật và không hiếm: sau mỗi bàn thắng, sau mỗi hiệp và ở
+    dòng đầu trận, bảng 3.1 trả **không ai**. Bỏ trống thì pha kế tiếp không có
+    người dẫn bóng cho tới khi có một đường chuyền — quả bóng tự đi một mình,
+    đúng cách vẽ của spec 005 mà spec này sinh ra để chữa.
+  */
+  const moPha = cacDoan.find((d) => d.loai !== 'giu') ?? cacDoan[0]
+  let giu =
+    nguoiBatDau ??
+    (moPha ? nguoiNhanChuyen(moPha.tu, cacNguoi, null) : null)
+  for (let i = 0; i < cacDoan.length; i += 1) {
+    const d = cacDoan[i] as DoanPhaBong
+    const cuoiCung = i === cacDoan.length - 1
+    const nhan = cuoiCung
+      ? nguoiKetThuc
+      : roiChan(d.loai)
+        ? (nguoiNhanChuyen(d.den, cacNguoi, giu) ?? giu)
+        : giu
+    ra.push({ ...d, nguoiGiu: giu, nguoiNhan: nhan })
+    giu = nhan
+  }
+  return ra
+}
+
+/** Ai đang cầm bóng tại một tỉ lệ của nhịp. */
+export function nguoiGiuBongLucNay(
+  cacDoan: readonly DoanCoNguoi[],
+  tiLe: number,
+): string | null {
+  const cuoi = cacDoan[cacDoan.length - 1]
+  if (cuoi == null) return null
+  const t = !Number.isFinite(tiLe) ? 0 : tiLe
+  if (t >= cuoi.tiLeKetThuc) return cuoi.nguoiNhan
+  for (const d of cacDoan) {
+    if (t <= d.tiLeKetThuc) return t >= d.tiLeKetThuc ? d.nguoiNhan : d.nguoiGiu
+  }
+  return cuoi.nguoiNhan
+}
+
+/** Khoảng nhịp mà một người đang có bóng trong chân. */
+export interface CuaSoGiuBong {
+  readonly tiLeBatDau: number
+  readonly tiLeKetThuc: number
+}
+
+/**
+ * Cửa sổ cầm bóng của một người, hay `null` nếu nhịp này bóng không qua chân
+ * anh ta.
+ *
+ * Lấy **lần cầm đầu tiên và cả dãy liền sau nó**, không gom mọi lần cầm: trong
+ * một pha, một người có thể nhận lại bóng ở một bước sau, và gom hai lần rời
+ * nhau thành một cửa sổ là cho anh ta bám bóng cả ở đoạn mà **người khác** đang
+ * cầm — hai người cùng dẫm một quả bóng.
+ *
+ * Người chỉ là **người nhận** của đoạn cuối thì cửa sổ của anh ta là `[1, 1]`:
+ * anh ta chạy tới điểm nhận bóng và chỉ có bóng đúng lúc nhịp hết.
+ */
+export function cuaSoGiuBong(
+  cacDoan: readonly DoanCoNguoi[],
+  playerId: string | null,
+): CuaSoGiuBong | null {
+  if (playerId == null || cacDoan.length === 0) return null
+  let dau = -1
+  for (let i = 0; i < cacDoan.length; i += 1) {
+    if ((cacDoan[i] as DoanCoNguoi).nguoiGiu === playerId) {
+      dau = i
+      break
+    }
+  }
+  if (dau < 0) {
+    const cuoi = cacDoan[cacDoan.length - 1] as DoanCoNguoi
+    return cuoi.nguoiNhan === playerId ? { tiLeBatDau: 1, tiLeKetThuc: 1 } : null
+  }
+  let het = dau
+  while (
+    het + 1 < cacDoan.length &&
+    (cacDoan[het + 1] as DoanCoNguoi).nguoiGiu === playerId
+  ) {
+    het += 1
+  }
+  return {
+    tiLeBatDau: (cacDoan[dau] as DoanCoNguoi).tiLeBatDau,
+    tiLeKetThuc: (cacDoan[het] as DoanCoNguoi).tiLeKetThuc,
+  }
+}
+
+/**
+ * Chỗ của một người **đang có phần trong pha bóng** tại một tỉ lệ của nhịp
+ * (D104, D105, AC-33.2, AC-34.1).
+ *
+ * Ba chặng, và cả ba nối liền nhau:
+ *
+ * 1. **Trước khi nhận bóng** — anh ta chạy từ chỗ đáng ra đứng tới **điểm nhận
+ *    bóng**. Nhắm tới điểm nhận chứ không nhắm tới quả bóng đang bay: nhắm
+ *    theo bóng thì anh ta đi theo cả những đoạn trước của pha, tức chạy một
+ *    đường vòng vô nghĩa.
+ * 2. **Đang cầm bóng** — anh ta và quả bóng dùng **chung một đường** (D104).
+ * 3. **Sau khi rời bóng** — một **đường thẳng** từ chỗ rời bóng về đúng mốc
+ *    `hinhSan` của chính anh ta (D105).
+ *
+ * **Tại tỉ lệ 1 nó trả đúng mốc, bằng CẤU TRÚC chứ không bằng may mắn** — dòng
+ * đầu tiên của hàm. Đó là bất biến R47, và nó đang giữ AC-28.3 của spec 005
+ * cùng AC-25.2 của spec 004. Một người dẫn bóng tới hết nhịp thì `viTriBong(1)`
+ * **cũng** là mốc của anh ta — lớp vẽ thay điểm cuối của đường bóng bằng chỗ
+ * đứng của người giữ bóng sau cùng — nên dòng ấy không tạo ra cú nhảy nào; nó
+ * chỉ làm bất biến thành thứ **không phụ thuộc** vào việc lớp vẽ còn làm đúng.
+ */
+export function viTriNguoiGiuBong(tuyChon: {
+  readonly cuaSo: CuaSoGiuBong
+  readonly tiLe: number
+  readonly viTriBong: (tiLe: number) => Diem
+  /** Chỗ anh ta sẽ ở nếu không dính gì tới bóng, tại chính tỉ lệ này. */
+  readonly viTriThuong: Diem
+  /** Mốc `hinhSan` của chính anh ta. */
+  readonly moc: Diem
+}): Diem {
+  const { cuaSo, tiLe, viTriBong, viTriThuong, moc } = tuyChon
+  const t = !Number.isFinite(tiLe) ? 0 : tiLe < 0 ? 0 : tiLe
+  if (t >= 1) return moc
+
+  const { tiLeBatDau: tA, tiLeKetThuc: tB } = cuaSo
+  if (t >= tA && t <= tB) return viTriBong(t)
+
+  if (t > tB) {
+    const con = 1 - tB
+    const u = con <= 0 ? 1 : (t - tB) / con
+    const roi = viTriBong(tB)
+    return {
+      x: roi.x + (moc.x - roi.x) * u,
+      y: roi.y + (moc.y - roi.y) * u,
+    }
+  }
+
+  const u = tA <= 0 ? 1 : t / tA
+  const diemNhan = viTriBong(tA)
+  return {
+    x: viTriThuong.x + (diemNhan.x - viTriThuong.x) * u,
+    y: viTriThuong.y + (diemNhan.y - viTriThuong.y) * u,
+  }
+}
+
 /**
  * Chỗ quả bóng đang ở, tại một tỉ lệ của nhịp.
  *

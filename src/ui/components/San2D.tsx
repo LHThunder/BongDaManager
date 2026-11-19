@@ -8,11 +8,16 @@ import { latVung, vungCuaViTri, type VungSan } from '../../engine/vung'
 import { useChuoi } from '../../hooks/useNgonNgu'
 import { bienDoTuKhoangGian, lechDaoDong } from '../daoDong'
 import {
+  cuaSoGiuBong,
   dongThoiGianPhaBong,
+  ganNguoiGiuBong,
   nguoiGiuBong,
+  nguoiGiuBongLucNay,
   viTriBongTrongPha,
+  viTriNguoiGiuBong,
   type BuocDaQuyDoi,
-  type DoanPhaBong,
+  type DoanCoNguoi,
+  type NguoiTrenSan as NguoiChoLuatNhan,
 } from '../phaBong'
 import {
   doMetTuTheLuc,
@@ -374,6 +379,13 @@ export interface DiemCauThu {
   readonly playerId: string
   /** Thủ môn được đối xử riêng — xem `daiThuMon` và AC-30.7. */
   readonly laThuMon: boolean
+  /**
+   * Điểm này thuộc đội nhà?
+   *
+   * Luật suy người nhận một đường chuyền (D112) chỉ được lấy **đồng đội**, mà
+   * màu nền thì không nói được điều đó: hai đội có thể chọn trùng màu áo.
+   */
+  readonly laDoiNha: boolean
   readonly x: number
   readonly y: number
   readonly mauNen: string
@@ -635,6 +647,7 @@ export function hinhSan({
       cacDiem.push({
         playerId: x.playerId,
         laThuMon,
+        laDoiNha,
         x: cx,
         y: kep(cy + lechY, leY + le, leY + khung.cao - le),
         mauNen: doiTren.mauAo,
@@ -937,17 +950,21 @@ export function San2D(props: Props) {
     suKien == null
       ? null
       : `${suKien.phut}|${suKien.buGio ? 'b' : ''}|${suKien.loai}|${suKien.cacCauThu.join(',')}`
-  const giuBong = useRef<{ khoa: string | null; ai: string | null }>({
-    khoa: null,
-    ai: null,
-  })
+  const giuBong = useRef<{
+    khoa: string | null
+    ai: string | null
+    truoc: string | null
+  }>({ khoa: null, ai: null, truoc: null })
   if (giuBong.current.khoa !== khoaDong) {
     giuBong.current = {
       khoa: khoaDong,
+      truoc: giuBong.current.ai,
       ai: nguoiGiuBong(suKien, giuBong.current.ai),
     }
   }
   const aiGiuBong = giuBong.current.ai
+  /** Ai cầm bóng khi nhịp này **bắt đầu** — đầu vào của `ganNguoiGiuBong`. */
+  const aiGiuBongDauNhip = giuBong.current.truoc ?? aiGiuBong
 
   const { khung, banKinh, cacDiem, duongBong, cacBuocBong, bongTaiMoc } =
     hinhSan({ ...props, nguoiGiuBong: aiGiuBong })
@@ -998,7 +1015,7 @@ export function San2D(props: Props) {
    * Bóng đi nhanh gấp ba người (T505) nhưng nay đi **hết đường**, nên thời
    * lượng phụ thuộc số đoạn chứ không còn là một hằng số.
    */
-  const bongDang = useRef<readonly DoanPhaBong[] | null>(null)
+  const bongDang = useRef<readonly DoanCoNguoi[] | null>(null)
   /**
    * Chỗ bóng được thấy lần cuối (T513).
    *
@@ -1015,17 +1032,6 @@ export function San2D(props: Props) {
    * là cho bóng nhảy ngược về đó trong một khung — đúng cú giật AC-29.3 cấm.
    */
   const bongVeCuoi = useRef<Diem | null>(null)
-  /**
-   * Người giữ bóng mà **chặng đang chạy** của bóng được dựng cho (T605).
-   *
-   * Không dùng thẳng `aiGiuBong`, và đó là một cái bẫy đã sập một lần: React vẽ
-   * **trước** rồi mới chạy effect, nên ở khung đầu của một dòng mới thì
-   * `aiGiuBong` đã là người MỚI trong khi `batDau` và dòng thời gian vẫn là của
-   * nhịp CŨ. Tỉ lệ nhịp lúc ấy đã vượt 1, tức bóng bám **hết mức** — nó nhảy
-   * thẳng sang chân người mới trong đúng một khung, rồi effect ghi chỗ đã nhảy
-   * ấy làm điểm xuất phát của chặng mới nên cú nhảy thành vĩnh viễn.
-   */
-  const aiGiuBongVe = useRef<string | null>(null)
 
   /*
     Chỗ của bóng ở **mọi** dòng (AC-32.1): dòng này nói gì thì theo, không nói
@@ -1125,26 +1131,70 @@ export function San2D(props: Props) {
         ? viTriBongTrongPha(cuBong, (bayGio - batDau.current) / msMoiPhut)
         : { x: bong.x, y: bong.y })
 
-    bongDang.current = dongThoiGianPhaBong({
+    /*
+      BẢN GHI TRẬN CŨ (D110): thiếu `cacBuocBong` thì dựng tạm từ `duongBong`
+      với loại `chuyen` — tức **đúng cách vẽ của spec 005**: bóng đi hết đường
+      của nó ở tốc độ bóng. Không đoán bước nào là rê bóng: trận cũ xem ra
+      như bây giờ, không hơn không kém.
+    */
+    const buocTho: readonly BuocDaQuyDoi[] =
+      cacBuocBong.length > 0
+        ? cacBuocBong
+        : duongBong.length > 0
+          ? duongBong.map((d) => ({ diem: d, loai: 'chuyen' as const }))
+          : []
+
+    /*
+      ĐIỂM CUỐI CỦA ĐƯỜNG BÓNG LÀ CHỖ ĐỨNG CỦA NGƯỜI GIỮ BÓNG SAU CÙNG (T606).
+
+      Engine nói bóng dừng ở **vùng** nào; `hinhSan` lại giãn những người tham gia
+      ra khỏi tâm vùng để hai điểm không chồng nhau, nên chỗ đứng của người giữ
+      bóng lệch khỏi tâm vùng đúng khoảng giãn ấy — đo ở lát 48: trung vị **1,31
+      bán kính**. Cho bước cuối tới thẳng chân anh ta thay vì tới tâm vùng thu được
+      hai thứ cùng lúc: AC-33.1 (bóng ở chân người giữ bóng) và bất biến R47
+      (người dẫn bóng tới hết nhịp vẫn đứng đúng mốc của mình). **Không đổi một
+      con số nào của trận**: `duongBong` và `bongTaiMoc` vẫn là vùng engine kể.
+    */
+    const diemNguoiCuoi = aiGiuBong
+      ? cacDiem.find((d) => d.playerId === aiGiuBong)
+      : undefined
+    const cuoiTho = buocTho[buocTho.length - 1]
+    const cacBuoc: readonly BuocDaQuyDoi[] =
+      diemNguoiCuoi && cuoiTho
+        ? [
+            ...buocTho.slice(0, -1),
+            { diem: { x: diemNguoiCuoi.x, y: diemNguoiCuoi.y }, loai: cuoiTho.loai },
+          ]
+        : buocTho
+
+    const duongThoiGian = dongThoiGianPhaBong({
       batDau: choBongBatDau,
-      /*
-        BẢN GHI TRẬN CŨ (D110): thiếu `cacBuocBong` thì dựng tạm từ `duongBong`
-        với loại `chuyen` — tức **đúng cách vẽ của spec 005**: bóng đi hết đường
-        của nó ở tốc độ bóng. Không đoán bước nào là rê bóng: trận cũ xem ra
-        như bây giờ, không hơn không kém.
-      */
-      cacBuoc:
-        cacBuocBong.length > 0
-          ? cacBuocBong
-          : duongBong.length > 0
-            ? duongBong.map((d) => ({ diem: d, loai: 'chuyen' as const }))
-            : [],
+      cacBuoc,
       msNhip: msMoiPhut,
       msNguoi: msChuyen,
       nhanhGap: BONG_NHANH_GAP,
     })
+
+    /*
+      Quyền giữ bóng đi theo từng đoạn (D112): một đoạn rê không đổi người, một
+      đoạn làm bóng rời chân thì chuyển sang đồng đội gần đích nhất. Đồng đội ở
+      đây là đồng đội của đội **mà dòng này nói về** — cả chuỗi bóng thuộc một đội,
+      chỉ người giữ bóng **sau cùng** mới có thể thuộc đội kia (mất bóng, cứu thủa).
+    */
+    const benCamBong = suKien?.doi ?? 'nha'
+    const cacNguoi: readonly NguoiChoLuatNhan[] = cacDiem.map((d) => ({
+      playerId: d.playerId,
+      diem: { x: d.x, y: d.y },
+      laDongDoi: d.laDoiNha === (benCamBong === 'nha'),
+    }))
+
+    bongDang.current = ganNguoiGiuBong({
+      cacDoan: duongThoiGian,
+      nguoiBatDau: aiGiuBongDauNhip,
+      nguoiKetThuc: aiGiuBong,
+      cacNguoi,
+    })
     bongMocCuoi.current = { x: bong.x, y: bong.y }
-    aiGiuBongVe.current = aiGiuBong
 
     dang.current = moi
     batDau.current = bayGio
@@ -1196,6 +1246,12 @@ export function San2D(props: Props) {
   */
   const bayGioVe = performance.now()
 
+  /** Tỉ lệ đã đi được của **nhịp**, mốc thời gian của cả pha bóng. */
+  function tiLeNhipVe(): number {
+    if (!(msMoiPhut > 0)) return 1
+    return (bayGioVe - batDau.current) / msMoiPhut
+  }
+
   /** Tỉ lệ đã đi được của một người, theo thời lượng riêng của anh ta (D93). */
   function troiQuaCua(tt: ChuyenDiemDang): number {
     if (!(tt.thoiLuong > 0)) return 1
@@ -1213,7 +1269,7 @@ export function San2D(props: Props) {
       return { x: bong.x, y: bong.y }
     }
     const cacDoan = bongDang.current
-    const tiLeNhip = (performance.now() - batDau.current) / msMoiPhut
+    const tiLeNhip = tiLeNhipVe()
     const theoDoan =
       cacDoan == null || cacDoan.length === 0
         ? { x: bong.x, y: bong.y }
@@ -1237,16 +1293,47 @@ export function San2D(props: Props) {
       động** của anh ta: một quả bóng ở chân người đang nhún nhảy thì cũng
       nhún nhảy, chứ không đứng yên cách đó một bán kính.
     */
-    const nguoi = aiGiuBongVe.current
-      ? cacDiem.find((d) => d.playerId === aiGiuBongVe.current)
+    /*
+      Bám **người giữ bóng LÚC NÀY**, không bám người giữ bóng cuối dòng.
+
+      Hai thứ đó khác nhau, và đo ở lát 49 mới thấy cái giá: ở dòng giao bóng
+      thì bảng 3.1 trả **không ai** làm người giữ bóng cuối dòng, trong khi vòng
+      nét đứt vẫn vẽ quanh người mở pha đã suy ra — màn hình nói một đằng, quả
+      bóng đứng im một nẻo: đo được **1004ms** ở đúng phút 0.
+
+      `aiGiuBongLucNay` còn an toàn về chuyện lệch khung — cái bẫy đã sập một lần
+      ở lát 48: React vẽ **trước** rồi mới chạy effect, nên đọc thẳng `aiGiuBong`
+      thì khung đầu của một dòng mới đã là người MỚI trong khi dòng thời gian vẫn
+      của nhịp CŨ. `aiGiuBongLucNay` suất phát từ chính `bongDang.current`, mà ref
+      ấy chỉ đổi trong effect, nên nó không bao giờ đi trước dòng thời gian.
+    */
+    const nguoi = aiGiuBongLucNay
+      ? cacDiem.find((d) => d.playerId === aiGiuBongLucNay)
       : undefined
     if (nguoi == null) {
       bongVeCuoi.current = theoDoan
       return theoDoan
     }
 
+    /*
+      MỘT PHA BÓNG KHÔNG LÀM QUẢ BÓNG NHÚC NHÍCH THÌ KHÔNG PHẢI MỘT PHA BÓNG.
+
+      Engine kể các bước theo **vùng**, và một pha ngắn — một pha cướp bóng, chẳng
+      hạn — có thể có mọi bước rơi vào cùng một vùng. Lúc ấy mọi đoạn dài bằng
+      không, bóng nằm yên cả nhịp, và luật bám chân lại đợi tới khi dòng thời gian
+      hết mới bắt đầu — đo được **1200ms** ở một pha như vậy. Bắt đầu bám ngay.
+    */
+    const daiDuongBong = cacDoan
+      ? cacDoan.reduce(
+          (t, d) => t + Math.hypot(d.den.x - d.tu.x, d.den.y - d.tu.y),
+          0,
+        )
+      : 0
     const batDauBam =
-      cacBuocBong.length > 0 || duongBong.length > 0 ? 1 : 0
+      (cacBuocBong.length > 0 || duongBong.length > 0) &&
+      daiDuongBong > banKinh / 4
+        ? 1
+        : 0
     const chan = viTriVe(nguoi)
     const u = Math.min(
       1,
@@ -1326,16 +1413,51 @@ export function San2D(props: Props) {
   /** Biên độ dao động chờ, đo theo khoảng giãn đã co theo khung sân (AC-28.2). */
   const bienDoDao = bienDoTuKhoangGian(BUOC_GIAN * tiLe)
 
+  /**
+   * Ai đang giữ bóng **ngay lúc này** — dấu vòng nét đứt bám vào con số này.
+   *
+   * Khác `aiGiuBong`, vốn là người giữ bóng **sau cùng** của cả dòng. Trong một
+   * pha nhiều bước, quyền giữ bóng đi qua mấy người (D112), và vòng phải đi theo:
+   * một dấu nói "anh ta đang có bóng" mà đứng im suốt pha trong khi bóng đã qua
+   * chân hai người khác là một dấu nói sai.
+   */
+  const aiGiuBongLucNay =
+    giamChuyenDong || msChuyen <= 0 || bongDang.current == null
+      ? aiGiuBong
+      : nguoiGiuBongLucNay(bongDang.current, tiLeNhipVe())
+
   function viTriVe(d: DiemCauThu): Diem {
     if (giamChuyenDong) return { x: d.x, y: d.y }
     const tt = dang.current.get(d.playerId)
-    const goc = tt
+    const thuong = tt
       ? viTriTaiThoiDiem(tt.tu, tt.den, troiQuaCua(tt), {
           huongVao: tt.huongVao,
           doMet: doMetTheoNguoi.get(d.playerId) ?? 0,
           gioiHan,
         })
       : { x: d.x, y: d.y }
+
+    /*
+      NGƯỜI ĐANG CÓ BÓNG ĐI THEO ĐƯỜNG CỦA BÓNG (D104, D105, T606).
+
+      Chiều này chứ không chiều ngược lại: bóng bám chân người thì nó không
+      bao giờ đi hết một đường chuyền nữa — mất đúng thứ T524 vừa làm được.
+      Cho người đi theo bóng thì giữ cả hai: bóng đi đường thật của nó, còn người
+      dẫn bóng bám lấy nó.
+    */
+    const cacDoan = bongDang.current
+    const cuaSo =
+      msChuyen > 0 && cacDoan ? cuaSoGiuBong(cacDoan, d.playerId) : null
+    const goc =
+      cuaSo && cacDoan
+        ? viTriNguoiGiuBong({
+            cuaSo,
+            tiLe: tiLeNhipVe(),
+            viTriBong: (t) => viTriBongTrongPha(cacDoan, t),
+            viTriThuong: thuong,
+            moc: { x: d.x, y: d.y },
+          })
+        : thuong
 
     /*
       Dao động cộng vào SAU CÙNG, và chỉ cộng cho người — không cho bóng:
@@ -1481,7 +1603,7 @@ export function San2D(props: Props) {
               **trước** dấu ▲ để dấu ấy luôn nằm trên, và bán kính bị chặn bởi
               `VONG_GIU_BONG_THEM` nên nó không trùm tâm ai và không đụng dấu ▲.
             */}
-            {d.playerId === aiGiuBong && (
+            {d.playerId === aiGiuBongLucNay && (
               <circle
                 r={banKinh + VONG_GIU_BONG_THEM * tiLe}
                 fill="none"

@@ -36,7 +36,16 @@ import {
   vungTrenSan,
   type DiemCauThu,
 } from './components/San2D'
-import { nguoiGiuBong } from './phaBong'
+import {
+  cuaSoGiuBong,
+  dongThoiGianPhaBong,
+  ganNguoiGiuBong,
+  nguoiGiuBong,
+  viTriBongTrongPha,
+  viTriNguoiGiuBong,
+  type BuocDaQuyDoi,
+  type NguoiTrenSan,
+} from './phaBong'
 
 /*
   Hình học của sân 2D ở mọi quân số (AC-15.1, AC-15.2, AC-15.6).
@@ -358,6 +367,127 @@ describe('quả bóng luôn có mặt (AC-32.1 → AC-32.3, T513)', () => {
 
   it('trước giờ bóng lăn, chưa có dòng nào: cũng không nói gì', () => {
     expect(veTu(tt, null).bongTaiMoc).toBeNull()
+  })
+})
+
+describe('XƯƠNG SỐNG — tại tỉ lệ 1, MỌI điểm vẫn ở đúng mốc (R47, T607)', () => {
+  /*
+    **Đây là lưới giữ AC-34.3 của spec 006, AC-28.3 của spec 005 và AC-25.2 của
+    spec 004 cùng lúc.** T606 cho người giữ bóng rời khỏi chặng của chính anh ta để
+    đi theo đường của bóng — đó là lần đầu tiên trong năm spec có một điểm không
+    đi theo lớp nội suy. Nếu anh ta không về đúng mốc lúc nhịp hết thì mọi thứ đo
+    trên `hinhSan` — không chồng khít, tám hàng xen kẽ, thủ môn trong một phần ba
+    sân — đều đo một thứ không còn xuất hiện trên màn hình.
+
+    Phép kiểm dựng lại **đúng chuỗi mà lớp vẽ dựng**, kể cả việc thay điểm cuối
+    của đường bóng bằng chỗ đứng của người giữ bóng sau cùng.
+  */
+  const NHIP = MS_MOI_PHUT.cham
+  const NGUOI = thoiGianChuyen(NHIP)
+  /*
+    Bóng nhanh gấp ba người — viết lại ở đây chứ không import `BONG_NHANH_GAP`:
+    một phép kiểm dùng chính hằng số của code thì không còn bắt được việc ai đó
+    đổi hằng số ấy.
+  */
+  const NHANH_GAP = 3
+
+  it('mọi dòng của 10 mã trận × 7 quân số: tỉ lệ 1 trả đúng mốc tới 10 chữ số', () => {
+    let soDong = 0
+    let soNguoiDanBong = 0
+    let soDongCoNguoiCuoi = 0
+
+    for (const ma of MA_TRAN_CO_DINH) {
+      for (const n of QUAN_SO_CHAY_DUOC) {
+        const tt = chayHetTran(tranMau(n, ma))
+        let giu: string | null = null
+        for (const sk of dongSuKien(tt)) {
+          const truoc: string | null = giu
+          giu = nguoiGiuBong(sk, truoc)
+          soDong += 1
+
+          const { cacDiem, cacBuocBong, duongBong, banKinh } = veTu(tt, sk, giu)
+          const buocTho: readonly BuocDaQuyDoi[] =
+            cacBuocBong.length > 0
+              ? cacBuocBong
+              : duongBong.length > 0
+                ? duongBong.map((d) => ({ diem: d, loai: 'chuyen' as const }))
+                : []
+          const diemCuoi = giu
+            ? cacDiem.find((d) => d.playerId === giu)
+            : undefined
+          const choTho = buocTho[buocTho.length - 1]
+          const cacBuoc: readonly BuocDaQuyDoi[] =
+            diemCuoi && choTho
+              ? [
+                  ...buocTho.slice(0, -1),
+                  {
+                    diem: { x: diemCuoi.x, y: diemCuoi.y },
+                    loai: choTho.loai,
+                  },
+                ]
+              : buocTho
+
+          const benCamBong = sk.doi
+          const cacNguoi: readonly NguoiTrenSan[] = cacDiem.map((d) => ({
+            playerId: d.playerId,
+            diem: { x: d.x, y: d.y },
+            laDongDoi: d.laDoiNha === (benCamBong === 'nha'),
+          }))
+          const gan = ganNguoiGiuBong({
+            cacDoan: dongThoiGianPhaBong({
+              batDau: { x: cacDiem[0]?.x ?? 0, y: cacDiem[0]?.y ?? 0 },
+              cacBuoc,
+              msNhip: NHIP,
+              msNguoi: NGUOI,
+              nhanhGap: NHANH_GAP,
+            }),
+            nguoiBatDau: truoc,
+            nguoiKetThuc: giu,
+            cacNguoi,
+          })
+
+          for (const d of cacDiem) {
+            const cuaSo = cuaSoGiuBong(gan, d.playerId)
+            if (cuaSo == null) continue
+            soNguoiDanBong += 1
+            const cuoi = viTriNguoiGiuBong({
+              cuaSo,
+              tiLe: 1,
+              viTriBong: (t) => viTriBongTrongPha(gan, t),
+              viTriThuong: { x: d.x + 17, y: d.y - 23 },
+              moc: { x: d.x, y: d.y },
+            })
+            expect(
+              cuoi.x,
+              `${ma} quân số ${n} phút ${sk.phut}: ${d.playerId} lệch x`,
+            ).toBeCloseTo(d.x, 10)
+            expect(
+              cuoi.y,
+              `${ma} quân số ${n} phút ${sk.phut}: ${d.playerId} lệch y`,
+            ).toBeCloseTo(d.y, 10)
+          }
+
+          /*
+            Bất biến trên đúng **bằng cấu trúc**, nhưng nếu quả bóng không cũng ở
+            đó lúc nhịp hết thì người xem thấy một cú giật ở đúng khung cuối: người
+            về mốc của mình trong khi bóng đứng lại chỗ khác. Hai thứ phải trùng.
+          */
+          if (diemCuoi && cacBuoc.length > 0) {
+            soDongCoNguoiCuoi += 1
+            const bongCuoi = viTriBongTrongPha(gan, 1)
+            expect(
+              Math.hypot(bongCuoi.x - diemCuoi.x, bongCuoi.y - diemCuoi.y) /
+                banKinh,
+              `${ma} quân số ${n} phút ${sk.phut}: bóng không ở chân ${giu} lúc nhịp hết`,
+            ).toBeLessThan(1)
+          }
+        }
+      }
+    }
+
+    expect(soDong, 'số dòng đã duyệt').toBeGreaterThan(3000)
+    expect(soNguoiDanBong, 'số cửa sổ cầm bóng đã đo').toBeGreaterThan(3000)
+    expect(soDongCoNguoiCuoi, 'số dòng có người giữ bóng cuối').toBeGreaterThan(2000)
   })
 })
 

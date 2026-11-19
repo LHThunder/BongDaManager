@@ -11,11 +11,15 @@ import { CAC_QUAN_SO, chayHetTran, dongSuKien, taoTran } from '../engine/tran'
 import { MS_MOI_PHUT } from '../hooks/useMatch'
 import { thoiGianChuyen } from './components/San2D'
 import {
+  cuaSoGiuBong,
   dongThoiGianPhaBong,
+  ganNguoiGiuBong,
   nguoiGiuBong,
+  nguoiGiuBongLucNay,
   nguoiNhanChuyen,
   thoiLuongDoan,
   viTriBongTrongPha,
+  viTriNguoiGiuBong,
   type BuocDaQuyDoi,
   type NguoiTrenSan,
 } from './phaBong'
@@ -431,6 +435,247 @@ describe('quyền giữ bóng không nhảy giữa hai nhịp (AC-33.5, R50)', (
       doiODongKhongPhaiPhaBong,
       'dòng thẻ / thay người / kiệt sức làm đổi người giữ bóng',
     ).toBe(0)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// T606 — Người giữ bóng đi theo đường của bóng, rồi về mốc của mình
+// ---------------------------------------------------------------------------
+
+/** Một pha ba bước: rê → chuyền → sút, với bốn đồng đội đứng dọc đường. */
+function phaBaBuoc() {
+  const cacDoan = dongThoiGianPhaBong({
+    batDau: { x: 0, y: 20 },
+    cacBuoc: [
+      buoc(0, 20, 're-bong'),
+      buoc(30, 20, 'chuyen'),
+      buoc(60, 20, 'chuyen'),
+      buoc(90, 20, null),
+    ],
+    msNhip: NHIP,
+    msNguoi: NGUOI,
+    nhanhGap: NHANH_GAP,
+  })
+  const cacNguoi: readonly NguoiTrenSan[] = [
+    { playerId: 'ta-A', diem: { x: 2, y: 22 }, laDongDoi: true },
+    { playerId: 'ta-B', diem: { x: 31, y: 24 }, laDongDoi: true },
+    { playerId: 'ta-C', diem: { x: 62, y: 18 }, laDongDoi: true },
+    { playerId: 'ho-X', diem: { x: 30, y: 20 }, laDongDoi: false },
+  ]
+  return { cacDoan, cacNguoi }
+}
+
+describe('quyền giữ bóng đi theo từng bước của pha (AC-35.2, D112)', () => {
+  const { cacDoan, cacNguoi } = phaBaBuoc()
+  const gan = ganNguoiGiuBong({
+    cacDoan,
+    nguoiBatDau: 'ta-A',
+    nguoiKetThuc: 'ta-C',
+    cacNguoi,
+  })
+
+  it('đoạn rê KHÔNG đổi người — anh ta dẫn bóng đi', () => {
+    expect(gan[0]?.loai).toBe('re-bong')
+    expect(gan[0]?.nguoiGiu).toBe('ta-A')
+    expect(gan[0]?.nguoiNhan).toBe('ta-A')
+  })
+
+  it('đoạn chuyền đổi sang đồng đội gần đích nhất, không sang đối thủ', () => {
+    expect(gan[1]?.loai).toBe('chuyen')
+    expect(gan[1]?.nguoiGiu).toBe('ta-A')
+    // Đích của đoạn này là (60,20); `ta-C` ở (62,18) là đồng đội gần nhất.
+    expect(gan[1]?.nguoiNhan).toBe('ta-C')
+  })
+
+  it('đoạn cuối trả người giữ bóng của BẢNG 3.1, không áp luật suy', () => {
+    const cuoi = gan[gan.length - 1]
+    expect(cuoi?.nguoiNhan).toBe('ta-C')
+    const gan2 = ganNguoiGiuBong({
+      cacDoan,
+      nguoiBatDau: 'ta-A',
+      // Người cướp được bóng — đối thủ, và luật suy không bao giờ chọn được.
+      nguoiKetThuc: 'ho-X',
+      cacNguoi,
+    })
+    expect(gan2[gan2.length - 1]?.nguoiNhan).toBe('ho-X')
+  })
+
+  it('không ai cầm bóng đầu nhịp thì suy ra người mở pha, không bỏ trống', () => {
+    /*
+      Sau mỗi bàn thắng, sau mỗi hiệp và ở dòng đầu trận, bảng 3.1 trả **không
+      ai**. Bỏ trống thì pha kế tiếp không có người dẫn bóng nào cả.
+    */
+    const ganRong = ganNguoiGiuBong({
+      cacDoan,
+      nguoiBatDau: null,
+      nguoiKetThuc: 'ta-C',
+      cacNguoi,
+    })
+    expect(ganRong[0]?.nguoiGiu).not.toBeNull()
+    expect(ganRong[0]?.nguoiGiu).toBe('ta-A')
+  })
+
+  it('hai đầu của hai đoạn liền nhau khớp nhau, không hụt một người nào', () => {
+    for (let i = 1; i < gan.length; i += 1) {
+      expect(gan[i]?.nguoiGiu, `đoạn ${i}`).toBe(gan[i - 1]?.nguoiNhan)
+    }
+  })
+
+  it('quyền giữ bóng chuyển ĐÚNG LÚC đoạn chuyền xong — không sớm hơn', () => {
+    /*
+      Đo bằng chính dòng thời gian, không đo bằng mắt: ngay trước mốc kết thúc
+      của đoạn chuyền thì bóng vẫn của người chuyền; đúng tại mốc ấy mới sang
+      người nhận.
+    */
+    const moc = gan[1]?.tiLeKetThuc as number
+    expect(nguoiGiuBongLucNay(gan, moc - 1e-9)).toBe('ta-A')
+    expect(nguoiGiuBongLucNay(gan, moc)).toBe('ta-C')
+  })
+})
+
+describe('cửa sổ cầm bóng của một người', () => {
+  const { cacDoan, cacNguoi } = phaBaBuoc()
+  const gan = ganNguoiGiuBong({
+    cacDoan,
+    nguoiBatDau: 'ta-A',
+    nguoiKetThuc: 'ta-C',
+    cacNguoi,
+  })
+
+  it('người mở pha cầm bóng từ đầu tới lúc chuyền đi', () => {
+    const cs = cuaSoGiuBong(gan, 'ta-A')
+    expect(cs?.tiLeBatDau).toBe(0)
+    expect(cs?.tiLeKetThuc).toBe(gan[1]?.tiLeKetThuc)
+  })
+
+  it('người chỉ nhận bóng ở đoạn cuối có cửa sổ đúng lúc nhịp hết', () => {
+    const chiNhanCuoi = ganNguoiGiuBong({
+      cacDoan,
+      nguoiBatDau: 'ta-A',
+      nguoiKetThuc: 'ho-X',
+      cacNguoi,
+    })
+    expect(cuaSoGiuBong(chiNhanCuoi, 'ho-X')).toEqual({
+      tiLeBatDau: 1,
+      tiLeKetThuc: 1,
+    })
+  })
+
+  it('người không dính gì tới pha thì không có cửa sổ nào', () => {
+    expect(cuaSoGiuBong(gan, 'ta-B')).toBeNull()
+    expect(cuaSoGiuBong(gan, null)).toBeNull()
+    expect(cuaSoGiuBong([], 'ta-A')).toBeNull()
+  })
+})
+
+describe('chỗ của người đang có bóng (AC-33.2, AC-34.1, D104, D105)', () => {
+  const { cacDoan, cacNguoi } = phaBaBuoc()
+  const gan = ganNguoiGiuBong({
+    cacDoan,
+    nguoiBatDau: 'ta-A',
+    nguoiKetThuc: 'ta-C',
+    cacNguoi,
+  })
+  const bong = (t: number) => viTriBongTrongPha(gan, t)
+  const MOC = { x: 12, y: 40 }
+  const THUONG = { x: 5, y: 35 }
+
+  it('trong cửa sổ, người và bóng dùng CHUNG MỘT ĐƯỜNG (D104)', () => {
+    const cs = cuaSoGiuBong(gan, 'ta-A')
+    expect(cs).not.toBeNull()
+    const { tiLeBatDau: tA, tiLeKetThuc: tB } = cs as {
+      tiLeBatDau: number
+      tiLeKetThuc: number
+    }
+    for (let k = 0; k <= 10; k += 1) {
+      const t = tA + ((tB - tA) * k) / 10
+      const nguoi = viTriNguoiGiuBong({
+        cuaSo: cs as { tiLeBatDau: number; tiLeKetThuc: number },
+        tiLe: t,
+        viTriBong: bong,
+        viTriThuong: THUONG,
+        moc: MOC,
+      })
+      expect(nguoi, `t=${t}`).toEqual(bong(t))
+    }
+  })
+
+  it('sau khi rời bóng là MỘT ĐƯỜNG THẬNG về mốc (D105)', () => {
+    const cs = cuaSoGiuBong(gan, 'ta-A') as {
+      tiLeBatDau: number
+      tiLeKetThuc: number
+    }
+    const tB = cs.tiLeKetThuc
+    const roi = bong(tB)
+    const giua = viTriNguoiGiuBong({
+      cuaSo: cs,
+      tiLe: tB + (1 - tB) / 2,
+      viTriBong: bong,
+      viTriThuong: THUONG,
+      moc: MOC,
+    })
+    expect(giua.x).toBeCloseTo((roi.x + MOC.x) / 2, 10)
+    expect(giua.y).toBeCloseTo((roi.y + MOC.y) / 2, 10)
+  })
+
+  it('TẠI TỈ LỆ 1 NÓ TRẢ ĐÚNG MỐC — với mọi cửa sổ (R47)', () => {
+    /*
+      Bất biến này đang giữ AC-28.3 của spec 005 và AC-25.2 của spec 004. Nó
+      phải đúng **bằng cấu trúc**, kể cả với một cửa sổ kéo tới hết nhịp — tức
+      một người dẫn bóng tới tận khi nhịp kết thúc.
+    */
+    for (const cs of [
+      { tiLeBatDau: 0, tiLeKetThuc: 0.4 },
+      { tiLeBatDau: 0.4, tiLeKetThuc: 1 },
+      { tiLeBatDau: 1, tiLeKetThuc: 1 },
+      { tiLeBatDau: 0, tiLeKetThuc: 1 },
+    ]) {
+      for (const t of [1, 1.5, 9]) {
+        expect(
+          viTriNguoiGiuBong({
+            cuaSo: cs,
+            tiLe: t,
+            viTriBong: bong,
+            viTriThuong: THUONG,
+            moc: MOC,
+          }),
+          `cửa sổ ${cs.tiLeBatDau}–${cs.tiLeKetThuc}, t=${t}`,
+        ).toEqual(MOC)
+      }
+    }
+  })
+
+  it('trước cửa sổ: liền ở hai đầu, và nhắm tới ĐIỂM NHẬN chứ không tới bóng', () => {
+    const cs = { tiLeBatDau: 0.5, tiLeKetThuc: 0.8 }
+    const dau = viTriNguoiGiuBong({
+      cuaSo: cs,
+      tiLe: 0,
+      viTriBong: bong,
+      viTriThuong: THUONG,
+      moc: MOC,
+    })
+    expect(dau).toEqual(THUONG)
+    const toiNoi = viTriNguoiGiuBong({
+      cuaSo: cs,
+      tiLe: 0.5,
+      viTriBong: bong,
+      viTriThuong: THUONG,
+      moc: MOC,
+    })
+    expect(toiNoi).toEqual(bong(0.5))
+  })
+
+  it('đầu vào vô lý không làm nó ném hay trả NaN', () => {
+    for (const t of [-5, Number.NaN]) {
+      const v = viTriNguoiGiuBong({
+        cuaSo: { tiLeBatDau: 0.2, tiLeKetThuc: 0.6 },
+        tiLe: t,
+        viTriBong: bong,
+        viTriThuong: THUONG,
+        moc: MOC,
+      })
+      expect(Number.isFinite(v.x) && Number.isFinite(v.y), `t=${t}`).toBe(true)
+    }
   })
 })
 
