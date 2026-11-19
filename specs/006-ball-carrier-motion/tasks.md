@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | 21 AC (US-33 → US-36), 15 quyết định D101–D115 |
-| **Tiến độ** | 13/24 |
+| **Tiến độ** | 16/24 |
 | **Sửa đổi** | 2026-11-19 — chẻ lần đầu từ plan |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -186,14 +186,14 @@ là một commit.
 
 ## Phase 51 — Lát 51: Hai đội cùng sống theo bóng
 
-- [ ] **T611** — Hai nhóm, hai nguyên tắc
+- [x] **T611** — Hai nhóm, hai nguyên tắc
   - File: sửa `src/ui/components/San2D.tsx`, sửa `src/ui/san2D.test.ts`
   - Xong khi: `nghiengKhoiTheoBong` nhận thêm **vai trò** (đồng đội của người giữ bóng / đối phương); đồng đội được kéo thêm về phía khung thành đối phương, đối phương được kéo thêm về phía bóng; **tổng mọi lực kéo vẫn bị chặn ở một phần mười chiều dài sân** (AC-30.4 của spec 005), chứng minh bằng phép kiểm trên cả hai vai trò × bốn dải × hai đội.
   - Bằng chứng: **số**.
   - AC: AC-36.2, AC-36.3, AC-36.6
   - Phụ thuộc: T610
 
-- [ ] **T612** — Ba phép kiểm bất biến chạy lại, và chúng là tiêu chí xong
+- [x] **T612** — Ba phép kiểm bất biến chạy lại, và chúng là tiêu chí xong
   - File: sửa `src/ui/san2D.test.ts`
   - Xong khi: sau T611, ba phép kiểm vẫn xanh **không nới một ngưỡng nào** — không chồng khít trên 10 mã trận; thủ môn không rời một phần ba sân nhà; tám hàng xen kẽ đúng thứ tự ở **chín tổ hợp độ cao đội hình**; nếu một cái đỏ thì **siết lực kéo của T611**, không nới ngưỡng.
   - Bằng chứng: **số**.
@@ -201,7 +201,7 @@ là một commit.
   - Phụ thuộc: T611
   - ⚠️ Lưới của **R48**. Câu "nếu đỏ thì siết cái vừa thêm, không nới cái đã có" là bài học của T511 ở spec 005.
 
-- [ ] **T613** — Đo: mọi điểm di chuyển có mục đích
+- [x] **T613** — Đo: mọi điểm di chuyển có mục đích
   - File: — *(đo trên bản build)*
   - Xong khi: một trận ở mức Chậm — trong **mỗi nhịp**, **mọi** điểm đổi chỗ theo một hướng có nghĩa, đo bằng quãng đi được mỗi nhịp của từng người (trước spec này: trung vị **2,3** đơn vị); và với mỗi pha người giữ bóng tiến lên, đếm được **ít nhất một đồng đội** cũng tiến lên trong cùng nhịp.
   - Bằng chứng: **số**.
@@ -546,3 +546,42 @@ trong danh sách task, và nó lộ ra sau khi người dùng đã chốt hai vi
 
 **T608 vì thế vẫn để ngỏ**: AC-33.3 đòi không quãng nào quá 300ms, và còn một
 quãng 2002ms.
+
+## Phase 51 — hai nhóm di chuyển khác nhau, và cái trần chặn nó lại
+
+**1. R48 xảy ra đúng như đã báo, và cách xử lý đã viết sẵn trong T612.** Thêm lực
+kéo theo vai trò bằng **một nửa** lớp co khối thì sàn "hai điểm gần nhau nhất" tụt
+từ **1,5468** xuống **1,4379** bán kính — vì **mọi lực kéo đều kéo về phía bóng**, nên
+chúng đều làm hai điểm xích lại. Siết xuống **một phần tư**: sàn về **1,4923**.
+Siết cái vừa thêm, không nới cái đã có — đúng bài học của T511.
+
+**2. Lực kéo phải TỈ LỆ với khoảng cách tới dải có bóng, không được đều tay.**
+Người tham gia tình huống được đặt thẳng vào vùng của tình huống và **không nhận
+lực kéo nào**, nên một lực đều tay sẽ triệt tiêu đúng khoảng lệch tách họ khỏi
+người không tham gia đứng cùng chỗ — hai bản đầu của T510 đã làm hỏng AC-30.5
+đúng kiểu ấy. Phép kiểm canh thẳng **tính tỉ lệ**: lực kéo thêm luôn bằng đúng một
+phần tư lớp co khối về độ lớn, nên nó tự bằng không ở chỗ lớp co khối bằng không.
+
+**3. Không cặp dải nào cho lớp co khối bằng đúng không.** Bảng dải của đội và
+bảng trung lập không trùng nhau ở điểm nào (T523), nên phép kiểm "người đứng
+đúng dải có bóng không dịch" **không dựng được** — bản đầu của nó đỏ vì chính
+điều đó, chứ không phải vì code sai.
+
+**Số đo thật của lát 51** (bản dev, mức Chậm, một trận trọn vẹn, 1921 mẫu), trọng
+tâm theo trục dọc của mỗi đội:
+
+| | Khi ĐỘI MÌNH giữ bóng | Khi ĐỘI KIA giữ bóng | Lệch |
+|---|---|---|---|
+| Đội nhà (tấn công sang phải) | **40,25** | 39,74 | **+0,51** |
+| Đội khách (tấn công sang trái) | **60,71** | 61,88 | **−1,17** |
+
+**Đúng chiều, nhưng nhỏ.** Cả khối đội nhà đu từ 31,9 tới 51,3 trong trận — gần 20
+đơn vị — nhưng phần do **vai trò** chỉ chiếm dưới một đơn vị rưỡi. Lý do không nằm ở
+cách làm mà nằm ở **cái trần**: AC-30.4 chặn **tổng mọi lực kéo** ở một phần mười
+chiều dài sân, và lớp co khối của D94 đã dùng gần hết chỗ ấy. Muốn thấy đội hình
+dâng lên rõ hơn thì phải **nới chính cái trần 1/10** — một ngưỡng người dùng chốt ở
+`/clarify` của spec 005 — và trả giá bằng sàn hai điểm gần nhau nhất. **Chưa làm**:
+đó là quyết định của người dùng, không phải của tôi.
+
+1299 phép kiểm xanh; ba phép kiểm bất biến của T612 xanh **không nới một ngưỡng
+nào**; `git diff src/engine/` rỗng hoàn toàn.

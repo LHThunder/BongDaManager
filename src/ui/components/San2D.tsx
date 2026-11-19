@@ -320,6 +320,23 @@ const KHOANG_TOI_DA_TOI_BONG = 0.81
 const PHAN_CO_KHOI = BIEN_NGHIENG_KHOI / KHOANG_TOI_DA_TOI_BONG
 
 /**
+ * Vai trò của một người so với người đang giữ bóng (D106).
+ *
+ * `chua-ro` là khi chưa biết ai giữ bóng — dòng mốc, hay trước giờ bóng lăn.
+ * Lúc ấy chỉ có lớp co khối của D94, không có lực kéo theo vai trò.
+ */
+export type VaiTroTheoBong = 'dong-doi' | 'doi-phuong' | 'chua-ro'
+
+/**
+ * Lực kéo thêm theo **vai trò**, so với lớp co khối: **một nửa**.
+ *
+ * Không lấy bằng lớp co khối: hai lực cùng độ lớn thì tổng chạm trần
+ * `BIEN_NGHIENG_KHOI` ở gần nửa sân, và mọi người bị kẹp vào cùng một lượng dịch
+ * — đúng kiểu "dịch cả khối một lượng như nhau" mà T510 đã làm hỏng hai lần.
+ */
+const PHAN_VAI_TRO = PHAN_CO_KHOI / 4
+
+/**
  * Một người KHÔNG tham gia dịch bao nhiêu theo trục dọc, vì bóng đang ở dải
  * nào (AC-30.4, quyết định D94).
  *
@@ -342,11 +359,40 @@ export function nghiengKhoiTheoBong(
   benNguoi: BenVe,
   vungBong: VungSan | null,
   khung: KhungSan,
+  vaiTro: VaiTroTheoBong = 'chua-ro',
 ): number {
   if (vungBong == null) return 0
   const tiNguoi = tiLeCuaDai(vungNguoi.dai, benNguoi)
   const tiBong = tiLeCuaDai(vungBong.dai, 'trung-lap')
-  return PHAN_CO_KHOI * (tiBong - tiNguoi) * khung.rong
+  const cach = tiBong - tiNguoi
+
+  /*
+    HAI NHÓM, HAI NGUYÊN TẮC (D106, AC-36.2, AC-36.3).
+
+    - **Đồng đội của người giữ bóng** được kéo thêm về phía khung thành đối
+      phương: cả đội dâng lên khi đang cầm bóng.
+    - **Đối phương** được kéo thêm về phía bóng: cả đội lùi về vây quanh quả bóng.
+
+    **Cả hai lực đều tỉ lệ với khoảng cách tới dải có bóng, nên chúng bằng KHÔNG
+    ở đúng dải ấy.** Đó không phải thẩm mỹ: người **tham gia tình huống** được
+    đặt thẳng vào vùng của tình huống và **không nhận lực kéo nào**, nên một lực
+    kéo đều tay sẽ triệt tiêu đúng khoảng lệch tách họ khỏi người không tham gia
+    đứng cùng dải — hai bản đầu của T510 đã làm hỏng AC-30.5 đúng kiểu ấy.
+
+    Tổng mọi lực kéo vẫn bị chặn ở `BIEN_NGHIENG_KHOI` (AC-30.4 của spec 005).
+  */
+  const huongTanCong = benNguoi === 'khach' ? -1 : 1
+  const them =
+    vaiTro === 'dong-doi'
+      ? PHAN_VAI_TRO * Math.abs(cach) * huongTanCong
+      : vaiTro === 'doi-phuong'
+        ? PHAN_VAI_TRO * cach
+        : 0
+
+  const tong = PHAN_CO_KHOI * cach + them
+  return (
+    Math.max(-BIEN_NGHIENG_KHOI, Math.min(BIEN_NGHIENG_KHOI, tong)) * khung.rong
+  )
 }
 
 /**
@@ -559,6 +605,24 @@ export function hinhSan({
   const leY = (CAO - khung.cao) / 2
 
   const thamGia = new Set(suKien?.cacCauThu ?? [])
+
+  /*
+    ĐỘI NÀO ĐANG GIỮ BÓNG — để hai nhóm di chuyển theo hai nguyên tắc (D106).
+
+    Lấy **đội của người giữ bóng**, không lấy `suKien.doi`: hai thứ ấy khác nhau
+    ở đúng những dòng đáng kể nhất — một pha cứu thủa hay một pha mất bóng thì
+    dòng nói về đội tấn công, còn bóng đã sang chân đội kia.
+  */
+  const benGiuBong: BenVe | null =
+    aiGiuBong == null
+      ? null
+      : cacNguoiTrenSan(nha.ben, true).some((x) => x.playerId === aiGiuBong)
+        ? 'nha'
+        : cacNguoiTrenSan(khach.ben, false).some(
+              (x) => x.playerId === aiGiuBong,
+            )
+          ? 'khach'
+          : null
   const vungSuKien = suKien?.vung ? vungTrenSan(suKien.vung, suKien.doi) : null
 
   /*
@@ -628,6 +692,11 @@ export function hinhSan({
                   laDoiNha ? 'nha' : 'khach',
                   vungSuKien,
                   khung,
+                  benGiuBong == null
+                    ? 'chua-ro'
+                    : laDoiNha === (benGiuBong === 'nha')
+                      ? 'dong-doi'
+                      : 'doi-phuong',
                 )),
         khung,
         /*
@@ -750,7 +819,13 @@ const VONG_SANG_NO_GAP = 7
  * không phải số suy ra (T605).
  *
  * Đo trên 10 mã trận × 7 quân số × mọi dòng tường thuật — 5835 dòng, mọi cặp
- * điểm: sàn là **1,5468 bán kính**, làm tròn xuống thành 1,54.
+ * điểm: sàn là **1,4923 bán kính**, làm tròn xuống thành 1,49.
+ *
+ * **Nó tụt từ 1,5468 xuống khi T611 thêm lực kéo theo vai trò** (D106), và đó là cái
+ * giá phải trả đúng theo cách R48 đã báo trước: mọi lực kéo đều kéo về phía bóng,
+ * nên chúng đều làm hai điểm xích lại. Lực kéo đã bị siết từ một nửa xuống
+ * **một phần tư** lớp co khối để giữ sàn này — siết cái vừa thêm, không nới cái
+ * đã có, đúng bài học của T511.
  *
  * **Không phải 1,80.** Con số 1,80 ghi ở phép kiểm R45 là sàn **quanh người ghi
  * bàn**, không phải sàn toàn sân — đo lại trên mọi cặp thì chật hơn hẳn. Và đo
@@ -759,7 +834,7 @@ const VONG_SANG_NO_GAP = 7
  * không phải một biên cho có — đúng bài học R45 lặp lại lần thứ ba: sàn phụ
  * thuộc vào việc đo quanh ai.
  */
-const SAN_HAI_DIEM_GAN_NHAT = 1.54
+const SAN_HAI_DIEM_GAN_NHAT = 1.49
 
 /**
  * Điểm người ghi bàn được phì thêm tối đa bao nhiêu (AC-32.4, rủi ro R45).
@@ -795,14 +870,14 @@ export const PHI_THEM_NGUOI_GHI_BAN = ((BUOC_GIAN / 2 - BAN_KINH) * 3) / 4
  * lỗi "phì to một điểm mà không đặt biên" hai lần ở R45. Hai biên, và vòng phải
  * nằm dưới **cả hai**:
  *
- * 1. **Sàn đã đo**: hai điểm gần nhau nhất cách nhau **1,5468 bán kính**, xem
+ * 1. **Sàn đã đo**: hai điểm gần nhau nhất cách nhau **1,4923 bán kính**, xem
  *    `SAN_HAI_DIEM_GAN_NHAT`. Vòng rộng hơn thế là trùm tâm người khác, tức
  *    đếm sai số người trên sân — điều AC-15.2 cấm.
  * 2. **Dấu ▲** đặt ở `-banKinh - 1,2 · tiLe`. Vòng cao hơn thế là đi xuyên dấu
  *    ▲, mà hai dấu phải đọc ra được riêng rẽ — ▲ đã có nghĩa "đang tham gia
  *    tình huống" từ spec 001.
  *
- * Biên 2 chặt hơn (1,2 so với 0,54 · 3,4 = 1,84), nên nó là biên thật. `Math.min`
+ * Biên 2 chặt hơn (1,2 so với 0,49 · 3,4 = 1,67), nên nó là biên thật. `Math.min`
  * viết ra cả hai để đổi `BAN_KINH` không làm biên kìa lặng lẽ biến mất.
  */
 export const VONG_GIU_BONG_THEM = Math.min(

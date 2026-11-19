@@ -371,6 +371,140 @@ describe('quả bóng luôn có mặt (AC-32.1 → AC-32.3, T513)', () => {
   })
 })
 
+describe('hai nhóm di chuyển theo hai nguyên tắc (AC-36.2, AC-36.3, D106, T611)', () => {
+  /*
+    Đồng đội của người giữ bóng dâng lên phía khung thành đối phương; đối
+    phương lùi về vây quanh quả bóng. Cả hai lực cộng vào lớp co khối của D94, và
+    **tổng vẫn bị chặn ở một phần mười chiều dài sân** — ngưỡng người dùng chốt ở
+    `/clarify` của spec 005 (AC-30.4).
+  */
+  const khung = khungSan(11)
+  const BIEN = khung.rong / 10
+  const CAC_DAI = [0, 1, 2, 3]
+
+  function vung(dai: number): VungSan {
+    return { id: `d${dai}`, dai, cot: 1 } as unknown as VungSan
+  }
+
+  it('tổng mọi lực kéo vẫn trong một phần mười chiều dài sân (AC-30.4)', () => {
+    for (const ben of ['nha', 'khach'] as const) {
+      for (const dNguoi of CAC_DAI) {
+        for (const dBong of CAC_DAI) {
+          for (const vaiTro of ['chua-ro', 'dong-doi', 'doi-phuong'] as const) {
+            const v = nghiengKhoiTheoBong(
+              vung(dNguoi),
+              ben,
+              vung(dBong),
+              khung,
+              vaiTro,
+            )
+            expect(
+              Math.abs(v),
+              `${ben} dải ${dNguoi}, bóng dải ${dBong}, ${vaiTro}`,
+            ).toBeLessThanOrEqual(BIEN + 1e-9)
+          }
+        }
+      }
+    }
+  })
+
+  it('đồng đội của người giữ bóng dâng về phía khung thành đối phương', () => {
+    /*
+      Ở những cặp dải xa nhau nhất thì **lớp co khối đã chạm trần một phần
+      mười** (AC-30.4), nên lực kéo theo vai trò không thêm được gì — đúng ý của
+      cái trần ấy. Vì thế phép kiểm đòi **không bao giờ ngược hướng**, và đếm số
+      cặp thật sự dâng thêm để câu "có dâng" không thành một lời nói suông.
+    */
+    let soCapDangThem = 0
+    for (const ben of ['nha', 'khach'] as const) {
+      const huong = ben === 'nha' ? 1 : -1
+      for (const dNguoi of CAC_DAI) {
+        for (const dBong of CAC_DAI) {
+          const goc = nghiengKhoiTheoBong(vung(dNguoi), ben, vung(dBong), khung)
+          const voiBong = nghiengKhoiTheoBong(
+            vung(dNguoi),
+            ben,
+            vung(dBong),
+            khung,
+            'dong-doi',
+          )
+          expect(
+            (voiBong - goc) * huong,
+            `${ben} dải ${dNguoi}, bóng dải ${dBong}`,
+          ).toBeGreaterThanOrEqual(-1e-9)
+          if ((voiBong - goc) * huong > 1e-9) soCapDangThem += 1
+        }
+      }
+    }
+    expect(soCapDangThem, 'số cặp dải thật sự dâng thêm').toBeGreaterThan(16)
+  })
+
+  it('đối phương bị kéo MẠNH HƠN về phía bóng, không bao giờ ngược lại', () => {
+    let soCapKeoManhHon = 0
+    for (const ben of ['nha', 'khach'] as const) {
+      for (const dNguoi of CAC_DAI) {
+        for (const dBong of CAC_DAI) {
+          const goc = nghiengKhoiTheoBong(vung(dNguoi), ben, vung(dBong), khung)
+          const canh = nghiengKhoiTheoBong(
+            vung(dNguoi),
+            ben,
+            vung(dBong),
+            khung,
+            'doi-phuong',
+          )
+          expect(
+            Math.abs(canh),
+            `${ben} dải ${dNguoi}, bóng dải ${dBong}`,
+          ).toBeGreaterThanOrEqual(Math.abs(goc) - 1e-9)
+          // Cùng chiều với lớp co khối: về phía bóng, không phải ngược lại.
+          expect(canh * goc).toBeGreaterThanOrEqual(0)
+          if (Math.abs(canh) > Math.abs(goc) + 1e-9) soCapKeoManhHon += 1
+        }
+      }
+    }
+    expect(soCapKeoManhHon, 'số cặp dải bị kéo mạnh hơn').toBeGreaterThan(16)
+  })
+
+  it('lực kéo theo vai trò TỈ LỆ với lớp co khối, nên nó tắt cùng một lúc', () => {
+    /*
+      Đây là thứ giữ AC-30.5, và nó phải đúng **bằng cấu trúc**: người **tham gia
+      tình huống** được đặt thẳng vào vùng của tình huống và không nhận lực kéo
+      nào, nên một lực kéo đều tay sẽ triệt tiêu khoảng lệch tách họ khỏi người
+      không tham gia đứng cùng chỗ — hai bản đầu của T510 đã làm hỏng đúng kiểu ấy.
+
+      Không có cặp dải nào cho lớp co khối bằng đúng không — bảng dải của đội và
+      bảng trung lập không trùng nhau ở điểm nào (T523) — nên phép kiểm canh thẳng
+      **tính tỉ lệ**: lực kéo thêm luôn bằng đúng một phần tư lớp co khối về độ lớn.
+      Tỉ lệ thì tự bằng không ở chỗ lớp co khối bằng không.
+    */
+    let soCapDaDo = 0
+    for (const ben of ['nha', 'khach'] as const) {
+      for (const dNguoi of CAC_DAI) {
+        for (const dBong of CAC_DAI) {
+          const goc = nghiengKhoiTheoBong(vung(dNguoi), ben, vung(dBong), khung)
+          // Bỏ những cặp đã chạm trần: ở đó phép kẹp che mất tỉ lệ.
+          if (Math.abs(goc) > BIEN * 0.74) continue
+          soCapDaDo += 1
+          for (const vaiTro of ['dong-doi', 'doi-phuong'] as const) {
+            const v = nghiengKhoiTheoBong(
+              vung(dNguoi),
+              ben,
+              vung(dBong),
+              khung,
+              vaiTro,
+            )
+            expect(
+              Math.abs(v - goc),
+              `${ben} dải ${dNguoi}, bóng dải ${dBong}, ${vaiTro}`,
+            ).toBeCloseTo(Math.abs(goc) / 4, 10)
+          }
+        }
+      }
+    }
+    expect(soCapDaDo, 'số cặp dải chưa chạm trần').toBeGreaterThan(8)
+  })
+})
+
 describe('thủ môn không rời dải của mình KỂ CẢ KHI ĐANG CẦM BÓNG (AC-30.7, T622)', () => {
   /*
     **Mắt người dùng bắt được lỗi này khi 1291 phép kiểm đều xanh**: "thủ môn
@@ -711,7 +845,8 @@ describe('vòng nét đứt quanh người giữ bóng (AC-33.1, AC-33.4, T605)'
     // Lượng mẫu phải đủ dày để câu "trên 10 mã trận" có nghĩa.
     expect(soVong, 'số vòng đã đo').toBeGreaterThan(1000)
     /*
-      Sàn đo được quanh người giữ bóng là **1,5468 bán kính**, không phải 1,80
+      Sàn đo được quanh người giữ bóng là **1,4923 bán kính** (trước T611 là
+      1,5468 — lực kéo theo vai trò làm hai điểm xích lại, đúng điều R48 báo trước), không phải 1,80
       như bản đầu của phép kiểm này viết — 1,80 là sàn quanh **người ghi bàn**,
       đo ở T514, và lấy nó làm sàn toàn sân là sai. Đo lại trên 5835 dòng: sàn
       của **mọi cặp điểm** cũng đúng 1,5468 — tức cặp chật nhất của cả sân luôn
@@ -719,7 +854,7 @@ describe('vòng nét đứt quanh người giữ bóng (AC-33.1, AC-33.4, T605)'
 
       Vòng đứng ở `1 + 1,2/3,4` = 1,353 bán kính, dưới sàn ấy một khoảng dự.
     */
-    expect(chatNhat, 'cặp chật nhất, theo bán kính').toBeGreaterThanOrEqual(1.54)
+    expect(chatNhat, 'cặp chật nhất, theo bán kính').toBeGreaterThanOrEqual(1.49)
     /*
       **Đúng 0.** Trước T621 con số này là **2,82%** (148/5246): người giữ bóng
       nhận thẻ đỏ, hoặc bị thay ra sau pha bóng của mình, nên lớp vẽ không vẽ
