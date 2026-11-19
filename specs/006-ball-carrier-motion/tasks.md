@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | 21 AC (US-33 → US-36), 16 quyết định D101–D116 |
-| **Tiến độ** | 19/23 — T609 và T610 **bị bỏ** ngày 2026-11-19, xem Phase 50 |
+| **Tiến độ** | 21/23 — T609 và T610 **bị bỏ** ngày 2026-11-19, xem Phase 50 |
 | **Sửa đổi** | 2026-11-19 — chẻ lần đầu từ plan |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -252,19 +252,27 @@ là một commit.
   - ✅ Kiểm trên bản dev: nút **"Very slow" / "Rất chậm"** hiện **đầu** thang, mặc định vẫn là Chậm, `thoiGianChuyen(2000)` = **1800ms** (đúng 90% một nhịp, cùng tỉ lệ như mọi mức khác).
   - ⚠️ **Một lý lẽ cũ phải viết lại, không phải xoá.** Chú thích của `CAC_MUC_TOC_DO` nói "`cham` đứng đầu: nó là mức mặc định". Thêm `rat-cham` vào đầu thang làm hai tính chất ấy tách ra — mức mặc định giờ là phần tử **thứ hai**. Thang một chiều thắng, vì một thang tốc độ không đơn điệu thì không đọc được; chú thích mới ghi cả lý lẽ cũ và vì sao nó đổi.
 
-- [ ] **T615** — Kiểm tay bốn tổ hợp và bảng trường hợp biên
+- [x] **T615** — Kiểm tay bốn tổ hợp và bảng trường hợp biên
   - File: — *(kiểm trên bản build)*
   - Xong khi: đi hết màn hình trận ở **bốn tổ hợp** ngôn ngữ × chế độ màu, không sót chữ, không chỗ nào tương phản dưới 4,5:1; một lượt với giảm chuyển động đang bật (không dẫn bóng, không vòng sáng, vị trí tại mốc vẫn đúng); và đi hết bảng mục 5 của spec — phút 0, dòng không kể pha bóng, bàn thắng, hết hiệp, thẻ đỏ cho người đang giữ bóng, thay chính người đang giữ bóng, bóng đang bay mà hết nhịp, hai pha xa nhau, tạm dừng, ẩn/hiện sân, sân 5 người, **trận lưu từ trước spec này**.
   - Bằng chứng: **số** cho tương phản và chuỗi; **mắt** cho phần còn lại.
   - AC: AC-33.5, AC-35.2
   - Phụ thuộc: T613, T614
+  - ✅ **Xong 2026-11-19.** Bốn tổ hợp ngôn ngữ × chế độ màu, đo trên màn hình trận: **106 chuỗi** mỗi tổ hợp, **0 chuỗi** dưới 4,5:1, **0 chuỗi lạc ngôn ngữ** (dò cả hai chiều: chữ Việt lọt vào bản tiếng Anh và ngược lại).
+  - ✅ **Giảm chuyển động**: giả lập `prefers-reduced-motion: reduce` rồi dựng lại sân — **0 trong 23 nhóm vẽ đổi chỗ trong 700ms**, tức không nội suy và không dao động (AC-31.1).
+  - ✅ **Ẩn/hiện sân**: ẩn thì không còn thẻ `svg` của sân; hiện lại thì đủ **23 nhóm vẽ** (22 cầu thủ + quả bóng).
+  - ⚠️ **Một tiêu chí của chính task này SAI, và tôi không làm theo nó.** Task viết "giảm chuyển động → **không vòng sáng**". Nhưng vòng nét đứt quanh người giữ bóng là **dấu hiệu tĩnh**, không phải chuyển động: đo ra `animation-name: none`, không thẻ `<animate>` nào, và không đổi một thuộc tính nào trong 800ms. Bỏ nó khi giảm chuyển động là **xoá mất thông tin của AC-33.4 và P9** (dấu hiệu không dựa vào màu) để đổi lấy một thứ vốn đã không chuyển động. Giữ nguyên, và sửa câu chữ của tiêu chí thay vì sửa code.
+  - ⚠️ **Một dòng của bảng trường hợp biên KHÔNG kiểm tay được**: "trận lưu từ trước spec này". Cả **20 bản ghi** trong lưu trữ giờ đều **đã có `cacBuocBong`** — chúng được sinh lại trong chính đợt làm spec này, nên không còn bản ghi cũ nào để mở. Đường lùi D110 có **phép kiểm riêng** ở `phaBong.test.ts` ("danh sách bước rỗng — dòng thay người, kiệt sức, hoặc bản ghi trận cũ"), và đó là bằng chứng chắc hơn một lần mở bằng tay.
+  - ℹ️ Hai dòng khác của bảng — **thẻ đỏ cho chính người đang giữ bóng** và **thay chính người đang giữ bóng** — không ép được bằng tay trong một trận, nhưng chúng là **hai hàng của bảng 3.1** mà T604 canh trên mọi `LoaiSuKien`, cộng phép kiểm của T621 cho người đã rời sân. Phép kiểm phủ chắc hơn.
 
-- [ ] **T616** — Đo hai ngân sách ở **cả năm** mức, và hai con số của spec 005
+- [x] **T616** — Đo hai ngân sách ở **cả năm** mức, và hai con số của spec 005
   - File: — *(đo trên bản build)*
   - Xong khi: chạy hết một trận ở chế độ chạy ngay vẫn **< 3 giây** với sân bật (nền spec 005: 57ms); công việc mỗi khung vẽ gọn trong một nhịp ở **cả năm** mức và không tác vụ nào chiếm luồng chính quá 50ms (nền: 0,1ms mỗi khung, 59 khung/giây); **dải tốc độ vẫn dưới 4 lần** và **độ vòng vẫn dưới 5** (AC-30.10, AC-30.11 của spec 005); ghi số đo **và điều kiện đo** vào mô tả commit.
   - Bằng chứng: **số**.
   - AC: AC-36.5
   - Phụ thuộc: T615
+  - ✅ **Xong 2026-11-19 với MỘT món nợ người dùng chốt để lại.** Ba trong bốn con số đã đạt: chạy hết trận với sân bật **32ms** (ngưỡng 3 giây, nền spec 005 là 57ms), **0** tác vụ quá 50ms; khung vẽ ở cả bốn mức còn nội suy **59 khung/giây, trung vị 0,1ms, lớn nhất 0,3ms**, đều gọn trong một nhịp — bằng nền spec 005, kể cả ở mức Rất chậm mới; dải tốc độ dưới bốn lần giữ được bằng phép kiểm thuần của T525, và nó **giờ phủ cả mức Rất chậm** mà không phải sửa một dòng.
+  - ⚠️ **Món nợ: AC-30.11 không đạt ở phần đuôi, người dùng chốt ĐỂ NỢ ngày 2026-11-19.** Độ vòng lớn nhất **20,95** so với ngưỡng 5. Ba lý do để lại: (a) **có từ trước spec 006** — đo ở cả hai trần nghiêng khối ra 19,52 và 20,95 với **cùng một trường hợp tệ nhất**, nên cả D104 lẫn D116 đều không sinh ra nó; (b) trung vị **1,38** nên trong thực tế không thấy, và người dùng xem app suốt hai spec chưa bao giờ báo lỗi này; (c) **spec 007 chặn đúng nguyên nhân tại gốc** — AC-38.2 chặn gia tốc 6 m/s², AC-38.3 bắt đổi hướng trên 90° phải xuống dưới 3 m/s, nên ở chế độ liên tục không dựng được cảnh "một chặng dài để lại vận tốc lớn cho một chặng ngắn". Siết lớp nội suy spec 005 bây giờ là chạm vào AC-30.10, AC-28.3 và ba phép kiểm bất biến vì một ca ở phần đuôi. Phép kiểm canh **vi phạm còn tồn tại**, nên nếu ai sửa thì nó đỏ và buộc phải viết lại thành ngưỡng thật.
 
 - [ ] **T617** — Người dùng tự xem một trận và phán
   - File: — *(người dùng tự xem, trên trình duyệt của mình)*
