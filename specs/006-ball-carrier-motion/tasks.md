@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | 21 AC (US-33 → US-36), 11 quyết định D101–D111 |
-| **Tiến độ** | 3/19 |
+| **Tiến độ** | 6/19 |
 | **Sửa đổi** | 2026-11-19 — chẻ lần đầu từ plan |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -63,7 +63,7 @@ là một commit.
 
 ## Phase 48 — Lát 48: Nhìn ra ai đang giữ bóng
 
-- [ ] **T603** — `nguoiGiuBong`: quy tắc tất định theo từng loại sự kiện
+- [x] **T603** — `nguoiGiuBong`: quy tắc tất định theo từng loại sự kiện
   - File: sửa `src/ui/phaBong.ts`, sửa `src/ui/phaBong.test.ts`
   - Xong khi: hàm trả người giữ bóng theo **đúng bảng 3.1 của plan**, và phép kiểm phủ **từng** `LoaiSuKien` trong mười bốn loại — kể cả ba loại trả `null` (`bat-dau`, `het-hiep`, sau `ban-thang`) và hai loại lấy **phần tử thứ hai** (`cuu-thua` lấy thủ môn, `mat-bong` lấy người cướp được).
   - Xong khi (D112, phát hiện số 1 của `/analyze`): `nguoiNhanChuyen` trả **đồng đội đứng gần vùng đích của bước nhất**, trừ chính người vừa chuyền; hòa thì lấy `playerId` nhỏ hơn nên luật **tất định**; phép kiểm: gọi hai lần trên cùng một đầu vào ra cùng một người, và người ấy **luôn thuộc đội đang cầm bóng**.
@@ -72,7 +72,7 @@ là một commit.
   - AC: AC-33.5, AC-35.2
   - Phụ thuộc: T601
 
-- [ ] **T604** — Xương sống: quyền giữ bóng KHÔNG nhảy giữa hai nhịp
+- [x] **T604** — Xương sống: quyền giữ bóng KHÔNG nhảy giữa hai nhịp
   - File: sửa `src/ui/phaBong.test.ts`
   - Xong khi: chạy hết một trận trên 10 mã trận × 7 quân số, áp `nguoiGiuBong` cho từng dòng theo thứ tự; đếm số lần quyền giữ bóng đổi **mà dòng ấy không nêu ai mới** — phải là **0**; và mọi dòng `the-vang` / `the-do` / `thay-nguoi` / `kiet-suc` đều giữ nguyên người cũ.
   - Bằng chứng: **số**.
@@ -80,7 +80,7 @@ là một commit.
   - Phụ thuộc: T603
   - ⚠️ Đây là lưới của **R50**. Không nhét vào T603: một phép kiểm "hàm trả đúng giá trị" và một phép kiểm "chuỗi giá trị qua cả trận không giật" là hai điều khác nhau, và cái thứ hai mới là thứ người xem thấy.
 
-- [ ] **T605** — Bóng dính chân, và vòng nét đứt quanh người giữ bóng
+- [x] **T605** — Bóng dính chân, và vòng nét đứt quanh người giữ bóng
   - File: sửa `src/ui/components/San2D.tsx`, sửa `src/ui/ngonNgu/vi.ts`, sửa `src/ui/ngonNgu/en.ts`, sửa `src/ui/san2D.test.ts`
   - Xong khi: khi bóng không đang bay, nó cách tâm người giữ bóng **dưới một bán kính điểm**, đo trên 10 mã trận; vòng **nét đứt** quanh người ấy, bán kính lớn hơn viền "tham gia tình huống" nên không lẫn, tương phản với mặt cỏ **≥ 4,5:1** ở cả hai chế độ màu; chuỗi cho trình đọc màn hình đủ Việt–Anh (P8); ba phép kiểm bất biến vẫn xanh.
   - Xong khi (phát hiện số 2 của `/analyze`): ở nhịp **không có pha bóng nào** (`thay-nguoi`, `kiet-suc`, dòng có đường bóng rỗng), bóng **bám chân người giữ bóng kể cả lớp dao động** của anh ta — nếu không thì bóng đứng im cả nhịp, đúng nguồn của **3144ms** mà spec này sinh ra để chữa.
@@ -288,3 +288,94 @@ và bỏ đoạn cuối ra.
 - `tuongThichV5.test.ts` và `phatLai.test.ts` **xanh mà không sửa một dòng**;
   `PHIEN_BAN_ENGINE` 5; `DB_VERSION` 3; 1256 test xanh.
 
+## Phase 48 — ba thiếu sót của tài liệu, lộ ra khi đo
+
+**1. Bảng 3.1 của plan bỏ sót hai loại dòng.** Nó liệt mười bốn loại, và T603
+chép lại con số ấy ("mười bốn loại"). `LoaiSuKien` có **mười sáu**: thiếu
+`ket-thuc` và `huy-tran`. Cả hai là dòng mốc đóng trận, nên chúng theo đúng
+`het-hiep` — không ai giữ bóng nữa. Không phải một lựa chọn thiết kế mới: hàm
+`nguoiGiuBong` phải **toàn phần** với cả mười sáu, vì một `undefined` lọt ra khỏi
+nó sẽ thành một quả bóng không biết ở chân ai. Phép kiểm duyệt đủ mười sáu và
+chốt `size === 16` để thêm một loại nữa là đỏ ngay.
+
+**2. Sàn "1,80 bán kính" KHÔNG phải sàn toàn sân — bài học R45 lặp lại lần thứ ba.**
+T605 nói bán kính vòng "bị chặn dưới sàn đã đo 1,80 bán kính". Bản đầu của phép
+kiểm chốt đúng con số ấy và **đỏ**: đo ra **1,5468**. Lý do: 1,80 là sàn đo quanh
+**người ghi bàn** ở T514, không phải quanh mọi cặp điểm. Đo lại trên 5835 dòng
+(10 mã trận × 7 quân số):
+
+| Đo quanh ai | Sàn (bán kính) |
+|---|---|
+| Người ghi bàn (T514) | 1,80 |
+| **Người giữ bóng** | **1,5468** |
+| **Mọi cặp điểm** | **1,5468** |
+
+Hai dòng cuối bằng nhau tới 15 chủ số, tức **cặp chật nhất của cả sân luôn có
+người giữ bóng là một nửa**. Biên quanh anh ta vì thế bị ràng thật. May là biên
+ràng thật của vòng lại là biên khác: **dấu ▲** đặt ở `banKinh + 1,2`, nên vòng
+đứng ở **1,353 bán kính** — dưới cả 1,5468. `Math.min` trong
+`VONG_GIU_BONG_THEM` viết ra cả hai biên để đổi `BAN_KINH` không làm biên kìa
+lặng lẽ biến mất.
+
+**3. 2,82% số dòng có người giữ bóng không còn điểm nào trên sân** (148/5246).
+Anh ta nhận thẻ đỏ, hoặc bị thay ra ngay sau pha bóng của mính, mà quy tắc "dòng
+không nêu ai thì giữ nguyên người cũ" không biết điều ấy — nó đọc một dòng sự
+kiện, không đọc đội hình. Lớp vẽ gác bằng `cacDiem.find`: những phút ấy không vẽ
+vòng nào và bóng giữ đúng chỗ của dòng, tức xem như spec 005. Con số này được
+đếm trong phép kiểm với ngưỡng 5% — để bắt được việc nó vọt lên, chứ không
+để hợp lệ hoá nó.
+
+**4. Hai lỗi mà 1274 phép kiểm không thấy, chỉ số đo trên bản build bắt được.**
+
+*(a) "Nhịp không có pha bóng nào" chỉ là **3 trong 65 nhịp**.* Bản đầu của T605
+chỉ cho bóng bám chân ở đúng những nhịp ấy — đúng chữ của tiêu chí thứ hai, và đo
+ra quãng bóng đứng im **6064ms**, tức **tệ hơn** trước. Lý do: phần lớn thời gian
+bóng đứng yên không nằm ở những nhịp không có pha bóng, mà nằm ở **sau khi pha
+bóng đã xong** — một dòng được hiển thị lâu hơn một nhịp vì nhiều phút liền không
+có tình huống. Tiêu chí **thứ nhất** của T605 nói "**khi bóng không đang bay**", rộng
+hơn hẳn, nên luật bám chân được viết theo câu ấy: bắt đầu bám ở tỉ lệ nhịp `0`
+khi không có pha bóng, ở `1` khi pha bóng vừa xong.
+
+*(b) Bóng nhảy thẳng sang chân người giữ bóng MỚI trong đúng một khung.* React vẽ
+**trước** rồi mới chạy effect, nên ở khung đầu của một dòng mới thì `aiGiuBong` đã
+là người mới trong khi `batDau` và dòng thời gian vẫn là của nhịp cũ — tỉ lệ nhịp
+lúc ấy đã vượt 1 nên bóng bám **hết mức** vào người mới. Tệ hơn: effect ghi chính
+chỗ đã nhảy ấy làm điểm xuất phát của chặng mới, nên cú nhảy thành vĩnh viễn chứ
+không phải một khung nháy. Sửa: chặng của bóng nhớ **người giữ bóng mà nó được
+dựng cho** (`aiGiuBongVe`), đặt trong effect chứ không đọc thẳng `aiGiuBong`.
+
+Cả hai đều là lỗi của **lớp vẽ**, mà bộ kiểm chạy ở `environment: 'node'` không có
+đường nào render component — đúng chỗ mù đã làm spec 005 để lọt bốn lỗi tới mắt
+người dùng ở T518.
+
+**Một quyết định của lớp vẽ không có trong plan:** `PHAN_NHIP_BAM_CHAN` = **một phần
+tư nhịp**. Ở nhịp không có pha bóng nào, không đặt bóng **thẳng** vào chân người
+giữ bóng ngay khung đầu: chỗ bóng được thấy lần cuối là vùng pha bóng trước dừng,
+còn điểm của anh ta đã bị giãn ra khỏi vùng đó để hai điểm không chồng nhau — nhảy
+cái khoảng ấy trong một khung là **đúng cú teleport** người dùng gọi tên ở T518.
+Bóng về chân trong một phần tư nhịp, rồi ba phần tư còn lại đi theo chân — **kể cả
+lớp dao động**, vì nó lấy `viTriVe` chứ không lấy toạ độ mốc.
+
+**Số đo thật của lát 48** (bản dev, mức Chậm, một trận trọn vẹn, 6245 mẫu / 109 giây;
+rAF thay bằng `setTimeout`):
+
+| | Trước lát 48 | Sau lát 48 |
+|---|---|---|
+| Quãng bóng đứng im lâu nhất | **6064ms** | **1558ms** |
+| Tỉ lệ khung có bóng di chuyển | 60,5% | **84,3%** |
+
+Cột "trước" đo lại code của lát 47 **bằng đúng phương pháp này**, không lấy con số
+3504ms đã ghi ở lát 47: con số ấy đo trên một mẫu 19 giây, mà mẫu càng dài thì quãng
+đứng im dài nhất càng dễ lộ. **So hai con số đo bằng hai phương pháp là một cách tự
+khen thưởng.**
+
+Khoảng cách bóng ↔ người giữ bóng ở cuối mỗi nhịp: trung vị **1,31 bán kính**,
+32,4% số nhịp dưới một bán kính. **Chưa đạt** AC-33.1, và đúng kế hoạch: nhịp dài
+đúng một nhịp thì luật bám chân chưa kịp bắt đầu, và bóng dừng ở cuối pha trong khi
+người giữ bóng đứng cách đó đúng khoảng giãn của hai điểm. Đó là việc của **T606**
+(người giữ bóng đi theo đường của bóng rồi về mốc của mình) ở lát 49. Riêng nhịp
+không có pha bóng nào: **1,34 bán kính** (trước khi sửa lỗi (b): 9,28).
+
+1274 phép kiểm xanh; `tuongThichV5.test.ts`, `phatLai.test.ts`, describe "toạ độ tại
+mốc không bao giờ sai" và ba phép kiểm bất biến của `san2D.test.ts` đều xanh;
+`git diff src/engine/` **rỗng hoàn toàn** — lát này không chạm một file engine nào.

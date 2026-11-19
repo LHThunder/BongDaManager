@@ -1,4 +1,5 @@
 import type { LoaiHanhDong } from '../engine/chuoiBong'
+import type { LoaiSuKien } from '../engine/suKien'
 import type { Diem } from './noiSuy'
 
 /*
@@ -40,6 +41,135 @@ export interface BuocDaQuyDoi {
 
 function khoang(a: Diem, b: Diem): number {
   return Math.hypot(b.x - a.x, b.y - a.y)
+}
+
+// ---------------------------------------------------------------------------
+// Ai đang giữ bóng (spec 006, D103, bảng 3.1 của plan)
+// ---------------------------------------------------------------------------
+
+/**
+ * Những gì cần biết Ễ MỘT DÒNG để suy ra người giữ bóng.
+ *
+ * Cố tình **không** nhận cả `SuKien`: luật này chỉ đọc hai trường, và viết
+ * đúng hai trường ra đây là cách nói rằng nó không đọc gì khác — không tỉ số,
+ * không mẫu câu, không đường bóng.
+ */
+export interface DongGiuBong {
+  readonly loai: LoaiSuKien
+  readonly cacCauThu: readonly string[]
+}
+
+/**
+ * Người giữ bóng **sau** một dòng tường thuật (AC-33.5, D103).
+ *
+ * `nguoiThamGiaTinhHuong` ở `tran.ts` quy định thứ tự `cacCauThu`, nên bảng
+ * dưới đây **đọc được từ dự liệu đã có**, không đoán một ai:
+ *
+ * | Loại | Người giữ bóng |
+ * |---|---|
+ * | `co-hoi`, `thoat-xuong`, `tat-canh`, `pham-loi` | `cacCauThu[0]` — người kết thúc pha / người được hưởng |
+ * | `cuu-thua` | `cacCauThu[1]` — **thủ môn** đã cứu, không phải người sút |
+ * | `mat-bong`, `cuop-bong-cao` | `cacCauThu[1]` — **người cướp được**, thuộc đội kia |
+ * | `the-vang`, `the-do`, `thay-nguoi`, `kiet-suc` | **giữ nguyên người cũ** — không phải pha bóng |
+ * | `ban-thang`, `bat-dau`, `het-hiep`, `ket-thuc`, `huy-tran` | không ai |
+ *
+ * **Hai loại cuối bảng 3.1 của plan không nói tới**: `ket-thuc` và `huy-tran`.
+ * Chúng là dòng mốc đóng trận, không phải pha bóng, nên chúng theo đúng
+ * `het-hiep`: không ai giữ bóng nữa. Viết ra đây vì hàm này phải **toàn phần**
+ * — bỏ sót một loại là một `undefined` đi xa tới lớp vẽ.
+ *
+ * `truocDo` là người giữ bóng ở nhịp trước. Nó là tham số chứ không phải
+ * trạng thái trong module: hàm này thuần, và cả phép kiểm xương sống của R50
+ * dựa vào việc gọi nó tuần tự qua cả trận được.
+ */
+export function nguoiGiuBong(
+  dong: DongGiuBong | null,
+  truocDo: string | null,
+): string | null {
+  if (dong == null) return truocDo
+  const dau = dong.cacCauThu[0] ?? null
+  /*
+    Lùi về `cacCauThu[0]` rồi `truocDo` khi phần tử đúng chỉ số không có:
+    `nguoiTaiVung` trả `null` được khi đội kia không còn ai ở gần, và lúc ấy
+    thả quyền giữ bóng về `null` là cho quả bóng rời chân mọi người — đúng cú
+    giật mà R50 nói tới.
+  */
+  const thuHai = dong.cacCauThu[1] ?? dau ?? truocDo
+
+  switch (dong.loai) {
+    case 'co-hoi':
+    case 'thoat-xuong':
+    case 'tat-canh':
+    case 'pham-loi':
+      return dau ?? truocDo
+
+    case 'cuu-thua':
+    case 'mat-bong':
+    case 'cuop-bong-cao':
+      return thuHai
+
+    case 'the-vang':
+    case 'the-do':
+    case 'thay-nguoi':
+    case 'kiet-suc':
+      return truocDo
+
+    case 'ban-thang':
+    case 'bat-dau':
+    case 'het-hiep':
+    case 'ket-thuc':
+    case 'huy-tran':
+      return null
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Ai nhận một đường chuyền (spec 006, D112, mục 3.2 của plan)
+// ---------------------------------------------------------------------------
+
+/** Một người trên sân, đủ cho luật suy người nhận làm việc. */
+export interface NguoiTrenSan {
+  readonly playerId: string
+  readonly diem: Diem
+  /**
+   * Đồng đội của người đang giữ bóng?
+   *
+   * Lớp vẽ biết điều này — nó dụng từng điểm theo từng đội. Module này
+   * không biết, và cố tình không biết: nó không đọc trạng thái trận.
+   */
+  readonly laDongDoi: boolean
+}
+
+/**
+ * Người nhận một đường chuyền (AC-35.2, D112).
+ *
+ * **Đây là một SUY DIỄN, không phải sự thật của trận.** Engine chưa bao giờ
+ * tính ra người này: nó cho `cacCauThu` của cả dòng và loại của từng bước, chứ
+ * không nói bước thứ ba tới chân ai. Luật suy ở đây được phép tồn tại **chỉ
+ * trong lớp vẽ**: không được vào dòng tường thuật, không vào thống kê, không
+ * lưu xuống đĩa. Đổi lại, nó **không đổi một con số nào** của trận (P2).
+ *
+ * Tất định tuyệt đối: gần nhất tới `dichDen`, hòa thì lấy `playerId` nhỏ hơn
+ * theo thứ tự chuỗi. Không đọc thứ tự mảng đầu vào, nên đảo `cacNguoi` vẫn ra
+ * cùng một người (P1).
+ */
+export function nguoiNhanChuyen(
+  dichDen: Diem,
+  cacNguoi: readonly NguoiTrenSan[],
+  nguoiChuyen: string | null,
+): string | null {
+  let chon: NguoiTrenSan | null = null
+  let gan = Infinity
+  for (const n of cacNguoi) {
+    if (!n.laDongDoi) continue
+    if (n.playerId === nguoiChuyen) continue
+    const d = khoang(dichDen, n.diem)
+    if (d < gan || (d === gan && chon != null && n.playerId < chon.playerId)) {
+      chon = n
+      gan = d
+    }
+  }
+  return chon?.playerId ?? null
 }
 
 /**

@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest'
+import cssGoc from '../index.css?raw'
+import { tiLeTuongPhan, TUONG_PHAN_TOI_THIEU } from '../domain/colors'
 import { soDoTheoQuanSo } from '../domain/formations'
 import {
   benMauQuanSo,
@@ -30,9 +32,11 @@ import {
   RONG,
   thoiGianChuyen,
   toaDo,
+  VONG_GIU_BONG_THEM,
   vungTrenSan,
   type DiemCauThu,
 } from './components/San2D'
+import { nguoiGiuBong } from './phaBong'
 
 /*
   Hình học của sân 2D ở mọi quân số (AC-15.1, AC-15.2, AC-15.6).
@@ -58,11 +62,16 @@ function tranMau(n: number, ma = MA_TRAN_CO_DINH[0]): TrangThaiTran {
   )
 }
 
-function veTu(tt: TrangThaiTran, suKien: SuKien | null = null) {
+function veTu(
+  tt: TrangThaiTran,
+  suKien: SuKien | null = null,
+  nguoiGiuBongHienTai: string | null = null,
+) {
   return hinhSan({
     nha: { ben: tt.ben.nha, ten: 'Đội A', mauAo: '#dc2626' },
     khach: { ben: tt.ben.khach, ten: 'Đội B', mauAo: '#2563eb' },
     suKien,
+    nguoiGiuBong: nguoiGiuBongHienTai,
     tenCauThu: (id) => id,
     soAo: () => 9,
     nhanViTri: (v) => v,
@@ -349,6 +358,139 @@ describe('quả bóng luôn có mặt (AC-32.1 → AC-32.3, T513)', () => {
 
   it('trước giờ bóng lăn, chưa có dòng nào: cũng không nói gì', () => {
     expect(veTu(tt, null).bongTaiMoc).toBeNull()
+  })
+})
+
+describe('vòng nét đứt quanh người giữ bóng (AC-33.1, AC-33.4, T605)', () => {
+  /*
+    **Một vòng quanh điểm cũng là phì to dấu chân của nó.** Spec 005 mắc đúng
+    lỗi "phì to một điểm mà không đặt biên" **hai lần** ở R45, cả hai lần đều vì
+    suy biên từ cấu trúc thay vì đo. Nên chỗ này là phép kiểm "điểm không
+    chồng khít" của AC-15.2 chạy **LẠI ở trạng thái đang có vòng**, và người giữ
+    bóng được suy bằng đúng phép gấp mà lớp vẽ dùng.
+  */
+  it('bán kính vòng không trùm tâm ai, trên 10 mã trận × 7 quân số', () => {
+    let soVong = 0
+    let chatNhat = Infinity
+    let khongCoDiem = 0
+    let soDongCoNguoiGiu = 0
+
+    for (const ma of MA_TRAN_CO_DINH) {
+      for (const n of QUAN_SO_CHAY_DUOC) {
+        const tt = chayHetTran(tranMau(n, ma))
+        let giu: string | null = null
+        for (const sk of dongSuKien(tt)) {
+          giu = nguoiGiuBong(sk, giu)
+          if (giu == null) continue
+          soDongCoNguoiGiu += 1
+
+          const { cacDiem, khung, banKinh } = veTu(tt, sk, giu)
+          const nguoi = cacDiem.find((d) => d.playerId === giu)
+          if (nguoi == null) {
+            /*
+              Người giữ bóng có thể **không còn điểm nào trên sân**: thẻ đỏ,
+              hay bị thay ra ngay sau pha bóng của anh ta. Lúc ấy lớp vẽ không
+              vẽ vòng nào và bóng giữ đúng chỗ của dòng — đếm để biết nó
+              xảy ra bao nhiêu, chứ không để nó thành một `undefined` đi xa.
+            */
+            khongCoDiem += 1
+            continue
+          }
+          soVong += 1
+
+          const tiLe = khung.rong / RONG
+          const banKinhVong = banKinh + VONG_GIU_BONG_THEM * tiLe
+          for (const d of cacDiem) {
+            if (d.playerId === giu) continue
+            const khoang = Math.hypot(d.x - nguoi.x, d.y - nguoi.y)
+            chatNhat = Math.min(chatNhat, khoang / banKinh)
+            expect(
+              khoang,
+              `${ma} quân số ${n} phút ${sk.phut}: ${giu} ↔ ${d.playerId} cách ${khoang.toFixed(2)}, bán kính vòng ${banKinhVong.toFixed(2)}`,
+            ).toBeGreaterThanOrEqual(banKinhVong)
+          }
+        }
+      }
+    }
+
+    // Lượng mẫu phải đủ dày để câu "trên 10 mã trận" có nghĩa.
+    expect(soVong, 'số vòng đã đo').toBeGreaterThan(1000)
+    /*
+      Sàn đo được quanh người giữ bóng là **1,5468 bán kính**, không phải 1,80
+      như bản đầu của phép kiểm này viết — 1,80 là sàn quanh **người ghi bàn**,
+      đo ở T514, và lấy nó làm sàn toàn sân là sai. Đo lại trên 5835 dòng: sàn
+      của **mọi cặp điểm** cũng đúng 1,5468 — tức cặp chật nhất của cả sân luôn
+      có người giữ bóng là một nửa, nên biên quanh anh ta bị ràng thật.
+
+      Vòng đứng ở `1 + 1,2/3,4` = 1,353 bán kính, dưới sàn ấy một khoảng dự.
+    */
+    expect(chatNhat, 'cặp chật nhất, theo bán kính').toBeGreaterThanOrEqual(1.54)
+    /*
+      **2,82% dòng có người giữ bóng không còn điểm nào trên sân** (148/5246):
+      anh ta nhận thẻ đỏ, hoặc bị thay ra sau pha bóng của mính. Đó là lý do
+      lớp vẽ gác bằng `cacDiem.find`: những phút ấy không vẽ vòng nào và bóng
+      giữ đúng chỗ của dòng, tức xem như spec 005. Ngưỡng đặt ở 5% để bắt
+      được việc con số này vọt lên, chứ không để hợp lệ hoá nó.
+    */
+    expect(
+      khongCoDiem / soDongCoNguoiGiu,
+      `người giữ bóng không còn điểm trên sân: ${khongCoDiem}/${soDongCoNguoiGiu}`,
+    ).toBeLessThan(0.05)
+  })
+
+  it('vòng rộng hơn viền "tham gia tình huống" nhưng không đụng dấu ▲', () => {
+    /*
+      Ba dấu đứng chồng nhau quanh một điểm, và **phải đọc ra được riêng rẽ**:
+      viền liền dày 1,4 nằm ngay trên bán kính điểm, vòng nét đứt ở ngoài, dấu ▲
+      ở `banKinh + 1,2`. Vòng phải nằm **giữa** hai thứ đó.
+    */
+    expect(VONG_GIU_BONG_THEM).toBeGreaterThan(1.4 / 2)
+    expect(VONG_GIU_BONG_THEM).toBeLessThanOrEqual(1.2)
+  })
+
+  it('màu vòng đạt 4,5:1 trên mặt cỏ, ở cả hai chế độ màu (P9)', () => {
+    /*
+      Đọc THẮNG `src/index.css` chứ không chép màu vào đây, đúng cách
+      `theme.test.ts` làm: chép lại thì sửa màu một chỗ mà phép kiểm vẫn xanh.
+      Bảng mặt cỏ giống nhau ở cả hai chế độ — sân vẫn xanh trong một căn
+      phòng tối — nên đo một lần là đo cả hai.
+    */
+    const doc = (ten: string) => {
+      const m = new RegExp(`--${ten}:\\s*([^;]+);`).exec(cssGoc)
+      expect(m, `thiếu --${ten}`).not.toBeNull()
+      return (m as RegExpExecArray)[1].trim()
+    }
+    for (const nen of ['co-nen', 'co-nen-dam']) {
+      expect(
+        tiLeTuongPhan(doc('co-chu'), doc(nen)),
+        `vòng giữ bóng trên --${nen}`,
+      ).toBeGreaterThanOrEqual(TUONG_PHAN_TOI_THIEU)
+    }
+    expect(cssGoc).not.toMatch(/data-che-do='toi'[\s\S]*?--co-nen-dam/)
+  })
+
+  it('mô tả điểm nói ra ai đang giữ bóng — kênh đọc, không chỉ kênh nhìn (P8, P9)', () => {
+    /*
+      `hinhSan` nhận `moTaDiem` bằng tham số (D68), nên chỗ này dựng một hàm
+      mô tả giả để chứng minh cờ `giuBong` **đến được** tới nó — chuỗi thật
+      của hai ngôn ngự nằm ở `vi.ts` và `en.ts`, và phép kiểm hình dạng của
+      `BanDich` giữ cho chúng không lệch nhau.
+    */
+    const tt = chayHetTran(tranMau(11, MA_TRAN_CO_DINH[0]))
+    const sk = dongSuKien(tt).find((x) => x.cacCauThu.length > 0) as SuKien
+    const ai = sk.cacCauThu[0] as string
+    const h = hinhSan({
+      nha: { ben: tt.ben.nha, ten: 'A', mauAo: '#dc2626' },
+      khach: { ben: tt.ben.khach, ten: 'B', mauAo: '#2563eb' },
+      suKien: sk,
+      nguoiGiuBong: ai,
+      tenCauThu: (id) => id,
+      soAo: () => 9,
+      nhanViTri: (v) => v,
+      moTaDiem: (_t, _s, _v, _d, _tg, giuBong) => (giuBong ? 'GIỮ' : ''),
+    })
+    const coGiu = h.cacDiem.filter((d) => d.moTa === 'GIỮ')
+    expect(coGiu.map((d) => d.playerId)).toEqual([ai])
   })
 })
 

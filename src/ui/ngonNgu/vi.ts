@@ -1118,12 +1118,20 @@ export const SAN_2D_VI = {
     viTri: string,
     tenDoi: string,
     thamGia: boolean,
+    giuBong: boolean,
   ) => {
     const phan = [ten]
     if (soAo !== null) phan.push(`số áo ${soAo}`)
     if (viTri) phan.push(viTri)
     phan.push(tenDoi)
     if (thamGia) phan.push('đang tham gia tình huống')
+    /*
+      Vòng nét đứt quanh điểm là một kênh **nhìn**; câu này là kênh **đọc** của
+      cùng một tin (P9, AC-33.4). Hai kênh phải nói cùng một điều, nên nó đứng
+      sau "đang tham gia tình huống" — người giữ bóng gần như luôn là một
+      người đang tham gia, và thứ tự ấy đọc ra đúng trật tự của hai dấu.
+    */
+    if (giuBong) phan.push('đang giữ bóng')
     return phan.join(', ')
   },
   /** Dấu chữ cho người đang tham gia — không chỉ dựa vào màu (P9, D42). */
