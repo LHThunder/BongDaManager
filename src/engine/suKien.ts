@@ -1,4 +1,17 @@
+import type { LoaiHanhDong } from './chuoiBong'
 import type { VungSan } from './vung'
+
+/**
+ * Một bước của pha bóng: bóng ở vùng nào, và bước ấy là gì (spec 006).
+ *
+ * `loai` là `null` ở **phần tử cuối** khi đó là vùng kết thúc được nối thêm chứ
+ * không phải một hành động: chuỗi mất bóng, phạm lỗi hay bóng ra ngoài **return
+ * trước khi push** hành động cuối, nên vùng cuối cùng không có hành động nào.
+ */
+export interface BuocBong {
+  readonly vung: VungSan
+  readonly loai: LoaiHanhDong | null
+}
 
 /*
   Sự kiện trận đấu, và bước chọn mật độ 60–100 dòng (AC-8.15, quyết định D27).
@@ -63,6 +76,23 @@ export interface SuKien {
    * đúng từng phần tử. Rỗng với các sự kiện mốc.
    */
   readonly duongBong: readonly VungSan[]
+  /**
+   * Từng bước của pha bóng, **kèm loại của bước ấy** (spec 006, D101).
+   *
+   * `duongBong` chỉ nói bóng đi qua những vùng nào; trường này nói thêm **mỗi bước
+   * ấy là gì** — một đường chuyền, một pha rê bóng, một quả tạt hay một cú sút.
+   * `chayChuoiBong` **đã quyết điều ấy từ spec 001**; trước spec 006 thì `SuKien` vứt
+   * nó đi, nên giao diện biết bóng đi A→B→C mà không biết bước nào là gì.
+   *
+   * **Dẫn xuất thuần, không rút thêm số nào** — cùng một phép `map` với `duongBong`,
+   * nên nó không làm lệch dãy số của P1 và `PHIEN_BAN_ENGINE` giữ nguyên 5.
+   *
+   * **Tuỳ chọn, và đó là một quyết định chứ không phải lười** (D101): bản ghi
+   * trận đã lưu trước spec 006 **thiếu** trường này, nên kiểu phải nói thật điều
+   * ấy để lớp vẽ **buộc phải gác**. `undefined` nghĩa là "bản ghi cũ, không biết";
+   * mảng rỗng nghĩa là "dòng này không có pha bóng nào" — hai thứ khác nhau.
+   */
+  readonly cacBuocBong?: readonly BuocBong[]
   /** Chỉ số mẫu câu, engine chọn bằng Rng của trận (D22). */
   readonly mauCau: number
   readonly tiSoSauDo: TiSo

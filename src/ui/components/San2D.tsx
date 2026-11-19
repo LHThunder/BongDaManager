@@ -8,6 +8,12 @@ import { latVung, vungCuaViTri, type VungSan } from '../../engine/vung'
 import { useChuoi } from '../../hooks/useNgonNgu'
 import { bienDoTuKhoangGian, lechDaoDong } from '../daoDong'
 import {
+  dongThoiGianPhaBong,
+  viTriBongTrongPha,
+  type BuocDaQuyDoi,
+  type DoanPhaBong,
+} from '../phaBong'
+import {
   doMetTuTheLuc,
   huongRaKhoiMoc,
   QUANG_CHUAN,
@@ -470,6 +476,13 @@ export interface HinhSan {
   readonly cacDiem: readonly DiemCauThu[]
   readonly duongBong: readonly { readonly x: number; readonly y: number }[]
   /**
+   * Từng bước của pha bóng, đã quy về toạ độ, **kèm loại** (spec 006, T602).
+   *
+   * Rỗng nghĩa là nhịp này không có pha bóng nào — hoặc vì dòng không kể pha
+   * bóng, hoặc vì đây là **bản ghi trận cũ** thiếu dữ liệu loại bước (D110).
+   */
+  readonly cacBuocBong: readonly BuocDaQuyDoi[]
+  /**
    * Chỗ của quả bóng mà **dòng này** nói ra, hay `null` khi nó không nói gì (T513).
    *
    * `null` **không** có nghĩa là "không có bóng": nó có nghĩa là "dòng này không
@@ -630,6 +643,18 @@ export function hinhSan({
     toaDo(vungTrenSan(v, suKien?.doi ?? 'nha'), 0, khung),
   )
 
+  /*
+    Từng bước kèm loại, dùng **bảng trung lập** như đường bóng: một chỗ trên
+    sân không thuộc đội nào. Thiếu `cacBuocBong` — bản ghi trận cũ — thì để rỗng,
+    và lớp vẽ rơi về cách của spec 005 (D110).
+  */
+  const cacBuocBong: readonly BuocDaQuyDoi[] = (suKien?.cacBuocBong ?? []).map(
+    (b) => ({
+      diem: toaDo(vungTrenSan(b.vung, suKien?.doi ?? 'nha'), 0, khung),
+      loai: b.loai,
+    }),
+  )
+
   const cuoiDuongBong = duongBong[duongBong.length - 1]
   /*
     Điểm giao bóng là giữa khung ảnh, không phải giữa khung sân — hai thứ này
@@ -647,6 +672,7 @@ export function hinhSan({
     banKinh: BAN_KINH * tiLe,
     cacDiem,
     duongBong,
+    cacBuocBong,
     bongTaiMoc,
   }
 }
@@ -827,7 +853,8 @@ export function San2D(props: Props) {
   const { SAN_2D } = useChuoi()
   const { nha, khach, suKien, msMoiPhut, phutDongHo, dangChay } = props
   const msChuyen = thoiGianChuyen(msMoiPhut)
-  const { khung, banKinh, cacDiem, duongBong, bongTaiMoc } = hinhSan(props)
+  const { khung, banKinh, cacDiem, duongBong, cacBuocBong, bongTaiMoc } =
+    hinhSan(props)
   const tiLe = tiLeKhung(khung)
 
   const leX = (RONG - khung.rong) / 2
@@ -875,10 +902,7 @@ export function San2D(props: Props) {
    * Bóng đi nhanh gấp ba người (T505) nhưng nay đi **hết đường**, nên thời
    * lượng phụ thuộc số đoạn chứ không còn là một hằng số.
    */
-  const bongDang = useRef<{
-    readonly duong: readonly Diem[]
-    readonly thoiLuong: number
-  } | null>(null)
+  const bongDang = useRef<readonly DoanPhaBong[] | null>(null)
   /**
    * Chỗ bóng được thấy lần cuối (T513).
    *
@@ -964,33 +988,37 @@ export function San2D(props: Props) {
       Chỉ khác ở **thời lượng** — bóng xong trong một phần ba — và ở **hình
       đường đi**: thẳng, không cong.
     */
-    const cuBong = bongDang.current
-    const choBongBatDau =
-      cuBong && cuBong.thoiLuong > 0
-        ? diemTrenDuong(
-            cuBong.duong,
-            (bayGio - batDau.current) / cuBong.thoiLuong,
-          )
-        : { x: bong.x, y: bong.y }
     /*
-      Đường mới nối từ **chỗ bóng đang đứng** chứ không từ điểm đầu của pha
-      bóng: hai pha liên tiếp không phải lúc nào cũng nối đuôi nhau, và bắt
-      bóng nhảy về điểm đầu là một cú giật.
+      DÒNG THờI GIAN CỦA PHA BÓNG (T602, spec 006).
+
+      Trước đây lớp vẽ tự dựng một đường gấp khúc rồi cho bóng đi đều trên đó:
+      mọi bước giống nhau, nên một đường chuyền và một pha rê bóng trông y hệt.
+      Nay `phaBong.ts` dựng từng **đoạn** kèm loại, và loại quyết tốc độ: bóng rời
+      chân thì bay, bóng trong chân thì chạy cùng người.
     */
-    const duongMoi: readonly Diem[] =
-      duongBong.length > 0
-        ? [choBongBatDau, ...duongBong]
-        : [choBongBatDau, { x: bong.x, y: bong.y }]
-    const soDoan = Math.max(1, duongMoi.length - 1)
-    bongDang.current = {
-      duong: duongMoi,
+    const cuBong = bongDang.current
+    const choBongBatDau = cuBong
+      ? viTriBongTrongPha(cuBong, (bayGio - batDau.current) / msMoiPhut)
+      : { x: bong.x, y: bong.y }
+
+    bongDang.current = dongThoiGianPhaBong({
+      batDau: choBongBatDau,
       /*
-        Mỗi đoạn vẫn tốn `msChuyen / 3` như T505, nhưng cả pha không được dài
-        hơn một nhịp — pha nào nhiều đoạn quá thì bóng đi nhanh hơn, chứ
-        không được còn bay dở khi tình huống sau tới (AC-29.3).
+        BẢN GHI TRẬN CŨ (D110): thiếu `cacBuocBong` thì dựng tạm từ `duongBong`
+        với loại `chuyen` — tức **đúng cách vẽ của spec 005**: bóng đi hết đường
+        của nó ở tốc độ bóng. Không đoán bước nào là rê bóng: trận cũ xem ra
+        như bây giờ, không hơn không kém.
       */
-      thoiLuong: Math.min(msChuyen, (msChuyen / BONG_NHANH_GAP) * soDoan),
-    }
+      cacBuoc:
+        cacBuocBong.length > 0
+          ? cacBuocBong
+          : duongBong.length > 0
+            ? duongBong.map((d) => ({ diem: d, loai: 'chuyen' as const }))
+            : [],
+      msNhip: msMoiPhut,
+      msNguoi: msChuyen,
+      nhanhGap: BONG_NHANH_GAP,
+    })
     bongMocCuoi.current = { x: bong.x, y: bong.y }
 
     dang.current = moi
@@ -1056,12 +1084,13 @@ export function San2D(props: Props) {
    */
   function viTriBongVe(): Diem {
     if (giamChuyenDong) return { x: bong.x, y: bong.y }
-    const tt = bongDang.current
-    if (!tt) return { x: bong.x, y: bong.y }
-    if (!(tt.thoiLuong > 0)) return { x: bong.x, y: bong.y }
-    return diemTrenDuong(
-      tt.duong,
-      (performance.now() - batDau.current) / tt.thoiLuong,
+    const cacDoan = bongDang.current
+    if (cacDoan == null || cacDoan.length === 0) {
+      return { x: bong.x, y: bong.y }
+    }
+    return viTriBongTrongPha(
+      cacDoan,
+      (performance.now() - batDau.current) / msMoiPhut,
     )
   }
 

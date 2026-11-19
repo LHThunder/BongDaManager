@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | 21 AC (US-33 → US-36), 11 quyết định D101–D111 |
-| **Tiến độ** | 0/19 |
+| **Tiến độ** | 3/19 |
 | **Sửa đổi** | 2026-11-19 — chẻ lần đầu từ plan |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -35,23 +35,23 @@ là một commit.
 
 ## Phase 47 — Lát 47: Bóng biết mình đang là gì
 
-- [ ] **T600** — `cacBuocBong` đi từ engine ra ngoài
+- [x] **T600** — `cacBuocBong` đi từ engine ra ngoài
   - File: sửa `src/engine/suKien.ts`, sửa `src/engine/tran.ts`, sửa `src/engine/suKien.test.ts`
   - Xong khi: `SuKien` có trường **tuỳ chọn** `cacBuocBong?: readonly { vung: VungSan; loai: LoaiHanhDong | null }[]`; `duongBongCuaChuoi` trả cả loại trong **cùng một phép map**; phép kiểm mới chứng minh `cacBuocBong.map(b => b.vung)` khớp `duongBong` **từng phần tử** trên 10 mã trận × 7 quân số, và phần tử cuối có `loai` là `null` đúng khi nó là `vungKetThuc` được nối thêm.
-  - Xong khi (R46, bắt buộc kiểm bằng mắt): `tuongThichV5.test.ts` và `phatLai.test.ts` **xanh mà không sửa một dòng**; `PHIEN_BAN_ENGINE` vẫn 5; `DB_VERSION` vẫn 3; `git diff src/engine/` **không chứa chữ `rng`**.
+  - Xong khi (R46, bắt buộc kiểm bằng mắt): `tuongThichV5.test.ts` và `phatLai.test.ts` **xanh mà không sửa một dòng**; `PHIEN_BAN_ENGINE` vẫn 5; `DB_VERSION` vẫn 3; `git diff -U0 -- src/engine/ ':!*.test.ts'` **không chứa chữ `rng`** — xem ghi chú Phase 47 về lý do phải có `-U0`.
   - Bằng chứng: **số**.
   - AC: AC-34.4
   - Phụ thuộc: —
   - ⚠️ **Tuỳ chọn chứ không bắt buộc**, và đó là một quyết định chứ không phải lười: bản ghi trận cũ trong IndexedDB **thiếu** trường này, nên kiểu phải nói thật điều đó để giao diện buộc phải gác (D110). Phụ phẩm: `suKien.test.ts` và `tuongThuat.test.ts` — ba chỗ dựng `SuKien` bằng tay — **không cần sửa**; nếu chúng đỏ thì nghĩa là trường đã bị khai bắt buộc.
 
-- [ ] **T601** — Module thuần `phaBong.ts`: dòng thời gian của một pha bóng
+- [x] **T601** — Module thuần `phaBong.ts`: dòng thời gian của một pha bóng
   - File: tạo `src/ui/phaBong.ts`, tạo `src/ui/phaBong.test.ts`
   - Xong khi: `dongThoiGianPhaBong` nhận (sự kiện, toạ độ các vùng, nhịp) và trả danh sách **đoạn** `{ tu, den, loai, tiLeBatDau, tiLeKetThuc }`; tổng thời lượng **không vượt một nhịp** kể cả pha 12 bước (`SO_BUOC_TOI_DA`); thiếu `cacBuocBong` → trả **đúng một đoạn** bằng cách vẽ của spec 005 (D110); hàm thuần — thay `Math.random` và `Date.now` thành hàm ném lỗi rồi gọi vẫn chạy.
   - Bằng chứng: **số**.
   - AC: AC-34.3
   - Phụ thuộc: T600
 
-- [ ] **T602** — Lớp vẽ dùng dòng thời gian: chuyền và sút vụt đi, rê bóng thì không
+- [x] **T602** — Lớp vẽ dùng dòng thời gian: chuyền và sút vụt đi, rê bóng thì không
   - File: sửa `src/ui/components/San2D.tsx`, sửa `src/ui/san2D.test.ts`, sửa `src/ui/phaBong.test.ts`
   - Xong khi: đoạn `chuyen` / `tat-canh` / `sut` dùng thời lượng `msChuyen / BONG_NHANH_GAP` như D95; đoạn `re-bong` dùng thời lượng **của người**; cú sút kết thúc ở vùng dứt điểm của dòng; ba phép kiểm bất biến vẫn xanh.
   - Xong khi (hiến pháp P5, phát hiện số 5 của `/analyze`): **phép kiểm thuần** cho `thoiLuongDoan` — cùng một quãng đường thì đoạn `chuyen`/`sut` nhanh hơn đoạn `re-bong` **ít nhất ba lần**, ở **cả năm mức tốc độ**. AC-35.1 và AC-35.4 là AC dạng so sánh nên **không được chỉ đo trên bản build**; con số đo trên build là bằng chứng thứ hai, không phải thứ nhất.
@@ -253,3 +253,38 @@ là một commit.
 - **Không tạo file nào ngoài danh sách trên.** Phát sinh thêm → dừng, cập nhật
   `plan.md` / `tasks.md` trước. Hai file mới duy nhất của spec này là
   `src/ui/phaBong.ts` và `src/ui/phaBong.test.ts`.
+
+## Phase 47 — ba thứ chỉ biết được khi làm thật
+
+**1. Tiêu chí "diff không chứa chữ `rng`" sai hai lần trước khi đúng.** `/analyze` đã
+bắt lần thứ nhất (phát hiện LOW số 9): diff tính cả `src/engine/*.test.ts`, mà file
+test chứa chữ ấy một cách chính đáng. Lần thứ hai lộ ra khi chạy thật: `git diff`
+mặc định in **ba dòng ngữ cảnh** quanh mỗi thay đổi, và một trong những dòng ấy là
+`Math.floor(rng.next() * 1000)` — dòng **không hề đổi**. Tiêu chí đúng phải là
+`git diff -U0`, tức **chỉ dòng đã đổi**. Chạy lại: **0 dòng**.
+
+**2. Tốc độ của một đường chuyền phải đo theo NGƯỜI, không theo đồng hồ.** Bản
+đầu của `thoiLuongDoan` cho đoạn chuyền tốn `nhịp / 3`. Nhưng người không đi hết
+một nhịp — từ T525 thời lượng của anh ta tỉ lệ với quãng đường và thể lực — nên
+tỉ lệ thật ra chỉ **2,7 lần**, dưới ngưỡng ba lần của AC-35.1. Sửa: chuyền tốn
+`thời lượng của người / 3`. Câu "bóng nhanh gấp ba **người**" phải đo bằng người.
+
+**3. Phép kiểm so hai dòng thời gian khác nhau là phép kiểm sai.** Bản đầu của phép
+kiểm P5 dựng **hai** pha bóng — một rê, một chuyền — rồi so đoạn đầu của hai bên.
+Nó đỏ với tỉ lệ **1**, và đỏ đúng: một pha một đoạn thì đoạn ấy **là đoạn cuối**,
+mà đoạn cuối luôn được kéo tới hết nhịp để bóng không biến mất khỏi dòng thời
+gian. Và pha dài hơn một nhịp còn bị co đều, nên tỉ lệ giữa **hai dòng** không nói
+lên điều gì. Phép kiểm đúng so **hai đoạn trong cùng một dòng**, cùng quãng đường,
+và bỏ đoạn cuối ra.
+
+**Số đo thật của lát 47** (bản dev, mức Chậm, rAF thay bằng `setTimeout`, 1182 mẫu):
+- **Tốc độ của bóng giờ có dải**: phân vị 10 là **39,1** đơn vị/giây, phân vị 90 là
+  **436,9** — tỉ lệ **11,2 lần**. Trước lát này mọi đoạn của bóng dùng chung một luật
+  thời lượng, nên một đường chuyền và một pha rê bóng trông y hệt nhau.
+- **29 khúc cua** của quả bóng (trước: 17) — nhiều bước của pha bóng được đi qua hơn.
+- Bóng di chuyển ở **42,9%** số khung (trước: 35,5%).
+- **Quãng đứng im lâu nhất vẫn 3504ms** — **chưa sửa, và đúng kế hoạch**: nó là việc
+  của T605 (bóng bám chân người giữ bóng) và T608 ở lát 48–49.
+- `tuongThichV5.test.ts` và `phatLai.test.ts` **xanh mà không sửa một dòng**;
+  `PHIEN_BAN_ENGINE` 5; `DB_VERSION` 3; 1256 test xanh.
+
