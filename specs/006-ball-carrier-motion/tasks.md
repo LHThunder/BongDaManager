@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | 21 AC (US-33 → US-36), 16 quyết định D101–D116 |
-| **Tiến độ** | 17/25 |
+| **Tiến độ** | 17/23 — T609 và T610 **bị bỏ** ngày 2026-11-19, xem Phase 50 |
 | **Sửa đổi** | 2026-11-19 — chẻ lần đầu từ plan |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -166,16 +166,33 @@ là một commit.
 
 ---
 
-## Phase 50 — Lát 50: Qua người
+## Phase 50 — Lát 50: Qua người — ⚠️ **BỊ BỎ ngày 2026-11-19**
 
-- [ ] **T609** — `lechTranhNguoi`: hàm thuần, có biên
+> **Người dùng chốt bỏ cả hai task của lát này** ở `/clarify` của spec 007 (câu 6 của
+> nhật ký làm rõ, `specs/007-continuous-match-engine/spec.md`).
+>
+> **Lý do:** "đi vòng qua đối thủ" ở đây được dựng bằng cách **lách điểm ở tầng giao
+> diện** — một phép lệch vuông góc áp lên đường rê bóng. Engine liên tục của spec 007 có
+> **toạ độ mét thật** và cơ học chuyển động, nên ở đó việc đi vòng qua một người là **hệ
+> quả tự nhiên** của mô hình, không phải một phép lệch bù vào sau. Làm T609 và T610 bây
+> giờ là làm một việc biết trước là sẽ xoá.
+>
+> **Hệ quả phải nói rõ: AC-34.2 của spec 006 ĐÓNG MÀ CHƯA LÀM.** Nó được **hoãn sang
+> spec 007**, không phải xong. Phần "hai điểm không được chồng khít" của AC-34.2 thì vẫn
+> đang được giữ, vì nó chính là AC-30.5 của spec 005 và AC-15.2 của spec 002 — ba phép
+> kiểm bất biến vẫn canh điều đó ở mọi lát.
+>
+> T611 có ghi `Phụ thuộc: T610`, nhưng Phase 51 đã **làm xong trước** Phase 50 nên phụ
+> thuộc ấy chưa bao giờ chặn gì; bỏ Phase 50 không làm lệch lát nào đã đóng.
+
+- [~] **T609** — ~~`lechTranhNguoi`: hàm thuần, có biên~~ — **BỎ** (xem đầu Phase 50)
   - File: sửa `src/ui/phaBong.ts`, sửa `src/ui/phaBong.test.ts`
   - Xong khi: nếu một điểm đối phương nằm trong hành lang quanh đoạn đang rê thì trả một lệch **vuông góc** với đoạn ấy, độ lớn bị chặn ở **một nửa khoảng cách hai hàng**; không ai cản thì trả `{0,0}`; đầu vào vô lý (`NaN`, đoạn dài 0, hai điểm trùng) không ném và không trả `NaN`.
   - Bằng chứng: **số**.
   - AC: AC-34.2
   - Phụ thuộc: T601
 
-- [ ] **T610** — Áp vào lớp vẽ: người dẫn bóng đi vòng, không đi xuyên
+- [~] **T610** — ~~Áp vào lớp vẽ: người dẫn bóng đi vòng, không đi xuyên~~ — **BỎ** (xem đầu Phase 50)
   - File: sửa `src/ui/components/San2D.tsx`, sửa `src/ui/san2D.test.ts`
   - Xong khi: đo trên bản build một trận trọn vẹn — trong các đoạn rê bóng, **không lượt cặp nào** (người dẫn bóng ↔ một đối thủ) nằm dưới một bán kính quá **300ms** liên tục, đo theo đúng cách đã dùng ở Phase 40 (theo dõi danh tính từng cặp); ba phép kiểm bất biến vẫn xanh.
   - Bằng chứng: **số**.
@@ -270,7 +287,7 @@ là một commit.
 | AC-33.5 | T603, T604, T605, T615 |
 | AC-33.6 | T614 |
 | AC-34.1 | T606, T617 |
-| AC-34.2 | T609, T610, T617 |
+| AC-34.2 | ~~T609, T610~~ **hoãn sang spec 007**; T617 (phần cảm giác) |
 | AC-34.3 | T601, T607 |
 | AC-34.4 | T600 |
 | AC-35.1 | T602 |
@@ -632,3 +649,22 @@ Tức nới trần **không sinh ra** chuyện này. Mọi phép kiểm AC-15.2 
 và nói ra chứ không tự làm**: nó là tính chất của lớp nội suy spec 005, không nằm
 trong danh sách task, và còn phải hỏi xem hai cầu thủ chạy sát nhau một khoảnh khắc
 có thực sự là lỗi không.
+
+## Phase 50 bị bỏ — và điều đó đổi nghĩa của "đóng spec 006"
+
+Ngày **2026-11-19**, sau khi `/clarify` của spec 007 chốt rằng engine liên tục sẽ có toạ
+độ mét thật, người dùng chốt **bỏ Phase 50**. Spec 006 vì thế đóng với **23 task**, không
+phải 25.
+
+**Phần còn lại của spec 006 là đúng hai việc:**
+
+1. **T608** — đo lại trên bản build: một trận trọn vẹn ở mức Chậm, bóng **không đứng yên
+   quá 300ms** (AC-33.3), cộng một phút `kiet-suc` và một phút `thay-nguoi` riêng. Lượt đo
+   cuối của nó bị cắt ngang khi người dùng báo lỗi thủ môn, và từ đó code đã đổi bốn lần
+   (T621, T622, T623, T624) nên số cũ không dùng được nữa. Lưu ý đã biết: engine chỉ phát
+   `thay-nguoi` khi người dùng tự thay, nên phút ấy chỉ tồn tại nếu thay người qua giao diện.
+2. **Phase 52** — T614 (mức "Rất chậm" 2000ms), T615 (người dùng tự xem và phán), T616
+   (đo ngân sách vẽ), T617 (phán quyết của người dùng), T618 (tick AC và đóng spec).
+
+**Một AC đóng mà chưa làm, và nó được ghi thành nợ chứ không ghi thành xong:** AC-34.2
+(người rê bóng đi vòng qua đối thủ). Xem mục 12 của spec 007.

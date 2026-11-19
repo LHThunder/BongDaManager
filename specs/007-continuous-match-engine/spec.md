@@ -1,17 +1,24 @@
-# Spec: Engine mô phỏng liên tục — toạ độ mét, thời gian giây, luật IFAB đầy đủ
+# Spec: Engine mô phỏng liên tục — toạ độ mét và cơ học chuyển động
 
 | | |
 |---|---|
 | **ID** | `007-continuous-match-engine` |
-| **Status** | Draft |
+| **Status** | Clarified |
 | **Created** | 2026-11-19 |
+| **Clarified** | 2026-11-19 |
 | **Branch** | `007-continuous-match-engine` — **chưa cắt**, xem mục 9 |
 
 > ⚠️ Tài liệu này mô tả **WHAT** và **WHY**. Mọi chi tiết kỹ thuật (thư viện, schema, API, tên file) thuộc về `plan.md`.
 
-> ⚠️ **Spec này KHÔNG phải mở rộng engine hiện tại.** Nó là một engine khác hẳn.
-> Xem mục 1 để biết vì sao, và mục 8 câu 1 cho câu hỏi chưa ai trả lời: engine mới
-> **thay thế** engine hiện tại hay **sống song song** với nó.
+> **Phạm vi đã được thu lại ở `/clarify` ngày 2026-11-19.** Bản mô tả 21 mục của người dùng
+> lớn hơn tổng spec 005 và 006 cộng lại, nên nó được chẻ thành **bốn spec**. Spec 007 chỉ
+> làm **nền chuyển động**: toạ độ mét, thời gian giây, độ cao bóng, cơ học của một cơ thể
+> người. Luật IFAB, chiến thuật, thể lực, nhịp trận và thống kê đi sang spec 008–010 —
+> xem mục 12, nơi giữ nguyên văn các user story ấy để các spec sau bắt đầu từ đó.
+
+> **Engine mới SỐNG SONG SONG với engine hiện tại**, không thay thế. Engine v5 và 20 trận
+> đã lưu giữ nguyên, đấu lại ra đúng từng dòng như cũ. Đây là lối vào thứ hai, đúng tiền lệ
+> hiến pháp 3.0 đã cho hai vòng lặp chơi sống song song.
 
 ---
 
@@ -19,11 +26,11 @@
 
 ### Vấn đề
 
-Engine hiện tại phát **đúng một sự kiện mỗi phút trận**. Mỗi sự kiện nói: phút thứ
-mấy, loại gì, đội nào, những ai liên quan, và bóng đi qua những **ô nào của một lưới
-vùng** — không phải toạ độ mét. Giữa hai phút ấy, trận đấu **không tồn tại**: không có
-giây, không có vị trí, không có tốc độ, không có độ cao của bóng, không có hướng người,
-không có thể lực theo giây.
+Engine hiện tại phát **đúng một sự kiện mỗi phút trận**. Mỗi sự kiện nói: phút thứ mấy,
+loại gì, đội nào, những ai liên quan, và bóng đi qua những **ô nào của một lưới vùng** —
+không phải toạ độ mét. Giữa hai phút ấy, trận đấu **không tồn tại**: không có giây, không
+có vị trí, không có tốc độ, không có độ cao của bóng, không có hướng người, không có thể
+lực theo giây.
 
 Hệ quả đã **đo được** qua hai spec liên tiếp cố chữa nó ở tầng giao diện:
 
@@ -42,45 +49,48 @@ Người dùng xem bản chạy và nói ba lần, bằng lời của họ:
 > chuyền và sút. Thấy được đường bóng liên tục và tự nhiên"*
 > *"di chuyển đôi khi hơi nhanh… giật cục và không liền mạch"*
 
-Spec 005 và spec 006 đã **chữa triệu chứng** ở tầng giao diện: nội suy có đường cong,
-lớp dao động, mốc trung gian dựng từ `duongBong`, người giữ bóng suy ra từ danh sách
-người tham gia. Cả hai đi được một đoạn — nhưng không xoá được cái gốc, vì **giao diện
-không thể bịa ra dữ liệu mà engine chưa từng tính**. Giao diện không biết ai đang giữ
-bóng (nó phải *suy ra*), không biết bóng cao bao nhiêu, không biết cầu thủ đang nhìn đâu,
-không biết vì sao một người chạy chỗ đó.
-
-Ngoài chuyện chuyển động, engine hiện tại **chưa có phần lớn luật bóng đá**. Nó có thẻ
-vàng, thẻ đỏ, thay người, kiệt sức, huỷ trận khi một bên dưới 7 người. Nó **không có**:
-việt vị, phạt góc, ném biên, phát bóng lên, đá phạt, phạt đền, phép lợi thế, DOGSO, VAR,
-hiệp phụ, luân lưu. Bảng thống kê vì thế cũng thiếu: không có số phạm lỗi, số phạt góc,
-số việt vị, không có xG.
+Spec 005 và spec 006 đã **chữa triệu chứng** ở tầng giao diện: nội suy có đường cong, lớp
+dao động, mốc trung gian dựng từ đường bóng, người giữ bóng **suy ra** từ danh sách người
+tham gia. Cả hai đi được một đoạn thật — nhưng không xoá được cái gốc, vì **giao diện không
+thể bịa ra dữ liệu mà engine chưa từng tính**. Giao diện không biết ai đang giữ bóng (nó
+phải *đoán*), không biết bóng cao bao nhiêu, không biết cầu thủ đang nhìn đâu.
 
 ### Mục tiêu
 
-Một engine mô phỏng **liên tục**: trận đấu tồn tại ở **mọi thời điểm**, không chỉ ở mốc
-mỗi phút. Vị trí bằng **mét** trên sân 105×68. Bóng có **độ cao**. Mỗi cầu thủ có **tốc
-độ, hướng người, thể lực và một mục đích**. Luật IFAB được áp dụng **đủ**, kể cả việt vị
-xét tại thời điểm chạm bóng. Thống kê cả trận bám mức của bóng đá thật.
+Một engine mô phỏng **liên tục**, chạy **song song** với engine hiện tại như một chế độ thứ
+hai: trận đấu tồn tại ở **mọi mốc một giây** (và **nửa giây** ở tình huống quan trọng),
+không chỉ ở mốc mỗi phút. Vị trí bằng **mét** trên sân 105×68. Bóng có **độ cao**. Mỗi cầu
+thủ có **tốc độ và hướng người**, và không ai tăng tốc, phanh hay quay người nhanh hơn mức
+một cầu thủ thật làm được.
 
-Khi làm xong, ba câu người dùng nói ở trên không còn chỗ để đúng nữa — không phải vì
-giao diện vẽ khéo hơn, mà vì **dữ liệu bên dưới đã liên tục ngay từ đầu**.
+Khi làm xong lát này, ba câu người dùng nói ở trên không còn chỗ để đúng nữa — không phải
+vì giao diện vẽ khéo hơn, mà vì **dữ liệu bên dưới đã liên tục ngay từ đầu**.
 
 ### Non-goals
 
-Những thứ lần này **KHÔNG** làm:
+Những thứ **KHÔNG** làm trong spec 007:
 
-- **Vòng lặp sự nghiệp nhiều mùa** — lịch đấu, bảng xếp hạng, huấn luyện viên chọn người,
-  phát triển theo tuổi. Hiến pháp 3.0.1 xếp nó **sau** khi vòng lặp huấn luyện viên xong.
-- **Giải đấu và vòng loại trực tiếp** như một chức năng. Spec này mô tả *luật* của hiệp phụ
-  và luân lưu, nhưng **không** dựng màn hình giải đấu để dùng chúng — xem mục 8 câu 12.
+**Đã chẻ sang spec sau** (nguyên văn giữ ở mục 12):
+- **Luật IFAB** — việt vị, tình huống cố định, phạt đền, DOGSO, phép lợi thế, VAR, hiệp phụ,
+  luân lưu → **spec 008**.
+- **Chiến thuật, thể lực, mục đích di chuyển, cây ra quyết định** → **spec 009**.
+- **Nhịp trận, sự không hoàn hảo, thống kê bám mức thật, xG** → **spec 010**.
+- **Kể trận theo từng đoạn 15 phút** với tóm tắt và khối trạng thái → **spec 010**.
+
+**Không làm, không hoãn:**
+- **Thay thế engine hiện tại.** Engine v5 sống tiếp, trận đã lưu đấu lại y nguyên.
+- **Vẽ trọng tài và hai trợ lý trên sân 2D.** Họ có trong **dữ liệu** khung hình (AC-38.10)
+  nhưng sân 2D không vẽ ở lát này — thêm ba điểm lên sân đụng thẳng vào ràng buộc "không hai
+  điểm nào chồng khít", vốn đã là ràng buộc chật nhất của sân 2D.
+- **Vòng lặp sự nghiệp nhiều mùa**, lịch đấu, bảng xếp hạng. Hiến pháp 3.0.1 xếp nó **sau**
+  khi vòng lặp huấn luyện viên xong.
+- **Giải đấu và vòng loại trực tiếp** như một chức năng.
 - **Đồ hoạ 3D, mô hình thân người, hoạt ảnh chân tay.** Hiển thị vẫn là sân 2D dạng điểm
-  (hiến pháp mục 1). Spec này làm cho **dữ liệu** thật hơn, không làm cho **hình** đẹp hơn.
-- **Điều khiển cầu thủ bằng tay trong lúc trận chạy.** Đây không phải game thể thao; người
-  dùng vẫn can thiệp bằng chiến thuật, chỉ thị và thay người.
+  (hiến pháp mục 1). Spec này làm **dữ liệu** thật hơn, không làm **hình** đẹp hơn.
+- **Điều khiển cầu thủ bằng tay trong lúc trận chạy.** Đây không phải game thể thao.
 - **Bình luận bằng giọng nói, âm thanh, hoạt ảnh ăn mừng.**
 - **Đổi luật bóng đá.** Luật là của IFAB; engine tuân theo, không phát minh.
-- **Dữ liệu cầu thủ hay câu lạc bộ có thật đóng gói trong repo** (ràng buộc bản quyền,
-  hiến pháp mục 3).
+- **Dữ liệu cầu thủ hay câu lạc bộ có thật đóng gói trong repo** (hiến pháp mục 3).
 - **Backend, đồng bộ, chơi nhiều người** (hiến pháp mục 1).
 
 ---
@@ -99,7 +109,9 @@ Những thứ lần này **KHÔNG** làm:
 
 ## 3. User stories
 
-> Đánh số tiếp spec 006 (US-33 → US-36), nên spec này bắt đầu từ **US-37**.
+> Đánh số tiếp spec 006 (US-33 → US-36). Spec 007 giữ **US-37**, **US-38** và thêm
+> **US-45**; các số US-39 → US-44 đã được cấp cho spec 008–010 ở mục 12 và **không** được
+> dùng lại ở đây.
 
 ### US-37: Trận đấu tồn tại ở mọi thời điểm, trên sân có kích thước thật
 
@@ -115,14 +127,20 @@ diện đoán giữa hai mốc cách nhau một phút**.
       tức `y` từ **30,34** tới **37,66**.
 - [ ] AC-37.3 — KHI hiệp 2 bắt đầu THÌ hai đội PHẢI đổi phần sân: hướng tấn công của mỗi
       đội ở hiệp 2 PHẢI ngược với hiệp 1.
-- [ ] AC-37.4 — KHI một tình huống quan trọng (bàn thắng, phạt đền, thẻ đỏ, hoặc cơ hội có
-      xG > 0,3) được xuất ra THÌ hệ thống PHẢI cho trạng thái đầy đủ ở **từng mốc 0,5 giây**,
-      liên tục từ **6–10 giây trước** tình huống tới **khi bóng chết**, không khuyết mốc nào.
+- [ ] AC-37.4 — KHI một tình huống quan trọng được xuất ra THÌ hệ thống PHẢI cho trạng thái
+      đầy đủ ở **từng mốc 0,5 giây**, liên tục từ **6–10 giây trước** tình huống tới **khi
+      bóng chết**, không khuyết mốc nào.
 - [ ] AC-37.5 — KHI chạy lại cùng một mã trận với cùng hai đội, cùng chiến thuật xuất phát
       và cùng chuỗi can thiệp THÌ **từng khung hình PHẢI giống hệt tới từng chữ số** (P1).
 - [ ] AC-37.6 — KHI trận đang mô phỏng THÌ hệ thống PHẢI biết **ai đang giữ bóng** ở mỗi
       khoảnh khắc, hoặc nói rõ **không ai** (bóng đang bay, bóng chết) — PHẢI không bắt giao
       diện suy ra điều đó từ danh sách người tham gia.
+- [ ] AC-37.7 — KHI engine tính trạng thái cho phần **thường** của trận THÌ mốc PHẢI cách
+      nhau **1 giây**; ở **tình huống quan trọng** PHẢI dày lên thành **0,5 giây** (AC-37.4).
+      Một trận vì thế có khoảng **5.400 mốc** thay vì 10.800.
+- [ ] AC-37.8 — "Tình huống quan trọng" trong spec này PHẢI được định nghĩa bằng **loại sự
+      kiện** — bàn thắng, cơ hội rõ ràng, cứu thua, thẻ đỏ — và PHẢI không dùng **xG**, vì xG
+      thuộc spec 010. Khi spec 010 có xG, định nghĩa này được mở rộng, không viết lại.
 
 ### US-38: Chuyển động tuân theo cơ học của một cơ thể người
 
@@ -130,11 +148,11 @@ Là một **người xem trận đấu**, tôi muốn **không ai tăng tốc, p
 hơn mức một cầu thủ thật làm được**, để **không còn cảm giác "teleport"**.
 
 **Acceptance criteria**
-- [ ] AC-38.1 — KHI đo tốc độ mọi cầu thủ ở mọi khung THÌ không ai PHẢI vượt **9 m/s**, và
+- [ ] AC-38.1 — KHI đo tốc độ mọi cầu thủ ở mọi mốc THÌ không ai PHẢI vượt **9 m/s**, và
       một pha trên **7 m/s** PHẢI không kéo dài quá **4 giây liên tục**.
-- [ ] AC-38.2 — KHI đo hiệu tốc độ giữa hai khung liền nhau THÌ gia tốc PHẢI không vượt
+- [ ] AC-38.2 — KHI đo hiệu tốc độ giữa hai mốc liền nhau THÌ gia tốc PHẢI không vượt
       **6 m/s²** và giảm tốc PHẢI không vượt **8 m/s²**.
-- [ ] AC-38.3 — KHI một cầu thủ đổi hướng trên **90°** THÌ tốc độ ở khung ngay trước đó
+- [ ] AC-38.3 — KHI một cầu thủ đổi hướng trên **90°** THÌ tốc độ ở mốc ngay trước đó
       PHẢI dưới **3 m/s**; KHI đổi hướng **45–90°** THÌ tốc độ sau PHẢI không quá **60%**
       tốc độ trước.
 - [ ] AC-38.4 — KHI một cầu thủ chạy lùi THÌ tốc độ PHẢI không vượt **4 m/s**; chạy ngang
@@ -145,234 +163,71 @@ hơn mức một cầu thủ thật làm được**, để **không còn cảm g
 - [ ] AC-38.6 — KHI bóng được chuyền hoặc sút THÌ tốc độ PHẢI trong **12–20 m/s** (chuyền
       ngắn) hoặc **20–30 m/s** (chuyền dài và sút), và **thời gian bay PHẢI khớp** khoảng
       cách chia tốc độ.
-- [ ] AC-38.7 — KHI bóng lăn sệt THÌ nó PHẢI chậm dần **1–2 m/s²** trên sân khô, và nhanh
-      hơn mức đó trên sân ướt.
+- [ ] AC-38.7 — KHI bóng lăn sệt trên **sân khô** THÌ nó PHẢI chậm dần **1–2 m/s²**; trên
+      **sân ướt** PHẢI chậm dần **ít hơn** mức đó, tức bóng đi xa hơn. *(Bản mô tả gốc ghép
+      "sân ướt hoặc cỏ dài" vào cùng một chiều; hai thứ đó ngược nhau về ma sát — xem mục 9.)*
 - [ ] AC-38.8 — KHI vẽ một pha chạy trên **6 m/s** THÌ đường chạy PHẢI là **đường cong**:
-      góc đổi hướng giữa hai khung liền nhau PHẢI không vượt một ngưỡng nêu được bằng số.
+      góc đổi hướng giữa hai mốc liền nhau PHẢI không vượt một ngưỡng nêu được bằng số.
+- [ ] AC-38.9 — KHI một trận bắt đầu THÌ **thời tiết và gió** PHẢI dẫn xuất **tất định từ
+      mã trận** (P1), và trong spec này PHẢI chỉ ảnh hưởng tới **vật lý bóng**: ma sát khi
+      bóng lăn sệt (AC-38.7) và quỹ đạo bóng bổng dài. Ảnh hưởng tới thể lực và tới tỉ lệ
+      khống chế hỏng thuộc spec 009 và 010.
+- [ ] AC-38.10 — KHI xuất một khung hình THÌ trọng tài chính và hai trợ lý PHẢI **có trong
+      dữ liệu** với mã `REF`, `AR1`, `AR2`: trọng tài chính cách bóng **15–25 m** và không
+      nằm trên đường chuyền, mỗi trợ lý **ngang hàng hậu vệ cuối cùng** của nửa sân mình phụ
+      trách. Sân 2D PHẢI **không vẽ** ba điểm này ở spec 007.
+- [ ] AC-38.11 — KHI một cầu thủ di chuyển THÌ mỗi mốc PHẢI có **hướng người** (0–360°), và
+      hướng ấy PHẢI khớp với hướng di chuyển trừ khi anh ta đang chạy lùi hoặc chạy ngang.
 
-### US-39: Trọng tài áp dụng luật IFAB, không phải một bảng xác suất
+### US-45: Chế độ thứ hai, và dữ liệu đọc được bằng số
 
-Là một **người xem trận đấu**, tôi muốn **mọi quyết định của trọng tài đến từ luật thật
-áp lên vị trí thật**, để **một quả việt vị là việt vị vì cầu thủ đứng sai chỗ, không phải
-vì engine tung đồng xu**.
+Là một **người dùng**, tôi muốn **chọn được chế độ mô phỏng và đọc được dữ liệu thô của
+trận**, để **engine mới không làm hỏng những trận tôi đã có, và để tôi kiểm được bằng số
+thay vì phải tin**.
 
-**Acceptance criteria**
-- [ ] AC-39.1 — KHI một cầu thủ chạm bóng cho đồng đội THÌ việt vị PHẢI được xét **tại đúng
-      khoảnh khắc chạm bóng ấy**: người nhận ở việt vị khi anh ta ở phần sân đối phương và
-      gần đường biên ngang hơn **cả bóng lẫn cầu thủ đối phương thứ hai từ cuối lên**.
-- [ ] AC-39.2 — KHI người nhận **ngang hàng** với bóng hoặc với cầu thủ thứ hai từ cuối THÌ
-      hệ thống PHẢI không coi là việt vị. Vị trí tay và cánh tay PHẢI không được tính.
-- [ ] AC-39.3 — KHI một cầu thủ ở vị trí việt vị nhưng **không tham gia tình huống** (không
-      chơi bóng, không cản trở đối phương, không hưởng lợi từ vị trí) THÌ hệ thống PHẢI không
-      thổi phạt.
-- [ ] AC-39.4 — KHI bóng đến trực tiếp từ **phát bóng lên, ném biên hoặc phạt góc** THÌ hệ
-      thống PHẢI không thổi việt vị.
-- [ ] AC-39.5 — KHI việt vị được thổi THÌ đối phương PHẢI được hưởng **đá phạt gián tiếp
-      tại đúng vị trí phạm lỗi**.
-- [ ] AC-39.6 — KHI một lỗi đá, ngáng, xô đẩy, chèn, giữ người hoặc cố ý chơi bóng bằng tay
-      xảy ra THÌ đối phương PHẢI được **đá phạt trực tiếp**; KHI lỗi ấy xảy ra **trong vòng
-      cấm của đội phạm lỗi** THÌ PHẢI là **phạt đền**.
-- [ ] AC-39.7 — KHI lối chơi nguy hiểm, cản trở không tiếp xúc, hoặc thủ môn bắt bóng bằng
-      tay từ đường chuyền về **chủ ý bằng chân** của đồng đội xảy ra THÌ PHẢI là **đá phạt
-      gián tiếp**.
-- [ ] AC-39.8 — KHI thủ môn giữ bóng trong tay quá **8 giây** THÌ đối phương PHẢI được hưởng
-      **phạt góc**.
-- [ ] AC-39.9 — KHI đội bị phạm lỗi đang có cơ hội tốt THÌ trọng tài PHẢI cho **chơi tiếp**
-      (phép lợi thế) và PHẢI rút thẻ **sau khi bóng chết**, không phải ngay lúc đó.
-- [ ] AC-39.10 — KHI một cầu thủ ngăn cản cơ hội ghi bàn rõ ràng (DOGSO) bằng lỗi **không
-      tranh bóng** hoặc bằng tay THÌ PHẢI là **thẻ đỏ**; KHI DOGSO xảy ra **trong vòng cấm**
-      mà cầu thủ **có ý định tranh bóng** THÌ PHẢI là **phạt đền + thẻ vàng**, không phải đỏ.
-- [ ] AC-39.11 — KHI một cầu thủ nhận **thẻ vàng thứ hai** THÌ PHẢI bị đuổi; đội ấy PHẢI
-      chơi với 10 người tới hết trận và PHẢI **điều chỉnh sơ đồ**, kèm lý do xuất ra được.
-- [ ] AC-39.12 — KHI một bên còn **dưới 7 người** trên sân THÌ trận PHẢI bị huỷ (giữ AC-14.6).
-- [ ] AC-39.13 — KHI có tình huống cố định THÌ khoảng cách PHẢI đúng luật: đối phương cách
-      bóng **9,15 m** ở giao bóng và đá phạt; KHI hàng rào có **từ 3 người** THÌ cầu thủ đội
-      tấn công PHẢI đứng cách hàng rào **ít nhất 1 m**.
-- [ ] AC-39.14 — KHI một quả phạt đền được sút THÌ thủ môn PHẢI có **ít nhất một chân chạm
-      hoặc ngang vạch vôi**, và mọi cầu thủ khác PHẢI ở **ngoài vòng cấm** và cách chấm phạt
-      đền **ít nhất 9,15 m**.
-- [ ] AC-39.15 — KHI đội ném biên THÌ người ném PHẢI dùng **hai tay, từ sau đầu**, với **hai
-      chân chạm đất** ở trên hoặc ngoài đường biên; KHI phát bóng lên THÌ bóng vào cuộc ngay
-      khi được đá và di chuyển rõ ràng, và **đồng đội được nhận bóng ngay trong vòng cấm**.
-- [ ] AC-39.16 — KHI trọng tài dừng trận mà **không có lỗi** THÌ trận PHẢI tiếp tục bằng
-      **thả bóng**.
-- [ ] AC-39.17 — KHI người dùng thay người THÌ hệ thống PHẢI cho tối đa **5 người** trong
-      tối đa **3 lần dừng trận** (không tính giờ nghỉ giữa hiệp), cộng **1 người** nếu có
-      hiệp phụ; cầu thủ **đã ra sân PHẢI không vào lại**.
-- [ ] AC-39.18 — KHI VAR can thiệp THÌ PHẢI chỉ ở **bốn loại tình huống** — bàn thắng, phạt
-      đền, thẻ đỏ trực tiếp, nhầm người — và **chỉ khi có sai sót rõ ràng**; mỗi lần kiểm tra
-      PHẢI mất **1–3 phút** và PHẢI được **cộng vào bù giờ**.
-- [ ] AC-39.19 — KHI tính bù giờ THÌ số phút PHẢI dẫn xuất từ **số lần dừng trận thực tế**
-      (bàn thắng, thay người, chấn thương, VAR), và PHẢI nằm trong **1–4 phút** ở hiệp 1,
-      **3–8 phút** ở hiệp 2.
-- [ ] AC-39.20 — KHI một trận **loại trực tiếp** hoà sau 90 phút THÌ PHẢI đá **2 hiệp phụ
-      × 15 phút**, rồi nếu còn hoà PHẢI **sút luân lưu**.
-- [ ] AC-39.21 — KHI sút luân lưu THÌ mỗi đội PHẢI có **5 lượt luân phiên**, PHẢI **dừng sớm**
-      khi một đội không thể đuổi kịp, và nếu còn hoà PHẢI đá **từng cặp**; PHẢI chỉ những cầu
-      thủ **còn trên sân khi hết giờ** được sút; tỉ lệ thành công PHẢI trong **70–80%**.
-
-### US-40: Chiến thuật và thể lực là nguyên nhân, không phải nhãn dán
-
-Là một **người dùng dựng chiến thuật**, tôi muốn **sơ đồ, phong cách và chiều cao hàng thủ
-của tôi hiện ra thành vị trí thật của cả khối trên sân**, để **đổi một chỉ thị rồi đấu lại
-thì tôi thấy được cái gì đã khác**.
+> US-45 nhận số sau US-44 **có chủ ý**: US-39 → US-44 đã được cấp cho spec 008–010 ở mục 12,
+> và đánh số lại sẽ làm sai lệch hồ sơ của `/clarify` hôm nay.
 
 **Acceptance criteria**
-- [ ] AC-40.1 — KHI một đội phòng ngự THÌ khối đội hình PHẢI rộng **30–40 m theo chiều dọc**
-      và **35–45 m theo chiều ngang**, với khoảng cách giữa các tuyến **10–15 m**, và PHẢI
-      **dịch theo phía có bóng**.
-- [ ] AC-40.2 — KHI một đội tấn công THÌ đội hình PHẢI kéo rộng hết chiều ngang sân, và
-      người cầm bóng PHẢI có **2–3 phương án chuyền** khả thi ở mỗi khoảnh khắc.
-- [ ] AC-40.3 — KHI pressing được kích hoạt THÌ PHẢI có một **tín hiệu nêu được**: đối
-      phương chuyền về, khống chế hỏng, hoặc bóng ở gần đường biên. Pressing PHẢI không bật
-      liên tục không lý do.
-- [ ] AC-40.4 — KHI một đội mất bóng THÌ trong **3–5 giây** tiếp theo đội ấy PHẢI **phản
-      pressing hoặc lùi về**, theo phong cách đã chọn, và lựa chọn ấy PHẢI xuất ra được.
-- [ ] AC-40.5 — KHI còn **15 phút cuối** THÌ đội **đang dẫn** PHẢI có chiều cao hàng thủ
-      thấp hơn trung bình của chính nó trong trận, và đội **bị dẫn** PHẢI dâng cao hơn và
-      có tỉ lệ chuyền dài cao hơn — cả ba con số PHẢI đo được.
-- [ ] AC-40.6 — KHI huấn luyện viên đổi sơ đồ THÌ mỗi lần đổi PHẢI kèm **lý do** (tỉ số đổi,
-      quân số đổi, hoặc chỉ thị người dùng), và lý do ấy PHẢI hiện ra cho người dùng.
-- [ ] AC-40.7 — KHI trận bắt đầu THÌ mọi cầu thủ PHẢI có thể lực **100** và giảm dần; KHI
-      từ phút **60** trở đi một cầu thủ xuống **dưới 60** THÌ tốc độ tối đa của anh ta PHẢI
-      giảm **10%** và tỉ lệ chuyền hỏng PHẢI tăng.
-- [ ] AC-40.8 — KHI trận kết thúc THÌ quãng đường cả trận của mỗi cầu thủ sân PHẢI trong
-      **9–12 km**, và của thủ môn trong **5–6 km**.
-- [ ] AC-40.9 — KHI mô phỏng nhiều trận THÌ số chấn thương PHẢI là **0 hoặc 1 mỗi trận**;
-      mỗi chấn thương PHẢI có **thời gian dừng trận** và PHẢI có thể buộc thay người.
-
-### US-41: Mọi cầu thủ đều đang làm một việc có tên
-
-Là một **người xem trận đấu**, tôi muốn **mỗi người trên sân, cầm bóng hay không, đều đang
-theo một mục đích tôi gọi tên được**, để **sân không còn là 22 điểm đang chờ tới phút sau**.
-
-**Acceptance criteria**
-- [ ] AC-41.1 — KHI xuất một khung hình THÌ **mỗi cầu thủ không cầm bóng** PHẢI có một mục
-      đích lấy từ danh mục di chuyển không bóng (chạy chơi sau lưng, lùi về nhận bóng, chồng
-      biên, chồng trong, người thứ ba, chạy nghi binh, giữ chiều rộng, bọc lót, che đường
-      chuyền, kèm người, giữ khu vực, chạy cắt mặt cột gần, chạy vào cột xa), và mục đích ấy
-      PHẢI **khớp với vị trí anh ta đang di chuyển tới**.
-- [ ] AC-41.2 — KHI một cầu thủ chạm bóng THÌ hành động PHẢI lấy từ danh mục hành động có
-      bóng (khống chế, chuyền, dẫn bóng và qua người, dứt điểm, phòng ngự, hoặc hành động
-      thủ môn), và hành động ấy PHẢI **ghi được thành tên** trong nhật ký.
-- [ ] AC-41.3 — KHI một cầu thủ cầm bóng ra quyết định THÌ hệ thống PHẢI xét theo **đúng thứ
-      tự**: (1) có cơ hội dứt điểm tốt không, (2) có đồng đội ở vị trí tốt hơn mà đường chuyền
-      an toàn không, (3) có khoảng trống để dẫn bóng lên không, (4) nếu không có gì thì giữ
-      bóng, chuyền về hoặc chuyền ngang.
-- [ ] AC-41.4 — KHI có đối phương trong bán kính **2 m** THÌ tỉ lệ thành công của hành động
-      PHẢI giảm **15–30%**, và lựa chọn PHẢI dịch về phía **an toàn hơn** trong cây quyết định.
-- [ ] AC-41.5 — KHI đo trên nhiều trận THÌ tỉ lệ thành công PHẢI bám mức thật: chuyền ngắn
-      không áp lực **90–95%**, chuyền dài **50–65%**, qua người một-đối-một **45–55%**, tắc
-      bóng **60–70%**, tạt bóng **20–30%**.
-- [ ] AC-41.6 — KHI xuất một khung hình THÌ mỗi cầu thủ PHẢI có **hướng người** (0–360°), và
-      PHẢI chỉ phản ứng ngay với những gì trong **khoảng 180° phía trước**; thời gian phản
-      ứng sau khi bóng được chuyền hoặc đối phương đổi hướng PHẢI là **0,2–0,3 giây**.
-- [ ] AC-41.7 — KHI một cầu thủ **quét** (ngoái nhìn) trước khi nhận bóng THÌ anh ta PHẢI
-      nhận bóng **mở người**; KHI không quét THÌ PHẢI nhận bóng **quay lưng** về phía khung
-      thành đối phương.
-- [ ] AC-41.8 — KHI một hành động được giải quyết THÌ kết quả PHẢI phụ thuộc vào **chỉ số
-      liên quan của người thực hiện so với người đối đầu**, **áp lực**, **độ khó** (khoảng
-      cách, chân thuận, bóng bổng so với bóng sệt) và **thể lực hiện tại** — cả bốn PHẢI
-      nêu được thành con số trong nhật ký.
-
-### US-42: Nhịp trận và sai sót của trận đấu thật
-
-Là một **người xem trận đấu**, tôi muốn **trận có lúc nghỉ, có lúc ép sân, và có lỗi**, để
-**nó không trông như một mô hình hoàn hảo đang chạy**.
-
-**Acceptance criteria**
-- [ ] AC-42.1 — KHI trận kết thúc THÌ thời gian bóng **thực sự lăn** PHẢI trong **55–60 phút**
-      trên tổng 90 phút.
-- [ ] AC-42.2 — KHI có tình huống cố định THÌ thời gian thực hiện PHẢI trong khoảng: ném biên
-      **8–15 giây**, phát bóng lên **10–20 giây**, phạt góc **20–40 giây**, đá phạt gần vòng
-      cấm **40–90 giây**, ăn mừng bàn thắng **40–70 giây**.
-- [ ] AC-42.3 — KHI một đội **đang dẫn** ở cuối trận THÌ thời gian các tình huống cố định của
-      đội ấy PHẢI dài hơn mức trên **30–50%**.
-- [ ] AC-42.4 — KHI đo cả trận THÌ mỗi cầu thủ PHẢI phân bổ thời gian: đứng yên và đi bộ
-      **35–45%**, chạy chậm **35–45%**, chạy nhanh **10–15%**, nước rút **2–5%** với **20–40
-      pha nước rút**, phần lớn **dưới 20 m**.
-- [ ] AC-42.5 — KHI bóng cách một cầu thủ **trên 40 m** THÌ anh ta PHẢI đi bộ hoặc chạy chậm;
-      **20–40 m** THÌ chạy chậm; **dưới 20 m** hoặc đang chuyển trạng thái THÌ được chạy nhanh
-      hoặc nước rút.
-- [ ] AC-42.6 — KHI một cầu thủ vừa nước rút xong THÌ anh ta PHẢI có **10–30 giây** cường độ
-      thấp trước pha nước rút tiếp theo.
-- [ ] AC-42.7 — KHI một pha tấn công thất bại THÌ cầu thủ PHẢI **chạy chậm** về vị trí, PHẢI
-      NOT nước rút về; tiền đạo PHẢI không lùi hết về phần sân nhà.
-- [ ] AC-42.8 — KHI đo hàng thủ ở bất kỳ khung nào THÌ bốn hậu vệ PHẢI **lệch nhau 1–3 m**,
-      PHẢI không thẳng tuyệt đối trên một đường.
-- [ ] AC-42.9 — KHI một đường chuyền tới THÌ người nhận PHẢI phải **điều chỉnh 0,5–2 m**;
-      và **5–10%** số lần nhận bóng PHẢI là **khống chế hỏng**, bóng bật ra **1–3 m**.
-- [ ] AC-42.10 — KHI đo các cú sút trúng đích THÌ **phần lớn** PHẢI đi về giữa khung thành
-      hoặc sát thủ môn, PHẢI không luôn vào góc.
-- [ ] AC-42.11 — KHI đo nhiều trận THÌ trọng tài PHẢI **bỏ qua một tỉ lệ nêu được** các lỗi
-      nhỏ và **thổi phạt một tỉ lệ nêu được** các pha tiếp xúc nhẹ.
-- [ ] AC-42.12 — KHI một đội vừa thủng lưới THÌ trong **5–10 phút** tiếp theo đội ấy PHẢI
-      dâng cao hơn mức trung bình của chính nó.
-- [ ] AC-42.13 — KHI mô phỏng nhiều trận THÌ PHẢI có những giai đoạn một đội **ép sân liên
-      tục 5–10 phút** xen kẽ những giai đoạn hai đội chuyền bóng chậm ở giữa sân; cường độ
-      PHẢI không đều nhau suốt 90 phút.
-
-### US-43: Thống kê một trận trông như thống kê một trận thật
-
-Là một **người dùng đọc bảng thống kê**, tôi muốn **các con số nằm trong khoảng của bóng đá
-thật**, để **tôi tin được phần còn lại của mô phỏng**.
-
-**Acceptance criteria**
-- [ ] AC-43.1 — KHI mô phỏng một lượng trận đủ lớn THÌ trung bình hai đội cộng lại PHẢI có:
-      bàn thắng **2–3**, cú sút **20–30** với khoảng **một phần ba trúng đích**, phạm lỗi
-      **20–28**, thẻ vàng **3–5**, thẻ đỏ **0–1**, phạt góc **8–12**, việt vị **2–6**, ném
-      biên **40–50**.
-- [ ] AC-43.2 — KHI mô phỏng một trận THÌ mỗi đội PHẢI có **350–650** đường chuyền với tỉ lệ
-      chính xác **75–90%**, và tỉ lệ ấy PHẢI khác nhau theo **phong cách** đã chọn.
-- [ ] AC-43.3 — KHI một bàn thắng được ghi THÌ nó PHẢI đến từ một tình huống có **xG tương
-      xứng**, và xG của mọi cú sút PHẢI ghi vào nhật ký.
-- [ ] AC-43.4 — KHI cho một đội mạnh hơn rõ rệt đấu một đội yếu hơn qua nhiều trận THÌ đội
-      mạnh PHẢI thắng nhiều hơn, nhưng PHẢI không thắng tất cả — kết quả PHẢI không đoán trước
-      được từ chỉ số.
-- [ ] AC-43.5 — KHI xem bảng thống kê THÌ nó PHẢI có **phạm lỗi, phạt góc, việt vị và xG** —
-      bốn con số engine hiện tại không có.
-
-### US-44: Xem theo từng đoạn, và dừng lại được đúng chỗ
-
-Là một **người xem trận đấu**, tôi muốn **trận được kể theo từng đoạn 15 phút với một bản
-tóm tắt, một nhật ký và đủ trạng thái để tiếp tục**, để **tôi theo được diễn biến mà không
-phải đọc 10.800 khung hình**.
-
-**Acceptance criteria**
-- [ ] AC-44.1 — KHI một đoạn 15 phút kết thúc THÌ hệ thống PHẢI xuất: một **tóm tắt 3–5 câu**
-      (diễn biến, đội nào làm chủ, thay đổi chiến thuật), một **nhật ký sự kiện** với mỗi sự
-      kiện đáng kể một dòng, và **khung hình chi tiết 0,5 giây** cho các tình huống của AC-37.4.
-- [ ] AC-44.2 — KHI một đoạn kết thúc THÌ hệ thống PHẢI xuất một **khối trạng thái** đủ để
-      tiếp tục: phút, tỉ số, sơ đồ hai đội, ai đang trên sân, thể lực từng người, thẻ từng
-      người, số thay người còn lại theo cả **người** và **lần dừng**, thống kê tích luỹ, và
-      bù giờ tích luỹ.
-- [ ] AC-44.3 — KHI một đoạn mới bắt đầu từ một khối trạng thái THÌ kết quả PHẢI **giống hệt**
-      kết quả của việc chạy liền cả trận tới cùng thời điểm ấy — khối trạng thái PHẢI đủ,
-      không thiếu trường nào.
-- [ ] AC-44.4 — KHI hệ thống chuẩn bị xuất một đoạn THÌ nó PHẢI tự kiểm và **tự sửa trước khi
-      xuất**: có ai vượt tốc độ hay gia tốc tối đa không; mọi tình huống việt vị đã xét tại
-      thời điểm chạm bóng chưa; số người trên sân, số lần thay người và số thẻ có khớp luật
-      không; cầu thủ đã ra sân có xuất hiện lại không; thống kê tích luỹ có lệch khỏi mục
-      AC-43.1 không; đánh đầu có đúng độ cao `z` không; mọi cầu thủ không cầm bóng có mục
-      đích chưa; phân bổ cường độ chạy có khớp AC-42.4 không.
-- [ ] AC-44.5 — KHI một phép tự kiểm ở AC-44.4 phát hiện lỗi THÌ hệ thống PHẢI không xuất đoạn
-      ấy ra như thể nó đúng.
+- [ ] AC-45.1 — KHI người dùng bắt đầu một trận THÌ họ PHẢI chọn được giữa **chế độ hiện
+      tại** và **chế độ liên tục**, và lựa chọn ấy PHẢI được ghi vào bản ghi trận để phát
+      lại đúng (P1).
+- [ ] AC-45.2 — KHI mở một trận đã lưu bằng engine hiện tại THÌ nó PHẢI mở được, xem lại
+      được và đấu lại được **đúng từng dòng như trước spec này**; engine hiện tại PHẢI
+      không đổi một kết quả nào (P1, P3).
+- [ ] AC-45.3 — KHI mô phỏng **100 mã trận** với cùng hai đội và cùng chiến thuật ở **cả hai
+      chế độ** THÌ hiệu số bàn thắng trung bình giữa hai chế độ PHẢI không lệch quá **0,5
+      bàn**, và tỉ lệ thắng của đội mạnh hơn PHẢI không lệch quá **10 điểm phần trăm**. Một
+      trận **cụ thể** PHẢI không bắt buộc ra cùng tỉ số — hai chế độ rút ngẫu nhiên ở hai
+      chỗ khác nhau, nên đòi giống từng trận là đòi một điều không thể.
+- [ ] AC-45.4 — KHI một trận ở chế độ liên tục được lưu THÌ bản ghi PHẢI chỉ lưu mã trận,
+      hai đội, chuỗi can thiệp, chế độ và kết quả — PHẢI **không lưu vị trí** của bất kỳ mốc
+      nào; và mở lại trận ấy PHẢI **sinh lại** đúng từng khung hình đã từng thấy.
+- [ ] AC-45.5 — KHI người dùng xuất một trận ở chế độ liên tục THÌ họ PHẢI nhận được một tệp
+      **JSON** chứa nhật ký sự kiện và khung hình chi tiết đúng định dạng mục 7b và mục 15
+      của bản mô tả gốc.
+- [ ] AC-45.6 — KHI tệp xuất ở AC-45.5 có trong tay THÌ mọi phép kiểm cơ học của US-38
+      PHẢI chạy được **trên chính tệp ấy** — không phải dựng một bản đo riêng mỗi lần muốn
+      kiểm một con số, như đã phải làm suốt spec 005 và 006.
+- [ ] AC-45.7 — KHI chế độ liên tục đang chạy THÌ mọi tính ngẫu nhiên PHẢI đến từ mã trận;
+      PHẢI không có nguồn ngẫu nhiên hay nguồn thời gian toàn cục nào trong engine (P1).
 
 ---
 
 ## 4. Luồng chính (happy path)
 
-1. Người dùng chọn hai đội của mình, sơ đồ và phong cách mỗi bên, đội chủ nhà, loại trận
-   (vòng bảng hay loại trực tiếp) và điều kiện (thời tiết) → hệ thống nhận một mã trận.
-2. Người dùng bấm bắt đầu → hệ thống mô phỏng **đoạn 15 phút đầu**, tự kiểm theo AC-44.4,
-   rồi hiện tóm tắt, nhật ký và khối trạng thái.
-3. Người dùng xem sân 2D chạy lại đoạn ấy, dừng và tua được; ở các tình huống quan trọng
-   họ xem được chuyển động ở mức **0,5 giây một khung**.
-4. Người dùng bấm tiếp → đoạn sau bắt đầu **đúng từ khối trạng thái** của đoạn trước.
-5. Giữa các đoạn, người dùng thay người hoặc đổi chỉ thị; mọi can thiệp được ghi lại để
-   phát lại (P1).
-6. Hết 90 phút cộng bù giờ → nếu là trận loại trực tiếp và hoà thì hiệp phụ, rồi luân lưu.
-7. Hết trận → bảng thống kê cả trận, điểm từng cầu thủ, và trận được lưu lại để xem lại.
+1. Người dùng chọn hai đội của mình, sơ đồ và phong cách mỗi bên, đội chủ nhà, và **chế độ
+   mô phỏng** → hệ thống nhận một mã trận, và thời tiết của trận sinh ra từ mã ấy.
+2. Người dùng bấm bắt đầu → trận chạy ở chế độ liên tục: mọi điểm di chuyển theo cơ học của
+   US-38, bóng có độ cao, người giữ bóng luôn xác định.
+3. Người dùng xem sân 2D, dừng và tua được; ở các tình huống quan trọng chuyển động dày lên
+   **0,5 giây một mốc**.
+4. Giữa trận, người dùng thay người hoặc đổi chỉ thị; mọi can thiệp được ghi lại để phát
+   lại (P1).
+5. Hết trận → bảng thống kê, điểm từng cầu thủ, và trận được lưu lại (chỉ mã trận và kết
+   quả, không lưu vị trí).
+6. Người dùng mở lại trận ấy sau → chuyển động được **sinh lại** đúng như đã thấy.
+7. Nếu muốn kiểm bằng số, người dùng **xuất tệp JSON** của trận và đọc trực tiếp.
 
 ---
 
@@ -382,16 +237,17 @@ phải đọc 10.800 khung hình**.
 |---|---|
 | Một đội chưa đủ người để ra sân | Từ chối bắt đầu trận, nói rõ còn thiếu bao nhiêu người và ở vị trí nào — không bắt đầu rồi mới hỏng |
 | Cầu thủ thiếu chỉ số | Nói rõ chỉ số nào thiếu của ai trước khi bắt đầu; engine PHẢI không lặng lẽ coi chỉ số trống là 0 |
-| Trận đã lưu bằng engine cũ (một sự kiện mỗi phút) | Mở lại được, xem lại được bằng cách vẽ cũ; PHẢI không mất và PHẢI không hiện ra như một trận hỏng — xem mục 8 câu 1 |
-| Tệp sao lưu từ phiên bản dữ liệu cũ | Nhập lại được trọn vẹn, điền mặc định hợp lý cho trường mới (P7) |
+| Trận đã lưu bằng engine hiện tại | Mở lại, xem lại và đấu lại y nguyên (AC-45.2). Chế độ của trận được đọc từ bản ghi, không đoán |
+| Bản ghi trận cũ **không có** trường chế độ | Hiểu là chế độ hiện tại — mặc định hợp lý, không hỏi người dùng (P7) |
+| Tệp sao lưu từ phiên bản dữ liệu cũ | Nhập lại được trọn vẹn, điền mặc định như trên (P7) |
 | Hết dung lượng lưu trữ giữa lúc đang lưu trận | Thông báo bằng ngôn ngữ đang chọn, nói rõ cái gì chưa lưu được và phải làm gì; PHẢI không để lại một trận hỏng một nửa (P3) |
-| Một bên bị đuổi tới dưới 7 người | Huỷ trận theo AC-39.12, lưu lại tới thời điểm huỷ |
-| Cả hai bên hết người thay mà còn chấn thương | Chơi thiếu người, không được phá luật 5-người-3-lần |
-| Luân lưu mà một đội còn dưới 5 người trên sân | Mỗi đội sút đúng số lượt luân phiên, chỉ người còn trên sân được sút (AC-39.21); số người ít hơn PHẢI không làm hỏng vòng luân lưu |
-| Mô phỏng chạy quá ngân sách thời gian | Nói rõ cho người dùng là đang chạy, có đường dừng; PHẢI không treo giao diện không dấu hiệu — xem mục 8 câu 11 |
-| Phép tự kiểm AC-44.4 phát hiện lỗi mà không tự sửa được | Dừng, nói rõ phép kiểm nào thất bại và ở khung nào (AC-44.5) |
+| Tệp JSON xuất ra quá lớn cho một lần ghi | Nói rõ kích thước trước khi ghi và cho người dùng huỷ; PHẢI không ghi nửa tệp rồi dừng |
+| Mở lại một trận cũ mà engine đã đổi kể từ đó | Kết quả vẫn đúng (vì kết quả được lưu), nhưng **chuyển động có thể khác**. Nói rõ cho người dùng, PHẢI không im lặng |
+| Mô phỏng chạy quá ngân sách thời gian | Nói rõ đang chạy, có đường dừng; PHẢI không treo giao diện không dấu hiệu |
+| Một phép kiểm cơ học của US-38 thất bại khi chạy | Lộ ra ngay khi phát triển, PHẢI không làm tròn cho qua |
 | Người dùng tạm dừng giữa một tình huống đang chạy | Đóng băng hoàn toàn: bóng, người và đồng hồ đều dừng (giữ AC-28.5) |
 | Người dùng bật "giảm chuyển động" | Không nội suy, không dao động (giữ AC-31.1) |
+| Trận ở chế độ liên tục chạy ở mức tốc độ nhanh nhất | Theo tiền lệ spec 005: ở mức nhanh nhất thôi nội suy. Mốc 1 giây vẫn tính, chỉ không vẽ mượt |
 
 > Mục "lỗi mạng" và "quyền truy cập sai" của template **không áp dụng**: ứng dụng không
 > gọi mạng (P4) và chỉ có một người dùng trên máy của chính họ.
@@ -400,27 +256,26 @@ phải đọc 10.800 khung hình**.
 
 ## 6. Yêu cầu phi chức năng
 
-- **Hiệu năng.** Hiến pháp mục 3 đang ràng: giả lập trọn một trận ở chế độ chạy ngay
-  **< 3 giây** kể cả khi sân 2D bật; một mùa 20 đội (380 trận) **< 30 giây**; mở ứng dụng
-  với 20 đội và 20 trận lịch sử **< 2 giây**. Một trận ở mức 0,5 giây mỗi khung là
-  **~10.800 khung × 25 thực thể**. Ngân sách "một mùa < 30 giây" tức **< 79 ms một trận** —
-  **thấp hơn ngân sách một trận lẻ gần 40 lần**. Đây là một **xung đột thật**, xem mục 8
-  câu 11; spec này PHẢI không được lập plan trước khi nó được chốt.
-- **Dữ liệu.** Khối lượng của một trận tăng từ ~90 dòng sự kiện lên tới hàng trăm nghìn số.
-  Hiến pháp P10 đã cấm lặng lẽ cắt bớt dữ liệu người dùng. Xem mục 8 câu 5.
-- **Tái lập được (P1).** Mọi tính ngẫu nhiên — từ việc một cú sút có vào hay không, tới việc
-  trọng tài có bỏ qua một lỗi nhỏ hay không, tới chỗ bóng bật ra khi khống chế hỏng — PHẢI
-  đến từ nguồn ngẫu nhiên truyền vào theo mã trận. PHẢI không có `Math.random`, PHẢI không bám
-  đồng hồ thật.
-- **Luật bóng đá tách khỏi giao diện (P2).** Mọi thứ ở mục 3 là **luật và mô phỏng**, nên
-  toàn bộ PHẢI nằm ở lớp trong; giao diện chỉ vẽ.
-- **Accessibility (P9).** Mọi thông tin mới — ai đang giữ bóng, ai đang bị kèm, trạng thái
-  của từng người — PHẢI không chỉ truyền đạt bằng màu; tương phản 4,5:1; mọi thao tác làm được
-  bằng bàn phím.
-- **Song ngữ (P8).** Tên mọi mục đích di chuyển, tên mọi hành động có bóng, tên mọi quyết
-  định của trọng tài, mọi câu tóm tắt đoạn 15 phút PHẢI có cả tiếng Việt và tiếng Anh
-  **trong cùng commit**, và câu tường thuật PHẢI viết riêng cho từng ngôn ngữ.
-- **Offline (P4).** Không gọi mạng, kể cả để lấy dữ liệu thời tiết hay dữ liệu bóng đá thật.
+- **Hiệu năng — mốc ràng của spec này.** Giả lập trọn một trận ở chế độ chạy ngay **< 3
+  giây** kể cả khi sân 2D bật (hiến pháp mục 3, AC-31.3); mỗi khung vẽ gọn trong một nhịp ở
+  mọi mức tốc độ (AC-31.4); mở ứng dụng với 20 đội và 20 trận lịch sử **< 2 giây**.
+- **Hiệu năng — mốc KHÔNG ràng spec này, nhưng phải đo.** Hiến pháp còn đòi một mùa 20 đội
+  (380 trận) **< 30 giây**, tức **< 79 ms một trận**. Spec 007 **không** dựng mùa giải nào
+  nên không có gì vi phạm con số ấy hôm nay, nhưng chế độ liên tục với ~5.400 mốc × 25 thực
+  thể **gần như chắc chắn không vừa**. Spec 007 vì thế PHẢI **đo và báo con số thật** trước
+  khi spec 009 hay 010 chốt kiến trúc. Nếu con số không vừa thì đó là việc của người dùng
+  quyết — nới hiến pháp, hay cho mùa giải chạy ở chế độ hiện tại.
+- **Dữ liệu.** Bản ghi trận **không phình thêm một byte**: vị trí sinh lại từ mã trận, không
+  lưu (AC-45.4). Đây là cách spec này giữ P10 mà không phải cắt bớt gì.
+- **Tái lập được (P1).** Mọi tính ngẫu nhiên — kể cả thời tiết của trận — PHẢI đến từ mã
+  trận. PHẢI không có nguồn ngẫu nhiên toàn cục, PHẢI không bám đồng hồ thật.
+- **Luật bóng đá tách khỏi giao diện (P2).** Toàn bộ cơ học chuyển động và mọi quyết định của
+  trận PHẢI nằm ở lớp trong; giao diện chỉ vẽ và nội suy giữa hai mốc.
+- **Accessibility (P9).** Mọi thông tin mới PHẢI không chỉ truyền đạt bằng màu; tương phản
+  4,5:1; chọn chế độ mô phỏng và xuất tệp PHẢI làm được bằng bàn phím.
+- **Song ngữ (P8).** Tên chế độ mô phỏng, nhãn thời tiết, nhãn nút xuất tệp và mọi thông báo
+  lỗi mới PHẢI có cả tiếng Việt và tiếng Anh **trong cùng commit**.
+- **Offline (P4).** Không gọi mạng, kể cả để lấy dữ liệu thời tiết.
 
 ---
 
@@ -429,100 +284,198 @@ phải đọc 10.800 khung hình**.
 - [ ] Toàn bộ AC ở mục 3 pass
 - [ ] Trường hợp biên mục 5 được xử lý
 - [ ] Không vi phạm nguyên tắc nào trong constitution
-- [ ] Mọi AC dạng **khoảng số** (AC-38.x, AC-40.8, AC-41.5, AC-42.x, AC-43.x) có **test tự
-      động** đo đúng khoảng đó trên nhiều mã trận — không AC nào trong nhóm này được tick
-      bằng cách xem mắt (P5, và chuẩn chất lượng mục 4)
+- [ ] Mọi AC dạng **khoảng số** (AC-37.7, AC-38.1 → AC-38.8, AC-38.11, AC-45.3) có **test tự
+      động** đo đúng khoảng đó trên nhiều mã trận — không AC nào trong nhóm này được tick bằng
+      cách xem mắt (P5, và chuẩn chất lượng mục 4)
+- [ ] Ngân sách mùa giải đã được **đo và báo số**, dù spec này không bị nó ràng (mục 6)
 - [ ] Mọi AC ở mục 10 (những gì phải giữ lại) được chạy lại và còn xanh
-- [ ] Người dùng tự xem một trận trọn vẹn và phán rằng ba câu họ nói ở mục 1 không còn đúng
-      nữa — lớp kiểm cuối, như T518 của spec 005 và T617 của spec 006
-- [ ] Ứng dụng chạy trọn luồng mục 4 từ đầu tới cuối (P6)
+- [ ] Người dùng tự xem một trận trọn vẹn ở chế độ liên tục và phán rằng ba câu họ nói ở mục 1
+      không còn đúng nữa — lớp kiểm cuối, như T518 của spec 005 và T617 của spec 006
+- [ ] Ứng dụng chạy trọn luồng mục 4 từ đầu tới cuối, ở **cả hai chế độ** (P6)
 
 ---
 
 ## 8. Câu hỏi mở
 
-> Dùng đúng cú pháp `[NEEDS CLARIFICATION: câu hỏi]` để `/clarify` quét được.
-> Chỉ khi mục này rỗng mới được chạy `/plan`.
+**Không còn câu hỏi mở.** Mười ba câu của bản Draft đã được chốt hoặc chuyển sang spec sau ở
+`/clarify` ngày 2026-11-19 — xem mục 11 (nhật ký) và mục 12 (những câu thuộc spec 008–010).
 
-- [NEEDS CLARIFICATION: Engine mới **thay thế** engine hiện tại, hay **sống song song** như một chế độ thứ hai? Và 20 trận người dùng đã lưu xử lý thế nào — giữ nguyên xem bằng cách cũ, chuyển đổi, hay chấp nhận mất? Đây là câu quyết định cả kiến trúc: bốn spec trước đều giữ phiên bản engine và phiên bản dữ liệu không đổi, và đó chính là thứ giữ cho trận đã lưu còn đấu lại được (P1, P3).]
-- [NEEDS CLARIFICATION: Spec 005 và spec 006 — nội suy có đường cong, lớp dao động, mốc trung gian dựng ở tầng giao diện, suy ra ai giữ bóng — **còn giữ hay thành dư**? Nếu engine mới tự phát khung hình 0,5 giây thì cả hai lớp ấy không còn việc gì làm. Chúng là công của 16 lát cắt (Phase 37–52) và 141 phép kiểm ở bốn module của hai spec ấy; bỏ thì phải nói rõ là bỏ.]
-- [NEEDS CLARIFICATION: Đầu ra của engine mới là gì — **JSON đọc trong chat** như bản mô tả 21 mục, **dữ liệu cho sân 2D của ứng dụng vẽ**, hay **cả hai**? Nếu là JSON trong chat thì phần lớn 21 mục không phải tính năng của ứng dụng, mà là định dạng một bản báo cáo.]
-- [NEEDS CLARIFICATION: "Mô phỏng từng đoạn 15 phút rồi DỪNG chờ lệnh tiếp" — trong ứng dụng nghĩa là gì? Người dùng **bấm tiếp từng đoạn** (sáu lần một trận), hay trận **chạy liền** và đoạn 15 phút chỉ là cách chia bản tóm tắt? Hiện ứng dụng có bốn mức tốc độ chạy liên tục cộng chế độ chạy ngay.]
-- [NEEDS CLARIFICATION: Khung hình 0,5 giây **lưu vào bản ghi trận** hay **sinh lại từ mã trận mỗi lần xem**? Một trận là ~10.800 khung × 25 thực thể. Lưu thì tệp sao lưu phình lên hàng nghìn lần; sinh lại thì mỗi lần mở một trận cũ phải mô phỏng lại cả trận. P10 cấm lặng lẽ cắt bớt, nên phải chọn và nói rõ.]
-- [NEEDS CLARIFICATION: Mục 14 của bản mô tả đòi 10 chỉ số sân + 3 chỉ số thủ môn. Ứng dụng **đã có 15 chỉ số sân + 3 chỉ số thủ môn**, và chúng phủ gần hết: tốc độ, sức bền, sức mạnh, chuyền (ngắn và dài là hai chỉ số riêng), rê bóng, dứt điểm (sút gần và sút xa riêng), đánh đầu, phòng ngự (tắc bóng, kèm người, đọc tình huống), tầm nhìn, bình tĩnh, phản xạ, bắt bóng. **Thiếu đúng một thứ: "chọn vị trí" của thủ môn** — chỉ số thủ môn thứ ba hiện là "phát động", không phải chọn vị trí. Thêm một chỉ số mới (buộc người dùng nhập lại cho mọi thủ môn đã có), hay suy từ phản xạ và đọc tình huống?]
-- [NEEDS CLARIFICATION: Cả 21 mục là **rất lớn** — lớn hơn tổng spec 005 và 006 cộng lại. Chẻ thành bao nhiêu spec? Và spec 007 lấy phần nào **trước**? Một đề xuất để người dùng bác hoặc sửa: (a) toạ độ mét + thời gian liên tục + cơ học chuyển động (US-37, US-38) làm nền, (b) luật IFAB đầy đủ (US-39) riêng một spec, (c) chiến thuật, thể lực, mục đích di chuyển (US-40, US-41) riêng một spec, (d) nhịp trận, sự không hoàn hảo, thống kê (US-42, US-43) riêng một spec.]
-- [NEEDS CLARIFICATION: Luật IFAB cần đầy đủ tới đâu **trong spec này**? VAR, DOGSO, phép lợi thế và thả bóng là ba luật khó nhất và ít thấy nhất trên hình. Làm hết ngay, hay làm việt vị + tình huống cố định trước rồi để VAR và DOGSO sau?]
-- [NEEDS CLARIFICATION: Trọng tài chính và hai trợ lý (REF, AR1, AR2) có **vẽ trên sân 2D** không? Bản mô tả đòi họ có trong khung hình, với trợ lý luôn ngang hàng hậu vệ cuối. Thêm ba điểm nữa lên sân đụng thẳng vào AC-15.2 và AC-30.5 — "không hai điểm nào chồng khít" — vốn đã là ràng buộc chật nhất của sân 2D.]
-- [NEEDS CLARIFICATION: Thời tiết và gió có vào spec này không? Bản mô tả nói mưa làm bóng lăn nhanh và tăng lỗi khống chế, gió ảnh hưởng bóng bổng dài, nắng nóng làm thể lực giảm nhanh hơn 10–20%. Nếu có thì người dùng **chọn thời tiết** hay nó **sinh ra từ mã trận**?]
-- [NEEDS CLARIFICATION: **Ngân sách hiệu năng xung đột với hiến pháp.** Hiến pháp mục 3 đòi một trận < 3 giây và một mùa 380 trận < 30 giây, tức < 79 ms một trận. Engine khung 0,5 giây không có cách nào vừa cả hai. Ba đường, phải chọn: (a) sửa hiến pháp, nới ngân sách mùa giải; (b) hai chế độ — engine liên tục cho trận người dùng xem, engine nhanh cho các trận còn lại của mùa, và chấp nhận hai engine cho ra hai kết quả khác nhau; (c) hạ mức chi tiết xuống thưa hơn 0,5 giây cho phần lớn thời gian, chỉ dày lên ở tình huống quan trọng.]
-- [NEEDS CLARIFICATION: Hiệp phụ và luân lưu chỉ có nghĩa ở **trận loại trực tiếp**, mà ứng dụng hiện chỉ cho đấu hai đội với nhau — chưa có giải đấu, chưa có vòng loại trực tiếp (giải đấu vừa được gỡ khỏi non-goals ngày 2026-11-16 nhưng chưa spec nào làm). Làm luật hiệp phụ và luân lưu **bây giờ** rồi để đó chờ giải đấu, hay để cùng spec giải đấu?]
-- [NEEDS CLARIFICATION: AC-42.11 đòi "trọng tài cũng sai" và AC-43.4 đòi "kết quả không đoán trước được". Cả hai là **yêu cầu cố tình làm engine kém chính xác hơn**. Người dùng có chắc muốn điều đó không — và nếu có thì **đo bằng gì** để biết là đã đủ sai mà chưa sai quá?]
+Spec này đã qua cổng chặn của hiến pháp mục 5 và sẵn sàng cho `/plan`.
 
 ---
 
 ## 9. Giả định
 
-- **Spec này nối tiếp spec 006, và spec 006 chưa đóng.** Spec 006 đang ở **17/25 task**: còn
-  T608 (đo lại bóng không đứng yên quá 300 ms), Phase 50 (đi vòng qua đối thủ) và Phase 52
-  (mức tốc độ thứ năm, kiểm tay, ngân sách, đóng spec). Giả định: spec 006 được **đóng
-  trước** khi spec 007 bắt đầu code. Nếu người dùng muốn làm 007 ngay, phần việc còn lại của
-  006 phải được quyết định rõ là **bỏ** hay **hoãn** — không để lửng.
+- **Spec 006 được đóng trước, và Phase 50 bị bỏ.** Người dùng chốt ngày 2026-11-19: làm nốt
+  T608 và Phase 52, **bỏ Phase 50** (T609, T610 — đi vòng qua đối thủ ở tầng giao diện) vì
+  engine mới sẽ làm việc đó đúng hơn ở tầng dưới. Hệ quả: **AC-34.2 của spec 006 đóng mà chưa
+  làm** — nó được **hoãn sang spec 007**, không phải xong. Việc này phải ghi rõ trong
+  `tasks.md` của spec 006.
 - **Nhánh `007-continuous-match-engine` chưa được cắt.** Tài liệu này được viết trên nhánh
-  `006-ball-carrier-motion` **có chủ ý**: người dùng đang mở bản dev để xem bản 006 và có thể
-  báo lỗi ngay, nên đổi nhánh lúc này sẽ làm các bản sửa lỗi của 006 rơi vào nhánh 007. Nhánh
-  007 nên cắt khi thật sự bắt đầu `/plan`.
-- **Đánh số tiếp các spec trước:** user story từ **US-37**, task từ **T700**, phase từ
-  **53**, quyết định thiết kế từ **D117**.
-- Chỉ số cầu thủ hiện có (15 + 3) là **đủ cho phần lớn mục 14** của bản mô tả; giả định là
-  không làm người dùng nhập lại chỉ số cho các đội đã có. Nếu giả định này sai thì mục 8
-  câu 6 phải đổi.
-- Người dùng vẫn là **một người, trên một máy, offline** — không có chuyện hai người cùng xem
-  một trận.
+  `006-ball-carrier-motion` **có chủ ý**: người dùng đang xem bản 006 và có thể báo lỗi, nên
+  đổi nhánh lúc này sẽ làm các bản sửa lỗi của 006 rơi vào nhánh 007. Nhánh 007 cắt khi bắt
+  đầu code, sau khi 006 đóng.
+- **Đánh số tiếp các spec trước:** task từ **T700**, phase từ **53**, quyết định thiết kế từ
+  **D117**.
+- **Chỉ số cầu thủ hiện có (15 + 3) đủ cho spec 007.** Phần của mục 14 cần chỉ số mới nằm ở
+  spec 009; xem câu hỏi còn treo ở mục 12.
+- **Một chỗ trong bản mô tả gốc tự mâu thuẫn, và tôi đã chọn một chiều.** Mục 10 viết bóng
+  lăn "chậm dần nhanh hơn trên sân ướt **hoặc cỏ dài**", còn mục 21 viết "mưa làm bóng lăn
+  **nhanh** và trơn hơn". Hai câu ngược nhau: cỏ ướt **giảm** ma sát (bóng đi xa hơn), cỏ dài
+  **tăng** ma sát. AC-38.7 lấy theo vật lý và theo mục 21 — **sân ướt thì bóng đi xa hơn**.
+  Nếu ý người dùng là chiều kia thì AC-38.7 phải sửa.
+- Người dùng vẫn là **một người, trên một máy, offline**.
 - Bản mô tả 21 mục là **yêu cầu của người dùng**, không phải tài liệu kỹ thuật: những con số
-  trong đó (9 m/s, 6 m/s², 55–60 phút, 350–650 đường chuyền) là **mức mong muốn**, và spec
-  này ghi chúng thành AC đo được. Nếu một con số nào đó hoá ra không dựng nổi thì phải quay
-  lại hỏi người dùng, **không** tự hạ ngưỡng.
+  trong đó là **mức mong muốn**, và spec này ghi chúng thành AC đo được. Nếu một con số hoá ra
+  không dựng nổi thì phải quay lại hỏi người dùng, **không** tự hạ ngưỡng.
 
 ---
 
 ## 10. Những gì PHẢI giữ lại từ spec 001–006
 
-Spec này chạm vào lớp sâu nhất của ứng dụng, nên đây là danh sách những gì dễ vỡ nhất, kèm
-lý do từng cái. Mọi AC dưới đây PHẢI còn đúng khi spec 007 đóng.
+Spec này thêm một engine thứ hai bên cạnh engine cũ, nên đây là danh sách những gì dễ vỡ
+nhất. Mọi AC dưới đây PHẢI còn đúng khi spec 007 đóng.
 
 **Từ hiến pháp — không thương lượng**
 
 | | Vì sao dễ vỡ ở spec này |
 |---|---|
-| **P1** tái lập được | Engine mới có hàng nghìn lần rút ngẫu nhiên mỗi trận thay vì vài chục. Một chỗ lỡ bám đồng hồ thật là mất cả P1 |
-| **P2** luật bóng đá tách khỏi giao diện | Luật việt vị và tình huống cố định rất muốn được viết ngay chỗ đang vẽ. Không được |
-| **P3** dữ liệu người dùng bất khả xâm phạm | 20 trận đã lưu bằng engine cũ. Xem mục 8 câu 1 |
-| **P7** tệp sao lưu mở lại được | Trường mới ở quy mô này là nhiều; tệp cũ vẫn phải nhập được |
-| **P10** không lặng lẽ cắt bớt | Khung hình 0,5 giây là lý do hoàn hảo để "tối ưu" bằng cách bỏ bớt. Xem mục 8 câu 5 |
+| **P1** tái lập được | Engine mới có hàng nghìn lần rút ngẫu nhiên mỗi trận thay vì vài chục. Một chỗ lỡ bám đồng hồ thật là mất cả P1. Và vì vị trí **sinh lại** chứ không lưu, P1 là thứ duy nhất giữ cho một trận cũ xem lại vẫn ra đúng chuyển động ấy |
+| **P2** luật bóng đá tách khỏi giao diện | Cơ học chuyển động rất muốn được viết ngay chỗ đang vẽ. Không được |
+| **P3** dữ liệu người dùng bất khả xâm phạm | 20 trận đã lưu bằng engine cũ phải đấu lại y nguyên (AC-45.2) |
+| **P6** mỗi lát tự chạy được | Đây là lý do spec 007 chỉ lấy nền chuyển động, và là lý do nó dùng lại mô hình xác suất của engine cũ để có một trận chạy được ngay |
+| **P7** tệp sao lưu mở lại được | Thêm trường chế độ vào bản ghi trận; tệp cũ không có trường ấy vẫn phải nhập được |
+| **P10** không lặng lẽ cắt bớt | Giải bằng cách **không lưu vị trí** (AC-45.4), nên không có gì để cắt |
 
 **Từ các spec đã đóng**
 
 | AC | Nội dung | Vì sao dễ vỡ |
 |---|---|---|
 | AC-8.11, AC-8.12 | Cùng mã trận ra cùng từng dòng sự kiện | Nền của mọi so sánh chiến thuật |
-| AC-8.3 → AC-8.8 | Chiến thuật khác nhau cho kết quả khác nhau | Engine mới phải giữ được quan hệ chỉ thị → kết quả, không chỉ trông đẹp hơn |
-| AC-14.6 | Dưới 7 người thì huỷ trận | Giữ nguyên thành AC-39.12 |
-| AC-15.2, AC-30.5 | Không hai điểm nào chồng khít trên sân 2D | Thêm REF/AR1/AR2 là thêm ba điểm. Xem mục 8 câu 9 |
-| AC-30.4 | Khối đội hình nghiêng theo bóng trong một ngưỡng | Spec 006 (D116) đã nới ngưỡng này lên một phần sáu chiều dài sân sau khi người dùng xem và chốt |
+| AC-8.3 → AC-8.8 | Chiến thuật khác nhau cho kết quả khác nhau | Chế độ mới phải giữ được quan hệ chỉ thị → kết quả (AC-45.3 canh điều này bằng số) |
+| AC-14.6 | Dưới 7 người thì huỷ trận | Chế độ mới cũng phải tuân |
+| AC-15.2, AC-30.5 | Không hai điểm nào chồng khít trên sân 2D | Lý do trọng tài **không** được vẽ ở lát này |
+| AC-30.4 | Khối đội hình nghiêng theo bóng trong một ngưỡng | Spec 006 (D116) vừa nới lên một phần sáu chiều dài sân sau khi người dùng xem và chốt |
 | AC-30.7 | Thủ môn ở lại một phần ba sân nhà | Người dùng đã bắt lỗi này bằng mắt ở spec 006; engine mới không được làm nó quay lại |
-| AC-30.8 | Bốn hàng hai đội xen kẽ đúng thứ tự | Khối phòng ngự 30–40 m của AC-40.1 đụng thẳng vào trật tự này |
-| AC-28.3 | Toạ độ tại mốc không bao giờ sai | Nếu engine mới tự phát khung hình thì "mốc" đổi nghĩa; phải nói rõ nó còn nghĩa gì |
+| AC-30.8 | Bốn hàng hai đội xen kẽ đúng thứ tự | Chuyển động liên tục làm điểm di chuyển nhiều hơn, nên trật tự này dễ vỡ hơn |
+| AC-28.3 | Toạ độ tại mốc không bao giờ sai | Ở chế độ mới, "mốc" là mốc 1 giây của engine chứ không còn là mốc mỗi phút — nghĩa đổi, bất biến thì không |
 | AC-28.5 | Tạm dừng thì đóng băng | Spec 006 (D114) vừa phải sửa lại chỗ này bằng một đồng hồ tích luỹ |
 | AC-31.1 | Giảm chuyển động thì không nội suy, không dao động | Yêu cầu accessibility, không phải tuỳ chọn |
-| AC-31.3, AC-31.4 | Chạy hết trận < 3 giây; mỗi khung vẽ gọn trong một nhịp | Xem mục 8 câu 11 |
+| AC-31.3, AC-31.4 | Chạy hết trận < 3 giây; mỗi khung vẽ gọn trong một nhịp | Mốc ràng thật của spec này, xem mục 6 |
 | AC-32.1 | Quả bóng luôn có mặt và không bị điểm cầu thủ che | Spec 006 vừa đưa bóng vào chân người giữ bóng; "không bị che" và "trong chân" kéo ngược nhau |
-| AC-2.2, AC-2.3 | 15 chỉ số sân + 3 chỉ số thủ môn | Xem mục 8 câu 6 |
+| AC-2.2, AC-2.3 | 15 chỉ số sân + 3 chỉ số thủ môn | Spec 007 không thêm chỉ số nào |
+
+**Những gì của spec 005 và 006 được giữ, và phần duy nhất bị bỏ**
+
+- **Giữ nguyên toàn bộ spec 005**: nội suy có đường cong và lớp dao động **vẫn cần**, vì mốc
+  0,5–1 giây của engine mới là 1–2 mốc mỗi giây và mắt người sẽ thấy giật nếu không nội suy
+  xuống 60 khung/giây.
+- **Giữ phần vẽ của spec 006**: bóng trong chân người giữ bóng, vòng sáng, phép kẹp thủ môn,
+  nghiêng khối theo bóng và theo vai trò.
+- **Bỏ phần SUY RA của spec 006**: dựng mốc trung gian từ đường bóng, và đoán ai đang giữ
+  bóng từ danh sách người tham gia. Engine mới nói thẳng cả hai (AC-37.6), nên để hai nguồn
+  cùng tồn tại là mời một lớp lỗi rất khó thấy. Phần bỏ này **chỉ áp dụng cho chế độ liên
+  tục**: chế độ hiện tại vẫn cần lớp suy ra, vì engine v5 không nói ai giữ bóng.
 
 ---
 
-## 11. Bước tiếp theo
+## 11. Nhật ký làm rõ
 
-Mục 8 có **13 câu hỏi mở**, trong đó **ba câu chặn cả spec**: câu 1 (thay thế hay song
-song), câu 7 (chẻ thành mấy spec) và câu 11 (xung đột ngân sách hiệu năng với hiến pháp).
+Mười hai câu hỏi, chốt ngày **2026-11-19**. Người dùng chọn đúng phương án khuyến nghị ở cả
+mười hai — lần đầu trong sáu spec.
 
-Chạy `/clarify` để chốt. Hiến pháp mục 5 cấm `/plan` khi mục 8 còn `[NEEDS CLARIFICATION]`.
+| # | Câu hỏi | Quyết định | Cái giá đã nói trước khi chốt |
+|---|---|---|---|
+| 1 | Engine mới thay thế hay song song? 20 trận đã lưu ra sao? | **Song song.** Engine hiện tại và 20 trận đã lưu giữ nguyên, đấu lại y nguyên. Engine mới là lối vào thứ hai | Hai engine cùng sống, hai bảng thống kê khác nhau cho cùng một đội, và mọi tính năng sau phải chọn làm cho bên nào. Tiền lệ: hiến pháp 3.0 đã cho hai vòng lặp chơi sống song song |
+| 2 | 21 mục chẻ thế nào? 007 làm gì trước? | **Nền chuyển động trước.** 007 = US-37 + US-38 (+ US-45). Luật IFAB → 008; chiến thuật, thể lực, mục đích → 009; nhịp trận, sự không hoàn hảo, thống kê → 010 | Chưa có luật mới nào, bảng thống kê chưa đổi. Lý do nền phải đi trước: việt vị và tình huống cố định **không dựng được** khi chưa có toạ độ mét |
+| 3 | Ngân sách hiệu năng xung đột hiến pháp (< 3 giây một trận nhưng < 79 ms nếu tính theo mùa) | **Hai mức chi tiết, một engine.** Một engine, một kết quả, P1 nguyên vẹn | Câu "trận tồn tại ở mọi thời điểm" chỉ đúng một phần: AC-37.1 đi kèm AC-37.7 |
+| 4 | Mức thưa là bao nhiêu? | **1 giây** ở phần thường, **0,5 giây** ở tình huống quan trọng. ~5.400 mốc một trận | Ở 1 giây, một người chạy 6 m/s đi được 6 m giữa hai mốc — đủ gần để không bỏ sót một cú đổi hướng. Ở 2 giây là 12 m, và một cú đổi hướng gấp ở giữa sẽ bị nội suy làm phẳng |
+| 5 | Spec 005 và 006 còn giữ hay thành dư? | **Giữ 005 nguyên vẹn, giữ phần vẽ của 006, bỏ lớp SUY RA của 006** — và chỉ bỏ ở chế độ liên tục | Nội suy của 005 vẫn cần vì 1–2 mốc mỗi giây thì mắt người thấy giật. Để lớp suy ra chạy song song với dữ liệu thật là mời một lớp lỗi rất khó thấy |
+| 6 | Spec 006 đang 17/25 — làm gì với phần còn lại? | **Đóng 006, bỏ Phase 50.** Làm T608 và Phase 52; bỏ T609, T610 | AC-34.2 của spec 006 đóng mà chưa làm, phải ghi rõ là **hoãn sang 007**, không phải xong. Đường kia là làm một việc biết trước là sẽ xoá |
+| 7 | Engine mới phát ra cái gì? | **Vẽ trên sân 2D + xuất được JSON** đúng định dạng mục 7b và 15 | Thêm một định dạng phải giữ đúng mãi, và tệp xuất rất lớn. Lý do vẫn chọn: người dùng kiểm bằng số rất nhiều, và suốt spec 005–006 mỗi con số đều phải dựng một bản đo riêng |
+| 8 | Vị trí từng mốc: lưu hay sinh lại? | **Sinh lại từ mã trận.** Bản ghi trận không phình thêm một byte | Mở một trận cũ phải mô phỏng lại cả trận trước khi vẽ; và nếu engine đổi sau này thì **chuyển động** của trận cũ sẽ khác đi (tỉ số thì không, vì kết quả vẫn được lưu) |
+| 9 | Ở lát chỉ có toạ độ và cơ học, cái gì quyết kết quả trận? | **Dùng lại mô hình xác suất của engine hiện tại**, nhưng diễn ra trên toạ độ mét và thời gian giây. Spec 008–010 thay dần lớp quyết định | Trong 007 vẫn chưa có việt vị, phạt góc, ném biên — trận trông liên tục nhưng luật vẫn thiếu. Lợi: lát 007 chạy trọn một trận xem được ngay (P6) |
+| 10 | Trọng tài và hai trợ lý có vẽ trên sân 2D? | **Có trong dữ liệu khung hình, không vẽ.** Bản mô tả gốc đòi họ "có trong khung hình" — điều đó được thoả | Không thấy họ trên hình ở lát này. Lý do không vẽ: ba điểm nữa đụng thẳng AC-15.2 và AC-30.5, mà sàn hai điểm gần nhau nhất hiện là 1,31 bán kính và đã phải nới một lần |
+| 11 | Thời tiết và gió có vào 007? | **Có, sinh ra từ mã trận.** Trong 007 chỉ ảnh hưởng vật lý bóng | Người dùng không chọn được thời tiết, nó là của trận. Bù lại không thêm trường nào vào bản ghi trận hay tệp sao lưu |
+| 12 | Bốn câu nhỏ còn lại (chỉ số thủ môn, luật tới đâu, hiệp phụ và luân lưu, trọng tài sai) | **Chuyển sang spec 008–010** cùng với user story của chúng — xem mục 12 | Chúng không ràng spec 007, nên trả lời bây giờ là quyết sớm cho một spec chưa viết |
+
+---
+
+## 12. Lộ trình spec 008 → 010
+
+Phần này giữ **nguyên văn** các user story đã viết ở bản Draft nhưng **không** thuộc phạm vi
+spec 007. Chúng **không phải** acceptance criteria của spec 007 và **không** được tick ở đây.
+Chúng ở lại để `/specify` của spec 008–010 bắt đầu từ đây chứ không phải từ đầu.
+
+### Spec 008 — Luật IFAB (US-39)
+
+Việt vị xét tại thời điểm chạm bóng với hậu vệ thứ hai từ cuối; ngang hàng không việt vị;
+chỉ thổi khi tham gia tình huống; không việt vị từ phát bóng lên, ném biên, phạt góc. Đá
+phạt trực tiếp và gián tiếp. Phạt đền. Thủ môn giữ bóng 8 giây. Phép lợi thế. DOGSO, kèm
+ngoại lệ phạt đền + thẻ vàng khi có ý tranh bóng. Thẻ vàng thứ hai. Khoảng cách 9,15 m và
+luật hàng rào. Ném biên, phát bóng lên, thả bóng. Thay người 5 người trong 3 lần dừng. VAR
+bốn loại tình huống, 1–3 phút mỗi lần. Bù giờ theo số lần dừng. Hiệp phụ và luân lưu.
+
+**Câu hỏi còn treo cho spec 008:**
+- Luật đầy đủ tới đâu? VAR, DOGSO, phép lợi thế và thả bóng là ba luật khó nhất và ít thấy
+  nhất trên hình — làm hết ngay, hay làm việt vị và tình huống cố định trước?
+- Hiệp phụ và luân lưu chỉ có nghĩa ở trận loại trực tiếp, mà ứng dụng chưa có giải đấu. Làm
+  bây giờ rồi để đó chờ, hay để cùng spec giải đấu?
+
+### Spec 009 — Chiến thuật, thể lực, và mục đích di chuyển (US-40, US-41)
+
+Khối phòng ngự 30–40 m dọc và 35–45 m ngang, tuyến cách nhau 10–15 m, dịch theo phía có
+bóng. Tấn công kéo rộng, người cầm bóng luôn có 2–3 phương án chuyền. Pressing chỉ bật theo
+tín hiệu. 3–5 giây phản pressing sau khi mất bóng. 15 phút cuối: đội dẫn lùi sâu, đội bị dẫn
+dâng cao và chuyền dài nhiều hơn. Đổi sơ đồ phải có lý do. Thể lực 100 giảm dần, dưới 60 từ
+phút 60 thì mất 10% tốc độ tối đa. Quãng đường 9–12 km (thủ môn 5–6 km). Chấn thương 0–1 mỗi
+trận. Mỗi người không cầm bóng có một mục đích gọi tên được từ danh mục mục 11. Mỗi lần chạm
+bóng chọn từ danh mục mục 12. Cây ra quyết định bốn bước. Áp lực trong 2 m giảm 15–30%. Tỉ
+lệ thành công bám mức thật. Hướng người, tầm nhìn 180°, phản ứng 0,2–0,3 giây, quét trước khi
+nhận bóng. Kết quả hành động theo chỉ số, áp lực, độ khó và thể lực.
+
+**Câu hỏi còn treo cho spec 009:**
+- Mục 14 của bản mô tả đòi 10 chỉ số sân + 3 chỉ số thủ môn. Ứng dụng đã có **15 + 3** và
+  chúng phủ gần hết; **thiếu đúng một thứ: "chọn vị trí" của thủ môn** (chỉ số thủ môn thứ ba
+  hiện là "phát động"). Thêm một chỉ số mới — buộc người dùng nhập lại cho mọi thủ môn đã
+  có — hay suy từ phản xạ và đọc tình huống?
+- Thời tiết ảnh hưởng tới thể lực (nắng nóng làm giảm nhanh hơn 10–20%) và tới tỉ lệ khống
+  chế hỏng: vào spec 009 hay spec 010?
+
+### Spec 010 — Nhịp trận, sự không hoàn hảo, thống kê (US-42, US-43, US-44)
+
+Bóng chỉ lăn 55–60 phút. Thời gian từng loại bóng chết; đội dẫn ở cuối trận kéo dài thêm
+30–50%. Phân bổ cường độ: đứng và đi 35–45%, chạy chậm 35–45%, chạy nhanh 10–15%, nước rút
+2–5% với 20–40 pha. Hành vi theo khoảng cách tới bóng. Hồi phục 10–30 giây sau nước rút.
+Chạy chậm về sau pha tấn công thất bại. Hàng thủ lệch nhau 1–3 m. Người nhận điều chỉnh
+0,5–2 m; 5–10% khống chế hỏng, bóng bật 1–3 m. Cú sút trúng đích phần lớn về giữa khung.
+Trọng tài cũng sai. Đội vừa thủng lưới dâng cao 5–10 phút. Cường độ không đều, có giai đoạn
+ép sân 5–10 phút. Thống kê cả trận bám mức thật: bàn 2–3, sút 20–30, phạm lỗi 20–28, vàng
+3–5, đỏ 0–1, góc 8–12, việt vị 2–6, ném biên 40–50; chuyền 350–650 mỗi đội với 75–90% chính
+xác; xG cho mọi cú sút; đội mạnh thắng nhiều hơn nhưng không phải luôn luôn. Kể trận theo
+từng đoạn 15 phút với tóm tắt 3–5 câu, nhật ký, khung hình chi tiết và khối trạng thái đủ để
+tiếp tục; cộng một lớp tự kiểm chạy trước khi xuất.
+
+**Câu hỏi còn treo cho spec 010:**
+- "Mô phỏng từng đoạn 15 phút rồi dừng chờ lệnh tiếp" — trong ứng dụng nghĩa là gì? Người
+  dùng **bấm tiếp từng đoạn** (sáu lần một trận), hay trận **chạy liền** và đoạn 15 phút chỉ
+  là cách chia bản tóm tắt?
+- "Trọng tài cũng sai" và "kết quả không đoán trước được" là **yêu cầu cố tình làm engine kém
+  chính xác hơn**. Người dùng có chắc muốn điều đó, và **đo bằng gì** để biết đã đủ sai mà
+  chưa sai quá?
+
+### Những gì hoãn từ spec 006 sang đây
+
+- **AC-34.2 của spec 006** — người rê bóng phải **đi vòng qua** điểm của đối thủ nằm trên
+  đường đi, không đi xuyên qua. Spec 006 đóng mà chưa làm (Phase 50 bị bỏ, xem mục 9 và nhật
+  ký câu 6). Ở engine mới, đây là hệ quả tự nhiên của toạ độ mét cộng cơ học US-38, nên nó
+  thuộc **spec 007 hoặc 009** tuỳ chỗ lớp tránh người được dựng — `/plan` quyết.
+
+---
+
+## 13. Bước tiếp theo
+
+Mục 8 đã rỗng, nên cổng chặn của hiến pháp mục 5 đã mở. Chạy `/plan`.
+
+Trước khi code: **đóng spec 006** (T608 và Phase 52, bỏ Phase 50), rồi cắt nhánh
+`007-continuous-match-engine`.
