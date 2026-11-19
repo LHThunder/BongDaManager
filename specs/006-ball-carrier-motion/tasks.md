@@ -4,8 +4,8 @@
 |---|---|
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
-| **Phạm vi** | 21 AC (US-33 → US-36), 15 quyết định D101–D115 |
-| **Tiến độ** | 16/24 |
+| **Phạm vi** | 21 AC (US-33 → US-36), 16 quyết định D101–D116 |
+| **Tiến độ** | 17/25 |
 | **Sửa đổi** | 2026-11-19 — chẻ lần đầu từ plan |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -200,6 +200,15 @@ là một commit.
   - AC: AC-36.4
   - Phụ thuộc: T611
   - ⚠️ Lưới của **R48**. Câu "nếu đỏ thì siết cái vừa thêm, không nới cái đã có" là bài học của T511 ở spec 005.
+
+- [x] **T624** — Nới trần nghiêng khối lên một phần sáu
+  - File: sửa `src/ui/components/San2D.tsx`, sửa `src/ui/san2D.test.ts`
+  - Xong khi: `BIEN_NGHIENG_KHOI` là **1/6** (D116); hai phép kiểm của T510 và phép kiểm trần của T611 canh con số mới, kèm chú thích vì sao đổi.
+  - Xong khi (R48): ba phép kiểm bất biến **vẫn xanh**; sàn hai điểm gần nhau nhất đo lại là **1,3108 bán kính**, và `VONG_GIU_BONG_THEM` **tự thu lại** từ 1,2 xuống **1,054** đơn vị vì `Math.min` chuyển biên ràng từ dấu ▲ sang sàn.
+  - Bằng chứng: **số**.
+  - AC: AC-36.2, AC-36.3, AC-36.6
+  - Phụ thuộc: T611
+  - ⚠️ **Đổi một con số của AC-30.4 (spec 005)**. Spec 005 đã đóng nên AC của nó không sửa ngược; D116 thay con số đang chạy. Người dùng chốt 2026-11-19 sau khi đọc số đo của lát 51.
 
 - [x] **T613** — Đo: mọi điểm di chuyển có mục đích
   - File: — *(đo trên bản build)*
@@ -585,3 +594,41 @@ dâng lên rõ hơn thì phải **nới chính cái trần 1/10** — một ngư
 
 1299 phép kiểm xanh; ba phép kiểm bất biến của T612 xanh **không nới một ngưỡng
 nào**; `git diff src/engine/` rỗng hoàn toàn.
+
+## Phase 51b — nới trần lên 1/6, và hai thứ số đo dạy được
+
+Người dùng chốt nới trần nghiêng khối lên **một phần sáu** (D116, T624).
+
+**Số đo của chính lực kéo theo vai trò**, tách khỏi lớp co khối — so
+`nghiengKhoiTheoBong` có vai trò với chính nó không vai trò, trên **79.340 lượt**
+(10 mã trận × 7 quân số × mọi dòng × mọi người):
+
+| | Trung bình | Lớn nhất |
+|---|---|---|
+| Đồng đội của người giữ bóng | **1,02 đơn vị** | **2,88** |
+| Đối phương | **1,39 đơn vị** | **2,88** |
+
+Ở trần cũ những con số này nhỏ hơn đúng tỉ lệ trần: **1,67 lần yếu hơn**.
+
+**1. "Trọng tâm đội khi mình giữ bóng" là một PHÉP ĐO SAI.** Bản đầu của T613 đo
+nó trên bản build và ra **+0,51** cho đội nhà; đo lại ở trần 1/6 thì ra **−0,28** —
+ngược chiều. Không phải code sai: con số ấy bị **chỗ quả bóng hay nằm** làm nhiễu,
+vì lớp co khối kéo cả đội về phía bóng và đội đang cầm bóng thường xây từ sân
+nhà. Hai lần đo còn là **hai trận khác nhau**, vì mã trận sinh mới mỗi lần bấm.
+Phép đo đúng là đo **chính lực kéo**, như bảng trên.
+
+**2. Hai điểm CÓ lúc gần như trùng nhau ở giữa nhịp — và điều đó CÓ TỪ TRƯỚC.** Đo
+sàn hai điểm gần nhau nhất **ở lớp vẽ** (dựng lại cả nội suy, lớp dao động, luật đi
+theo bóng và phép kẹp thủ môn, ở sáu tỉ lệ nhịp):
+
+| Trần | Sàn ở lớp vẽ |
+|---|---|
+| 1/10 | **0,0055 bán kính** |
+| 1/6 | **0,0043 bán kính** |
+
+Tức nới trần **không sinh ra** chuyện này. Mọi phép kiểm AC-15.2 và AC-30.5 từ spec
+002 tới nay đều đo **toạ độ tại MỐC**, nơi sàn là 1,31 bán kính; **chưa phép kiểm nào
+đo giữa hai mốc**, và ở giữa thì đường đi của hai người có lúc cắt nhau. **Chưa sửa,
+và nói ra chứ không tự làm**: nó là tính chất của lớp nội suy spec 005, không nằm
+trong danh sách task, và còn phải hỏi xem hai cầu thủ chạy sát nhau một khoảnh khắc
+có thực sự là lỗi không.

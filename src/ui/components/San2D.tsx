@@ -298,15 +298,21 @@ function lechTrongVung(
 }
 
 /**
- * Khối đội hình nghiêng theo bóng tối đa bao nhiêu: **một phần mười chiều dài
- * sân** (AC-30.4, quyết định D94).
+ * Khối đội hình nghiêng theo bóng tối đa bao nhiêu: **một phần sáu chiều dài sân**
+ * (D116, nới từ một phần mười của AC-30.4 / D94).
  *
- * Ngưỡng này là do người dùng chốt lúc `/clarify`: đủ để thấy đội đang dồn lên
- * hay lùi về, mà sơ đồ vẫn nhận ra được. Bốn dải cách nhau ~0,23 chiều dài, nên
- * 0,1 là **chưa đầy một nửa** khoảng giữa hai dải: một hàng bốn không bao giờ trôi
- * sang chỗ của hàng bên.
+ * **Ngưỡng này là của người dùng, cả hai lần.** Họ chốt một phần mười ở
+ * `/clarify` của spec 005, rồi nới lên một phần sáu ngày 2026-11-19 sau khi đọc số đo
+ * của lát 51: phần đội hình dâng lên do **vai trò** chỉ được 0,5–1,2 đơn vị, vì cái
+ * trần cũ đã bị lớp co khối dùng gần hết.
+ *
+ * **Cái giá đã đo, không phải đoán**: sàn "hai điểm gần nhau nhất" tụt từ
+ * **1,4923** xuống **1,3108** bán kính, và vì thế vòng "đang giữ bóng" phải thu lại
+ * theo — xem `VONG_GIU_BONG_THEM`, nơi `Math.min` chuyển từ biên dấu ▲ sang biên sàn.
+ * Bốn dải cách nhau ~0,23 chiều dài, nên 1/6 vẫn **dưới** khoảng giữa hai dải: một
+ * hàng bốn không trôi sang chỗ của hàng bên.
  */
-const BIEN_NGHIENG_KHOI = 1 / 10
+const BIEN_NGHIENG_KHOI = 1 / 6
 
 /**
  * Khoảng cách lớn nhất có thể có giữa một người và dải có bóng, theo tỉ lệ
@@ -819,13 +825,16 @@ const VONG_SANG_NO_GAP = 7
  * không phải số suy ra (T605).
  *
  * Đo trên 10 mã trận × 7 quân số × mọi dòng tường thuật — 5835 dòng, mọi cặp
- * điểm: sàn là **1,4923 bán kính**, làm tròn xuống thành 1,49.
+ * điểm: sàn là **1,3108 bán kính**, làm tròn xuống thành 1,31.
  *
- * **Nó tụt từ 1,5468 xuống khi T611 thêm lực kéo theo vai trò** (D106), và đó là cái
- * giá phải trả đúng theo cách R48 đã báo trước: mọi lực kéo đều kéo về phía bóng,
- * nên chúng đều làm hai điểm xích lại. Lực kéo đã bị siết từ một nửa xuống
- * **một phần tư** lớp co khối để giữ sàn này — siết cái vừa thêm, không nới cái
- * đã có, đúng bài học của T511.
+ * **Nó đã tụt hai lần, và cả hai đều đo được**: 1,5468 → 1,4923 khi T611 thêm lực
+ * kéo theo vai trò (D106), rồi 1,4923 → 1,3108 khi T624 nới trần lên một phần sáu
+ * (D116). Lý do của cả hai là một: **mọi lực kéo đều kéo về phía bóng**, nên chúng
+ * đều làm hai điểm xích lại — đúng điều R48 báo trước.
+ *
+ * Lần thứ nhất trả bằng cách siết lực kéo theo vai trò từ một nửa xuống một phần
+ * tư lớp co khối. Lần thứ hai **không siết**, vì chính người dùng muốn thấy đội
+ * hình dâng lên rõ hơn; cái trả giá là vòng "đang giữ bóng" thu lại.
  *
  * **Không phải 1,80.** Con số 1,80 ghi ở phép kiểm R45 là sàn **quanh người ghi
  * bàn**, không phải sàn toàn sân — đo lại trên mọi cặp thì chật hơn hẳn. Và đo
@@ -834,7 +843,7 @@ const VONG_SANG_NO_GAP = 7
  * không phải một biên cho có — đúng bài học R45 lặp lại lần thứ ba: sàn phụ
  * thuộc vào việc đo quanh ai.
  */
-const SAN_HAI_DIEM_GAN_NHAT = 1.49
+const SAN_HAI_DIEM_GAN_NHAT = 1.31
 
 /**
  * Điểm người ghi bàn được phì thêm tối đa bao nhiêu (AC-32.4, rủi ro R45).
@@ -870,15 +879,17 @@ export const PHI_THEM_NGUOI_GHI_BAN = ((BUOC_GIAN / 2 - BAN_KINH) * 3) / 4
  * lỗi "phì to một điểm mà không đặt biên" hai lần ở R45. Hai biên, và vòng phải
  * nằm dưới **cả hai**:
  *
- * 1. **Sàn đã đo**: hai điểm gần nhau nhất cách nhau **1,4923 bán kính**, xem
+ * 1. **Sàn đã đo**: hai điểm gần nhau nhất cách nhau **1,3108 bán kính**, xem
  *    `SAN_HAI_DIEM_GAN_NHAT`. Vòng rộng hơn thế là trùm tâm người khác, tức
  *    đếm sai số người trên sân — điều AC-15.2 cấm.
  * 2. **Dấu ▲** đặt ở `-banKinh - 1,2 · tiLe`. Vòng cao hơn thế là đi xuyên dấu
  *    ▲, mà hai dấu phải đọc ra được riêng rẽ — ▲ đã có nghĩa "đang tham gia
  *    tình huống" từ spec 001.
  *
- * Biên 2 chặt hơn (1,2 so với 0,49 · 3,4 = 1,67), nên nó là biên thật. `Math.min`
- * viết ra cả hai để đổi `BAN_KINH` không làm biên kìa lặng lẽ biến mất.
+ * **Biên nào chặt hơn thì đã đổi sau T624**: trước là dấu ▲ (1,2 so với
+ * 0,49 · 3,4 = 1,67), nay là **sàn** (0,31 · 3,4 = **1,054** so với 1,2). Đó chính là
+ * lý do `Math.min` viết ra cả hai thay vì chốt một con số: nới trần nghiêng khối làm
+ * biên kìa thành biên thật, và vòng tự thu lại mà không ai phải nhớ sửa nó.
  */
 export const VONG_GIU_BONG_THEM = Math.min(
   BAN_KINH * (SAN_HAI_DIEM_GAN_NHAT - 1),

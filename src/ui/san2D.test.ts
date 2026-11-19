@@ -379,14 +379,14 @@ describe('hai nhóm di chuyển theo hai nguyên tắc (AC-36.2, AC-36.3, D106, 
     `/clarify` của spec 005 (AC-30.4).
   */
   const khung = khungSan(11)
-  const BIEN = khung.rong / 10
+  const BIEN = khung.rong / 6
   const CAC_DAI = [0, 1, 2, 3]
 
   function vung(dai: number): VungSan {
     return { id: `d${dai}`, dai, cot: 1 } as unknown as VungSan
   }
 
-  it('tổng mọi lực kéo vẫn trong một phần mười chiều dài sân (AC-30.4)', () => {
+  it('tổng mọi lực kéo vẫn trong một phần sáu chiều dài sân (D116)', () => {
     for (const ben of ['nha', 'khach'] as const) {
       for (const dNguoi of CAC_DAI) {
         for (const dBong of CAC_DAI) {
@@ -845,8 +845,9 @@ describe('vòng nét đứt quanh người giữ bóng (AC-33.1, AC-33.4, T605)'
     // Lượng mẫu phải đủ dày để câu "trên 10 mã trận" có nghĩa.
     expect(soVong, 'số vòng đã đo').toBeGreaterThan(1000)
     /*
-      Sàn đo được quanh người giữ bóng là **1,4923 bán kính** (trước T611 là
-      1,5468 — lực kéo theo vai trò làm hai điểm xích lại, đúng điều R48 báo trước), không phải 1,80
+      Sàn đo được quanh người giữ bóng là **1,3108 bán kính**. Nó đã tụt hai
+      lần: 1,5468 → 1,4923 khi T611 thêm lực kéo theo vai trò, rồi → 1,3108 khi T624
+      nới trần nghiêng khối lên một phần sáu — đúng điều R48 báo trước, không phải 1,80
       như bản đầu của phép kiểm này viết — 1,80 là sàn quanh **người ghi bàn**,
       đo ở T514, và lấy nó làm sàn toàn sân là sai. Đo lại trên 5835 dòng: sàn
       của **mọi cặp điểm** cũng đúng 1,5468 — tức cặp chật nhất của cả sân luôn
@@ -854,7 +855,7 @@ describe('vòng nét đứt quanh người giữ bóng (AC-33.1, AC-33.4, T605)'
 
       Vòng đứng ở `1 + 1,2/3,4` = 1,353 bán kính, dưới sàn ấy một khoảng dự.
     */
-    expect(chatNhat, 'cặp chật nhất, theo bán kính').toBeGreaterThanOrEqual(1.49)
+    expect(chatNhat, 'cặp chật nhất, theo bán kính').toBeGreaterThanOrEqual(1.31)
     /*
       **Đúng 0.** Trước T621 con số này là **2,82%** (148/5246): người giữ bóng
       nhận thẻ đỏ, hoặc bị thay ra sau pha bóng của mình, nên lớp vẽ không vẽ
@@ -996,7 +997,14 @@ describe('khối đội hình co về phía bóng (AC-30.4, AC-28.3, T510)', () 
   const o = (dai: DaiSan): VungSan => ({ id: `giua-${dai}`, dai, cot: 'giua' })
   const CAC_DAI = [0, 1, 2, 3] as const
 
-  it('biên là đúng một phần mười chiều dài sân, không cặp nào vượt', () => {
+  it('biên là đúng một phần sáu chiều dài sân, không cặp nào vượt', () => {
+    /*
+      **Một phần sáu, không còn một phần mười** (D116 của spec 006, 2026-11-19).
+      Người dùng chốt một phần mười ở `/clarify` của spec 005 rồi nới lên sau khi
+      đọc số đo của lát 51: phần đội hình dâng lên do vai trò chỉ được 0,5–1,2 đơn
+      vị vì trần cũ đã bị lớp co khối dùng gần hết. Spec 005 đã đóng nên AC-30.4
+      của nó **không sửa ngược**; chỗ này canh con số đang chạy.
+    */
     const khung = khungSan(11)
     let lonNhat = 0
     for (const ben of ['nha', 'khach'] as const) {
@@ -1005,13 +1013,13 @@ describe('khối đội hình co về phía bóng (AC-30.4, AC-28.3, T510)', () 
           const d = Math.abs(nghiengKhoiTheoBong(o(nguoi), ben, o(bong), khung))
           lonNhat = Math.max(lonNhat, d)
           expect(d, `${ben} dải ${nguoi}, bóng ở dải ${bong}`).toBeLessThanOrEqual(
-            khung.rong / 10 + 1e-9,
+            khung.rong / 6 + 1e-9,
           )
         }
       }
     }
     // Biên phải thật sự đạt tới, không phải một con số trên giấy.
-    expect(lonNhat).toBeCloseTo(khung.rong / 10, 6)
+    expect(lonNhat).toBeCloseTo(khung.rong / 6, 6)
   })
 
   it('người đứng ĐÚNG chỗ bóng không dịch một đơn vị nào', () => {
@@ -1022,7 +1030,13 @@ describe('khối đội hình co về phía bóng (AC-30.4, AC-28.3, T510)', () 
         const d = nghiengKhoiTheoBong(o(dai), ben, o(dai), khung)
         const cach =
           Math.abs(tiLeTest(dai, 'trung-lap') - tiLeTest(dai, ben)) * khung.rong
-        expect(Math.abs(d)).toBeLessThanOrEqual(cach / 5 + 1e-9)
+        /*
+          Hệ số này đi theo trần nghiêng khối: `BIEN / 0,81`. Với trần một phần
+          sáu thì nó là 0,206, nên `cach / 4` là biên đúng — điều phép kiểm này
+          canh vẫn là "dịch **tỉ lệ** với khoảng lệch hai bảng dải", không phải
+          một cú dịch tự do.
+        */
+        expect(Math.abs(d)).toBeLessThanOrEqual(cach / 4 + 1e-9)
       }
     }
   })
