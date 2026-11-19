@@ -31,12 +31,20 @@ import {
   PHI_THEM_NGUOI_GHI_BAN,
   RONG,
   cacNguoiTrenSan,
+  type ChuyenDiemDang,
   thoiGianChuyen,
+  vanTocCuaChang,
   toaDo,
   VONG_GIU_BONG_THEM,
   vungTrenSan,
   type DiemCauThu,
 } from './components/San2D'
+import {
+  doMetTuTheLuc,
+  QUANG_CHUAN,
+  thoiLuongCuaNguoi,
+  viTriTaiThoiDiem,
+} from './noiSuy'
 import {
   cuaSoGiuBong,
   dongThoiGianPhaBong,
@@ -1455,5 +1463,235 @@ describe('bóng đi HẾT đường chuyền của nó (AC-30.9, T524)', () => {
       daiNhat = Math.max(daiNhat, h.duongBong.length)
     }
     expect(nhieuDoan, `dài nhất ${daiNhat} điểm`).toBeGreaterThan(5)
+  })
+})
+
+
+describe('đường đi trong một nhịp không phồng thành vòng rộng (AC-30.11, T616)', () => {
+  /*
+    **Vì sao phép kiểm này tồn tại, và vì sao nó là phép kiểm chứ không phải một
+    bản đo trên ứng dụng.**
+
+    T616 đòi đo lại độ vòng của spec 005 (lớn nhất 4,12, trung vị 1,53) sau khi
+    spec 006 chèn mốc trung gian. Đo trên bản dev ngày 2026-11-19 thì **trung vị
+    ra đúng 1,53**, nhưng giá trị LỚN NHẤT không dùng được: AC-30.11 nói về đường
+    đi "trong MỘT NHỊP", mà từ DOM thì không lấy được mốc đầu–cuối của một nhịp.
+    Lớp dao động của spec 005 làm mọi điểm **không bao giờ đứng im**, nên không
+    tìm được biên nhịp bằng cách tìm chỗ điểm nghỉ; tìm cực tiểu của tổng dịch
+    chuyển thì ra chu kỳ **208ms của chính lớp dao động**, không phải 1000ms của
+    nhịp. Phải bó tạm theo phút của dòng tường thuật, và bó nào trùm hơn một nhịp
+    là tỉ số phồng lên.
+
+    Ở đây biên nhịp **biết theo cấu trúc**, nên con số là thật. Đây đúng là cách
+    T607, T611 và T622 đã làm với ba lỗi mà `environment: 'node'` không nhìn tới.
+
+    **Người đang giữ bóng được tách riêng, không phải được miễn.** D104 cho anh ta
+    đi theo ĐÚNG đường của quả bóng, mà đường ấy gấp khúc qua nhiều bước — nên độ
+    vòng của anh ta lớn là **chủ ý của spec 006**, không phải lỗi của lớp nội suy
+    mà AC-30.11 nói tới. Phép kiểm vì thế chốt ngưỡng cho nhóm không giữ bóng và
+    **in ra** con số của người giữ bóng, để không ai tưởng là đã đo cả hai.
+  */
+  const NHIP = MS_MOI_PHUT.cham
+  const NGUOI = thoiGianChuyen(NHIP)
+  const SO_BUOC = 48
+  /*
+    Ba hằng số của lớp vẽ, **cố tình viết lại ở đây** theo đúng quy ước đã ghi ở
+    `TI_LE_DAI_TEST`: một phép kiểm dùng chính hằng số của code thì không còn bắt
+    được việc ai đó đổi hằng số ấy.
+  */
+  const LE_TEST = 5
+  const GIAN_TEST = 8
+  /** Chỉ đo những chặng điểm ĐI THẬT: dưới mức này thì tỉ số không có nghĩa. */
+  const QUANG_TOI_THIEU = 2
+
+  it('mọi dòng của 10 mã trận: không điểm nào vòng quá năm lần đường chim bay', () => {
+    const vongThuong: number[] = []
+    const vongGiuBong: number[] = []
+    let toiNhat = { v: 0, bao: '' }
+
+    for (const ma of MA_TRAN_CO_DINH) {
+      for (const n of [11, 7, 5]) {
+        if (!QUAN_SO_CHAY_DUOC.includes(n)) continue
+        const tt = chayHetTran(tranMau(n, ma))
+        const doMetTheoNguoi = new Map<string, number>()
+        for (const ben of [tt.ben.nha, tt.ben.khach]) {
+          for (const [id, theLuc] of Object.entries(ben.theLuc)) {
+            doMetTheoNguoi.set(id, doMetTuTheLuc(theLuc))
+          }
+        }
+        const conTrenSan = (id: string) =>
+          cacNguoiTrenSan(tt.ben.nha, true).some((x) => x.playerId === id) ||
+          cacNguoiTrenSan(tt.ben.khach, false).some((x) => x.playerId === id)
+
+        let dang = new Map<string, ChuyenDiemDang>()
+        let giu: string | null = null
+
+        for (const sk of dongSuKien(tt)) {
+          const truocGiu: string | null = giu
+          giu = nguoiGiuBong(sk, truocGiu, conTrenSan)
+          const { cacDiem, khung } = veTu(tt, sk, giu)
+          if (cacDiem.length === 0) continue
+
+          const tiLeKhung = khung.rong / RONG
+          const leX = (RONG - khung.rong) / 2
+          const leY = (CAO - khung.cao) / 2
+          const le = LE_TEST * tiLeKhung
+          const gioiHan = {
+            xTu: leX + le,
+            xDen: leX + khung.rong - le,
+            yTu: leY + le,
+            yDen: leY + khung.cao - le,
+          }
+          const bienDo = bienDoTuKhoangGian(GIAN_TEST * tiLeKhung)
+          const kep = (v: number, tu: number, den: number) =>
+            Math.min(Math.max(v, tu), den)
+
+          /*
+            Dựng chặng mới cho từng điểm, đúng phép tính của `useEffect` trong lớp
+            vẽ — chỉ khác một chỗ: ở đây chặng cũ coi như **đã đi hết** (`troi` = 1).
+            Đó là trường hợp thường, và nó là trường hợp duy nhất tất định: lớp vẽ
+            chia theo đồng hồ thật nên nhịp bị cắt giữa đường là chuyện của thời gian
+            chạy, không phải của dữ liệu.
+          */
+          const moi = new Map<string, ChuyenDiemDang>()
+          for (const d of cacDiem) {
+            const truoc = dang.get(d.playerId)
+            const met = doMetTheoNguoi.get(d.playerId) ?? 0
+            const tuDau = truoc
+              ? viTriTaiThoiDiem(truoc.tu, truoc.den, 1, {
+                  huongVao: truoc.huongVao,
+                  doMet: met,
+                  gioiHan,
+                })
+              : { x: d.x, y: d.y }
+            moi.set(d.playerId, {
+              tu: tuDau,
+              den: { x: d.x, y: d.y },
+              huongVao: vanTocCuaChang(truoc, 1, met, gioiHan),
+              thoiLuong: thoiLuongCuaNguoi(
+                NHIP,
+                NGUOI,
+                met,
+                Math.hypot(d.x - tuDau.x, d.y - tuDau.y),
+                QUANG_CHUAN * tiLeKhung,
+              ),
+            })
+          }
+
+          for (const d of cacDiem) {
+            const ch = moi.get(d.playerId)
+            if (!ch) continue
+            const met = doMetTheoNguoi.get(d.playerId) ?? 0
+            let duong = 0
+            let dau: { x: number; y: number } | null = null
+            let truocDiem: { x: number; y: number } | null = null
+            let cuoi: { x: number; y: number } | null = null
+
+            for (let i = 0; i <= SO_BUOC; i += 1) {
+              const r = i / SO_BUOC
+              const troi = ch.thoiLuong > 0 ? (r * NHIP) / ch.thoiLuong : 1
+              const thuong = viTriTaiThoiDiem(ch.tu, ch.den, troi, {
+                huongVao: ch.huongVao,
+                doMet: met,
+                gioiHan,
+              })
+              const goc = d.laThuMon
+                ? (() => {
+                    const dai = daiThuMon(d.laDoiNha, khung)
+                    return { x: kep(thuong.x, dai.tu, dai.den), y: thuong.y }
+                  })()
+                : thuong
+              const lech = lechDaoDong(d.playerId, sk.phut + r, bienDo)
+              const v = {
+                x: kep(goc.x + lech.x, gioiHan.xTu, gioiHan.xDen),
+                y: kep(goc.y + lech.y, gioiHan.yTu, gioiHan.yDen),
+              }
+              if (dau == null) dau = v
+              if (truocDiem != null) {
+                duong += Math.hypot(v.x - truocDiem.x, v.y - truocDiem.y)
+              }
+              truocDiem = v
+              cuoi = v
+            }
+
+            if (dau == null || cuoi == null) continue
+            const chimBay = Math.hypot(cuoi.x - dau.x, cuoi.y - dau.y)
+            if (chimBay < QUANG_TOI_THIEU * tiLeKhung) continue
+            const vong = duong / chimBay
+            if (d.playerId === giu) {
+              vongGiuBong.push(vong)
+            } else {
+              vongThuong.push(vong)
+              if (vong > toiNhat.v) {
+                toiNhat = {
+                  v: vong,
+                  bao: `${ma} quân số ${n} phút ${sk.phut}: ${d.playerId} đi ${duong.toFixed(1)} trên đường chim bay ${chimBay.toFixed(1)}`,
+                }
+              }
+            }
+          }
+
+          dang = moi
+        }
+      }
+    }
+
+    const sapXep = (a: readonly number[]) => [...a].sort((x, y) => x - y)
+    const tv = (a: readonly number[]) => sapXep(a)[Math.floor(a.length / 2)] ?? 0
+    const max = (a: readonly number[]) => (a.length ? Math.max(...a) : 0)
+
+    console.log(
+      `độ vòng — KHÔNG giữ bóng: ${vongThuong.length} chặng, trung vị ${tv(vongThuong).toFixed(2)}, lớn nhất ${max(vongThuong).toFixed(2)}`,
+    )
+    console.log(
+      `độ vòng — ĐANG giữ bóng (D104, đi theo đường của quả bóng): ${vongGiuBong.length} chặng, trung vị ${tv(vongGiuBong).toFixed(2)}, lớn nhất ${max(vongGiuBong).toFixed(2)}`,
+    )
+
+    expect(vongThuong.length, 'số chặng đo được').toBeGreaterThan(1000)
+
+    /*
+      **Tính chất GIỮ ĐƯỢC: trung vị.** Ở trần nghiêng khối 1/10 nó ra đúng
+      **1,53** — khớp từng chữ số với con số spec 005 ghi lại, nên cách dựng lại
+      lớp vẽ ở đây là đúng. Ở trần 1/6 của D116 nó còn tốt hơn một chút: 1,38.
+    */
+    expect(tv(vongThuong), 'trung vị độ vòng').toBeLessThan(2)
+
+    /*
+      **Người giữ bóng bị chặn ở đây, và đây là chỗ spec 006 thật sự đụng tới.**
+      D104 cho anh ta đi theo đường của quả bóng, nên độ vòng của anh ta lớn hơn
+      là chủ ý; nhưng nó không được phép nổ. Đo được: lớn nhất **8,92**.
+    */
+    expect(max(vongGiuBong), 'độ vòng lớn nhất của người giữ bóng').toBeLessThan(10)
+
+    /*
+      ⚠️ **AC-30.11 CHƯA ĐẠT Ở PHẦN ĐUÔI, và phép kiểm này ghi lại đúng điều đó
+      thay vì nới ngưỡng cho xanh.**
+
+      AC-30.11 của spec 005 đòi độ vòng dưới **năm lần**. Đo trên 25.360 chặng
+      (10 mã trận × 3 quân số × mọi dòng) thì lớn nhất là **20,95** — trường hợp
+      tệ nhất là `C9P2R6NV5H`, quân số 7, phút 92: một điểm đi **37,2 đơn vị** mà
+      đường chim bay chỉ **1,8**. Đó đúng là "đường cong phồng ra thành một vòng
+      rộng" mà AC ấy cấm.
+
+      **Và nó CÓ TỪ TRƯỚC spec 006.** Đã làm phép thử quyết định: hạ trần nghiêng
+      khối về 1/10 (giá trị trước D116) rồi đo lại — ra **19,52**, cùng một trường
+      hợp tệ nhất. Tức cả D116 (trần 1/6) lẫn D104 (người giữ bóng đi theo bóng)
+      đều **không** sinh ra nó; nó là phần đuôi của lớp nội suy spec 005, chỗ một
+      chặng dài trước đó để lại vận tốc vào lớn cho một chặng ngắn theo sau.
+
+      Vì sao spec 005 ghi 4,12 mà ở đây ra ~20: con số 4,12 là **giá trị lớn nhất
+      của MỘT lượt chạy trên ứng dụng**, còn phép kiểm này duyệt toàn bộ không
+      gian. Một lượt chạy không bao giờ chạm tới phần đuôi.
+
+      **Chốt ngưỡng ngược lại có chủ ý**: phép kiểm khẳng định rằng vi phạm CÒN
+      TỒN TẠI. Nếu con số tụt xuống dưới 5 thì phép kiểm này đỏ — và đó là lúc
+      phải viết lại nó thành ngưỡng thật của AC-30.11, vì nghĩa là ai đó đã sửa
+      lớp nội suy. Siết nó là việc của spec 005 và nằm ngoài danh sách task của
+      spec 006, nên nó chờ người dùng chốt chứ không tự làm.
+    */
+    expect(
+      max(vongThuong),
+      `vi phạm AC-30.11 còn tồn tại — tệ nhất: ${toiNhat.bao}`,
+    ).toBeGreaterThan(5)
   })
 })

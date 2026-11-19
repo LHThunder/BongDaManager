@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | 21 AC (US-33 → US-36), 16 quyết định D101–D116 |
-| **Tiến độ** | 18/23 — T609 và T610 **bị bỏ** ngày 2026-11-19, xem Phase 50 |
+| **Tiến độ** | 19/23 — T609 và T610 **bị bỏ** ngày 2026-11-19, xem Phase 50 |
 | **Sửa đổi** | 2026-11-19 — chẻ lần đầu từ plan |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -156,13 +156,15 @@ là một commit.
   - Phụ thuộc: T606
   - ⚠️ **Lỗi do người dùng bắt được bằng mắt**: "di chuyển đôi khi hơi nhanh… giật cục và không liền mạch". Bản đầu của T606 kéo cửa sổ qua cả đoạn chuyền, vì người chuyền vẫn là `nguoiGiu` của đoạn ấy — anh ta là người **rời** bóng ở đó. Hậu quả: anh ta bay theo đường chuyền ở tốc độ của bóng — **nhanh gấp ba tốc độ người** — rồi giật ngược về mốc.
 
-- [ ] **T608** — Đo: quả bóng không còn đứng yên
+- [x] **T608** — Đo: quả bóng không còn đứng yên
   - File: — *(đo trên bản build)*
   - Xong khi: một trận trọn vẹn ở mức Chậm, quả bóng **không đứng yên quá 300ms** liên tục (trước spec này đo được **3144ms**, và tỉ lệ khung có bóng di chuyển là 35,5%); ghi cả hai con số mới vào mô tả commit.
   - Xong khi (phát hiện số 2 của `/analyze`): đo **riêng một phút `kiet-suc`** và **một phút `thay-nguoi`** — hai loại dòng không mang pha bóng nào, và là chỗ con số 3144ms sinh ra. Đo trung bình cả trận sẽ giấu đúng hai phút ấy.
   - Bằng chứng: **số**.
   - AC: AC-33.3
   - Phụ thuộc: T606
+  - ✅ **Xong 2026-11-19 với MỘT ngoại lệ do người dùng chốt.** Số đo đầy đủ ở mục "AC-30.11 — phép kiểm thuần của T616" và mục số đo bên dưới: 35,5% → **93,8%** số khung có bóng di chuyển; quãng dài nhất **ngoài phút có bàn thắng** là **34ms**; `kiet-suc` 33/34/32ms, `thay-nguoi` 32ms, thẻ vàng và thẻ đỏ 33ms.
+  - ⚠️ **Ngoại lệ của AC-33.3, người dùng chốt 2026-11-19:** nhịp lặng sau bàn thắng được **miễn** ngưỡng 300ms. Quả bóng về chấm giao bóng rồi nằm đó **1009ms** chờ giao bóng lại — đó chính là nhịp lặng `MS_LANG_SAU_BAN_THANG` mà **AC-32.5 của spec 005 cố tình đặt ra**, và là điều một quả bóng thật làm. Hai AC kéo ngược nhau, và người dùng chọn giữ nhịp lặng. T618 phải ghi ngoại lệ này vào chính AC-33.3 của `spec.md`, không chỉ ghi ở đây.
 
 ---
 
@@ -779,3 +781,55 @@ Hai đường đi tiếp, và cả hai cần người dùng chốt vì cả hai 
 (a) viết một **phép kiểm thuần ở lớp vẽ** dựng lại nội suy + lớp dao động + luật đi theo
 bóng rồi đo độ vòng — biên nhịp khi ấy **biết theo cấu trúc**, và đây đúng là cách T607,
 T611 và T622 đã làm; (b) cho ứng dụng lộ ra pha của nhịp để đo được từ ngoài.
+
+## AC-30.11 — phép kiểm thuần của T616, và một vi phạm CÓ TỪ TRƯỚC
+
+Bản đo trên ứng dụng không lấy được mốc đầu–cuối của một nhịp (lý do ở mục trên), nên
+T616 được đo bằng **một phép kiểm thuần dựng lại lớp vẽ** — đúng cách T607, T611 và T622
+đã làm với ba lỗi mà `environment: 'node'` không nhìn tới. Ở đây biên nhịp **biết theo cấu
+trúc**, nên con số là thật.
+
+**Cách dựng lại**: với mỗi dòng của 10 mã trận × 3 quân số (11, 7, 5), dựng chặng mới cho
+từng điểm đúng như `useEffect` của lớp vẽ — `tu` là chỗ điểm đang đứng, `huongVao` lấy từ
+`vanTocCuaChang`, `thoiLuong` theo `thoiLuongCuaNguoi` — rồi lấy mẫu 49 bước trong một
+nhịp, cộng `lechDaoDong` và phép kẹp thủ môn, và đo đường đi thật so với đường chim bay.
+**25.360 chặng** cho nhóm không giữ bóng, **1.611** cho người giữ bóng.
+
+| | Số chặng | Trung vị | Lớn nhất |
+|---|---|---|---|
+| Không giữ bóng | 25.360 | **1,38** | **20,95** |
+| Đang giữ bóng (D104) | 1.611 | 1,18 | **8,92** |
+
+**Trung vị khớp từng chữ số với spec 005.** Hạ trần nghiêng khối về 1/10 (giá trị trước
+D116) rồi đo lại: trung vị ra đúng **1,53** — chính con số spec 005 ghi. Nên cách dựng lại
+là đúng, không phải một phép đo khác.
+
+**Giá trị lớn nhất thì vi phạm AC-30.11, và vi phạm ấy CÓ TỪ TRƯỚC spec 006.** Phép thử
+quyết định: đo lại ở cả hai trần nghiêng khối.
+
+| Trần nghiêng khối | Trung vị | Lớn nhất | Trường hợp tệ nhất |
+|---|---|---|---|
+| 1/10 (trước D116) | 1,53 | **19,52** | `C9P2R6NV5H` quân số 7 phút 92 |
+| 1/6 (D116) | 1,38 | **20,95** | **cùng một trường hợp** |
+
+Cùng một điểm, cùng một phút, ở cả hai trần: một điểm đi **37,2 đơn vị** mà đường chim bay
+chỉ **1,8**. Tức **cả D116 lẫn D104 đều không sinh ra nó** — nó là phần đuôi của lớp nội
+suy spec 005, chỗ một chặng dài để lại vận tốc vào lớn cho một chặng ngắn theo sau. Đúng
+cái "đường cong phồng ra thành một vòng rộng" mà AC-30.11 cấm.
+
+**Vì sao spec 005 ghi 4,12 mà ở đây ra ~20:** con số 4,12 là giá trị lớn nhất của **một
+lượt chạy trên ứng dụng**; phép kiểm này duyệt toàn bộ không gian. Một lượt chạy không bao
+giờ chạm tới phần đuôi. Đây là **đúng bài học đã lặp lại ba lần trong hai spec này**: một
+con số đo được trên một lượt chạy không phải một bất biến.
+
+**Phép kiểm chốt ngưỡng NGƯỢC LẠI, có chủ ý**: nó khẳng định vi phạm **còn tồn tại**
+(`toBeGreaterThan(5)`), cộng hai tính chất giữ được — trung vị dưới 2, và người giữ bóng
+dưới 10. Nếu ai đó sửa lớp nội suy và con số tụt xuống dưới 5 thì phép kiểm đỏ, và lúc ấy
+phải viết lại nó thành ngưỡng thật của AC-30.11. **Không nới ngưỡng cho xanh** — đúng quy
+ước đã ghi ở T612.
+
+**T608 và T616 vì thế ở hai tình trạng khác nhau:** T608 **xong**, với ngoại lệ nhịp lặng
+sau bàn thắng do người dùng chốt. T616 **còn mở**: ba trong bốn con số của nó đã đạt (chạy
+hết trận 32ms, khung vẽ 0,1–0,3ms ở cả năm mức, dải tốc độ dưới 4 lần), nhưng độ vòng thì
+**không đạt** và sửa nó là việc của lớp nội suy spec 005 — ngoài danh sách task của spec
+006, nên nó chờ người dùng chốt.

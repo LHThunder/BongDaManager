@@ -981,7 +981,7 @@ export function diemTrenDuong(duong: readonly Diem[], tiLe: number): Diem {
  * hàm vào lớp nội suy: hai lần gọi `viTriTaiThoiDiem` là đủ, và nó tự đúng với
  * mọi thay đổi sau này của lớp ấy — kể cả dáng theo thể lực.
  */
-function vanTocCuaChang(
+export function vanTocCuaChang(
   truoc: ChuyenDiemDang | undefined,
   troi: number,
   doMet: number,
@@ -1001,7 +1001,7 @@ function vanTocCuaChang(
 }
 
 /** Một điểm đang đi từ đâu tới đâu, và nó vào mốc đầu theo hướng nào. */
-interface ChuyenDiemDang {
+export interface ChuyenDiemDang {
   readonly tu: Diem
   readonly den: Diem
   readonly huongVao: Diem | null
