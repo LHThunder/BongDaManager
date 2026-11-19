@@ -312,6 +312,47 @@ describe('ai đang giữ bóng, theo đúng bảng 3.1 (AC-33.5, D103)', () => {
     }
   })
 
+  it('người giữ bóng đã RỜI SÂN thì bỏ qua, lấy người kế tiếp (D115)', () => {
+    /*
+      Đo ở lát 48: **2,82% số dòng** có người giữ bóng không còn điểm nào trên
+      sân — thẻ đỏ, hay bị thay ra. Những phút ấy không vẽ vòng nào và quả bóng
+      đứng im: đo được một quãng **2002ms trên 127 mẫu** ở lát 49b.
+    */
+    const ngoaiSan = (ai: string) => (id: string) => id !== ai
+
+    // Bước lùi một: sang người kế tiếp trong chính dòng ấy.
+    expect(
+      nguoiGiuBong(dong('co-hoi', ['A', 'B']), CU, ngoaiSan('A')),
+    ).toBe('B')
+    // Cứu thúa lấy thủ môn trước; thủ môn rời sân thì lùi về người sút.
+    expect(
+      nguoiGiuBong(
+        dong('cuu-thua', ['nguoi-sut', 'thu-mon']),
+        CU,
+        ngoaiSan('thu-mon'),
+      ),
+    ).toBe('nguoi-sut')
+    // Bước lùi hai: cả dòng không ai còn trên sân thì về người giữ bóng cũ.
+    expect(
+      nguoiGiuBong(dong('co-hoi', ['A', 'B']), CU, (id) => id === CU),
+    ).toBe(CU)
+    // Bước lùi ba: không còn ai — thà không ai cầm còn hơn chỉ vào một người vắng.
+    expect(nguoiGiuBong(dong('co-hoi', ['A', 'B']), CU, () => false)).toBeNull()
+  })
+
+  it('dòng thẻ / thay người vẫn GIỮ NGUYÊN, kể cả khi người cũ là "không ai"', () => {
+    /*
+      Đây là lưới R50, và T604 bắt đúng chỗ này khi bản đầu của D115 cho lùi
+      sang người nhận thẻ: **33 dòng** của 10 mã trận đổi người giữ bóng sang
+      chính cầu thủ đang bị phạt.
+    */
+    expect(nguoiGiuBong(dong('the-do', ['nguoi-nhan-the']), null)).toBeNull()
+    // Người cũ rời sân thì mới lùi sang người dòng ấy nêu.
+    expect(
+      nguoiGiuBong(dong('thay-nguoi', ['vao', 'ra']), CU, (id) => id !== CU),
+    ).toBe('vao')
+  })
+
   it('không có dòng nào — trước giờ bóng lăn — thì giữ nguyên', () => {
     expect(nguoiGiuBong(null, CU)).toBe(CU)
     expect(nguoiGiuBong(null, null)).toBeNull()
@@ -515,6 +556,41 @@ describe('quyền giữ bóng đi theo từng bước của pha (AC-35.2, D112)'
     expect(ganRong[0]?.nguoiGiu).toBe('ta-A')
   })
 
+  it('nhịp không có pha bóng nào không kết thúc bằng "không ai" (D115)', () => {
+    /*
+      Dòng giao bóng đầu trận: bảng 3.1 trả **không ai**, và dòng thời gian chỉ
+      có đúng một đoạn `giu` đứng tại chỗ. Để nguyên thì quả bóng nằm yên cả
+      nhịp — đo được **1024ms trên 63 mẫu** ở lát 49b.
+    */
+    const motDoan = dongThoiGianPhaBong({
+      batDau: { x: 50, y: 32 },
+      cacBuoc: [],
+      msNhip: NHIP,
+      msNguoi: NGUOI,
+      nhanhGap: NHANH_GAP,
+    })
+    const ganMoc = ganNguoiGiuBong({
+      cacDoan: motDoan,
+      nguoiBatDau: 'ta-A',
+      nguoiKetThuc: null,
+      cacNguoi,
+    })
+    expect(ganMoc).toHaveLength(1)
+    expect(ganMoc[0]?.loai).toBe('giu')
+    expect(ganMoc[0]?.nguoiNhan).toBe('ta-A')
+    expect(nguoiGiuBongLucNay(ganMoc, 1)).toBe('ta-A')
+  })
+
+  it('dòng bàn thắng VẪN kết thúc bằng "không ai" — nó có cả một pha bóng', () => {
+    const ganBan = ganNguoiGiuBong({
+      cacDoan,
+      nguoiBatDau: 'ta-A',
+      nguoiKetThuc: null,
+      cacNguoi,
+    })
+    expect(ganBan[ganBan.length - 1]?.nguoiNhan).toBeNull()
+  })
+
   it('hai đầu của hai đoạn liền nhau khớp nhau, không hụt một người nào', () => {
     for (let i = 1; i < gan.length; i += 1) {
       expect(gan[i]?.nguoiGiu, `đoạn ${i}`).toBe(gan[i - 1]?.nguoiNhan)
@@ -542,10 +618,34 @@ describe('cửa sổ cầm bóng của một người', () => {
     cacNguoi,
   })
 
-  it('người mở pha cầm bóng từ đầu tới lúc chuyền đi', () => {
+  it('cửa sổ dừng ở lÚC BÓNG RỜI CHÂN, không kéo qua đoạn chuyền (D104)', () => {
+    /*
+      **Đây là chỗ bản đầu của T606 làm sai.** Người chuyền vẫn là `nguoiGiu`
+      của đoạn chuyền — anh ta là người **rời** bóng ở đó — nên cửa sổ kéo luôn
+      qua đoạn ấy, và anh ta bị dính vào quả bóng mà **bay theo đường chuyền ở
+      tốc độ của bóng**, nhanh gấp ba tốc độ người, rồi giật ngược về mốc.
+
+      D104 nói rõ: chỉ ở đoạn `re-bong` thì người và bóng mới chung một đường;
+      ở các đoạn khác **bóng tự bay còn người đi chặng của mình**.
+    */
     const cs = cuaSoGiuBong(gan, 'ta-A')
+    expect(gan[0]?.loai).toBe('re-bong')
+    expect(gan[1]?.loai).toBe('chuyen')
     expect(cs?.tiLeBatDau).toBe(0)
-    expect(cs?.tiLeKetThuc).toBe(gan[1]?.tiLeKetThuc)
+    expect(cs?.tiLeKetThuc).toBe(gan[0]?.tiLeKetThuc)
+  })
+
+  it('nhận bóng rồi chuyền ngay thì cửa sổ rỗng, không bay theo đường chuyền', () => {
+    /*
+      `ta-C` nhận bóng ở cuối đoạn 1 rồi chính anh ta chuyền tiếp ở đoạn 2.
+      Cửa sổ rỗng nghĩa là anh ta vẫn chạy tới điểm nhận bóng rồi về mốc — chỉ
+      là không dính vào quả bóng.
+    */
+    const cs = cuaSoGiuBong(gan, 'ta-C')
+    expect(gan[2]?.nguoiGiu).toBe('ta-C')
+    expect(gan[2]?.loai).toBe('chuyen')
+    expect(cs?.tiLeBatDau).toBe(gan[2]?.tiLeBatDau)
+    expect(cs?.tiLeKetThuc).toBe(gan[2]?.tiLeBatDau)
   })
 
   it('người chỉ nhận bóng ở đoạn cuối có cửa sổ đúng lúc nhịp hết', () => {

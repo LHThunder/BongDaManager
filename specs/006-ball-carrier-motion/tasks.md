@@ -4,8 +4,8 @@
 |---|---|
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
-| **Phạm vi** | 21 AC (US-33 → US-36), 14 quyết định D101–D114 |
-| **Tiến độ** | 10/21 |
+| **Phạm vi** | 21 AC (US-33 → US-36), 15 quyết định D101–D115 |
+| **Tiến độ** | 13/24 |
 | **Sửa đổi** | 2026-11-19 — chẻ lần đầu từ plan |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -127,6 +127,34 @@ là một commit.
   - AC: AC-33.3
   - Phụ thuộc: —
   - ⚠️ **Sửa một quyết định của spec 005** (D90, Phase 39). Người dùng đã chốt sửa ngày 2026-11-19 sau khi đọc số đo của lát 49.
+
+- [x] **T621** — Người giữ bóng đã rời sân thì bỏ qua anh ta
+  - File: sửa `src/ui/phaBong.ts`, sửa `src/ui/phaBong.test.ts`, sửa `src/ui/components/San2D.tsx`, sửa `src/ui/san2D.test.ts`
+  - Xong khi: `nguoiGiuBong` nhận thêm một vị tệ `conTrenSan` **tuỳ chọn**; thiếu nó thì hàm cho **đúng bảng 3.1** như trước — kiểm được bằng việc mười một phép kiểm cũ của T603 và T604 **không phải sửa một dòng**.
+  - Xong khi (D115): có vị tệ thì luật bỏ qua người đã rời sân và lấy người kế tiếp **trong chính dòng ấy**, rồi mới tới người giữ bóng cũ; phép kiểm phủ cả ba bước lùi.
+  - Xong khi (số đo): trong phép kiểm vòng nét đứt trên 10 mã trận × 7 quân số, tỉ lệ dòng có người giữ bóng **không còn điểm trên sân** về **đúng 0** (trước: 2,82%, tức 148/5246).
+  - Bằng chứng: **số**.
+  - AC: AC-33.1, AC-33.3, AC-33.5
+  - Phụ thuộc: T606
+  - ⚠️ Phát sinh từ số đo của lát 49b. Đây là **nguyên nhân thứ ba** của việc bóng đứng im, và là cái cuối cùng còn lại trước khi chốt T608.
+
+- [x] **T622** — Thủ môn không chạy theo đường bóng ra khỏi dải của mình
+  - File: sửa `src/ui/components/San2D.tsx`, sửa `src/ui/san2D.test.ts`
+  - Xong khi: người mở một pha bóng chỉ là người giữ bóng của nhịp trước khi anh ta **thuộc đội của dòng ấy**; không thì suy lại bằng D112.
+  - Xong khi (AC-30.7 của spec 005): toạ độ vẽ của thủ môn bị **kẹp vào `daiThuMon`** kể cả khi anh ta đang cầm bóng; phép kiểm dựng lại đúng phép tính của lớp vẽ trên 10 mã trận × 7 quân số × năm tỉ lệ nhịp.
+  - Bằng chứng: **số** (đo được: thủ môn cầm bóng **3485 lần**, không kẹp thì ra ngoài dải **2318 lần**, xa nhất **61,7 đơn vị** trên sân dài 100) và **mắt** (người dùng).
+  - AC: AC-30.7 (spec 005), AC-33.2
+  - Phụ thuộc: T606
+  - ⚠️ **Lỗi do người dùng bắt được bằng mắt trong khi 1291 phép kiểm đều xanh**: "thủ môn số 19 chạy loạn xạ khắp sân". Phép kiểm AC-30.7 cũ canh toạ độ của `hinhSan`, còn T606 kéo người giữ bóng đi ở **lớp vẽ** — chỗ mà bộ kiểm chạy ở `environment: 'node'` không nhìn tới.
+
+- [x] **T623** — Người chuyền bóng không bay theo đường chuyền
+  - File: sửa `src/ui/phaBong.ts`, sửa `src/ui/phaBong.test.ts`
+  - Xong khi: cửa sổ cầm bóng chỉ kéo hết những đoạn bóng **còn trong chân** (`re-bong`, `giu`); đoạn `chuyen` / `tat-canh` / `sut` thì **bóng tự bay còn người đi chặng của mình** — đúng chữ của D104.
+  - Xong khi: người nhận bóng rồi chuyền ngay có cửa sổ **rỗng** `[tA, tA]` — vẫn chạy tới điểm nhận bóng rồi về mốc, chỉ là không dính vào quả bóng.
+  - Bằng chứng: **số** cho cửa sổ; **mắt** cho "hết giật cục".
+  - AC: AC-33.2, AC-34.1, AC-30.10 (spec 005)
+  - Phụ thuộc: T606
+  - ⚠️ **Lỗi do người dùng bắt được bằng mắt**: "di chuyển đôi khi hơi nhanh… giật cục và không liền mạch". Bản đầu của T606 kéo cửa sổ qua cả đoạn chuyền, vì người chuyền vẫn là `nguoiGiu` của đoạn ấy — anh ta là người **rời** bóng ở đó. Hậu quả: anh ta bay theo đường chuyền ở tốc độ của bóng — **nhanh gấp ba tốc độ người** — rồi giật ngược về mốc.
 
 - [ ] **T608** — Đo: quả bóng không còn đứng yên
   - File: — *(đo trên bản build)*

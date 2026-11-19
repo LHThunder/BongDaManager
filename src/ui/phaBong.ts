@@ -85,34 +85,62 @@ export interface DongGiuBong {
 export function nguoiGiuBong(
   dong: DongGiuBong | null,
   truocDo: string | null,
+  conTrenSan: (playerId: string) => boolean = () => true,
 ): string | null {
-  if (dong == null) return truocDo
-  const dau = dong.cacCauThu[0] ?? null
   /*
-    Lùi về `cacCauThu[0]` rồi `truocDo` khi phần tử đúng chỉ số không có:
-    `nguoiTaiVung` trả `null` được khi đội kia không còn ai ở gần, và lúc ấy
-    thả quyền giữ bóng về `null` là cho quả bóng rời chân mọi người — đúng cú
-    giật mà R50 nói tới.
+    LÙI THEO THỨ TỰ, và bỏ qua ai đã rời sân (D115).
+
+    Hai lý do để lùi. Một: `nguoiTaiVung` trả `null` được khi đội kia không còn
+    ai ở gần, nên phần tử đúng chỉ số có thể không có. Hai: người ấy có thể **đã
+    không còn trên sân** — thẻ đỏ, hay bị thay ra — và đo được ở lát 48 thì đó
+    là **2,82% số dòng**. Những phút ấy lớp vẽ không vẽ vòng nào và quả bóng
+    đứng im: đo được một quãng **2002ms trên 127 mẫu**.
+
+    Thứ tự lùi là thứ tự **vai trò** của `cacCauThu`, do `nguoiThamGiaTinhHuong`
+    quy định — nên "người kế tiếp" là một lựa chọn có nghĩa, không phải một cái
+    tên bắt đại. Vị tệ là **tuỳ chọn**, và mặc định "ai cũng còn trên sân" cho
+    **đúng bảng 3.1** — đó là lý do mười một phép kiểm của T603 và T604 không phải
+    sửa một dòng nào.
   */
-  const thuHai = dong.cacCauThu[1] ?? dau ?? truocDo
+  if (dong == null) return truocDo
+  const dauTien = (...ungVien: (string | null)[]): string | null => {
+    for (const id of ungVien) {
+      if (id != null && conTrenSan(id)) return id
+    }
+    return null
+  }
+  const khac = dong.cacCauThu.slice(2)
 
   switch (dong.loai) {
     case 'co-hoi':
     case 'thoat-xuong':
     case 'tat-canh':
     case 'pham-loi':
-      return dau ?? truocDo
+      return dauTien(...dong.cacCauThu, truocDo)
 
     case 'cuu-thua':
     case 'mat-bong':
     case 'cuop-bong-cao':
-      return thuHai
+      // Phần tử **thứ hai** trước: thủ môn đã cứu, người cướp được bóng.
+      return dauTien(
+        dong.cacCauThu[1] ?? null,
+        dong.cacCauThu[0] ?? null,
+        ...khac,
+        truocDo,
+      )
 
     case 'the-vang':
     case 'the-do':
     case 'thay-nguoi':
     case 'kiet-suc':
-      return truocDo
+      /*
+        Dòng không nêu ai MỚI thì **giữ nguyên người cũ**, kể cả khi người cũ
+        là "không ai" — đó là lưới R50, và phép kiểm xương sống T604 bắt đúng
+        chỗ này: lùi sang người nhận thẻ là cho bóng nhảy sang chân một người
+        đang bị phạt, ở 33 dòng của 10 mã trận.
+      */
+      if (truocDo == null) return null
+      return dauTien(truocDo, ...dong.cacCauThu)
 
     case 'ban-thang':
     case 'bat-dau':
@@ -323,11 +351,27 @@ export function ganNguoiGiuBong(tuyChon: {
   let giu =
     nguoiBatDau ??
     (moPha ? nguoiNhanChuyen(moPha.tu, cacNguoi, null) : null)
+
+  /*
+    NHỊP KHÔNG CÓ PHA BÓNG NÀO KHÔNG ĐƯỢC KẾT THÚC BẰNG "KHÔNG AI" (D115, T621).
+
+    `bat-dau` và `het-hiep` là hai dòng mốc: bảng 3.1 trả **không ai**, đúng với
+    nghĩa của chúng. Nhưng chúng cũng không mang pha bóng nào, nên dòng thời gian
+    chỉ có đúng một đoạn `giu` đứng tại chỗ — và nếu cuối đoạn ấy không ai cầm
+    bóng thì quả bóng nằm yên cả nhịp: đo ở lát 49b là **1024ms trên 63 mẫu**, ở
+    đúng dòng giao bóng đầu trận.
+
+    Dòng **bàn thắng** không rơi vào đây: nó có cả một pha bóng, và bóng của nó
+    vào lưới rồi lăn về chấm giao bóng (D113) chứ không đứng im.
+  */
+  const motDoanGiu =
+    cacDoan.length === 1 && (cacDoan[0] as DoanPhaBong).loai === 'giu'
+  const chot = motDoanGiu && nguoiKetThuc == null ? giu : nguoiKetThuc
   for (let i = 0; i < cacDoan.length; i += 1) {
     const d = cacDoan[i] as DoanPhaBong
     const cuoiCung = i === cacDoan.length - 1
     const nhan = cuoiCung
-      ? nguoiKetThuc
+      ? chot
       : roiChan(d.loai)
         ? (nguoiNhanChuyen(d.den, cacNguoi, giu) ?? giu)
         : giu
@@ -386,15 +430,41 @@ export function cuaSoGiuBong(
     const cuoi = cacDoan[cacDoan.length - 1] as DoanCoNguoi
     return cuoi.nguoiNhan === playerId ? { tiLeBatDau: 1, tiLeKetThuc: 1 } : null
   }
+  /*
+    CỬA SỔ CHỈ KÉO HẾT NHỮNG ĐOẠN BÓNG CÒN TRONG CHÂN (D104).
+
+    "Đoạn bóng còn trong chân" là `re-bong` và `giu`. Một đoạn `chuyen`, `tat-canh`
+    hay `sut` thì bóng đã **rời chân**, và D104 nói rõ: ở những đoạn ấy **bóng tự
+    bay còn người đi chặng của mình**.
+
+    Bản đầu của T606 kéo cửa sổ qua cả đoạn chuyền, vì người chuyền vẫn là
+    `nguoiGiu` của đoạn ấy — anh ta là người **rời** bóng ở đó. Hậu quả trên màn
+    hình: anh ta bị dính vào quả bóng và **bay theo đường chuyền ở tốc độ của
+    bóng** — nhanh gấp `nhanhGap` lần tốc độ người — rồi giật ngược về mốc.
+    Người dùng gọi đúng hai tên của nó: "đôi khi hơi nhanh" và "giật cục".
+
+    Người nhận bóng rồi chuyền ngay thì cửa sổ rỗng — `[tA, tA]` — nên anh ta
+    vẫn chạy tới điểm nhận bóng rồi về mốc, chỉ là không bay theo quả bóng.
+  */
+  const conTrongChan = (i: number): boolean => {
+    const d = cacDoan[i] as DoanCoNguoi
+    return d.loai === 're-bong' || d.loai === 'giu'
+  }
+
+  const dauDoan = cacDoan[dau] as DoanCoNguoi
+  if (!conTrongChan(dau)) {
+    return { tiLeBatDau: dauDoan.tiLeBatDau, tiLeKetThuc: dauDoan.tiLeBatDau }
+  }
   let het = dau
   while (
     het + 1 < cacDoan.length &&
-    (cacDoan[het + 1] as DoanCoNguoi).nguoiGiu === playerId
+    (cacDoan[het + 1] as DoanCoNguoi).nguoiGiu === playerId &&
+    conTrongChan(het + 1)
   ) {
     het += 1
   }
   return {
-    tiLeBatDau: (cacDoan[dau] as DoanCoNguoi).tiLeBatDau,
+    tiLeBatDau: dauDoan.tiLeBatDau,
     tiLeKetThuc: (cacDoan[het] as DoanCoNguoi).tiLeKetThuc,
   }
 }

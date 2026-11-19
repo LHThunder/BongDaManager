@@ -30,6 +30,7 @@ import {
   nghiengKhoiTheoBong,
   PHI_THEM_NGUOI_GHI_BAN,
   RONG,
+  cacNguoiTrenSan,
   thoiGianChuyen,
   toaDo,
   VONG_GIU_BONG_THEM,
@@ -370,6 +371,132 @@ describe('quả bóng luôn có mặt (AC-32.1 → AC-32.3, T513)', () => {
   })
 })
 
+describe('thủ môn không rời dải của mình KỂ CẢ KHI ĐANG CẦM BÓNG (AC-30.7, T622)', () => {
+  /*
+    **Mắt người dùng bắt được lỗi này khi 1291 phép kiểm đều xanh**: "thủ môn
+    số 19 chạy loạn xạ khắp sân". Lý do bộ kiểm không thấy: phép kiểm AC-30.7 của
+    T521 canh toạ độ của `hinhSan`, còn T606 kéo người giữ bóng đi theo đường của
+    bóng ở **lớp vẽ**, mà bộ kiểm chạy ở `environment: 'node'` không render gì cả.
+
+    Phép kiểm này dựng lại đúng phép tính của lớp vẽ, nên nó nhìn được chỗ mà
+    T521 không nhìn tới.
+  */
+  const NHIP = MS_MOI_PHUT.cham
+  const NGUOI = thoiGianChuyen(NHIP)
+  const NHANH_GAP = 3
+  const CAC_TI_LE = [0, 0.25, 0.5, 0.75, 1]
+
+  it('mọi dòng của 10 mã trận × 7 quân số: thủ môn luôn trong dải của mình', () => {
+    let soCuaSoThuMon = 0
+    let soLanLeKhiKhongKep = 0
+    let xaNhatKhiKhongKep = 0
+
+    for (const ma of MA_TRAN_CO_DINH) {
+      for (const n of QUAN_SO_CHAY_DUOC) {
+        const tt = chayHetTran(tranMau(n, ma))
+        const conTrenSan = (id: string) =>
+          cacNguoiTrenSan(tt.ben.nha, true).some((x) => x.playerId === id) ||
+          cacNguoiTrenSan(tt.ben.khach, false).some((x) => x.playerId === id)
+        let giu: string | null = null
+        for (const sk of dongSuKien(tt)) {
+          const truoc: string | null = giu
+          giu = nguoiGiuBong(sk, truoc, conTrenSan)
+
+          const { cacDiem, cacBuocBong, duongBong, khung } = veTu(tt, sk, giu)
+          const buocTho: readonly BuocDaQuyDoi[] =
+            cacBuocBong.length > 0
+              ? cacBuocBong
+              : duongBong.length > 0
+                ? duongBong.map((d) => ({ diem: d, loai: 'chuyen' as const }))
+                : []
+          const diemCuoi = giu
+            ? cacDiem.find((d) => d.playerId === giu)
+            : undefined
+          const choTho = buocTho[buocTho.length - 1]
+          const cacBuoc: readonly BuocDaQuyDoi[] =
+            diemCuoi && choTho
+              ? [
+                  ...buocTho.slice(0, -1),
+                  { diem: { x: diemCuoi.x, y: diemCuoi.y }, loai: choTho.loai },
+                ]
+              : buocTho
+
+          const benCamBong = sk.doi
+          const cacNguoi: readonly NguoiTrenSan[] = cacDiem.map((d) => ({
+            playerId: d.playerId,
+            diem: { x: d.x, y: d.y },
+            laDongDoi: d.laDoiNha === (benCamBong === 'nha'),
+          }))
+          /*
+            Người mở pha chỉ là người giữ bóng cũ khi anh ta **thuộc đội của
+            dòng này** (T622) — đúng phép tính của lớp vẽ.
+          */
+          const moPhaHopLe =
+            truoc != null &&
+            cacNguoi.some((x) => x.playerId === truoc && x.laDongDoi)
+          const gan = ganNguoiGiuBong({
+            cacDoan: dongThoiGianPhaBong({
+              batDau: { x: cacDiem[0]?.x ?? 0, y: cacDiem[0]?.y ?? 0 },
+              cacBuoc,
+              msNhip: NHIP,
+              msNguoi: NGUOI,
+              nhanhGap: NHANH_GAP,
+            }),
+            nguoiBatDau: moPhaHopLe ? truoc : null,
+            nguoiKetThuc: giu,
+            cacNguoi,
+          })
+
+          for (const d of cacDiem) {
+            if (!d.laThuMon) continue
+            const cuaSo = cuaSoGiuBong(gan, d.playerId)
+            if (cuaSo == null) continue
+            soCuaSoThuMon += 1
+            const dai = daiThuMon(d.laDoiNha, khung)
+            for (const tiLe of CAC_TI_LE) {
+              const tho = viTriNguoiGiuBong({
+                cuaSo,
+                tiLe,
+                viTriBong: (t) => viTriBongTrongPha(gan, t),
+                viTriThuong: { x: d.x, y: d.y },
+                moc: { x: d.x, y: d.y },
+              })
+              if (tho.x < dai.tu || tho.x > dai.den) {
+                soLanLeKhiKhongKep += 1
+                xaNhatKhiKhongKep = Math.max(
+                  xaNhatKhiKhongKep,
+                  Math.max(dai.tu - tho.x, tho.x - dai.den),
+                )
+              }
+              // Phép kẹp của lớp vẽ — sau nó thì không có ngoại lệ nào.
+              const x = Math.min(Math.max(tho.x, dai.tu), dai.den)
+              expect(
+                x,
+                `${ma} quân số ${n} phút ${sk.phut}: thủ môn ${d.playerId} ở ${x.toFixed(2)}`,
+              ).toBeGreaterThanOrEqual(dai.tu)
+              expect(x).toBeLessThanOrEqual(dai.den)
+            }
+          }
+        }
+      }
+    }
+
+    console.log(
+      `thủ môn cầm bóng ${soCuaSoThuMon} lần — không kẹp thì ra ngoài dải ${soLanLeKhiKhongKep} lần, xa nhất ${xaNhatKhiKhongKep.toFixed(1)} đơn vị`,
+    )
+    expect(soCuaSoThuMon, 'số cửa sổ cầm bóng của thủ môn').toBeGreaterThan(100)
+    /*
+      **Con số này là bằng chứng rằng phép kẹp có việc thật để làm.** Nếu nó về 0
+      thì hoặc luật giữ bóng đã đổi, hoặc phép kiểm đang canh một thứ không còn
+      xảy ra — cả hai đều đáng biết, nên nó được chốt chứ không chỉ ghi chú.
+    */
+    expect(
+      soLanLeKhiKhongKep,
+      `không kẹp thì thủ môn ra ngoài dải ${soLanLeKhiKhongKep} lần, xa nhất ${xaNhatKhiKhongKep.toFixed(1)} đơn vị`,
+    ).toBeGreaterThan(0)
+  })
+})
+
 describe('XƯƠNG SỐNG — tại tỉ lệ 1, MỌI điểm vẫn ở đúng mốc (R47, T607)', () => {
   /*
     **Đây là lưới giữ AC-34.3 của spec 006, AC-28.3 của spec 005 và AC-25.2 của
@@ -538,9 +665,17 @@ describe('vòng nét đứt quanh người giữ bóng (AC-33.1, AC-33.4, T605)'
     for (const ma of MA_TRAN_CO_DINH) {
       for (const n of QUAN_SO_CHAY_DUOC) {
         const tt = chayHetTran(tranMau(n, ma))
+        /*
+          Vị tệ "còn trên sân" dựng từ đúng hàm mà `hinhSan` dùng để dựng điểm
+          (D115, T621), nên "còn trên sân" và "có một điểm để đeo vòng" là cùng
+          một câu hỏi — đó là lý do con số dưới đây về được **đúng 0**.
+        */
+        const conTrenSan = (id: string) =>
+          cacNguoiTrenSan(tt.ben.nha, true).some((x) => x.playerId === id) ||
+          cacNguoiTrenSan(tt.ben.khach, false).some((x) => x.playerId === id)
         let giu: string | null = null
         for (const sk of dongSuKien(tt)) {
-          giu = nguoiGiuBong(sk, giu)
+          giu = nguoiGiuBong(sk, giu, conTrenSan)
           if (giu == null) continue
           soDongCoNguoiGiu += 1
 
@@ -586,16 +721,17 @@ describe('vòng nét đứt quanh người giữ bóng (AC-33.1, AC-33.4, T605)'
     */
     expect(chatNhat, 'cặp chật nhất, theo bán kính').toBeGreaterThanOrEqual(1.54)
     /*
-      **2,82% dòng có người giữ bóng không còn điểm nào trên sân** (148/5246):
-      anh ta nhận thẻ đỏ, hoặc bị thay ra sau pha bóng của mính. Đó là lý do
-      lớp vẽ gác bằng `cacDiem.find`: những phút ấy không vẽ vòng nào và bóng
-      giữ đúng chỗ của dòng, tức xem như spec 005. Ngưỡng đặt ở 5% để bắt
-      được việc con số này vọt lên, chứ không để hợp lệ hoá nó.
+      **Đúng 0.** Trước T621 con số này là **2,82%** (148/5246): người giữ bóng
+      nhận thẻ đỏ, hoặc bị thay ra sau pha bóng của mình, nên lớp vẽ không vẽ
+      vòng nào và quả bóng đứng im — đo được một quãng **2002ms trên 127 mẫu**
+      ở lát 49b. D115 cho luật bỏ qua người đã rời sân, nên không còn dòng nào
+      chỉ vào một người vắng mặt. **Chốt ở 0 chứ không phải một ngưỡng** — một
+      ngưỡng là chỗ để con số bò lên lại mà không ai thấy.
     */
     expect(
-      khongCoDiem / soDongCoNguoiGiu,
+      khongCoDiem,
       `người giữ bóng không còn điểm trên sân: ${khongCoDiem}/${soDongCoNguoiGiu}`,
-    ).toBeLessThan(0.05)
+    ).toBe(0)
   })
 
   it('vòng rộng hơn viền "tham gia tình huống" nhưng không đụng dấu ▲', () => {

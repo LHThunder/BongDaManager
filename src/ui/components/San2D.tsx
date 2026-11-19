@@ -171,7 +171,7 @@ interface NguoiTrenSan {
 }
 
 /** Ai đang đứng ở vùng nào, đã quy về khung của đội nhà. */
-function cacNguoiTrenSan(
+export function cacNguoiTrenSan(
   ben: BenTran,
   laDoiNha: boolean,
 ): readonly NguoiTrenSan[] {
@@ -947,6 +947,23 @@ export function San2D(props: Props) {
     lại, còn nếu để trong effect thì khung đầu của một phút mới sẽ còn vẽ vòng
     quanh người của phút trước.
   */
+  /**
+   * Ai còn có **điểm trên sân** — vị tệ của luật giữ bóng (D115, T621).
+   *
+   * Dùng đúng `cacNguoiTrenSan` mà `hinhSan` dùng để dựng điểm, nên "còn trên sân"
+   * ở đây và "có một điểm để đeo vòng" là **cùng một câu hỏi**. Suy từ
+   * `ben.trenSan` thôi thì hụt: một người có thể ở trong danh sách ấy mà không có
+   * ô nào trong sơ đồ, và lúc đó anh ta không được vẽ.
+   */
+  const trenSan = useMemo(
+    () =>
+      new Set([
+        ...cacNguoiTrenSan(nha.ben, true).map((x) => x.playerId),
+        ...cacNguoiTrenSan(khach.ben, false).map((x) => x.playerId),
+      ]),
+    [nha.ben, khach.ben],
+  )
+
   const khoaDong =
     suKien == null
       ? null
@@ -960,7 +977,7 @@ export function San2D(props: Props) {
     giuBong.current = {
       khoa: khoaDong,
       truoc: giuBong.current.ai,
-      ai: nguoiGiuBong(suKien, giuBong.current.ai),
+      ai: nguoiGiuBong(suKien, giuBong.current.ai, (id) => trenSan.has(id)),
     }
   }
   const aiGiuBong = giuBong.current.ai
@@ -1223,9 +1240,28 @@ export function San2D(props: Props) {
       laDongDoi: d.laDoiNha === (benCamBong === 'nha'),
     }))
 
+    /*
+      NGƯỜI MỞ PHA PHẢI THUỘC ĐỘI CỦA DÒNG NÀY (T622).
+
+      `aiGiuBongDauNhip` là người giữ bóng của nhịp trước, và anh ta rất hay
+      thuộc **đội kia**: sau một pha cứu thủa thì người giữ bóng là **thủ môn**,
+      sau một pha mất bóng là người cướp được. Giao cho anh ta đoạn mở của pha
+      bóng kế tiếp — pha của đội kia — là kéo anh ta chạy dọc theo đường bóng
+      của người khác. Người dùng gọi đúng tên nó: "thủ môn số 19 chạy loạn xạ
+      khắp sân".
+
+      Không thuộc đội của dòng thì để `null`, và `ganNguoiGiuBong` suy người mở
+      pha bằng đúng luật D112 — đồng đội đứng gần chỗ pha bóng bắt đầu nhất.
+    */
+    const moPhaHopLe =
+      aiGiuBongDauNhip != null &&
+      cacNguoi.some(
+        (x) => x.playerId === aiGiuBongDauNhip && x.laDongDoi,
+      )
+
     bongDang.current = ganNguoiGiuBong({
       cacDoan: duongThoiGian,
-      nguoiBatDau: aiGiuBongDauNhip,
+      nguoiBatDau: moPhaHopLe ? aiGiuBongDauNhip : null,
       nguoiKetThuc: aiGiuBong,
       cacNguoi,
     })
@@ -1501,7 +1537,7 @@ export function San2D(props: Props) {
     const cacDoan = bongDang.current
     const cuaSo =
       msChuyen > 0 && cacDoan ? cuaSoGiuBong(cacDoan, d.playerId) : null
-    const goc =
+    const theoBong =
       cuaSo && cacDoan
         ? viTriNguoiGiuBong({
             cuaSo,
@@ -1511,6 +1547,26 @@ export function San2D(props: Props) {
             moc: { x: d.x, y: d.y },
           })
         : thuong
+
+    /*
+      THỦ MÔN KHÔNG RỜI MỘT PHẦN BA SÂN CỦA MÌNH, KỂ CẢ KHI ĐANG CẦM BÓNG
+      (AC-30.7 của spec 005, T622).
+
+      `hinhSan` đã kẹp thủ môn vào dải của anh ta từ T521, và một phép kiểm
+      duyệt mọi dòng của 10 mã trận × 7 quân số canh điều đó. Nhưng T606 cho
+      người giữ bóng đi theo đường của bóng ở **lớp vẽ**, mà bộ kiểm chạy ở
+      `environment: 'node'` không có đường nào nhìn tới lớp ấy — nên cả 1291 phép
+      kiểm vẫn xanh trong khi thủ môn chạy tới giữa sân. Mắt người dùng bắt được.
+
+      Kẹp ở đây, không phải bỏ hẳn luật đi theo bóng: thủ môn có bóng trong chân
+      thì vẫn nhúch nhích theo nó, chỉ là không bước qua vạch một phần ba sân.
+    */
+    const goc = d.laThuMon
+      ? (() => {
+          const dai = daiThuMon(d.laDoiNha, khung)
+          return { x: kep(theoBong.x, dai.tu, dai.den), y: theoBong.y }
+        })()
+      : theoBong
 
     /*
       Dao động cộng vào SAU CÙNG, và chỉ cộng cho người — không cho bóng:
