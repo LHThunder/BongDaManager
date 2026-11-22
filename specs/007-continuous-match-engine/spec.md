@@ -5,7 +5,7 @@
 | **ID** | `007-continuous-match-engine` |
 | **Status** | Clarified |
 | **Created** | 2026-11-19 |
-| **Clarified** | 2026-11-19 |
+| **Clarified** | 2026-11-19, bổ sung 2026-11-22 khi lập plan |
 | **Branch** | `007-continuous-match-engine` — **chưa cắt**, xem mục 9 |
 
 > ⚠️ Tài liệu này mô tả **WHAT** và **WHY**. Mọi chi tiết kỹ thuật (thư viện, schema, API, tên file) thuộc về `plan.md`.
@@ -195,22 +195,80 @@ thay vì phải tin**.
 - [ ] AC-45.2 — KHI mở một trận đã lưu bằng engine hiện tại THÌ nó PHẢI mở được, xem lại
       được và đấu lại được **đúng từng dòng như trước spec này**; engine hiện tại PHẢI
       không đổi một kết quả nào (P1, P3).
-- [ ] AC-45.3 — KHI mô phỏng **100 mã trận** với cùng hai đội và cùng chiến thuật ở **cả hai
+- [ ] AC-45.3 — KHI mô phỏng **200 mã trận** với cùng hai đội và cùng chiến thuật ở **cả hai
       chế độ** THÌ hiệu số bàn thắng trung bình giữa hai chế độ PHẢI không lệch quá **0,5
       bàn**, và tỉ lệ thắng của đội mạnh hơn PHẢI không lệch quá **10 điểm phần trăm**. Một
       trận **cụ thể** PHẢI không bắt buộc ra cùng tỉ số — hai chế độ rút ngẫu nhiên ở hai
       chỗ khác nhau, nên đòi giống từng trận là đòi một điều không thể.
+
+  > **100 → 200 mã, sửa ngày 2026-11-22.** Chính repo đã đo được nhiễu lấy mẫu **12 điểm
+  > phần trăm ở 60 mã** (`src/engine/sosanh.doiManhHon.test.ts`: một bộ cho 28% thắng
+  > trong khi tỉ lệ thật là 40,0%) — **lớn hơn** ngưỡng 10 điểm của chính AC này. Hai chế
+  > độ rút ngẫu nhiên ở hai dòng độc lập nên nhiễu cộng cả hai phía. Ở 100 mã, phép kiểm
+  > có thể **đỏ vì lấy mẫu chứ không vì mô hình sai**. 200 mã là đúng cách repo đã xử khi
+  > gặp chuyện này lần trước: nới mẫu, giữ ngưỡng.
+  >
+  > ⚠️ **AC này là một hợp đồng TẠM, và nó có ngày hết hạn.** Engine v5 đo được **3,95 bàn
+  > một trận** (dải 1–9 trên 20 mã), trong khi **spec 010 đòi 2–3 bàn**. Nên AC-45.3 đang
+  > ghim chế độ liên tục vào một mức mà spec kế tiếp **bắt buộc phải phá**. Phép kiểm của
+  > nó PHẢI đặt cả hai ngưỡng thành hằng số đọc được ở **một chỗ**, kèm chú thích trỏ về
+  > đoạn này — để khi spec 010 tới, người sửa thấy ngay vì sao con số ấy tồn tại.
 - [ ] AC-45.4 — KHI một trận ở chế độ liên tục được lưu THÌ bản ghi PHẢI chỉ lưu mã trận,
-      hai đội, chuỗi can thiệp, chế độ và kết quả — PHẢI **không lưu vị trí** của bất kỳ mốc
-      nào; và mở lại trận ấy PHẢI **sinh lại** đúng từng khung hình đã từng thấy.
+      hai đội, **quân số, thời lượng, sân trung lập, đội của người dùng**, chuỗi can thiệp,
+      chế độ và kết quả — PHẢI **không lưu vị trí** của bất kỳ mốc nào; và mở lại trận ấy
+      PHẢI **sinh lại** đúng từng khung hình đã từng thấy.
+
+  > **Bốn trường được thêm vào danh sách ngày 2026-11-22.** Bản liệt kê cũ thiếu `quanSo`,
+  > `thoiLuong`, `sanTrungLap` và `doiCuaNguoiDung` — **cả bốn đều đổi kết quả trận**, nên
+  > thiếu chúng là sinh lại ra một trận khác. Chúng đã nằm sẵn trong bản ghi; AC chỉ ghi
+  > thiếu.
+  >
+  > **Và một điều kiện phải giữ để AC này khả thi: can thiệp ở độ phân giải PHÚT.** Hôm nay
+  > `CanThiep` mang số phút nguyên và được áp vào **đầu phút kế tiếp** (quyết định D30b của
+  > spec 001). Chế độ liên tục có 60 mốc mỗi phút, nên nếu can thiệp mang thêm mốc giây thì
+  > bản ghi **đổi hình dạng** và sinh lại sẽ lệch khi người dùng bấm giữa phút. Giữ nguyên
+  > độ phân giải phút thì sinh lại **đúng theo cấu trúc**, và cái giá — thay người có hiệu
+  > lực ở đầu phút sau — **đúng bằng hành vi hôm nay**, nên không ai mất gì.
 - [ ] AC-45.5 — KHI người dùng xuất một trận ở chế độ liên tục THÌ họ PHẢI nhận được một tệp
-      **JSON** chứa nhật ký sự kiện và khung hình chi tiết đúng định dạng mục 7b và mục 15
-      của bản mô tả gốc.
+      **JSON** chứa nhật ký sự kiện và khung hình chi tiết đúng định dạng **mục 7b** và
+      **mục 15** của [`ban-mo-ta-goc.md`](./ban-mo-ta-goc.md).
+
+  > **Bản mô tả gốc đã được lưu vào repo ngày 2026-11-22.** Trước đó AC này trỏ vào một tài
+  > liệu **không tồn tại trong repo** — bản 21 mục người dùng dán trong hội thoại. Người
+  > dùng chọn lưu nó thay vì để tôi tự định nghĩa một schema, để **lời của họ** là hợp đồng.
+  > Hệ quả: đổi định dạng tệp xuất là đổi **cả tài liệu ấy**, không chỉ đổi code.
 - [ ] AC-45.6 — KHI tệp xuất ở AC-45.5 có trong tay THÌ mọi phép kiểm cơ học của US-38
       PHẢI chạy được **trên chính tệp ấy** — không phải dựng một bản đo riêng mỗi lần muốn
-      kiểm một con số, như đã phải làm suốt spec 005 và 006.
+      kiểm một con số, như đã phải làm suốt spec 005 và 006. **Ngoại lệ: AC-38.8.**
+
+  > **Vì sao AC-38.8 là ngoại lệ, chốt 2026-11-22.** Tệp xuất chứa vị trí **tại từng mốc**;
+  > độ cong là chuyện **giữa hai mốc**, và nó do lớp nội suy ở tầng giao diện sinh ra
+  > (`src/ui/noiSuy.ts`). Lớp engine **bị cấm import tầng ui** — `src/engine/boundaries.test.ts`
+  > quét mọi file engine và chặn đúng điều đó. Nên AC-45.6 ∧ AC-38.8 chỉ cùng đúng nếu dời
+  > độ cong xuống engine (**trái quyết định 5**: giữ nguyên lớp nội suy spec 005) hoặc dời
+  > cả `noiSuy.ts` xuống `domain/` (một đợt dọn động vào file mà spec 005 và 006 canh bằng
+  > một describe **không được sửa**, và nó đang import thể lực từ engine).
+  >
+  > Người dùng chọn đường thứ ba: **tám AC cơ học khác của US-38 kiểm được từ tệp, riêng
+  > AC-38.8 canh bằng phép kiểm thuần ở lớp vẽ** — đúng cách spec 006 đã làm ba lần với
+  > những thứ `environment: 'node'` không nhìn tới.
 - [ ] AC-45.7 — KHI chế độ liên tục đang chạy THÌ mọi tính ngẫu nhiên PHẢI đến từ mã trận;
       PHẢI không có nguồn ngẫu nhiên hay nguồn thời gian toàn cục nào trong engine (P1).
+- [ ] AC-45.8 — KHI người dùng chọn **quân số khác 11** THÌ chế độ liên tục PHẢI bị **khoá**,
+      và giao diện PHẢI nói rõ vì sao bằng ngôn ngữ đang chọn (P8). Trận quân số 5–10 PHẢI
+      chạy bằng chế độ hiện tại như cũ.
+
+  > **AC mới, người dùng chốt 2026-11-22.** Trận của app chạy được **5 đến 11 người**
+  > (`CAC_QUAN_SO`) và **20 đến 90 phút** (`CAC_THOI_LUONG`), cả hai là trường thật của bản
+  > ghi trận. Nhưng AC-37.1 và AC-37.2 chỉ định nghĩa hình học **105×68 của sân 11** — vòng
+  > cấm 16,5 m, khung thành 7,32 m, chấm phạt đền 11 m đều là số của sân 11. Co sân theo
+  > quân số thì mọi con số ấy phải co theo, trong khi cơ học của US-38 (9 m/s, gia tốc
+  > 6 m/s²) **không co** vì người vẫn là người — tỉ lệ người trên sân đổi hẳn. Giữ 105×68
+  > cho sân 5 thì mật độ vô lý, và chính lớp vẽ đã từ chối cách ấy từ spec 002.
+  >
+  > Khoá chế độ hợp với quyết định 1: engine mới là **lối vào thứ hai**, nên nó được phép
+  > có điều kiện riêng. Cái giá đã nói trước khi chốt: **người chơi sân 7 không bao giờ
+  > thấy chuyển động mới**, và giao diện phải giải thích vì sao nút bị khoá.
 
 ---
 
@@ -367,9 +425,21 @@ nhất. Mọi AC dưới đây PHẢI còn đúng khi spec 007 đóng.
 
 **Những gì của spec 005 và 006 được giữ, và phần duy nhất bị bỏ**
 
-- **Giữ nguyên toàn bộ spec 005**: nội suy có đường cong và lớp dao động **vẫn cần**, vì mốc
-  0,5–1 giây của engine mới là 1–2 mốc mỗi giây và mắt người sẽ thấy giật nếu không nội suy
-  xuống 60 khung/giây.
+- **Giữ nguyên toàn bộ spec 005**: nội suy có đường cong và lớp dao động **vẫn cần** — nhưng
+  **không phải vì lý do ghi ở bản Clarified**, và chỗ sai ấy để lại đây có chủ ý.
+
+  > **Lý lẽ cũ SAI, phát hiện khi lập plan ngày 2026-11-22.** Bản Clarified viết "mốc 0,5–1
+  > giây của engine mới là 1–2 mốc mỗi giây". Câu ấy **nhầm giây TRẬN với giây THẬT**. Ở mức
+  > chậm nhất đang có — 2000ms một phút trận — một giây trận dài **33,3 ms thật**, tức **30
+  > mốc mỗi giây thật**. Ở mức Chậm (1000ms) là **60 mốc mỗi giây thật**: đúng một mốc cho
+  > mỗi khung hình, **không còn gì để nội suy**. Ở mức Thường (200ms) là 300 mốc mỗi giây —
+  > tức phải **bỏ bốn trên năm mốc**.
+  >
+  > Vấn đề thật vì thế là **chiều ngược lại**: không phải thiếu mốc mà **thừa mốc**. Lớp
+  > nội suy vẫn được giữ, nhưng vai trò của nó đổi — từ "vẽ thêm giữa hai mốc thưa" thành
+  > "chọn và làm mượt giữa những mốc dày". Plan phải viết rõ điều đó, vì nếu nối dây theo
+  > lý lẽ cũ thì ở mức Thường trở lên engine sẽ tính ra bốn phần năm số mốc **không ai nhìn
+  > thấy**.
 - **Giữ phần vẽ của spec 006**: bóng trong chân người giữ bóng, vòng sáng, phép kẹp thủ môn,
   nghiêng khối theo bóng và theo vai trò.
 - **Bỏ phần SUY RA của spec 006**: dựng mốc trung gian từ đường bóng, và đoán ai đang giữ
@@ -521,3 +591,36 @@ Mục 8 đã rỗng, nên cổng chặn của hiến pháp mục 5 đã mở. Ch
 
 Trước khi code: **đóng spec 006** (T608 và Phase 52, bỏ Phase 50), rồi cắt nhánh
 `007-continuous-match-engine`.
+
+
+---
+
+## 14. Nhật ký làm rõ — bổ sung 2026-11-22 (phát hiện khi lập `/plan`)
+
+Khảo sát code trước khi viết `plan.md` tìm ra **bốn chỗ spec thiếu hoặc sai tới mức không
+lập plan được**, cộng hai chỗ sửa kèm. Người dùng chốt cả bốn trong cùng một lượt.
+
+| # | Chỗ hỏng | Đo được | Quyết định |
+|---|---|---|---|
+| 13 | **Không AC nào nói sân 5 người trông ra sao.** Trận chạy được 5–11 người và 20–90 phút, cả hai là trường thật của bản ghi; nhưng AC-37.1/37.2 chỉ định nghĩa hình học của sân 11 | `CAC_QUAN_SO` = 11…5, `CAC_THOI_LUONG` = 20…90 | **Chế độ liên tục chỉ cho sân 11** → AC-45.8 mới |
+| 14 | **AC-45.5 và AC-45.6 trỏ vào một tài liệu không có trong repo** — "mục 7b và mục 15 của bản mô tả gốc" | Bản 21 mục chưa từng được lưu vào `specs/` | **Lưu vào repo** thành `ban-mo-ta-goc.md`, AC trỏ vào đó |
+| 15 | **AC-45.3 có thể đỏ vì lấy mẫu chứ không vì mô hình sai** | Repo đã đo nhiễu **12 điểm phần trăm ở 60 mã**, lớn hơn ngưỡng 10 của chính AC | **Nới lên 200 mã**, và ghi rõ AC là hợp đồng **tạm** có ngày hết hạn là spec 010 |
+| 16 | **AC-38.8 không kiểm được từ tệp xuất**: độ cong do lớp nội suy ở tầng ui sinh ra, mà engine bị cấm import tầng ấy | `src/engine/boundaries.test.ts` quét mọi file engine | **Chấp nhận AC-38.8 là ngoại lệ** của AC-45.6, canh bằng phép kiểm thuần ở lớp vẽ |
+
+**Hai chỗ sửa kèm, không phải hỏi vì chúng không đổi ý định của ai:**
+
+- **AC-45.4 thiếu bốn trường.** Danh sách "phải lưu" bỏ sót `quanSo`, `thoiLuong`,
+  `sanTrungLap` và `doiCuaNguoiDung` — cả bốn đều đổi kết quả trận, nên thiếu chúng là sinh
+  lại ra một trận khác. Kèm theo, AC-45.4 chỉ khả thi nếu **can thiệp giữ độ phân giải
+  phút**: hôm nay `CanThiep` mang số phút nguyên và áp vào đầu phút kế tiếp (D30b của spec
+  001), còn chế độ liên tục có 60 mốc mỗi phút — cho can thiệp mang mốc giây là làm bản ghi
+  đổi hình dạng **và** làm sinh lại lệch khi người dùng bấm giữa phút.
+- **Lý lẽ của mục 10 sai.** "Mốc 0,5–1 giây là 1–2 mốc mỗi giây" nhầm **giây trận** với
+  **giây thật**: ở mức Chậm, một giây trận dài 16,7 ms thật nên mốc tới **60 lần mỗi giây
+  thật** — đúng một mốc một khung hình, không còn gì để nội suy. Vấn đề thật là **thừa mốc**,
+  không phải thiếu. Quyết định "giữ nguyên spec 005" vẫn đứng, nhưng vì một lý do khác.
+
+**Và một điều phải nói ra dù không ai hỏi:** với người bật **giảm chuyển động**, spec 007
+không mang lại gì. Lớp nội suy và lớp dao động đều tắt cho họ, nên họ nhận đúng kiểu nhảy
+mốc mà spec 005 và 006 sinh ra để chữa — chỉ là dày hơn 60 lần. Plan phải ghi điều này,
+không phải một dòng bảng để tick.
