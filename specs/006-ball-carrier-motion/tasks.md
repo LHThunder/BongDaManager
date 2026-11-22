@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | 21 AC (US-33 → US-36), 16 quyết định D101–D116 |
-| **Tiến độ** | 25/27 — T609 và T610 **bị bỏ**, T625–T628 **sinh ra từ T617** |
+| **Tiến độ** | **27/27 — ĐÓNG 2026-11-22**. T609 và T610 bị bỏ; T625–T628 sinh ra từ T617 |
 | **Sửa đổi** | 2026-11-19 — chẻ lần đầu từ plan |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -274,12 +274,13 @@ là một commit.
   - ✅ **Xong 2026-11-19 với MỘT món nợ người dùng chốt để lại.** Ba trong bốn con số đã đạt: chạy hết trận với sân bật **32ms** (ngưỡng 3 giây, nền spec 005 là 57ms), **0** tác vụ quá 50ms; khung vẽ ở cả bốn mức còn nội suy **59 khung/giây, trung vị 0,1ms, lớn nhất 0,3ms**, đều gọn trong một nhịp — bằng nền spec 005, kể cả ở mức Rất chậm mới; dải tốc độ dưới bốn lần giữ được bằng phép kiểm thuần của T525, và nó **giờ phủ cả mức Rất chậm** mà không phải sửa một dòng.
   - ⚠️ **Món nợ: AC-30.11 không đạt ở phần đuôi, người dùng chốt ĐỂ NỢ ngày 2026-11-19.** Độ vòng lớn nhất **20,95** so với ngưỡng 5. Ba lý do để lại: (a) **có từ trước spec 006** — đo ở cả hai trần nghiêng khối ra 19,52 và 20,95 với **cùng một trường hợp tệ nhất**, nên cả D104 lẫn D116 đều không sinh ra nó; (b) trung vị **1,38** nên trong thực tế không thấy, và người dùng xem app suốt hai spec chưa bao giờ báo lỗi này; (c) **spec 007 chặn đúng nguyên nhân tại gốc** — AC-38.2 chặn gia tốc 6 m/s², AC-38.3 bắt đổi hướng trên 90° phải xuống dưới 3 m/s, nên ở chế độ liên tục không dựng được cảnh "một chặng dài để lại vận tốc lớn cho một chặng ngắn". Siết lớp nội suy spec 005 bây giờ là chạm vào AC-30.10, AC-28.3 và ba phép kiểm bất biến vì một ca ở phần đuôi. Phép kiểm canh **vi phạm còn tồn tại**, nên nếu ai sửa thì nó đỏ và buộc phải viết lại thành ngưỡng thật.
 
-- [ ] **T617** — Người dùng tự xem một trận và phán
+- [x] **T617** — Người dùng tự xem một trận và phán
   - File: — *(người dùng tự xem, trên trình duyệt của mình)*
   - Xong khi: người dùng xem trọn một trận ở mức **Rất chậm** rồi một trận ở mức **Chậm**, trên trình duyệt thường của họ, và nói ra: có nhìn ra ai đang giữ bóng không; pha dẫn bóng có ra dẫn bóng không; đường chuyền có khác cú sút không; hai đội có cùng sống theo bóng không; và **cảm giác teleport còn không**.
   - Bằng chứng: **MẮT NGƯỜI DÙNG — không phép kiểm nào thay được task này.**
   - AC: AC-33.1, AC-34.1, AC-34.2, AC-35.4, AC-36.1, AC-36.6 *(phần cảm giác)*
   - Phụ thuộc: T616
+  - ✅ **Xong 2026-11-22, và nó làm đúng việc của nó.** Người dùng xem bản chạy trên trình duyệt của họ qua nhiều lượt và nêu **sáu điều**; bốn điều thành T625, T626, T627, T628 của chính spec này, hai điều còn lại đi vào lộ trình spec 007 kèm số đo. Ở spec 005 task này bắt được bốn lỗi mà 1239 phép kiểm không thấy; lần này là **sáu**, và tổng cộng **mười** qua hai spec.
   - ⚠️ Ở spec 005, đúng task này bắt được **bốn lỗi mà 1239 phép kiểm không thấy** và đẻ ra bảy task sửa. Lần này nó nằm trong kế hoạch từ đầu: nếu nó lại đẻ ra một lát nữa thì đó là **việc bình thường**, không phải sự cố.
 
 - [x] **T625** — Chuyền nhiều hơn rê, và không ai ôm bóng qua cả sân
@@ -335,11 +336,13 @@ là một commit.
     Chỉ **−9%** ở trung vị, −17% ở p90, −20% ở đỉnh. Lý do: `dongThoiGianPhaBong` **nén mọi đoạn cho vừa một nhịp** khi tổng vượt quá. Một pha mười ba đoạn muốn 3900ms ở tỉ lệ ba và 5850ms ở tỉ lệ hai — **cả hai đều bị nén về đúng 1000ms**, nên tỉ lệ không đổi được gì. Và tính theo **số đoạn** thì phần lớn đoạn nằm trong những pha bị nén ấy, chứ không phải trong các pha một–hai đoạn.
   - ℹ️ **Lực đòn bẩy thật của tốc độ bóng là chuyện NÉN, không phải tỉ lệ.** Muốn bóng chậm hẳn thì một pha nhiều bước phải được trải trên nhiều hơn một nhịp — tức bỏ ràng buộc "một sự kiện mỗi phút", đúng việc của spec 007.
 
-- [ ] **T618** — Tick 21 AC và đóng spec
+- [x] **T618** — Tick 21 AC và đóng spec
   - File: sửa `specs/006-ball-carrier-motion/spec.md`
   - Xong khi: mọi AC ở mục 3 được tick **có căn cứ** (ghi rõ test nào hay kiểm tay thấy gì, như mục 12 của spec 005); Definition of Done đủ mục; `Status` đổi thành **Done**; xác nhận `PHIEN_BAN_ENGINE` vẫn 5 và `DB_VERSION` vẫn 3; và **15 AC của spec 005 cộng hai AC của spec 001/002 ở mục 10 được kiểm lại từng cái**, không AC nào rơi.
   - AC: toàn bộ
   - Phụ thuộc: T617
+  - ✅ **Xong 2026-11-22.** 18/21 AC tick kèm căn cứ từng cái (mục 12 của `spec.md`); 15 AC của spec 005 cộng hai AC của spec 001/002 kiểm lại **từng cái** ở mục 13; `PHIEN_BAN_ENGINE` = 5 và `DB_VERSION` = 3 không đổi; bốn thứ không được sửa đều nguyên vẹn.
+  - ⚠️ **Ba AC KHÔNG tick, mỗi cái có một quyết định của người dùng đứng sau**: AC-34.2 (đi vòng qua đối thủ — bỏ Phase 50), AC-36.1 (mọi điểm di chuyển có mục đích — chuyển spec 009), AC-36.5 (độ vòng dưới năm lần — để nợ). Và AC-33.3 đạt **kèm ngoại lệ** nhịp lặng sau bàn thắng. Tài liệu để chúng **chưa tick** chứ không tick rồi chú thích, để bảng tick không nói dối.
 
 ---
 
