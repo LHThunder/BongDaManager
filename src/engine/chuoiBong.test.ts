@@ -119,3 +119,87 @@ describe('tất định (P1)', () => {
     expect(chay('MA B')).not.toEqual(chay('MA A'))
   })
 })
+
+
+describe('chuyền nhiều hơn rê bóng, và không ai ôm bóng qua cả sân (T625)', () => {
+  /*
+    **Người dùng xem bản chạy ở T617 và bắt được điều này bằng mắt**, đúng như
+    T518 của spec 005 đã từng: *"tần suất chuyền nhiều lên"* và *"một cầu thủ
+    không thể rê từ đầu sân đến cuối sân hoặc từ trái sang phải thường xuyên
+    được"*.
+
+    Luật cũ gọi **mọi** bước tiến lên là rê bóng, nên rê (58,4%) nhiều hơn chuyền
+    (41,6%) — ngược hẳn bóng đá thật — và 28 lần trong 10 trận một người ôm bóng
+    qua ba dải. Xem chú thích ở `chuoiBong.ts` cho cả bảng số và cho ba đường đã
+    kiểm để chắc rằng đổi nhãn này không đổi một kết quả nào.
+
+    Phép kiểm canh **tính chất**, không canh con số chính xác: tỉ lệ đúng phụ
+    thuộc bối cảnh, nhưng "chuyền nhiều hơn rê" thì phải đúng ở mọi bối cảnh.
+  */
+  function demLoai() {
+    const dem = { chuyen: 0, 're-bong': 0, 'tat-canh': 0, sut: 0 }
+    const chuoiRe: number[] = []
+    for (const kq of nhieuChuoi(600)) {
+      let chay = 0
+      for (const h of kq.cacHanhDong) {
+        dem[h.loai] += 1
+        if (h.loai === 're-bong') chay += 1
+        else {
+          if (chay > 0) chuoiRe.push(chay)
+          chay = 0
+        }
+      }
+      if (chay > 0) chuoiRe.push(chay)
+    }
+    return { dem, chuoiRe }
+  }
+
+  it('chuyền nhiều hơn rê bóng', () => {
+    const { dem } = demLoai()
+    const tong = dem.chuyen + dem['re-bong']
+    const tiLeRe = (100 * dem['re-bong']) / tong
+    console.log(
+      `rê ${dem['re-bong']} (${tiLeRe.toFixed(1)}%) · chuyền ${dem.chuyen} (${(100 - tiLeRe).toFixed(1)}%) · tạt ${dem['tat-canh']} · sút ${dem.sut}`,
+    )
+    expect(dem.chuyen, 'số đường chuyền').toBeGreaterThan(dem['re-bong'])
+    /*
+      Dải chứ không phải một con số: tỉ lệ đổi theo bối cảnh, nhưng rê bóng
+      chiếm quá một phần ba số lần chạm bóng thì không còn là bóng đá nữa.
+    */
+    expect(tiLeRe, 'tỉ lệ rê bóng').toBeLessThan(35)
+    expect(tiLeRe, 'tỉ lệ rê bóng').toBeGreaterThan(5)
+  })
+
+  it('một bước rê bóng luôn giữ nguyên cột — tiến lên mà đổi cột là một đường chuyền', () => {
+    const rng = taoRng('RE GIU COT')
+    for (let i = 0; i < 300; i += 1) {
+      const kq = chayChuoiBong(CAC_VUNG[i % CAC_VUNG.length], rng, BOI_CANH_TRUNG_TINH)
+      const duongDi = [...kq.cacHanhDong.map((h) => h.vung), kq.vungKetThuc]
+      for (let j = 0; j < kq.cacHanhDong.length; j += 1) {
+        const h = kq.cacHanhDong[j]
+        const sau = duongDi[j + 1]
+        if (!h || !sau || h.loai !== 're-bong') continue
+        expect(sau.cot, `chuỗi ${i} bước ${j}: rê từ ${h.vung.id} sang ${sau.id}`).toBe(h.vung.cot)
+        expect(sau.dai, `chuỗi ${i} bước ${j}`).toBeGreaterThan(h.vung.dai)
+      }
+    }
+  })
+
+  it('không ai ôm bóng đi hết chiều dài sân', () => {
+    const { chuoiRe } = demLoai()
+    const dem: Record<number, number> = {}
+    for (const c of chuoiRe) dem[c] = (dem[c] ?? 0) + 1
+    const daiNhat = Math.max(...chuoiRe)
+    console.log(`chuỗi rê liên tiếp: ${JSON.stringify(dem)} — dài nhất ${daiNhat}`)
+    /*
+      Sân có **bốn dải**, nên một chuỗi rê ba bước là đi từ dải 0 tới dải 3 —
+      đúng cảnh "rê từ đầu sân đến cuối sân" mà người dùng nói. Ba bước vẫn có
+      thể xảy ra, nhưng phải là chuyện hiếm chứ không phải vài lần mỗi trận.
+    */
+    expect(daiNhat, 'chuỗi rê dài nhất').toBeLessThanOrEqual(3)
+    const soBaBuoc = dem[3] ?? 0
+    expect(soBaBuoc, 'số chuỗi rê ba bước trên 600 chuỗi').toBeLessThan(
+      chuoiRe.length / 20,
+    )
+  })
+})

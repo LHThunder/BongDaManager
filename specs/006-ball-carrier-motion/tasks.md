@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | 21 AC (US-33 → US-36), 16 quyết định D101–D116 |
-| **Tiến độ** | 21/23 — T609 và T610 **bị bỏ** ngày 2026-11-19, xem Phase 50 |
+| **Tiến độ** | 22/24 — T609 và T610 **bị bỏ**, T625 **sinh ra từ T617** |
 | **Sửa đổi** | 2026-11-19 — chẻ lần đầu từ plan |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -281,6 +281,18 @@ là một commit.
   - AC: AC-33.1, AC-34.1, AC-34.2, AC-35.4, AC-36.1, AC-36.6 *(phần cảm giác)*
   - Phụ thuộc: T616
   - ⚠️ Ở spec 005, đúng task này bắt được **bốn lỗi mà 1239 phép kiểm không thấy** và đẻ ra bảy task sửa. Lần này nó nằm trong kế hoạch từ đầu: nếu nó lại đẻ ra một lát nữa thì đó là **việc bình thường**, không phải sự cố.
+
+- [x] **T625** — Chuyền nhiều hơn rê, và không ai ôm bóng qua cả sân
+  - File: sửa `src/engine/chuoiBong.ts`, sửa `src/engine/chuoiBong.test.ts`
+  - Xong khi: một bước chỉ là **rê bóng** khi bóng tiến lên **mà vẫn ở nguyên cột**; bước tiến lên **đổi cột** là một đường chuyền chéo. Đo trên 600 chuỗi: rê **20,1%**, chuyền **79,9%** (trước: rê 58,4%, chuyền 41,6%).
+  - Xong khi (chuỗi rê): không chuỗi rê nào quá **ba bước**, và chuỗi ba bước phải dưới một phần hai mươi tổng số chuỗi. Đo được: 113 chuỗi một bước, 16 chuỗi hai bước, **2** chuỗi ba bước. Trước đổi luật, cảnh "ôm bóng qua ba dải" xảy ra **28 lần trong 10 trận**; sau đổi còn **1**.
+  - Xong khi (⚠️ task chạm `src/engine/`): `tuongThichV5.test.ts` và `phatLai.test.ts` **xanh**; `PHIEN_BAN_ENGINE` vẫn **5**; `DB_VERSION` vẫn **3**; diff của `src/engine/` không tính file test có **0 dòng thêm và 0 dòng bỏ** chứa chữ `rng`.
+  - Bằng chứng: **số**.
+  - AC: AC-34.1, AC-35.1 *(bước nào là chuyền, bước nào là rê)*
+  - Phụ thuộc: T617
+  - ⚠️ **Sinh ra từ T617 — đúng điều task ấy đã viết trước là "việc bình thường".** Người dùng xem bản chạy ngày 2026-11-22 và nói: *"tần suất chuyền nhiều lên"* và *"một cầu thủ không thể rê từ đầu sân đến cuối sân hoặc từ trái sang phải thường xuyên được"*.
+  - ⚠️ **Đây là task DUY NHẤT của spec 006 đổi một dòng logic trong `src/engine/`**, nên phải nói rõ vì sao nó không phá ràng buộc "không đổi kết quả": nhãn `re-bong`/`chuyen` **không ai trong `engine/` hay `services/` đọc** — chỉ lớp giao diện đọc; loại sự kiện và chỉ tiêu tạt cánh chỉ đọc `'tat-canh'`, một nhánh khác hẳn; và `tuongThichV5.test.ts` so **bảy trường** không có `cacBuocBong`. Dòng ấy cũng không rút thêm số ngẫu nhiên nào — `vungMoi` đã được chọn ở dòng trên.
+  - ℹ️ **Trận đã lưu giữ nhãn cũ.** Bản ghi trận lưu cả `cacBuocBong`, nên 20 trận trong lưu trữ vẫn vẽ theo luật cũ khi xem lại. Đấu lại thì engine chạy lại và ra nhãn mới. Không mất dữ liệu, chỉ là hai cách vẽ cho hai thời điểm — và đó là hệ quả của việc bản ghi giữ dữ liệu đã tính, chứ không phải một lỗi.
 
 - [ ] **T618** — Tick 21 AC và đóng spec
   - File: sửa `specs/006-ball-carrier-motion/spec.md`
