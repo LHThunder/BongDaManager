@@ -464,6 +464,48 @@ tiếp tục; cộng một lớp tự kiểm chạy trước khi xuất.
   chính xác hơn**. Người dùng có chắc muốn điều đó, và **đo bằng gì** để biết đã đủ sai mà
   chưa sai quá?
 
+### Ba điều người dùng nói ngày 2026-11-22, bằng lời của họ
+
+Xem bản chạy ở T617 của spec 006, người dùng nêu bốn điều. Một điều đã sửa trong spec 006
+(thủ môn lên quá cao — T626). **Ba điều còn lại thuộc về đây**, và chúng được ghi nguyên văn
+vì câu chữ của người dùng sắc hơn mọi cách tôi diễn đạt lại:
+
+> *"khi tấn công thì khối đội hình phải dâng lên phần sân đối thủ và đội đối thủ phải lùi về"*
+
+**Đã đo, và cơ chế có thật nhưng không đủ.** Đội nhà (tấn công sang phải, x lớn là lên cao),
+đo ở mốc trên 10 mã trận, **bỏ thủ môn ra**:
+
+| | Nhà cầm bóng | Khách cầm bóng | Lệch |
+|---|---|---|---|
+| Trọng tâm đội | 45,26 | 39,21 | **+6,05** |
+| Hàng thủ (người sâu nhất) | 27,85 | 22,97 | **+4,88** |
+| Người cao nhất | 71,88 | 62,56 | **+9,32** |
+
+Đúng chiều, nhưng **trọng tâm 45,26 vẫn nằm bên phần sân nhà** — vạch giữa là 50. Đội đang
+tấn công chưa bao giờ thật sự dâng sang phần sân đối thủ. Siết thêm ở spec 006 không được
+nữa: trần nghiêng khối đã ở 1/6 và sàn hai điểm gần nhau nhất đã tụt xuống 1,31 bán kính.
+Đây là **US-40** — khối phòng ngự 30–40 m dọc, dịch theo phía có bóng, chiều cao hàng thủ
+theo chỉ thị.
+
+> *"có những pha phản công và trận đấu vẫn cần liền mạch hơn"*
+
+Engine hiện tại **không có khái niệm chuyển trạng thái**: mỗi phút là một pha độc lập, không
+có "vừa mất bóng xong thì lao lên". Đây là **AC-40.4** (3–5 giây phản pressing hoặc lùi về)
+cộng với chính lý do spec này tồn tại — một sự kiện mỗi phút thì không có gì liền mạch được.
+
+> *"cầu thủ di chuyển nhưng mà không phải tại chỗ mà theo tình huống bóng"*
+
+**Đã đo.** Quãng mỗi người đi giữa hai mốc, trên 10 mã trận:
+
+| | Số lượt | Trung vị | p90 |
+|---|---|---|---|
+| **Có** tham gia tình huống | 1.402 | **24,26** | 48,14 |
+| **Không** tham gia | 15.251 | **5,14** | 15,23 |
+
+Và **28,2% số lượt người không tham gia đứng im hoàn toàn** giữa hai mốc — thứ nhúc nhích mà
+người xem thấy chỉ là lớp dao động ±1 đơn vị tại chỗ. Đây là **US-41**: mỗi người không cầm
+bóng phải có một mục đích gọi tên được từ danh mục mục 11 của bản mô tả.
+
 ### Những gì hoãn từ spec 006 sang đây
 
 - **AC-34.2 của spec 006** — người rê bóng phải **đi vòng qua** điểm của đối thủ nằm trên
