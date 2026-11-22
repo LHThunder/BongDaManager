@@ -217,8 +217,42 @@ export function chayChuoiBong(
     })
 
     const vungMoi = chonTheoTrongSo(keTiep, trongSo, rng)
+    /*
+      BƯỚC NÀY LÀ RÊ BÓNG HAY MỘT ĐƯỜNG CHUYỀN (T625, spec 006).
+
+      Luật cũ: `vungMoi.dai > vung.dai ? 're-bong' : 'chuyen'` — **mọi** bước
+      tiến lên đều là rê bóng, chỉ bước ngang hoặc lùi mới là chuyền. Tức engine
+      không có khái niệm **chuyền lên phía trước**, mà đó lại là thứ xảy ra nhiều
+      nhất trong một trận thật.
+
+      Người dùng xem bản chạy ở T617 và nói ra bằng lời của họ: *"tần suất chuyền
+      nhiều lên"* và *"một cầu thủ không thể rê từ đầu sân đến cuối sân hoặc từ
+      trái sang phải thường xuyên được"*. Đo trên 10 mã trận thì đúng như vậy:
+
+      | | Luật cũ | Luật này |
+      |---|---|---|
+      | Rê bóng | 1094 bước (**58,4%**) | 433 (**23,1%**) |
+      | Chuyền | 778 bước (41,6%) | 1439 (**76,9%**) |
+      | Số lần một người ôm bóng qua **ba dải** | **28** | **1** |
+
+      Luật mới: chỉ là rê bóng khi bóng tiến lên **mà vẫn ở nguyên cột** — một cú
+      đẩy bóng thẳng về phía trước. Bước tiến lên **đổi cột** là một đường chuyền
+      chéo, và 661 trong 1094 bước rê cũ chính là loại ấy — đó là chỗ sinh ra cảnh
+      một người vừa tiến vừa chạy ngang qua cả sân.
+
+      **Đổi nhãn này KHÔNG đổi một kết quả nào**, nên nó nằm trong ràng buộc "không
+      đổi kết quả" của spec 006. Ba đường đã kiểm: không chỗ nào trong `engine/`
+      hay `services/` đọc `'re-bong'` hoặc `'chuyen'` (chỉ lớp giao diện đọc); loại
+      sự kiện và chỉ tiêu tạt cánh chỉ đọc `'tat-canh'`, một nhánh khác hẳn ở trên;
+      và `tuongThichV5.test.ts` so **bảy trường** — phút, bù giờ, loại sự kiện, đội,
+      cầu thủ, mẫu câu, tỉ số — **không có `cacBuocBong`**. Dòng này cũng **không
+      rút thêm một số ngẫu nhiên nào**: `vungMoi` đã được chọn ở dòng trên rồi.
+    */
     cacHanhDong.push({
-      loai: vungMoi.dai > vung.dai ? 're-bong' : 'chuyen',
+      loai:
+        vungMoi.dai > vung.dai && vungMoi.cot === vung.cot
+          ? 're-bong'
+          : 'chuyen',
       vung,
     })
     vung = vungMoi

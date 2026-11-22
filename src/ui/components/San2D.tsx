@@ -5,8 +5,21 @@ import type { PositionId } from '../../domain/types'
 import type { BenDoi, LoaiSuKien, SuKien } from '../../engine/suKien'
 import type { BenTran } from '../../engine/tran'
 import { latVung, vungCuaViTri, type VungSan } from '../../engine/vung'
+import { MS_LANG_SAU_BAN_THANG } from '../../hooks/useMatch'
 import { useChuoi } from '../../hooks/useNgonNgu'
 import { bienDoTuKhoangGian, lechDaoDong } from '../daoDong'
+import {
+  cuaSoGiuBong,
+  dongThoiGianPhaBong,
+  ganNguoiGiuBong,
+  nguoiGiuBong,
+  nguoiGiuBongLucNay,
+  viTriBongTrongPha,
+  viTriNguoiGiuBong,
+  type BuocDaQuyDoi,
+  type DoanCoNguoi,
+  type NguoiTrenSan as NguoiChoLuatNhan,
+} from '../phaBong'
 import {
   doMetTuTheLuc,
   huongRaKhoiMoc,
@@ -115,7 +128,23 @@ const DICH_THEO_DO_CAO: Readonly<Record<string, number>> = {
   cao: 3,
 }
 
-const BAN_KINH = 3.4
+/**
+ * Bán kính một điểm cầu thủ, trong khung sân 11 (100 × 64).
+ *
+ * **Thu từ 3,4 xuống 2,6 ngày 2026-11-22** theo yêu cầu của người dùng sau khi
+ * xem bản chạy: *"tôi muốn vòng tròn hiển thị cầu thủ nhỏ đi"*. Ở 3,4 một điểm
+ * rộng 6,8 trên một sân dài 100 — tức gần **bảy mét** cho một cầu thủ.
+ *
+ * Thu điểm lại **nới lỏng** mọi ràng buộc về khoảng cách chứ không siết chúng:
+ * sàn "hai điểm gần nhau nhất" đo bằng **bán kính**, nên bán kính nhỏ đi thì
+ * con số ấy lớn lên. Xem `SAN_HAI_DIEM_GAN_NHAT`.
+ *
+ * Ba thứ đi theo nó và **phải đổi cùng lúc**, nếu không thì chữ số áo tràn ra
+ * ngoài vòng tròn: cỡ chữ số áo, đường chân chữ, và `SAN_HAI_DIEM_GAN_NHAT`.
+ * Quả bóng **cố tình giữ nguyên 1,7**: người dùng xin thu *điểm cầu thủ*, và
+ * bóng to hơn so với người thì càng dễ nhìn theo — đúng điều AC-32.1 muốn.
+ */
+const BAN_KINH = 2.6
 
 /** Khoảng giãn giữa hai người cùng ĐỘI đứng cùng một vùng. */
 const BUOC_GIAN = 8
@@ -158,7 +187,7 @@ interface NguoiTrenSan {
 }
 
 /** Ai đang đứng ở vùng nào, đã quy về khung của đội nhà. */
-function cacNguoiTrenSan(
+export function cacNguoiTrenSan(
   ben: BenTran,
   laDoiNha: boolean,
 ): readonly NguoiTrenSan[] {
@@ -285,15 +314,21 @@ function lechTrongVung(
 }
 
 /**
- * Khối đội hình nghiêng theo bóng tối đa bao nhiêu: **một phần mười chiều dài
- * sân** (AC-30.4, quyết định D94).
+ * Khối đội hình nghiêng theo bóng tối đa bao nhiêu: **một phần sáu chiều dài sân**
+ * (D116, nới từ một phần mười của AC-30.4 / D94).
  *
- * Ngưỡng này là do người dùng chốt lúc `/clarify`: đủ để thấy đội đang dồn lên
- * hay lùi về, mà sơ đồ vẫn nhận ra được. Bốn dải cách nhau ~0,23 chiều dài, nên
- * 0,1 là **chưa đầy một nửa** khoảng giữa hai dải: một hàng bốn không bao giờ trôi
- * sang chỗ của hàng bên.
+ * **Ngưỡng này là của người dùng, cả hai lần.** Họ chốt một phần mười ở
+ * `/clarify` của spec 005, rồi nới lên một phần sáu ngày 2026-11-19 sau khi đọc số đo
+ * của lát 51: phần đội hình dâng lên do **vai trò** chỉ được 0,5–1,2 đơn vị, vì cái
+ * trần cũ đã bị lớp co khối dùng gần hết.
+ *
+ * **Cái giá đã đo, không phải đoán**: sàn "hai điểm gần nhau nhất" tụt từ
+ * **1,4923** xuống **1,3108** bán kính, và vì thế vòng "đang giữ bóng" phải thu lại
+ * theo — xem `VONG_GIU_BONG_THEM`, nơi `Math.min` chuyển từ biên dấu ▲ sang biên sàn.
+ * Bốn dải cách nhau ~0,23 chiều dài, nên 1/6 vẫn **dưới** khoảng giữa hai dải: một
+ * hàng bốn không trôi sang chỗ của hàng bên.
  */
-const BIEN_NGHIENG_KHOI = 1 / 10
+const BIEN_NGHIENG_KHOI = 1 / 6
 
 /**
  * Khoảng cách lớn nhất có thể có giữa một người và dải có bóng, theo tỉ lệ
@@ -305,6 +340,23 @@ const KHOANG_TOI_DA_TOI_BONG = 0.81
 
 /** Hệ số co khối: dịch bao nhiêu phần của khoảng cách tới dải có bóng. */
 const PHAN_CO_KHOI = BIEN_NGHIENG_KHOI / KHOANG_TOI_DA_TOI_BONG
+
+/**
+ * Vai trò của một người so với người đang giữ bóng (D106).
+ *
+ * `chua-ro` là khi chưa biết ai giữ bóng — dòng mốc, hay trước giờ bóng lăn.
+ * Lúc ấy chỉ có lớp co khối của D94, không có lực kéo theo vai trò.
+ */
+export type VaiTroTheoBong = 'dong-doi' | 'doi-phuong' | 'chua-ro'
+
+/**
+ * Lực kéo thêm theo **vai trò**, so với lớp co khối: **một nửa**.
+ *
+ * Không lấy bằng lớp co khối: hai lực cùng độ lớn thì tổng chạm trần
+ * `BIEN_NGHIENG_KHOI` ở gần nửa sân, và mọi người bị kẹp vào cùng một lượng dịch
+ * — đúng kiểu "dịch cả khối một lượng như nhau" mà T510 đã làm hỏng hai lần.
+ */
+const PHAN_VAI_TRO = PHAN_CO_KHOI / 4
 
 /**
  * Một người KHÔNG tham gia dịch bao nhiêu theo trục dọc, vì bóng đang ở dải
@@ -329,11 +381,40 @@ export function nghiengKhoiTheoBong(
   benNguoi: BenVe,
   vungBong: VungSan | null,
   khung: KhungSan,
+  vaiTro: VaiTroTheoBong = 'chua-ro',
 ): number {
   if (vungBong == null) return 0
   const tiNguoi = tiLeCuaDai(vungNguoi.dai, benNguoi)
   const tiBong = tiLeCuaDai(vungBong.dai, 'trung-lap')
-  return PHAN_CO_KHOI * (tiBong - tiNguoi) * khung.rong
+  const cach = tiBong - tiNguoi
+
+  /*
+    HAI NHÓM, HAI NGUYÊN TẮC (D106, AC-36.2, AC-36.3).
+
+    - **Đồng đội của người giữ bóng** được kéo thêm về phía khung thành đối
+      phương: cả đội dâng lên khi đang cầm bóng.
+    - **Đối phương** được kéo thêm về phía bóng: cả đội lùi về vây quanh quả bóng.
+
+    **Cả hai lực đều tỉ lệ với khoảng cách tới dải có bóng, nên chúng bằng KHÔNG
+    ở đúng dải ấy.** Đó không phải thẩm mỹ: người **tham gia tình huống** được
+    đặt thẳng vào vùng của tình huống và **không nhận lực kéo nào**, nên một lực
+    kéo đều tay sẽ triệt tiêu đúng khoảng lệch tách họ khỏi người không tham gia
+    đứng cùng dải — hai bản đầu của T510 đã làm hỏng AC-30.5 đúng kiểu ấy.
+
+    Tổng mọi lực kéo vẫn bị chặn ở `BIEN_NGHIENG_KHOI` (AC-30.4 của spec 005).
+  */
+  const huongTanCong = benNguoi === 'khach' ? -1 : 1
+  const them =
+    vaiTro === 'dong-doi'
+      ? PHAN_VAI_TRO * Math.abs(cach) * huongTanCong
+      : vaiTro === 'doi-phuong'
+        ? PHAN_VAI_TRO * cach
+        : 0
+
+  const tong = PHAN_CO_KHOI * cach + them
+  return (
+    Math.max(-BIEN_NGHIENG_KHOI, Math.min(BIEN_NGHIENG_KHOI, tong)) * khung.rong
+  )
 }
 
 /**
@@ -367,6 +448,13 @@ export interface DiemCauThu {
   readonly playerId: string
   /** Thủ môn được đối xử riêng — xem `daiThuMon` và AC-30.7. */
   readonly laThuMon: boolean
+  /**
+   * Điểm này thuộc đội nhà?
+   *
+   * Luật suy người nhận một đường chuyền (D112) chỉ được lấy **đồng đội**, mà
+   * màu nền thì không nói được điều đó: hai đội có thể chọn trùng màu áo.
+   */
+  readonly laDoiNha: boolean
   readonly x: number
   readonly y: number
   readonly mauNen: string
@@ -405,19 +493,30 @@ interface DuLieuVe {
    * thuần không được tự đi tra lớp ngôn ngữ (D68).
    */
   readonly moTaDiem: BoChuoi['SAN_2D']['moTaDiem']
+  /**
+   * Ai đang giữ bóng, để mô tả điểm nói được điều ấy (AC-33.4, P9).
+   *
+   * Đi vào bằng **tham số** vì `hinhSan` không tự suy ra được: quy tắc của bảng
+   * 3.1 có bốn loại dòng "giữ nguyên người cũ", mà `hinhSan` chỉ thấy MỘT dòng
+   * — nó không có "người cũ" nào để giữ. Phép gấp ấy thuộc lớp vẽ.
+   *
+   * Tuỳ chọn: phép kiểm hình học không soi tới mô tả điểm (D68), nên chúng
+   * không phải dựng sẵn một người giữ bóng chỉ để gọi được hàm.
+   */
+  readonly nguoiGiuBong?: string | null
 }
 
 interface Props extends DuLieuVe {
   /** Nhịp đồng hồ trận: bao nhiêu mili-giây cho một phút chơi. */
   readonly msMoiPhut: number
-  /**
-   * Phút ĐỒNG HỒ của trận (T508).
-   *
-   * **Không phải `suKien.phut`.** Đó là phút HIỂN THỊ, và nó không nhích khi
-   * một phút không có tình huống nào — bẫy đã biết từ spec 004, ghi ở D90.
-   * Dao động chờ bám vào con số này, nên bám sai là sân đứng chết hàng giây.
-   */
-  readonly phutDongHo: number
+  /*
+    `phutDongHo` đã bỏ ở T620.
+
+    Nó sinh ra ở T508 để lớp dao động có một đồng hồ của trận (D90). Nay đồng hồ
+    ấy là một bộ cộng dồn trong vòng khung hình (D114), nên sân không còn cần biết
+    phút đồng hồ là bao nhiêu. Giữ một prop không ai đọc là giữ một lời hứa sai về
+    thứ thành phần này phụ thuộc vào.
+  */
   /** Trận đang chạy hay đang tạm dừng — tạm dừng thì đóng băng cả sân (AC-28.5). */
   readonly dangChay: boolean
 }
@@ -470,6 +569,13 @@ export interface HinhSan {
   readonly cacDiem: readonly DiemCauThu[]
   readonly duongBong: readonly { readonly x: number; readonly y: number }[]
   /**
+   * Từng bước của pha bóng, đã quy về toạ độ, **kèm loại** (spec 006, T602).
+   *
+   * Rỗng nghĩa là nhịp này không có pha bóng nào — hoặc vì dòng không kể pha
+   * bóng, hoặc vì đây là **bản ghi trận cũ** thiếu dữ liệu loại bước (D110).
+   */
+  readonly cacBuocBong: readonly BuocDaQuyDoi[]
+  /**
    * Chỗ của quả bóng mà **dòng này** nói ra, hay `null` khi nó không nói gì (T513).
    *
    * `null` **không** có nghĩa là "không có bóng": nó có nghĩa là "dòng này không
@@ -505,6 +611,7 @@ export function hinhSan({
   soAo,
   nhanViTri,
   moTaDiem,
+  nguoiGiuBong: aiGiuBong = null,
 }: DuLieuVe): HinhSan {
   /*
     Quân số suy từ SƠ ĐỒ đang dùng, không từ `trenSan`: thẻ đỏ làm số người
@@ -520,6 +627,24 @@ export function hinhSan({
   const leY = (CAO - khung.cao) / 2
 
   const thamGia = new Set(suKien?.cacCauThu ?? [])
+
+  /*
+    ĐỘI NÀO ĐANG GIỮ BÓNG — để hai nhóm di chuyển theo hai nguyên tắc (D106).
+
+    Lấy **đội của người giữ bóng**, không lấy `suKien.doi`: hai thứ ấy khác nhau
+    ở đúng những dòng đáng kể nhất — một pha cứu thủa hay một pha mất bóng thì
+    dòng nói về đội tấn công, còn bóng đã sang chân đội kia.
+  */
+  const benGiuBong: BenVe | null =
+    aiGiuBong == null
+      ? null
+      : cacNguoiTrenSan(nha.ben, true).some((x) => x.playerId === aiGiuBong)
+        ? 'nha'
+        : cacNguoiTrenSan(khach.ben, false).some(
+              (x) => x.playerId === aiGiuBong,
+            )
+          ? 'khach'
+          : null
   const vungSuKien = suKien?.vung ? vungTrenSan(suKien.vung, suKien.doi) : null
 
   /*
@@ -589,6 +714,11 @@ export function hinhSan({
                   laDoiNha ? 'nha' : 'khach',
                   vungSuKien,
                   khung,
+                  benGiuBong == null
+                    ? 'chua-ro'
+                    : laDoiNha === (benGiuBong === 'nha')
+                      ? 'dong-doi'
+                      : 'doi-phuong',
                 )),
         khung,
         /*
@@ -609,6 +739,7 @@ export function hinhSan({
       cacDiem.push({
         playerId: x.playerId,
         laThuMon,
+        laDoiNha,
         x: cx,
         y: kep(cy + lechY, leY + le, leY + khung.cao - le),
         mauNen: doiTren.mauAo,
@@ -621,6 +752,7 @@ export function hinhSan({
           nhanViTri(x.viTriO),
           doiTren.ten,
           noiBat,
+          x.playerId === aiGiuBong,
         ),
       })
     }
@@ -628,6 +760,18 @@ export function hinhSan({
 
   const duongBong = (suKien?.duongBong ?? []).map((v) =>
     toaDo(vungTrenSan(v, suKien?.doi ?? 'nha'), 0, khung),
+  )
+
+  /*
+    Từng bước kèm loại, dùng **bảng trung lập** như đường bóng: một chỗ trên
+    sân không thuộc đội nào. Thiếu `cacBuocBong` — bản ghi trận cũ — thì để rỗng,
+    và lớp vẽ rơi về cách của spec 005 (D110).
+  */
+  const cacBuocBong: readonly BuocDaQuyDoi[] = (suKien?.cacBuocBong ?? []).map(
+    (b) => ({
+      diem: toaDo(vungTrenSan(b.vung, suKien?.doi ?? 'nha'), 0, khung),
+      loai: b.loai,
+    }),
   )
 
   const cuoiDuongBong = duongBong[duongBong.length - 1]
@@ -647,6 +791,7 @@ export function hinhSan({
     banKinh: BAN_KINH * tiLe,
     cacDiem,
     duongBong,
+    cacBuocBong,
     bongTaiMoc,
   }
 }
@@ -677,19 +822,63 @@ function useGiamChuyenDong(): boolean {
 const BUOC_DO_VAN_TOC = 0.01
 
 /**
- * Bóng nhanh gấp mấy lần người (AC-30.2, T505).
+ * Bóng nhanh gấp mấy lần người (AC-30.2, AC-35.1, AC-35.4).
  *
- * Bóng đi hết chặng của nó trong `msChuyen / 3`, nên nó tới đích trong khoảng
- * một phần ba đầu — mắt theo bóng trước, người theo sau, đúng như một đường
- * chuyền. Trước T505 bóng được vẽ thắng tại toạ độ mốc, tức **nhảy tức thời**.
+ * Bóng đi hết chặng của nó trong `msChuyen / 2`, nên nó tới đích trong khoảng
+ * **nửa đầu** của chặng — mắt theo bóng trước, người theo sau, đúng như một
+ * đường chuyền. Trước T505 bóng được vẽ thẳng tại toạ độ mốc, tức **nhảy tức
+ * thời**.
+ *
+ * **Ba → hai, người dùng chốt ngày 2026-11-22** (T628) sau khi xem bản chạy:
+ * *"đường bóng chậm hơn nữa"*. Số đo ở mức Chậm trước khi đổi: tốc độ bóng mỗi
+ * đoạn trung vị **152 đơn vị/giây** trên một sân rộng 100 — tức quả bóng băng
+ * hết chiều ngang sân trong **0,66 giây**, p90 là 342 và lớn nhất 728.
+ *
+ * **Cái giá đã nói trước khi chốt**: đây là tỉ lệ của AC-35.1, và hạ nó làm một
+ * đường chuyền trông **gần giống một pha rê bóng hơn** — đúng thứ người dùng
+ * từng xin phân biệt được ở `/clarify`. Hai lần vẫn là hai lần, nên khác biệt
+ * còn thấy được; nhưng nếu sau này nó mờ đi thì đây là chỗ đầu tiên nên nhìn.
+ *
+ * Một chi tiết đã đo và **không** sửa được bằng hằng số này: **41,2% số pha có
+ * hơn ba đoạn**, và `dongThoiGianPhaBong` nén mọi đoạn cho vừa một nhịp. Đó mới
+ * là chỗ sinh ra đuôi 342–728, chứ không phải tỉ lệ.
  */
-const BONG_NHANH_GAP = 3
+const BONG_NHANH_GAP = 2
 
 /** Hiệu ứng bàn thắng chạy bao lâu, mực thời gian thật (AC-32.4). */
 const THOI_GIAN_HIEU_UNG_BAN_THANG = 1500
 
 /** Vòng sáng nở tối đa gấp mấy lần bán kính một điểm. */
 const VONG_SANG_NO_GAP = 7
+
+/**
+ * Hai điểm gần nhau nhất trên sân cách nhau bao nhiêu bán kính — **số ĐO ĐƯỢC**,
+ * không phải số suy ra (T605).
+ *
+ * Đo trên 10 mã trận × 7 quân số × mọi dòng tường thuật — 5835 dòng, mọi cặp
+ * điểm: sàn là **4,457 ĐƠN VỊ**. Viết theo bán kính thì nó là 1,3108 khi bán kính
+ * còn 3,4, và **1,71** từ khi T627 thu bán kính xuống 2,6 — **cùng một khoảng cách
+ * thật**, chỉ khác thước đo. Đó là lý do con số ở đây đổi mà không có gì trên sân
+ * đổi cả.
+ *
+ * **Nó đã tụt hai lần, và cả hai đều đo được** (tính theo bán kính 3,4 của lúc ấy):
+ * 1,5468 → 1,4923 khi T611 thêm lực
+ * kéo theo vai trò (D106), rồi 1,4923 → 1,3108 khi T624 nới trần lên một phần sáu
+ * (D116). Lý do của cả hai là một: **mọi lực kéo đều kéo về phía bóng**, nên chúng
+ * đều làm hai điểm xích lại — đúng điều R48 báo trước.
+ *
+ * Lần thứ nhất trả bằng cách siết lực kéo theo vai trò từ một nửa xuống một phần
+ * tư lớp co khối. Lần thứ hai **không siết**, vì chính người dùng muốn thấy đội
+ * hình dâng lên rõ hơn; cái trả giá là vòng "đang giữ bóng" thu lại.
+ *
+ * **Không phải 1,80.** Con số 1,80 ghi ở phép kiểm R45 là sàn **quanh người ghi
+ * bàn**, không phải sàn toàn sân — đo lại trên mọi cặp thì chật hơn hẳn. Và đo
+ * riêng quanh **người giữ bóng** ra đúng 1,5468: tức cặp chật nhất của cả sân
+ * **luôn có người giữ bóng là một nửa**. Biên quanh anh ta vì thế bị ràng thật,
+ * không phải một biên cho có — đúng bài học R45 lặp lại lần thứ ba: sàn phụ
+ * thuộc vào việc đo quanh ai.
+ */
+const SAN_HAI_DIEM_GAN_NHAT = 1.71
 
 /**
  * Điểm người ghi bàn được phì thêm tối đa bao nhiêu (AC-32.4, rủi ro R45).
@@ -716,6 +905,47 @@ const VONG_SANG_NO_GAP = 7
  * trống giữa hai người **cùng vùng** mà bỏ quên cặp khác vùng chật hơn.
  */
 export const PHI_THEM_NGUOI_GHI_BAN = ((BUOC_GIAN / 2 - BAN_KINH) * 3) / 4
+
+/**
+ * Vòng nét đứt quanh người giữ bóng rộng hơn bán kính điểm bao nhiêu
+ * (AC-33.4, D108).
+ *
+ * **Một vòng quanh điểm cũng là phì to dấu chân của nó**, và spec 005 mắc đúng
+ * lỗi "phì to một điểm mà không đặt biên" hai lần ở R45. Hai biên, và vòng phải
+ * nằm dưới **cả hai**:
+ *
+ * 1. **Sàn đã đo**: hai điểm gần nhau nhất cách nhau **1,71 bán kính**, xem
+ *    `SAN_HAI_DIEM_GAN_NHAT`. Vòng rộng hơn thế là trùm tâm người khác, tức
+ *    đếm sai số người trên sân — điều AC-15.2 cấm.
+ * 2. **Dấu ▲** đặt ở `-banKinh - 1,2 · tiLe`. Vòng cao hơn thế là đi xuyên dấu
+ *    ▲, mà hai dấu phải đọc ra được riêng rẽ — ▲ đã có nghĩa "đang tham gia
+ *    tình huống" từ spec 001.
+ *
+ * **Biên nào chặt hơn đã đổi HAI LẦN, và `Math.min` chịu được cả hai mà không ai
+ * phải nhớ sửa nó.** T624 nới trần nghiêng khối lên 1/6, sàn tụt, nên biên thật
+ * chuyển từ dấu ▲ sang **sàn** (0,31 · 3,4 = 1,054 so với 1,2). T627 thu bán kính
+ * điểm xuống 2,6, sàn tính theo bán kính lại **lớn lên** (0,71 · 2,6 = 1,856), nên
+ * biên thật quay về **dấu ▲ = 1,2**. Đó chính là lý do chỗ này viết ra cả hai thay
+ * vì chốt một con số.
+ */
+export const VONG_GIU_BONG_THEM = Math.min(
+  BAN_KINH * (SAN_HAI_DIEM_GAN_NHAT - 1),
+  1.2,
+)
+
+/** Vạch và khoảng trống của vòng nét đứt, theo tỉ lệ khung. */
+const VACH_VONG_GIU_BONG = 1.6
+
+/**
+ * Bóng về đúng chân người giữ bóng trong bao nhiêu phần của nhịp (AC-33.1).
+ *
+ * Không đặt bóng thẳng vào chân anh ta ngay khung đầu: chỗ bóng được thấy lần
+ * cuối là vùng pha bóng trước dừng, còn điểm của anh ta đã bị giãn ra khỏi vùng
+ * đó để hai điểm không chồng nhau — nhảy cái khoảng ấy trong một khung là một
+ * cú teleport, đúng thứ người dùng gọi tên ở T518. Một phần tư nhịp là đủ để
+ * mắt thấy bóng được **nhận**, rồi ba phần tư còn lại bóng đi theo chân.
+ */
+const PHAN_NHIP_BAM_CHAN = 0.25
 
 /**
  * Điểm trên đường THẮNG từ `tu` tới `den`.
@@ -788,7 +1018,7 @@ export function diemTrenDuong(duong: readonly Diem[], tiLe: number): Diem {
  * hàm vào lớp nội suy: hai lần gọi `viTriTaiThoiDiem` là đủ, và nó tự đúng với
  * mọi thay đổi sau này của lớp ấy — kể cả dáng theo thể lực.
  */
-function vanTocCuaChang(
+export function vanTocCuaChang(
   truoc: ChuyenDiemDang | undefined,
   troi: number,
   doMet: number,
@@ -808,7 +1038,7 @@ function vanTocCuaChang(
 }
 
 /** Một điểm đang đi từ đâu tới đâu, và nó vào mốc đầu theo hướng nào. */
-interface ChuyenDiemDang {
+export interface ChuyenDiemDang {
   readonly tu: Diem
   readonly den: Diem
   readonly huongVao: Diem | null
@@ -825,9 +1055,60 @@ interface ChuyenDiemDang {
 
 export function San2D(props: Props) {
   const { SAN_2D } = useChuoi()
-  const { nha, khach, suKien, msMoiPhut, phutDongHo, dangChay } = props
+  const { nha, khach, suKien, msMoiPhut, dangChay } = props
   const msChuyen = thoiGianChuyen(msMoiPhut)
-  const { khung, banKinh, cacDiem, duongBong, bongTaiMoc } = hinhSan(props)
+
+  /*
+    AI ĐANG GIỮ BÓNG (T603, T605, bảng 3.1 của plan).
+
+    Là một **phép gấp qua các nhịp**, không phải một hàm của dòng đang hiện:
+    bốn loại dòng — thẻ vàng, thẻ đỏ, thay người, kiệt sức — **giữ nguyên
+    người cũ**, nên phải có chỗ nhớ "người cũ" là ai.
+
+    Tính ngay trong lúc vẽ chứ không trong `useEffect`, và **khoá theo dòng**:
+    vẽ lại vì đổi ngôn ngữ hay đổi chế độ màu thì khoá không đổi nên không gấp
+    lại, còn nếu để trong effect thì khung đầu của một phút mới sẽ còn vẽ vòng
+    quanh người của phút trước.
+  */
+  /**
+   * Ai còn có **điểm trên sân** — vị tệ của luật giữ bóng (D115, T621).
+   *
+   * Dùng đúng `cacNguoiTrenSan` mà `hinhSan` dùng để dựng điểm, nên "còn trên sân"
+   * ở đây và "có một điểm để đeo vòng" là **cùng một câu hỏi**. Suy từ
+   * `ben.trenSan` thôi thì hụt: một người có thể ở trong danh sách ấy mà không có
+   * ô nào trong sơ đồ, và lúc đó anh ta không được vẽ.
+   */
+  const trenSan = useMemo(
+    () =>
+      new Set([
+        ...cacNguoiTrenSan(nha.ben, true).map((x) => x.playerId),
+        ...cacNguoiTrenSan(khach.ben, false).map((x) => x.playerId),
+      ]),
+    [nha.ben, khach.ben],
+  )
+
+  const khoaDong =
+    suKien == null
+      ? null
+      : `${suKien.phut}|${suKien.buGio ? 'b' : ''}|${suKien.loai}|${suKien.cacCauThu.join(',')}`
+  const giuBong = useRef<{
+    khoa: string | null
+    ai: string | null
+    truoc: string | null
+  }>({ khoa: null, ai: null, truoc: null })
+  if (giuBong.current.khoa !== khoaDong) {
+    giuBong.current = {
+      khoa: khoaDong,
+      truoc: giuBong.current.ai,
+      ai: nguoiGiuBong(suKien, giuBong.current.ai, (id) => trenSan.has(id)),
+    }
+  }
+  const aiGiuBong = giuBong.current.ai
+  /** Ai cầm bóng khi nhịp này **bắt đầu** — đầu vào của `ganNguoiGiuBong`. */
+  const aiGiuBongDauNhip = giuBong.current.truoc ?? aiGiuBong
+
+  const { khung, banKinh, cacDiem, duongBong, cacBuocBong, bongTaiMoc } =
+    hinhSan({ ...props, nguoiGiuBong: aiGiuBong })
   const tiLe = tiLeKhung(khung)
 
   const leX = (RONG - khung.rong) / 2
@@ -875,10 +1156,7 @@ export function San2D(props: Props) {
    * Bóng đi nhanh gấp ba người (T505) nhưng nay đi **hết đường**, nên thời
    * lượng phụ thuộc số đoạn chứ không còn là một hằng số.
    */
-  const bongDang = useRef<{
-    readonly duong: readonly Diem[]
-    readonly thoiLuong: number
-  } | null>(null)
+  const bongDang = useRef<readonly DoanCoNguoi[] | null>(null)
   /**
    * Chỗ bóng được thấy lần cuối (T513).
    *
@@ -886,6 +1164,23 @@ export function San2D(props: Props) {
    * và nhờ vậy "giữ chỗ cũ" không cần thêm một vòng vẽ nào.
    */
   const bongMocCuoi = useRef<Diem | null>(null)
+  /**
+   * Chỗ bóng được **VẼ** lần cuối (T605).
+   *
+   * Khác `bongMocCuoi`, vốn giữ toạ độ **mốc** của dòng. Từ lúc bóng biết bám
+   * chân người giữ bóng, hai thứ đó không còn bằng nhau: cuối một nhịp bóng ở
+   * chân anh ta, còn mốc của dòng là chỗ pha bóng dừng. Dựng chặng mới từ **mốc**
+   * là cho bóng nhảy ngược về đó trong một khung — đúng cú giật AC-29.3 cấm.
+   */
+  const bongVeCuoi = useRef<Diem | null>(null)
+  /**
+   * Dòng thời gian đang chạy trải trên bao nhiêu mili-giây (T619, D113).
+   *
+   * Thường là `msMoiPhut`. Riêng dòng **bàn thắng** thì dài hơn: nhịp ấy được kéo
+   * thêm `MS_LANG_SAU_BAN_THANG` để người xem kịp đọc (AC-32.5), và quả bóng phải
+   * có đủ chỗ để vào lưới rồi lăn về chấm giao bóng trong suốt quãng ấy.
+   */
+  const nhipBong = useRef(0)
 
   /*
     Chỗ của bóng ở **mọi** dòng (AC-32.1): dòng này nói gì thì theo, không nói
@@ -964,33 +1259,168 @@ export function San2D(props: Props) {
       Chỉ khác ở **thời lượng** — bóng xong trong một phần ba — và ở **hình
       đường đi**: thẳng, không cong.
     */
+    /*
+      DÒNG THờI GIAN CỦA PHA BÓNG (T602, spec 006).
+
+      Trước đây lớp vẽ tự dựng một đường gấp khúc rồi cho bóng đi đều trên đó:
+      mọi bước giống nhau, nên một đường chuyền và một pha rê bóng trông y hệt.
+      Nay `phaBong.ts` dựng từng **đoạn** kèm loại, và loại quyết tốc độ: bóng rời
+      chân thì bay, bóng trong chân thì chạy cùng người.
+    */
+    /*
+      Xuất phát từ chỗ bóng ĐANG ĐƯỢC VẼ, không từ toạ độ trên dòng thời
+      gian: từ T605 bóng còn bám chân người giữ bóng sau khi pha bóng xong, nên
+      hai chỗ ấy lệch nhau. Đây là cùng một lý lẽ đã dùng cho người ở T425:
+      chặng mới bắt đầu từ chỗ đang đứng, không từ cái mốc cũ.
+    */
     const cuBong = bongDang.current
     const choBongBatDau =
-      cuBong && cuBong.thoiLuong > 0
-        ? diemTrenDuong(
-            cuBong.duong,
-            (bayGio - batDau.current) / cuBong.thoiLuong,
-          )
-        : { x: bong.x, y: bong.y }
+      bongVeCuoi.current ??
+      (cuBong
+        ? viTriBongTrongPha(cuBong, (bayGio - batDau.current) / msMoiPhut)
+        : { x: bong.x, y: bong.y })
+
     /*
-      Đường mới nối từ **chỗ bóng đang đứng** chứ không từ điểm đầu của pha
-      bóng: hai pha liên tiếp không phải lúc nào cũng nối đuôi nhau, và bắt
-      bóng nhảy về điểm đầu là một cú giật.
+      BẢN GHI TRẬN CŨ (D110): thiếu `cacBuocBong` thì dựng tạm từ `duongBong`
+      với loại `chuyen` — tức **đúng cách vẽ của spec 005**: bóng đi hết đường
+      của nó ở tốc độ bóng. Không đoán bước nào là rê bóng: trận cũ xem ra
+      như bây giờ, không hơn không kém.
     */
-    const duongMoi: readonly Diem[] =
-      duongBong.length > 0
-        ? [choBongBatDau, ...duongBong]
-        : [choBongBatDau, { x: bong.x, y: bong.y }]
-    const soDoan = Math.max(1, duongMoi.length - 1)
-    bongDang.current = {
-      duong: duongMoi,
-      /*
-        Mỗi đoạn vẫn tốn `msChuyen / 3` như T505, nhưng cả pha không được dài
-        hơn một nhịp — pha nào nhiều đoạn quá thì bóng đi nhanh hơn, chứ
-        không được còn bay dở khi tình huống sau tới (AC-29.3).
-      */
-      thoiLuong: Math.min(msChuyen, (msChuyen / BONG_NHANH_GAP) * soDoan),
-    }
+    const buocTho: readonly BuocDaQuyDoi[] =
+      cacBuocBong.length > 0
+        ? cacBuocBong
+        : duongBong.length > 0
+          ? duongBong.map((d) => ({ diem: d, loai: 'chuyen' as const }))
+          : []
+
+    /*
+      ĐIỂM CUỐI CỦA ĐƯỜNG BÓNG LÀ CHỖ ĐỨNG CỦA NGƯỜI GIỮ BÓNG SAU CÙNG (T606).
+
+      Engine nói bóng dừng ở **vùng** nào; `hinhSan` lại giãn những người tham gia
+      ra khỏi tâm vùng để hai điểm không chồng nhau, nên chỗ đứng của người giữ
+      bóng lệch khỏi tâm vùng đúng khoảng giãn ấy — đo ở lát 48: trung vị **1,31
+      bán kính**. Cho bước cuối tới thẳng chân anh ta thay vì tới tâm vùng thu được
+      hai thứ cùng lúc: AC-33.1 (bóng ở chân người giữ bóng) và bất biến R47
+      (người dẫn bóng tới hết nhịp vẫn đứng đúng mốc của mình). **Không đổi một
+      con số nào của trận**: `duongBong` và `bongTaiMoc` vẫn là vùng engine kể.
+    */
+    const diemNguoiCuoi = aiGiuBong
+      ? cacDiem.find((d) => d.playerId === aiGiuBong)
+      : undefined
+    const cuoiTho = buocTho[buocTho.length - 1]
+    const buocTheoNguoi: readonly BuocDaQuyDoi[] =
+      diemNguoiCuoi && cuoiTho
+        ? [
+            ...buocTho.slice(0, -1),
+            { diem: { x: diemNguoiCuoi.x, y: diemNguoiCuoi.y }, loai: cuoiTho.loai },
+          ]
+        : buocTho
+
+    /*
+      SAU MỘT BÀN THẮNG, BÓNG LĂN VỀ CHẤM GIAO BÓNG (T619, D113).
+
+      Bảng 3.1 nói sau một bàn thắng thì **không ai** giữ bóng — đúng, bóng nằm
+      trong lưới. Nhưng nhịp ấy còn được kéo thêm `MS_LANG_SAU_BAN_THANG`, nên
+      nếu để nguyên thì quả bóng đứng im suốt 2,5 giây: đo ở lát 49, **ba quãng
+      đứng im dài nhất cả trận đều là bàn thắng** (3503, 2512, 1487ms).
+
+      Cho nó lăn về chấm giao bóng — điều thực sự xảy ra trên sân bóng — và trải
+      cả dòng thời gian trên **trọn nhịp lắng**, nên bóng tới chấm đúng lúc dòng
+      giao bóng kế tiếp nhận việc. **Không đổi bảng 3.1 một dòng nào**, và cũng
+      không đổi `duongBong` hay `bongTaiMoc`: bước thêm vào là bước của đường **vẽ**.
+    */
+    const laBanThang = suKien?.loai === 'ban-thang'
+    const cacBuoc: readonly BuocDaQuyDoi[] =
+      laBanThang && buocTheoNguoi.length > 0
+        ? [
+            ...buocTheoNguoi,
+            { diem: { x: RONG / 2, y: CAO / 2 }, loai: null },
+          ]
+        : buocTheoNguoi
+
+    const nhipNay =
+      msMoiPhut + (laBanThang ? MS_LANG_SAU_BAN_THANG : 0)
+    nhipBong.current = nhipNay
+
+    const duongThoiGian = dongThoiGianPhaBong({
+      batDau: choBongBatDau,
+      cacBuoc,
+      msNhip: nhipNay,
+      msNguoi: msChuyen,
+      nhanhGap: BONG_NHANH_GAP,
+    })
+
+    /*
+      Quyền giữ bóng đi theo từng đoạn (D112): một đoạn rê không đổi người, một
+      đoạn làm bóng rời chân thì chuyển sang đồng đội gần đích nhất. Đồng đội ở
+      đây là đồng đội của đội **mà dòng này nói về** — cả chuỗi bóng thuộc một đội,
+      chỉ người giữ bóng **sau cùng** mới có thể thuộc đội kia (mất bóng, cứu thủa).
+    */
+    const benCamBong = suKien?.doi ?? 'nha'
+    const cacNguoi: readonly NguoiChoLuatNhan[] = cacDiem.map((d) => ({
+      playerId: d.playerId,
+      diem: { x: d.x, y: d.y },
+      laDongDoi: d.laDoiNha === (benCamBong === 'nha'),
+    }))
+
+    /*
+      NGƯỜI MỞ PHA PHẢI THUỘC ĐỘI CỦA DÒNG NÀY (T622).
+
+      `aiGiuBongDauNhip` là người giữ bóng của nhịp trước, và anh ta rất hay
+      thuộc **đội kia**: sau một pha cứu thủa thì người giữ bóng là **thủ môn**,
+      sau một pha mất bóng là người cướp được. Giao cho anh ta đoạn mở của pha
+      bóng kế tiếp — pha của đội kia — là kéo anh ta chạy dọc theo đường bóng
+      của người khác. Người dùng gọi đúng tên nó: "thủ môn số 19 chạy loạn xạ
+      khắp sân".
+
+      Không thuộc đội của dòng thì để `null`, và `ganNguoiGiuBong` suy người mở
+      pha bằng đúng luật D112 — đồng đội đứng gần chỗ pha bóng bắt đầu nhất.
+    */
+    /*
+      VÀ THỦ MÔN KHÔNG MỞ PHA BÓNG, TRỪ KHI CHÍNH DÒNG NÀY NÊU TÊN ANH TA
+      (T626).
+
+      T622 ở trên chỉ chặn được nửa chuyện: thủ môn thuộc **đội kia**. Nửa còn
+      lại là thủ môn thuộc **đúng đội của dòng này** — sau một pha cứu thua anh
+      ta là người giữ bóng, rồi những dòng sau **không nêu ai cả** nên luật "dòng
+      không nêu ai thì giữ nguyên người cũ" (D115) để anh ta làm người mở pha của
+      chuỗi kế tiếp. Anh ta bị kéo chạy dọc theo đường bóng của cả đội.
+
+      Người dùng xem bản chạy ngày 2026-11-22 và nói: *"lúc phát bóng thủ môn lên
+      quá cao"*. Đo trên 10 trận, thủ môn vào cửa sổ cầm bóng **378 lần**, và
+      **229 lần trong số đó (61%) là ở dòng KHÔNG nêu tên anh ta** — tức anh ta
+      cầm bóng chỉ vì thừa kế, không vì tình huống. Hệ quả đo được: anh ta đi tới
+      **74,4 đơn vị trong một nhịp** và lên tới **32,3** trên sân rộng 100.
+
+      **Vì sao chặn ở đây chứ không kẹp anh ta vào vòng cấm.** Đã thử kẹp cả hai
+      trục vào vòng cấm: quãng đi lớn nhất tụt 74,4 → 31,8 và chỗ cao nhất 32,3 →
+      13,0, **nhưng tỉ lệ "bóng sát chân người giữ bóng" tụt 74,0% → 51,5%** —
+      tức đổi một lỗi nhìn thấy được lấy một lỗi nhìn thấy được khác, vì quả bóng
+      đi theo đường của engine chứ không theo cái hộp. Chặn ở gốc thì không có
+      đánh đổi ấy: lúc anh ta không phải người giữ bóng thì quả bóng **vốn dĩ
+      không nên ở chân anh ta**.
+
+      Dòng **có** nêu tên anh ta (149 lần — pha cứu thua, pha anh ta thật sự chạm
+      bóng) thì anh ta vẫn mở pha như cũ.
+    */
+    const laThuMonThuaKe =
+      aiGiuBongDauNhip != null &&
+      cacDiem.some((d) => d.playerId === aiGiuBongDauNhip && d.laThuMon) &&
+      !(suKien?.cacCauThu ?? []).includes(aiGiuBongDauNhip)
+
+    const moPhaHopLe =
+      aiGiuBongDauNhip != null &&
+      !laThuMonThuaKe &&
+      cacNguoi.some(
+        (x) => x.playerId === aiGiuBongDauNhip && x.laDongDoi,
+      )
+
+    bongDang.current = ganNguoiGiuBong({
+      cacDoan: duongThoiGian,
+      nguoiBatDau: moPhaHopLe ? aiGiuBongDauNhip : null,
+      nguoiKetThuc: aiGiuBong,
+      cacNguoi,
+    })
     bongMocCuoi.current = { x: bong.x, y: bong.y }
 
     dang.current = moi
@@ -1018,30 +1448,59 @@ export function San2D(props: Props) {
     if (!dangChay || giamChuyenDong || msChuyen <= 0) return
 
     let yeuCau = 0
+    let truoc = performance.now()
     const buoc = () => {
+      /*
+        ĐỒNG HỒ CỦA LỚP DAO ĐỘNG CỘNG DỒN Ở ĐÂY (T620, D114).
+
+        Nó tiến đúng một đơn vị mỗi `msMoiPhut`, **đơn điệu và không bao giờ bão
+        hoà**. Bản trước là `phutDongHo + Math.min(1, …)` (D90 của spec 005), và câu
+        `Math.min` ấy chính là nguồn của việc **cả sân đóng băng**: một nhịp kéo dài
+        hơn `msMoiPhut` — nhịp lắng sau bàn thắng, hay `setTimeout` trôi dưới tải — làm
+        con số bão hoà và hai mươi hai điểm đứng lại cho tới phút sau. Đo ở lát 49:
+        trong một quãng 1265ms, tổng toạ độ của cả 23 nhóm vẽ đổi đúng **0,2 đơn vị**.
+
+        Bỏ `Math.min` mà giữ công thức cũ thì tệ hơn: mỗi ranh giới phút đồng hồ sẽ
+        **nhảy lùi** đúng phần vượt, tức cả sân giật cùng một lúc.
+
+        Đặt trong vòng khung hình chứ không trong lúc vẽ, vì hai lý do: một khung
+        cộng đúng một lần dù React vẽ lại mấy bận; và **tạm dừng đóng băng bằng cấu
+        trúc** (AC-28.5) — vòng tắt thì không ai cộng nữa, không cần thêm một nhánh nào.
+      */
+      const bayGio = performance.now()
+      if (msMoiPhut > 0) {
+        // Chặn một khung dài bất thường — tab bị ẩn rồi hiện lại — thành một cú nhảy.
+        const troi = Math.min(bayGio - truoc, msMoiPhut)
+        dongHoDao.current += troi / msMoiPhut
+      }
+      truoc = bayGio
       veLai()
       yeuCau = requestAnimationFrame(buoc)
     }
     yeuCau = requestAnimationFrame(buoc)
     return () => cancelAnimationFrame(yeuCau)
-  }, [dangChay, giamChuyenDong, msChuyen])
+  }, [dangChay, giamChuyenDong, msChuyen, msMoiPhut])
 
-  /*
-    Mốc thời gian thật của lần đổi phút gần nhất, để suy ra "thời điểm trận"
-    liên tục cho lớp dao động (T508, D90). Phải dùng mốc riêng chứ không dùng
-    `batDau` của chặng: nhiều phút liền có thể không đổi toạ độ nào, lúc ấy
-    `batDau` đứng im và dao động sẽ đứng im theo.
-  */
-  const batDauPhut = useRef(0)
-  useEffect(() => {
-    batDauPhut.current = performance.now()
-  }, [phutDongHo])
+  /**
+   * Đồng hồ của lớp dao động, tính bằng **nhịp** (T620, D114).
+   *
+   * Vòng khung hình cộng vào nó; chỗ này chỉ đọc. Xem chú thích trong vòng ấy về
+   * lý do nó không còn là `phutDongHo + Math.min(1, …)`.
+   */
+  const dongHoDao = useRef(0)
 
   /*
     Tỉ lệ đã đi được của cú di chuyển hiện tại — tính MỘT lần cho cả 22 điểm,
     để chúng không lệch nhau vài phần nghìn giây chỉ vì thứ tự vòng lặp.
   */
   const bayGioVe = performance.now()
+
+  /** Tỉ lệ đã đi được của **nhịp**, mốc thời gian của cả pha bóng. */
+  function tiLeNhipVe(): number {
+    const nhip = nhipBong.current > 0 ? nhipBong.current : msMoiPhut
+    if (!(nhip > 0)) return 1
+    return (bayGioVe - batDau.current) / nhip
+  }
 
   /** Tỉ lệ đã đi được của một người, theo thời lượng riêng của anh ta (D93). */
   function troiQuaCua(tt: ChuyenDiemDang): number {
@@ -1055,14 +1514,87 @@ export function San2D(props: Props) {
    * Giảm chuyển động thì về đúng toạ độ mốc, như mọi thứ khác trên sân này.
    */
   function viTriBongVe(): Diem {
-    if (giamChuyenDong) return { x: bong.x, y: bong.y }
-    const tt = bongDang.current
-    if (!tt) return { x: bong.x, y: bong.y }
-    if (!(tt.thoiLuong > 0)) return { x: bong.x, y: bong.y }
-    return diemTrenDuong(
-      tt.duong,
-      (performance.now() - batDau.current) / tt.thoiLuong,
+    if (giamChuyenDong) {
+      bongVeCuoi.current = null
+      return { x: bong.x, y: bong.y }
+    }
+    const cacDoan = bongDang.current
+    const tiLeNhip = tiLeNhipVe()
+    const theoDoan =
+      cacDoan == null || cacDoan.length === 0
+        ? { x: bong.x, y: bong.y }
+        : viTriBongTrongPha(cacDoan, tiLeNhip)
+
+    /*
+      BÓNG KHÔNG ĐANG BAY THÌ NÓ Ở CHÂN NGƯỜI GIỮ BÓNG (AC-33.1, T605).
+
+      Hai lúc bóng không bay, và cả hai đều là nguồn của những quãng bóng đứng
+      im đo được ở lát 47:
+
+      1. **Nhịp không có pha bóng nào** — `thay-nguoi`, `kiet-suc`, hay một dòng
+         engine không kể pha bóng. Dòng thời gian lúc ấy chỉ có đúng một đoạn
+         `giu` đứng tại chỗ, nên bóng nằm yên cả nhịp. Bắt đầu bám ngay: `0`.
+      2. **Sau khi pha bóng đã xong** — một dòng được hiển thị lâu hơn một nhịp
+         (nhiều phút liền không có tình huống nào), và đây mới là phần lớn của
+         thời gian bóng đứng yên: chỉ **3 trong 65 nhịp** của một trận là nhịp
+         không có pha bóng. Bắt đầu bám khi dòng thời gian đã hết: `1`.
+
+      Lấy `viTriVe` chứ không lấy toạ độ mốc, nên bóng đi theo **cả lớp dao
+      động** của anh ta: một quả bóng ở chân người đang nhún nhảy thì cũng
+      nhún nhảy, chứ không đứng yên cách đó một bán kính.
+    */
+    /*
+      Bám **người giữ bóng LÚC NÀY**, không bám người giữ bóng cuối dòng.
+
+      Hai thứ đó khác nhau, và đo ở lát 49 mới thấy cái giá: ở dòng giao bóng
+      thì bảng 3.1 trả **không ai** làm người giữ bóng cuối dòng, trong khi vòng
+      nét đứt vẫn vẽ quanh người mở pha đã suy ra — màn hình nói một đằng, quả
+      bóng đứng im một nẻo: đo được **1004ms** ở đúng phút 0.
+
+      `aiGiuBongLucNay` còn an toàn về chuyện lệch khung — cái bẫy đã sập một lần
+      ở lát 48: React vẽ **trước** rồi mới chạy effect, nên đọc thẳng `aiGiuBong`
+      thì khung đầu của một dòng mới đã là người MỚI trong khi dòng thời gian vẫn
+      của nhịp CŨ. `aiGiuBongLucNay` suất phát từ chính `bongDang.current`, mà ref
+      ấy chỉ đổi trong effect, nên nó không bao giờ đi trước dòng thời gian.
+    */
+    const nguoi = aiGiuBongLucNay
+      ? cacDiem.find((d) => d.playerId === aiGiuBongLucNay)
+      : undefined
+    if (nguoi == null) {
+      bongVeCuoi.current = theoDoan
+      return theoDoan
+    }
+
+    /*
+      MỘT PHA BÓNG KHÔNG LÀM QUẢ BÓNG NHÚC NHÍCH THÌ KHÔNG PHẢI MỘT PHA BÓNG.
+
+      Engine kể các bước theo **vùng**, và một pha ngắn — một pha cướp bóng, chẳng
+      hạn — có thể có mọi bước rơi vào cùng một vùng. Lúc ấy mọi đoạn dài bằng
+      không, bóng nằm yên cả nhịp, và luật bám chân lại đợi tới khi dòng thời gian
+      hết mới bắt đầu — đo được **1200ms** ở một pha như vậy. Bắt đầu bám ngay.
+    */
+    const daiDuongBong = cacDoan
+      ? cacDoan.reduce(
+          (t, d) => t + Math.hypot(d.den.x - d.tu.x, d.den.y - d.tu.y),
+          0,
+        )
+      : 0
+    const batDauBam =
+      (cacBuocBong.length > 0 || duongBong.length > 0) &&
+      daiDuongBong > banKinh / 4
+        ? 1
+        : 0
+    const chan = viTriVe(nguoi)
+    const u = Math.min(
+      1,
+      Math.max(0, (tiLeNhip - batDauBam) / PHAN_NHIP_BAM_CHAN),
     )
+    const ra = {
+      x: theoDoan.x + (chan.x - theoDoan.x) * u,
+      y: theoDoan.y + (chan.y - theoDoan.y) * u,
+    }
+    bongVeCuoi.current = ra
+    return ra
   }
 
   /*
@@ -1117,30 +1649,80 @@ export function San2D(props: Props) {
   const diemAnMung = anMung.current?.diem ?? bong
 
   /*
-    "Thời điểm trận" liên tục, tính bằng phút: phút đồng hồ cộng phần đã trôi
-    trong nhịp. Đây là thứ duy nhất lớp dao động biết về thời gian, và nó là
-    thời gian CỦA TRẬN — nên xem lại cùng một trận ở cùng một nhịp thì chuyển
-    động giống hệt (P1, mục 6 của spec).
+    "Thời điểm trận" liên tục, tính bằng nhịp — thứ duy nhất lớp dao động biết
+    về thời gian (D90, nay là D114). Nó chạy theo **nhịp của trận**: đổi mức tốc
+    độ thì nó chạy nhanh hay chậm theo, và tạm dừng thì nó đứng.
   */
-  const thoiDiemTran =
-    phutDongHo +
-    (msMoiPhut > 0
-      ? Math.min(1, (performance.now() - batDauPhut.current) / msMoiPhut)
-      : 0)
+  const thoiDiemTran = dongHoDao.current
 
   /** Biên độ dao động chờ, đo theo khoảng giãn đã co theo khung sân (AC-28.2). */
   const bienDoDao = bienDoTuKhoangGian(BUOC_GIAN * tiLe)
 
+  /**
+   * Ai đang giữ bóng **ngay lúc này** — dấu vòng nét đứt bám vào con số này.
+   *
+   * Khác `aiGiuBong`, vốn là người giữ bóng **sau cùng** của cả dòng. Trong một
+   * pha nhiều bước, quyền giữ bóng đi qua mấy người (D112), và vòng phải đi theo:
+   * một dấu nói "anh ta đang có bóng" mà đứng im suốt pha trong khi bóng đã qua
+   * chân hai người khác là một dấu nói sai.
+   */
+  const aiGiuBongLucNay =
+    giamChuyenDong || msChuyen <= 0 || bongDang.current == null
+      ? aiGiuBong
+      : nguoiGiuBongLucNay(bongDang.current, tiLeNhipVe())
+
   function viTriVe(d: DiemCauThu): Diem {
     if (giamChuyenDong) return { x: d.x, y: d.y }
     const tt = dang.current.get(d.playerId)
-    const goc = tt
+    const thuong = tt
       ? viTriTaiThoiDiem(tt.tu, tt.den, troiQuaCua(tt), {
           huongVao: tt.huongVao,
           doMet: doMetTheoNguoi.get(d.playerId) ?? 0,
           gioiHan,
         })
       : { x: d.x, y: d.y }
+
+    /*
+      NGƯỜI ĐANG CÓ BÓNG ĐI THEO ĐƯỜNG CỦA BÓNG (D104, D105, T606).
+
+      Chiều này chứ không chiều ngược lại: bóng bám chân người thì nó không
+      bao giờ đi hết một đường chuyền nữa — mất đúng thứ T524 vừa làm được.
+      Cho người đi theo bóng thì giữ cả hai: bóng đi đường thật của nó, còn người
+      dẫn bóng bám lấy nó.
+    */
+    const cacDoan = bongDang.current
+    const cuaSo =
+      msChuyen > 0 && cacDoan ? cuaSoGiuBong(cacDoan, d.playerId) : null
+    const theoBong =
+      cuaSo && cacDoan
+        ? viTriNguoiGiuBong({
+            cuaSo,
+            tiLe: tiLeNhipVe(),
+            viTriBong: (t) => viTriBongTrongPha(cacDoan, t),
+            viTriThuong: thuong,
+            moc: { x: d.x, y: d.y },
+          })
+        : thuong
+
+    /*
+      THỦ MÔN KHÔNG RỜI MỘT PHẦN BA SÂN CỦA MÌNH, KỂ CẢ KHI ĐANG CẦM BÓNG
+      (AC-30.7 của spec 005, T622).
+
+      `hinhSan` đã kẹp thủ môn vào dải của anh ta từ T521, và một phép kiểm
+      duyệt mọi dòng của 10 mã trận × 7 quân số canh điều đó. Nhưng T606 cho
+      người giữ bóng đi theo đường của bóng ở **lớp vẽ**, mà bộ kiểm chạy ở
+      `environment: 'node'` không có đường nào nhìn tới lớp ấy — nên cả 1291 phép
+      kiểm vẫn xanh trong khi thủ môn chạy tới giữa sân. Mắt người dùng bắt được.
+
+      Kẹp ở đây, không phải bỏ hẳn luật đi theo bóng: thủ môn có bóng trong chân
+      thì vẫn nhúch nhích theo nó, chỉ là không bước qua vạch một phần ba sân.
+    */
+    const goc = d.laThuMon
+      ? (() => {
+          const dai = daiThuMon(d.laDoiNha, khung)
+          return { x: kep(theoBong.x, dai.tu, dai.den), y: theoBong.y }
+        })()
+      : theoBong
 
     /*
       Dao động cộng vào SAU CÙNG, và chỉ cộng cho người — không cho bóng:
@@ -1263,9 +1845,9 @@ export function San2D(props: Props) {
             />
             <text
               x={0}
-              y={1.3 * tiLe}
+              y={BAN_KINH * 0.38 * tiLe}
               textAnchor="middle"
-              fontSize={3.4 * tiLe}
+              fontSize={BAN_KINH * tiLe}
               fontWeight={d.noiBat ? 800 : 500}
               fill={d.mauChu}
             >
@@ -1277,6 +1859,25 @@ export function San2D(props: Props) {
               người dùng tự chọn nên tương phản không kiểm soát được. Viền dày
               cộng dấu này là hai tín hiệu không phụ thuộc màu.
             */}
+            {/*
+              VÒNG NÉT ĐẮT quanh người đang giữ bóng (AC-33.4, D108).
+
+              **Nét đứt là một HÌNH, không phải một màu** (P9): nền điểm mang
+              màu áo do người dùng tự chọn nên không kiểm soát được tương phản,
+              và đổi màu điểm thì người không phân biệt màu không thấy gì. Vẽ
+              **trước** dấu ▲ để dấu ấy luôn nằm trên, và bán kính bị chặn bởi
+              `VONG_GIU_BONG_THEM` nên nó không trùm tâm ai và không đụng dấu ▲.
+            */}
+            {d.playerId === aiGiuBongLucNay && (
+              <circle
+                r={banKinh + VONG_GIU_BONG_THEM * tiLe}
+                fill="none"
+                stroke="var(--co-chu)"
+                strokeWidth={0.5 * tiLe}
+                strokeDasharray={`${VACH_VONG_GIU_BONG * tiLe} ${VACH_VONG_GIU_BONG * tiLe}`}
+                aria-hidden="true"
+              />
+            )}
             {d.noiBat && (
               <text
                 x={0}

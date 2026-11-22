@@ -9,8 +9,9 @@ import {
   type SuKien,
   type UngVienSuKien,
 } from './suKien'
-import { cauHinhMau, MA_TRAN_CO_DINH } from './__fixtures__/doiMau'
-import { chayHetTran, dongSuKien, taoTran } from './tran'
+import { benMauQuanSo, cauHinhMau, MA_TRAN_CO_DINH } from './__fixtures__/doiMau'
+import { soDoTheoQuanSo } from '../domain/formations'
+import { CAC_QUAN_SO, chayHetTran, dongSuKien, taoTran } from './tran'
 import { keNhau, layVung } from './vung'
 
 const TI_SO_0 = { nha: 0, khach: 0 }
@@ -262,5 +263,96 @@ describe('khoảng số dòng theo thời lượng (AC-15.5)', () => {
       expect(n, bao).toBeGreaterThanOrEqual(khoang.toiThieu)
       expect(n, bao).toBeLessThanOrEqual(khoang.toiDa)
     }
+  })
+})
+
+describe('từng bước của pha bóng đi kèm loại của nó (spec 006, T600)', () => {
+  /*
+    Engine đã phân loại từng bước — chuyền, rê bóng, tạt cánh, sút — từ spec 001,
+    nhưng `SuKien` vứt mất phần loại khi phát ra ngoài, nên giao diện biết bóng đi
+    A→B→C mà không biết bước nào là gì. Spec 006 cho phần loại đi kèm.
+
+    **Hai phép kiểm dưới đây là lưới giữ cho việc ấy không đổi một con số nào.**
+    Lưới thứ hai, quan trọng hơn, nằm ở `tuongThichV5.test.ts` — nó so từng ký tự
+    mọi dòng tường thuật của năm mã trận, **gồm cả `mauCau`** vốn rút từ `rng`, nên
+    lệch dãy số một bước là đỏ ngay. File này **không được sửa** để chỉnh cho xanh.
+  */
+  const QUAN_SO_CHAY_DUOC = CAC_QUAN_SO.filter(
+    (n) => soDoTheoQuanSo(n).length > 0,
+  )
+
+  it('`cacBuocBong` khớp `duongBong` từng phần tử, trên 10 mã trận × 7 quân số', () => {
+    let soDong = 0
+    let soDongCoPhaBong = 0
+    for (const ma of MA_TRAN_CO_DINH) {
+      for (const n of QUAN_SO_CHAY_DUOC) {
+        const tt = chayHetTran(
+          taoTran(
+            cauHinhMau(ma, {
+              quanSo: n,
+              nha: benMauQuanSo('A', n),
+              khach: benMauQuanSo('B', n),
+            }),
+          ),
+        )
+        for (const sk of dongSuKien(tt)) {
+          soDong += 1
+          const buoc = sk.cacBuocBong
+          expect(buoc, `${ma} quân số ${n} phút ${sk.phut}`).toBeDefined()
+          const vungCuaBuoc = (buoc ?? []).map((b) => b.vung)
+          expect(vungCuaBuoc.length).toBe(sk.duongBong.length)
+          for (let i = 0; i < sk.duongBong.length; i += 1) {
+            expect(
+              vungCuaBuoc[i]?.id,
+              `${ma} quân số ${n} phút ${sk.phut} bước ${i}`,
+            ).toBe(sk.duongBong[i]?.id)
+          }
+          if (sk.duongBong.length > 0) soDongCoPhaBong += 1
+        }
+      }
+    }
+    expect(soDong, 'số dòng đã đo').toBeGreaterThan(1000)
+    expect(soDongCoPhaBong, 'số dòng có pha bóng').toBeGreaterThan(500)
+  })
+
+  it('chỉ phần tử CUỐI mới được có `loai` là null', () => {
+    /*
+      Vùng kết thúc được nối thêm khi chuỗi mất bóng / phạm lỗi / bóng ra ngoài
+      — ba đường ấy return **trước khi push** hành động cuối. Mọi bước khác
+      đều phải có loại, không ngoại lệ.
+    */
+    let soNullOCuoi = 0
+    let soCoLoai = 0
+    for (const ma of MA_TRAN_CO_DINH) {
+      const tt = chayHetTran(taoTran(cauHinhMau(ma)))
+      for (const sk of dongSuKien(tt)) {
+        const buoc = sk.cacBuocBong ?? []
+        for (let i = 0; i < buoc.length; i += 1) {
+          const cuoi = i === buoc.length - 1
+          if (buoc[i]?.loai == null) {
+            expect(cuoi, `${ma} phút ${sk.phut} bước ${i} là null giữa đường`).toBe(
+              true,
+            )
+            soNullOCuoi += 1
+          } else {
+            soCoLoai += 1
+          }
+        }
+      }
+    }
+    expect(soCoLoai, 'số bước có loại').toBeGreaterThan(100)
+    expect(soNullOCuoi, 'số bước cuối không có hành động').toBeGreaterThan(10)
+  })
+
+  it('bốn loại bước đều xuất hiện thật, không phải ba', () => {
+    const thay = new Set<string>()
+    for (const ma of MA_TRAN_CO_DINH) {
+      const tt = chayHetTran(taoTran(cauHinhMau(ma)))
+      for (const sk of dongSuKien(tt)) {
+        for (const b of sk.cacBuocBong ?? []) if (b.loai) thay.add(b.loai)
+      }
+    }
+    // Nếu một loại không bao giờ xuất hiện thì lớp vẽ của spec 006 không có gì để vẽ.
+    expect([...thay].sort()).toEqual(['chuyen', 're-bong', 'sut', 'tat-canh'])
   })
 })

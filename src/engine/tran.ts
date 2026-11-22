@@ -14,6 +14,7 @@ import {
   SO_DONG_TOI_DA,
   SO_DONG_TOI_THIEU,
   type BenDoi,
+  type BuocBong,
   type LoaiSuKien,
   type SuKien,
   type TiSo,
@@ -413,7 +414,7 @@ export function taoTran(cauHinh: CauHinhTran): TrangThaiTran {
   return {
     ...tt,
     ungVien: [
-      taoUngVien(tt, 0, 'bat-dau', 'nha', [], null, [], mauCauKhaiCuoc, 100),
+      taoUngVien(tt, 0, 'bat-dau', 'nha', [], null, [], [], mauCauKhaiCuoc, 100),
     ],
   }
 }
@@ -426,6 +427,7 @@ function taoUngVien(
   cacCauThu: readonly string[],
   vung: VungSan | null,
   duongBong: readonly VungSan[],
+  cacBuocBong: readonly BuocBong[],
   mauCau: number,
   diemDangKe: number,
 ): UngVienSuKien {
@@ -439,6 +441,7 @@ function taoUngVien(
       cacCauThu,
       vung,
       duongBong,
+      cacBuocBong,
       mauCau,
       tiSoSauDo: tt.tiSo,
     },
@@ -720,10 +723,25 @@ function congCauThu(
  * Dẫn xuất thuần từ `cacHanhDong`, không rút thêm số nào, nên nó không làm
  * lệch dãy số của P1.
  */
-function duongBongCuaChuoi(kq: KetQuaChuoi): readonly VungSan[] {
-  const duong = kq.cacHanhDong.map((h) => h.vung)
-  const cuoi = duong[duong.length - 1]
-  return cuoi?.id === kq.vungKetThuc.id ? duong : [...duong, kq.vungKetThuc]
+function duongBongCuaChuoi(kq: KetQuaChuoi): {
+  readonly duong: readonly VungSan[]
+  readonly cacBuoc: readonly BuocBong[]
+} {
+  const cacBuoc: BuocBong[] = kq.cacHanhDong.map((h) => ({
+    vung: h.vung,
+    loai: h.loai,
+  }))
+  const cuoi = cacBuoc[cacBuoc.length - 1]
+  /*
+    Vùng kết thúc được nối thêm với `loai: null`: chuỗi mất bóng, phạm lỗi hay
+    bóng ra ngoài return **trước khi push** hành động cuối, nên bước ấy không
+    phải một hành động — đó chỉ là chỗ bóng dừng lại (spec 006, D101).
+  */
+  const day =
+    cuoi?.vung.id === kq.vungKetThuc.id
+      ? cacBuoc
+      : [...cacBuoc, { vung: kq.vungKetThuc, loai: null }]
+  return { duong: day.map((b) => b.vung), cacBuoc: day }
 }
 
 /*
@@ -1324,6 +1342,7 @@ export function buocTiep(ttVao: TrangThaiTran): TrangThaiTran {
     vung: VungSan | null,
     duongBong: readonly VungSan[],
     diem: number,
+    cacBuocBong: readonly BuocBong[] = [],
   ) => {
     ungVienMoi.push(
       taoUngVien(
@@ -1334,6 +1353,7 @@ export function buocTiep(ttVao: TrangThaiTran): TrangThaiTran {
         cacCauThu,
         vung,
         duongBong,
+        cacBuocBong,
         Math.floor(rng.next() * 1000),
         diem,
       ),
@@ -1481,6 +1501,7 @@ export function buocTiep(ttVao: TrangThaiTran): TrangThaiTran {
     let benThuMoi = congThongKeThu(benThu, kq, gan, biCuu ? thuMonThu : null)
 
     const loaiSuKien = loaiCuaChuoi(kq, coBan, biCuu)
+    const phaBong = duongBongCuaChuoi(kq)
     themUngVien(
       loaiSuKien,
       doi,
@@ -1491,8 +1512,9 @@ export function buocTiep(ttVao: TrangThaiTran): TrangThaiTran {
         nguoiDeMatBong(kq, gan),
       ),
       kq.vungKetThuc,
-      duongBongCuaChuoi(kq),
+      phaBong.duong,
       diemCuaChuoi(kq, coBan),
+      phaBong.cacBuoc,
     )
 
     /*
@@ -1509,8 +1531,9 @@ export function buocTiep(ttVao: TrangThaiTran): TrangThaiTran {
           doi === 'nha' ? 'khach' : 'nha',
           [kqThe.playerId],
           kq.vungKetThuc,
-          duongBongCuaChuoi(kq),
+          phaBong.duong,
           100,
+          phaBong.cacBuoc,
         )
       }
     }
@@ -1577,7 +1600,18 @@ export function buocTiep(ttVao: TrangThaiTran): TrangThaiTran {
   const mocHiep: UngVienSuKien[] = []
   if (laMocHetHiep) {
     mocHiep.push(
-      taoUngVien(sauTt, phut, 'het-hiep', 'nha', [], null, [], mauCauHetHiep, 100),
+      taoUngVien(
+        sauTt,
+        phut,
+        'het-hiep',
+        'nha',
+        [],
+        null,
+        [],
+        [],
+        mauCauHetHiep,
+        100,
+      ),
     )
   }
   /*
@@ -1594,13 +1628,25 @@ export function buocTiep(ttVao: TrangThaiTran): TrangThaiTran {
         [],
         null,
         [],
+        [],
         mauCauKetThuc,
         100,
       ),
     )
   } else if (ketThuc) {
     mocHiep.push(
-      taoUngVien(sauTt, phut, 'ket-thuc', 'nha', [], null, [], mauCauKetThuc, 100),
+      taoUngVien(
+        sauTt,
+        phut,
+        'ket-thuc',
+        'nha',
+        [],
+        null,
+        [],
+        [],
+        mauCauKetThuc,
+        100,
+      ),
     )
   }
 

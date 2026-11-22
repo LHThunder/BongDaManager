@@ -29,7 +29,12 @@ import { useAppStore } from '../store/appStore'
   nhanh hay chậm — không đụng một dòng nào của engine.
 */
 
-export type MucTocDo = 'cham' | 'thuong' | 'nhanh' | 'rat-nhanh'
+export type MucTocDo =
+  | 'rat-cham'
+  | 'cham'
+  | 'thuong'
+  | 'nhanh'
+  | 'rat-nhanh'
 
 /**
  * Mili-giây thực tế cho mỗi phút trận.
@@ -43,8 +48,20 @@ export type MucTocDo = 'cham' | 'thuong' | 'nhanh' | 'rat-nhanh'
  * `rat-nhanh` giữ nguyên 20ms, nhưng ở nhịp ấy `thoiGianChuyen` trả 0 — thôi
  * nội suy hoàn toàn (AC-29.4): 18ms không đủ cho mắt đọc một chuyển động nào, nên
  * vẽ đường đi chỉ sinh ra cú giật.
+ *
+ * `rat-cham` là mức thứ năm, thêm ở spec 006 (T614, quyết định D107): một phút
+ * trận dài **2000ms**, nên trận 90 phút xem hết trong khoảng ba phút. Lý do nó
+ * tồn tại không phải để xem cho thong thả, mà để **xem cho ra lỗi**: suốt spec
+ * 005 và 006, bảy lỗi người dùng bắt được bằng mắt đều là lỗi của chuyển động
+ * giữa hai mốc, và ở 1000ms một phút thì một pha dẫn bóng chỉ chiếm vài trăm
+ * mili-giây. Gấp đôi nhịp lên là gấp đôi thời gian mắt có để đọc nó.
+ *
+ * **Mặc định vẫn là `cham`**, không phải mức mới: 2000ms × 90 phút là ba phút
+ * ngồi xem, và đó phải là lựa chọn của người dùng chứ không phải cái họ gặp
+ * khi chưa chọn gì.
  */
 export const MS_MOI_PHUT: Readonly<Record<MucTocDo, number>> = {
+  'rat-cham': 2000,
   cham: 1000,
   thuong: 200,
   nhanh: 70,
@@ -52,9 +69,15 @@ export const MS_MOI_PHUT: Readonly<Record<MucTocDo, number>> = {
 }
 
 /*
-  Thứ tự này là thứ tự các nút hiện trên màn hình, nên `cham` đứng đầu: nó là
-  mức mặc định, và để mức mặc định nằm giữa dãy thì người dùng khó đọc ra
-  mình đang ở đâu trong thang.
+  Thứ tự này là thứ tự các nút hiện trên màn hình, và nó là **thang chậm → nhanh**
+  theo đúng một chiều. Trước spec 006 thì `cham` đứng đầu VÀ là mức mặc định, nên
+  hai tính chất ấy trùng nhau và lý lẽ ghi ở đây là "để mức mặc định nằm giữa dãy
+  thì người dùng khó đọc ra mình đang ở đâu".
+
+  T614 thêm `rat-cham` vào **đầu** thang, nên hai tính chất ấy tách ra: mức mặc
+  định giờ là phần tử **thứ hai**. Thang một chiều thắng, vì một thang tốc độ mà
+  thứ tự không đơn điệu thì không đọc được; và mức đang chọn vẫn luôn nhận ra
+  được, vì nút của nó được tô khác và `aria-checked` nói ra điều đó (P9).
 */
 /**
  * Một nhịp lặng sau bàn thắng, mực thời gian thật (AC-32.5, T515).
@@ -66,6 +89,7 @@ export const MS_MOI_PHUT: Readonly<Record<MucTocDo, number>> = {
 export const MS_LANG_SAU_BAN_THANG = 1500
 
 export const CAC_MUC_TOC_DO: readonly MucTocDo[] = [
+  'rat-cham',
   'cham',
   'thuong',
   'nhanh',

@@ -20,6 +20,7 @@ interface Props {
 const KHOA_TOC_DO: Readonly<
   Record<MucTocDo, keyof BoChuoi['TRAN_DAU']['tocDo']>
 > = {
+  'rat-cham': 'ratCham',
   cham: 'cham',
   thuong: 'thuong',
   nhanh: 'nhanh',

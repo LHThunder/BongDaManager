@@ -793,6 +793,7 @@ export const TRAN_DAU_EN: BanDich<typeof TRAN_DAU_VI> = {
   chayHet: 'Play the match out',
   nhanTocDo: 'Speed',
   tocDo: {
+    ratCham: 'Very slow',
     cham: 'Slow',
     thuong: 'Normal',
     nhanh: 'Fast',
@@ -927,12 +928,14 @@ export const SAN_2D_EN: BanDich<typeof SAN_2D_VI> = {
     viTri: string,
     tenDoi: string,
     thamGia: boolean,
+    giuBong: boolean,
   ) => {
     const phan = [ten]
     if (soAo !== null) phan.push(`number ${soAo}`)
     if (viTri) phan.push(viTri)
     phan.push(tenDoi)
     if (thamGia) phan.push('involved in this passage of play')
+    if (giuBong) phan.push('on the ball')
     return phan.join(', ')
   },
   /*
