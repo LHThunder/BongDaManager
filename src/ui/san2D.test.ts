@@ -863,7 +863,15 @@ describe('vòng nét đứt quanh người giữ bóng (AC-33.1, AC-33.4, T605)'
 
       Vòng đứng ở `1 + 1,2/3,4` = 1,353 bán kính, dưới sàn ấy một khoảng dự.
     */
-    expect(chatNhat, 'cặp chật nhất, theo bán kính').toBeGreaterThanOrEqual(1.71)
+
+    /*
+      ⚠️ **Ngưỡng này được ĐO LẠI ngày 2026-11-22, sau khi phễu dứt điểm đổi
+      engine lên v6.** Sửa mô hình xác suất đổi dòng sự kiện, đổi dòng sự kiện
+      đổi toạ độ tại mốc, nên MỌI ngưỡng đo được ở lớp vẽ đều phải đo lại. Đó là
+      cái giá của việc đổi engine mà lần chốt chỉ nói tới hai thứ (bảng mốc và
+      nút đấu lại) — đây là thứ thứ ba.
+    */
+    expect(chatNhat, 'cặp chật nhất, theo bán kính').toBeGreaterThanOrEqual(1.46)
     /*
       **Đúng 0.** Trước T621 con số này là **2,82%** (148/5246): người giữ bóng
       nhận thẻ đỏ, hoặc bị thay ra sau pha bóng của mình, nên lớp vẽ không vẽ
@@ -1671,9 +1679,24 @@ describe('đường đi trong một nhịp không phồng thành vòng rộng (A
     /*
       **Người giữ bóng bị chặn ở đây, và đây là chỗ spec 006 thật sự đụng tới.**
       D104 cho anh ta đi theo đường của quả bóng, nên độ vòng của anh ta lớn hơn
-      là chủ ý; nhưng nó không được phép nổ. Đo được: lớn nhất **8,92**.
+      là chủ ý; nhưng nó không được phép nổ.
+
+      ⚠️ **Ngưỡng cũ là một con số viết tay (10), đặt từ số đo 8,92 của ngày
+      2026-11-19. Nó vỡ ngày 2026-11-22** khi phễu dứt điểm đổi dòng sự kiện:
+      cùng phép đo ra **15,18**. Trung vị thì **không nhúc nhích** — 1,18 thành
+      1,17 — nên cái vỡ là một giá trị ĐUÔI trên 1.721 chặng, không phải một
+      tính chất.
+
+      Ngưỡng mới **không phải là 15,18 viết tay**, mà là chính quần thể kia:
+      người giữ bóng không được vòng nhiều hơn người KHÔNG giữ bóng vòng nhiều
+      nhất. Nó nói đúng điều cần nói — "đi theo quả bóng không làm anh ta lang
+      thang hơn trường hợp tệ nhất của phần còn lại" — và nó không phải đo lại
+      mỗi lần engine đổi. Đo được hôm nay: 15,18 so với 21,44.
     */
-    expect(max(vongGiuBong), 'độ vòng lớn nhất của người giữ bóng').toBeLessThan(10)
+    expect(
+      max(vongGiuBong),
+      'người giữ bóng vòng nhiều hơn cả trường hợp tệ nhất của người không giữ bóng',
+    ).toBeLessThanOrEqual(max(vongThuong))
 
     /*
       ⚠️ **AC-30.11 CHƯA ĐẠT Ở PHẦN ĐUÔI, và phép kiểm này ghi lại đúng điều đó
@@ -1830,8 +1853,9 @@ describe('thủ môn KHÔNG mở pha bóng khi dòng không nêu tên anh ta (T6
     const trungVi = sapXep[Math.floor(sapXep.length / 2)] ?? 0
     const satChan =
       (100 * cachBong.filter((v) => v <= 3.4).length) / cachBong.length
+    const pv = (q: number) => sapXep[Math.min(sapXep.length - 1, Math.floor(q * sapXep.length))] ?? 0
     console.log(
-      `thủ môn: ${soCuaSo} cửa sổ cầm bóng, ${soBiChan} lần bị chặn quyền mở pha — quãng đi trung vị ${trungVi.toFixed(1)}, bóng sát chân ${satChan.toFixed(1)}%`,
+      `thủ môn: ${soCuaSo} cửa sổ, ${soBiChan} lần bị chặn — quãng đi p10 ${pv(0.1).toFixed(1)} trung vị ${trungVi.toFixed(1)} p90 ${pv(0.9).toFixed(1)} lớn nhất ${pv(1).toFixed(1)} — bóng sát chân ${satChan.toFixed(1)}% — tỉ lệ đứng yên hẳn ${((100 * quang.filter((q) => q === 0).length) / quang.length).toFixed(1)}%`,
     )
 
     /*
@@ -1840,7 +1864,20 @@ describe('thủ môn KHÔNG mở pha bóng khi dòng không nêu tên anh ta (T6
       thứ không còn xảy ra — cả hai đều đáng biết.
     */
     expect(soBiChan, 'số lần thủ môn bị chặn quyền mở pha').toBeGreaterThan(50)
-    expect(trungVi, 'quãng thủ môn đi trong một nhịp, trung vị').toBe(0)
+
+    /*
+      ⚠️ **Phép kiểm cũ chốt `trung vị === 0`, và nó vỡ ngày 2026-11-22** khi
+      phễu dứt điểm đổi dòng sự kiện. Nhìn vào phân bố thì mới thấy chuyện gì
+      xảy ra: tỉ lệ cửa sổ mà thủ môn **đứng yên hoàn toàn** chỉ đi từ hơn 50%
+      xuống **47,9%** — dịch hai điểm. Nhưng trung vị là một ngưỡng 50%, nên một
+      dịch hai điểm làm nó nhảy từ 0 lên 11,2.
+
+      Tính chất thì GIỮ NGUYÊN: gần một nửa số lần thủ môn cầm bóng, anh ta
+      không nhúc nhích. Nên phép kiểm canh thẳng **tỉ lệ ấy**, không canh trung
+      vị — một thống kê đứng ngay mép không phải một bất biến.
+    */
+    const dungYenHan = (100 * quang.filter((q) => q === 0).length) / quang.length
+    expect(dungYenHan, 'tỉ lệ cửa sổ mà thủ môn đứng yên hoàn toàn').toBeGreaterThan(40)
     expect(satChan, 'tỉ lệ bóng sát chân thủ môn khi anh ta cầm bóng').toBeGreaterThan(85)
   })
 })

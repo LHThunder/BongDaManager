@@ -878,7 +878,7 @@ const VONG_SANG_NO_GAP = 7
  * không phải một biên cho có — đúng bài học R45 lặp lại lần thứ ba: sàn phụ
  * thuộc vào việc đo quanh ai.
  */
-const SAN_HAI_DIEM_GAN_NHAT = 1.71
+const SAN_HAI_DIEM_GAN_NHAT = 1.46
 
 /**
  * Điểm người ghi bàn được phì thêm tối đa bao nhiêu (AC-32.4, rủi ro R45).
@@ -914,7 +914,8 @@ export const PHI_THEM_NGUOI_GHI_BAN = ((BUOC_GIAN / 2 - BAN_KINH) * 3) / 4
  * lỗi "phì to một điểm mà không đặt biên" hai lần ở R45. Hai biên, và vòng phải
  * nằm dưới **cả hai**:
  *
- * 1. **Sàn đã đo**: hai điểm gần nhau nhất cách nhau **1,71 bán kính**, xem
+ * 1. **Sàn đã đo**: hai điểm gần nhau nhất cách nhau **1,46 bán kính** (đo lại
+ *    2026-11-22 sau khi phễu dứt điểm đổi engine lên v6; trước đó là 1,71), xem
  *    `SAN_HAI_DIEM_GAN_NHAT`. Vòng rộng hơn thế là trùm tâm người khác, tức
  *    đếm sai số người trên sân — điều AC-15.2 cấm.
  * 2. **Dấu ▲** đặt ở `-banKinh - 1,2 · tiLe`. Vòng cao hơn thế là đi xuyên dấu

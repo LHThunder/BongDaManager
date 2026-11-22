@@ -815,6 +815,21 @@ export function xacSuatCoHoiRoRang(sucManhCong: number): number {
   return Math.min(Math.max(p, 0.1), 0.85)
 }
 
+/*
+  PHỄU DỨT ĐIỂM — nền và độ dốc của tầng "đi đúng hướng".
+
+  Đo được trước khi có tầng này: **70%** số cú sút đi trúng đích, vì mô hình cũ
+  chỉ có hai kết cục cho một cú sút — thành bàn, hoặc bị cứu. Một cú sút đi vọt
+  xà hay ra ngoài cột **không có chỗ nào để xảy ra**.
+
+  Bóng đá thật (Opta, Premier League): trong số cú sút KHÔNG BỊ CHẶN, khoảng
+  **49%** đi trúng đích. Nền 0,30 cộng 0,28 lần sức mạnh bên tấn công cho đúng
+  mức ấy ở sức mạnh trung bình đo được (≈ 0,68), và vẫn giữ được chiều mà AC-8.8
+  nói tới: đội mạnh hơn sút chuẩn hơn.
+*/
+const NEN_TRUNG_DICH = 0.335
+const THEO_SUC_TRUNG_DICH = 0.28
+
 const NEN_BI_CUU = 0.3
 const THEO_SUC_BI_CUU = 0.7
 
@@ -827,6 +842,21 @@ const THEO_SUC_BI_CUU = 0.7
  * điểm cho thủ môn. Khung bỏ trống (thủ môn vừa nhận thẻ đỏ mà người dùng
  * chưa chọn ai vào bắt gôn) thì không có ai cứu, nên trả về 0.
  */
+/**
+ * Xác suất một cú sút **đi đúng hướng khung thành** (phễu dứt điểm, tầng hai).
+ *
+ * Tầng này **không tồn tại trước ngày 2026-11-22**, và việc nó không tồn tại là
+ * sai số lớn nhất của cả engine: mô hình cũ cho mọi cú sút hoặc thành bàn hoặc
+ * bị cứu, nên tỉ lệ trúng đích đo được là **70%** so với **49%** của bóng đá
+ * thật, và tỉ lệ thành bàn là **23,1%** so với **11,3–11,9%**.
+ *
+ * Nguồn của hai con số thật: Opta Analyst, giải Ngoại hạng Anh.
+ */
+export function xacSuatTrungDich(sucManhCong: number): number {
+  const p = NEN_TRUNG_DICH + THEO_SUC_TRUNG_DICH * sucManhCong
+  return Math.min(Math.max(p, 0.15), 0.75)
+}
+
 export function xacSuatBiCuu(sucThuMon: number | null): number {
   if (sucThuMon === null) return 0
   const p = NEN_BI_CUU + THEO_SUC_BI_CUU * sucThuMon
@@ -1267,15 +1297,23 @@ function apHangDoi(
  * 11, hai hàm thời lượng trả lại đúng 45 và 90, ngưỡng huỷ cần tới 5 thẻ đỏ
  * một bên, và trần số dòng ở 90 phút vẫn là 100.
  *
- * `tuongThichV5.test.ts` đo thay vì tin: 5 mã trận cố định, **409/409 dòng
- * khớp từng ký tự** với engine tại commit cuối của spec 001 — phút, bù giờ,
- * loại, đội, danh sách cầu thủ, mẫu câu và tỉ số sau đó, cả bảy trường.
+ * `tuongThichEngine.test.ts` đo thay vì tin: 5 mã trận cố định, mọi dòng khớp
+ * từng ký tự với bảng mốc — phút, bù giờ, loại, đội, danh sách cầu thủ, mẫu
+ * câu và tỉ số sau đó, cả bảy trường.
  *
  * Tăng thừa không phải là "cẩn thận": nó tước nút đấu lại của mọi trận đã
  * lưu và bắt ứng dụng nói với người dùng rằng trận cũ chạy bằng engine khác,
- * trong khi nó chạy bằng đúng engine này.
+ * trong khi nó chạy bằng đúng engine này. Suốt spec 001 tới 006 con số này
+ * giữ nguyên **5** vì đúng lý do ấy.
+ *
+ * **Lên 6 ngày 2026-11-22**, và lần này tăng là ĐÚNG: người dùng chốt sửa
+ * phễu dứt điểm, một thay đổi cố ý của mô hình xác suất. Engine cũ cho 3,95
+ * bàn một trận so với 2,82–3,28 thật, và 70% cú sút trúng đích so với 49%
+ * thật, vì nó không có tầng "đi đúng hướng". Kết quả đổi thật, nên con số
+ * này phải đổi theo — và 20 trận đã lưu mất nút đấu lại, điều người dùng
+ * biết và chấp nhận trước khi sửa.
  */
-export const PHIEN_BAN_ENGINE = 5
+export const PHIEN_BAN_ENGINE = 6
 
 /**
  * Dựng lại đăng ký ban đầu của một bên TỪ trạng thái trận.
@@ -1412,40 +1450,60 @@ export function buocTiep(ttVao: TrangThaiTran): TrangThaiTran {
       rng,
     )
 
-    const coBan =
-      kq.ketCuc === 'dut-diem' &&
-      rng.next() < 0.22 * (smCong.trungBinh + 0.4)
-
     /*
-      Cơ hội rõ ràng (AC-11.2, quyết định D37). Bàn thắng thì khỏi phải hỏi.
-      Cú sút không thành bàn mới rút một lần, nên bất biến `banThang ≤
-      coHoiRoRang ≤ cuSut` luôn đúng và kiểm được.
+      PHỄU DỨT ĐIỂM BA TẦNG (2026-11-22, engine v6).
 
-      Thứ tự tiêu thụ `Rng` trong một chuỗi là CỐ ĐỊNH và phải giữ nguyên:
-      người kết thúc → bàn thắng → cơ hội rõ ràng. Đổi thứ tự là đổi mọi trận
-      của mọi mã trận (P1).
-    */
-    const coHoiRoRang =
-      kq.ketCuc === 'dut-diem' &&
-      (coBan || rng.next() < xacSuatCoHoiRoRang(smCong.trungBinh))
+      **Mô hình cũ chỉ có MỘT tầng**: một cú sút hoặc thành bàn, hoặc bị cứu.
+      Không có chỗ nào cho một cú sút đi vọt xà. Hệ quả đo được trên 20 mã trận,
+      đặt cạnh số của Opta ở giải Ngoại hạng Anh:
 
-    /*
-      Cứu thua (AC-11.2, quyết định D38). Chỉ rút khi cú sút KHÔNG thành bàn,
-      và chỉ khi khung thành có người — thủ môn vừa bị đuổi mà chưa ai vào
-      bắt gôn thì không có ai cứu.
+      | | Engine cũ | Bóng đá thật |
+      |---|---|---|
+      | Cú sút không bị chặn mỗi trận | 17,2 | **17,3** ✅ |
+      | Trong đó trúng đích | **70%** | **49%** |
+      | Thành bàn, trên cú sút không bị chặn | **23,1%** | **11,3–11,9%** |
+      | Bàn thắng mỗi trận | **3,95** | 2,82 · 2,85 · 3,28 (ba mùa) |
 
-      Thứ tự rút trong một chuỗi, cố định: người kết thúc → bàn thắng → cơ hội
-      rõ ràng → bị cứu.
+      Tức số cú sút thì đúng, nhưng engine **ghi bàn dễ hơn thật 1,4–2 lần**, và
+      nguyên nhân nằm ở chỗ thiếu tầng "đi đúng hướng".
+
+      **Ba tầng, và một tầng được SUY RA chứ không rút thêm:**
+        1. `trungDich` — cú sút có đi đúng hướng khung thành không.
+        2. `biCuu`     — nếu trúng đích, thủ môn có cản được không.
+        3. `coBan`     — trúng đích mà không bị cứu thì là bàn. **Không rút.**
+
+      Tầng ba suy ra là chỗ mô hình mới đúng hơn mô hình cũ về bóng đá: một cú
+      sút đi đúng hướng chỉ có hai kết cục, và "trúng đích mà không ai cứu cũng
+      không vào" là một trạng thái không tồn tại trên sân.
+
+      **Khung bỏ trống**: `xacSuatBiCuu(null)` trả 0, nên mọi cú trúng đích
+      thành bàn — đúng như một khung thành không người.
+
+      **Thứ tự tiêu thụ `Rng` trong một chuỗi là CỐ ĐỊNH:** người kết thúc →
+      trúng đích → bị cứu → cơ hội rõ ràng → kiến tạo → cướp bóng → phạm lỗi →
+      một lượt cho mỗi bước chuyền. Đổi thứ tự là đổi mọi trận của mọi mã trận
+      (P1), và chính vì thứ tự đã đổi ở đây mà `PHIEN_BAN_ENGINE` lên **6**.
     */
     const thuMonThu = nguoiTrongKhung(benThu)
     const sucThuMon =
       thuMonThu === null
         ? null
         : (smThu.theoCauThu.find((x) => x.id === thuMonThu)?.suc ?? null)
-    const biCuu =
+
+    const trungDich =
       kq.ketCuc === 'dut-diem' &&
-      !coBan &&
-      rng.next() < xacSuatBiCuu(sucThuMon)
+      rng.next() < xacSuatTrungDich(smCong.trungBinh)
+    const biCuu = trungDich && rng.next() < xacSuatBiCuu(sucThuMon)
+    const coBan = trungDich && !biCuu
+
+    /*
+      Cơ hội rõ ràng (AC-11.2, quyết định D37). Bàn thắng thì khỏi phải hỏi.
+      Cú sút không thành bàn mới rút một lần, nên bất biến `banThang ≤
+      coHoiRoRang ≤ cuSut` luôn đúng và kiểm được.
+    */
+    const coHoiRoRang =
+      kq.ketCuc === 'dut-diem' &&
+      (coBan || rng.next() < xacSuatCoHoiRoRang(smCong.trungBinh))
 
     /*
       Gán hành động cho người (AC-11.3, quyết định D34 và D34c). Thứ tự rút
