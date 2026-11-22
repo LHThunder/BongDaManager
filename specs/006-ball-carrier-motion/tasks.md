@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | 21 AC (US-33 → US-36), 16 quyết định D101–D116 |
-| **Tiến độ** | 24/26 — T609 và T610 **bị bỏ**, T625–T627 **sinh ra từ T617** |
+| **Tiến độ** | 25/27 — T609 và T610 **bị bỏ**, T625–T628 **sinh ra từ T617** |
 | **Sửa đổi** | 2026-11-19 — chẻ lần đầu từ plan |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -317,6 +317,23 @@ là một commit.
   - ⚠️ **Sinh ra từ T617**: *"tôi muốn vòng tròn hiển thị cầu thủ nhỏ đi"* (2026-11-22). Ở 3,4 một điểm rộng 6,8 trên sân dài 100 — gần **bảy mét** cho một cầu thủ.
   - ⚠️ **Hai phép kiểm của T514 viết sàn thành `4 / 3.4` bán kính, và cách viết ấy chỉ đúng khi bán kính CÒN LÀ 3,4.** Thu bán kính xuống thì vế phải co lại trong khi `PHI_THEM_NGUOI_GHI_BAN` — vốn suy từ chính sàn 4,0 — lại nở ra, nên phép kiểm đỏ dù **không có gì trên sân sai**. Sửa bằng cách đo theo **đơn vị** thay vì theo bán kính: hằng số khi ấy không bao giờ lệch khỏi thứ nó định nói. Phép kiểm chính của T514 (`khoang >= phongTo`) **xanh suốt**, nên biên phì thêm chưa bao giờ trùm tâm ai.
   - ℹ️ **Biên của vòng nét đứt lật lần thứ hai.** T624 làm sàn tụt nên biên thật chuyển từ dấu ▲ sang sàn; T627 làm sàn (tính theo bán kính) lớn lên nên biên thật **quay về dấu ▲ = 1,2**. `Math.min` viết ra cả hai nên không ai phải nhớ sửa.
+
+- [x] **T628** — Hạ tỉ lệ tốc độ bóng từ ba lần xuống hai lần
+  - File: sửa `src/ui/components/San2D.tsx`, `src/ui/phaBong.ts`, `src/ui/phaBong.test.ts`, `src/ui/san2D.test.ts`, `specs/006-ball-carrier-motion/spec.md`
+  - Xong khi: `BONG_NHANH_GAP` **3 → 2**; phép kiểm P5 của AC-35.1/AC-35.4 canh **≥ 2** thay vì ≥ 3; **AC-35.1 và AC-35.4 trong `spec.md` được sửa thẳng**, vì spec 006 còn mở.
+  - Bằng chứng: **số**.
+  - AC: AC-35.1, AC-35.4, AC-30.2
+  - Phụ thuộc: T617
+  - ⚠️ **Sinh ra từ T617**: *"đường bóng chậm hơn nữa"* (2026-11-22). Số đo trước khi đổi, mức Chậm: tốc độ bóng mỗi đoạn trung vị **152 đơn vị/giây** trên sân rộng 100 — bóng băng hết chiều ngang sân trong **0,66 giây**.
+  - ⚠️ **KẾT QUẢ NHỎ HƠN HẲN DỰ ĐOÁN CỦA TÔI, và đó là điều đáng ghi nhất ở task này.** Tôi nói trước với người dùng là bóng sẽ chậm đi **33%**. Đo lại thì:
+
+    | Tỉ lệ | Trung vị | p90 | Lớn nhất |
+    |---|---|---|---|
+    | 3 (cũ) | 152 | 342 | 628 |
+    | 2 (mới) | **138** | **283** | **502** |
+
+    Chỉ **−9%** ở trung vị, −17% ở p90, −20% ở đỉnh. Lý do: `dongThoiGianPhaBong` **nén mọi đoạn cho vừa một nhịp** khi tổng vượt quá. Một pha mười ba đoạn muốn 3900ms ở tỉ lệ ba và 5850ms ở tỉ lệ hai — **cả hai đều bị nén về đúng 1000ms**, nên tỉ lệ không đổi được gì. Và tính theo **số đoạn** thì phần lớn đoạn nằm trong những pha bị nén ấy, chứ không phải trong các pha một–hai đoạn.
+  - ℹ️ **Lực đòn bẩy thật của tốc độ bóng là chuyện NÉN, không phải tỉ lệ.** Muốn bóng chậm hẳn thì một pha nhiều bước phải được trải trên nhiều hơn một nhịp — tức bỏ ràng buộc "một sự kiện mỗi phút", đúng việc của spec 007.
 
 - [ ] **T618** — Tick 21 AC và đóng spec
   - File: sửa `specs/006-ball-carrier-motion/spec.md`

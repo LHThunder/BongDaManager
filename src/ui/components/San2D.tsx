@@ -822,13 +822,28 @@ function useGiamChuyenDong(): boolean {
 const BUOC_DO_VAN_TOC = 0.01
 
 /**
- * Bóng nhanh gấp mấy lần người (AC-30.2, T505).
+ * Bóng nhanh gấp mấy lần người (AC-30.2, AC-35.1, AC-35.4).
  *
- * Bóng đi hết chặng của nó trong `msChuyen / 3`, nên nó tới đích trong khoảng
- * một phần ba đầu — mắt theo bóng trước, người theo sau, đúng như một đường
- * chuyền. Trước T505 bóng được vẽ thắng tại toạ độ mốc, tức **nhảy tức thời**.
+ * Bóng đi hết chặng của nó trong `msChuyen / 2`, nên nó tới đích trong khoảng
+ * **nửa đầu** của chặng — mắt theo bóng trước, người theo sau, đúng như một
+ * đường chuyền. Trước T505 bóng được vẽ thẳng tại toạ độ mốc, tức **nhảy tức
+ * thời**.
+ *
+ * **Ba → hai, người dùng chốt ngày 2026-11-22** (T628) sau khi xem bản chạy:
+ * *"đường bóng chậm hơn nữa"*. Số đo ở mức Chậm trước khi đổi: tốc độ bóng mỗi
+ * đoạn trung vị **152 đơn vị/giây** trên một sân rộng 100 — tức quả bóng băng
+ * hết chiều ngang sân trong **0,66 giây**, p90 là 342 và lớn nhất 728.
+ *
+ * **Cái giá đã nói trước khi chốt**: đây là tỉ lệ của AC-35.1, và hạ nó làm một
+ * đường chuyền trông **gần giống một pha rê bóng hơn** — đúng thứ người dùng
+ * từng xin phân biệt được ở `/clarify`. Hai lần vẫn là hai lần, nên khác biệt
+ * còn thấy được; nhưng nếu sau này nó mờ đi thì đây là chỗ đầu tiên nên nhìn.
+ *
+ * Một chi tiết đã đo và **không** sửa được bằng hằng số này: **41,2% số pha có
+ * hơn ba đoạn**, và `dongThoiGianPhaBong` nén mọi đoạn cho vừa một nhịp. Đó mới
+ * là chỗ sinh ra đuôi 342–728, chứ không phải tỉ lệ.
  */
-const BONG_NHANH_GAP = 3
+const BONG_NHANH_GAP = 2
 
 /** Hiệu ứng bàn thắng chạy bao lâu, mực thời gian thật (AC-32.4). */
 const THOI_GIAN_HIEU_UNG_BAN_THANG = 1500

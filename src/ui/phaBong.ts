@@ -208,6 +208,10 @@ export function nguoiNhanChuyen(
  * quyết định D95 của spec 005. Một pha rê bóng thì bóng đi **cùng người**, nên
  * nó tốn đúng thời lượng chặng của người, tức chậm hơn `nhanhGap` lần.
  *
+ * `nhanhGap` là **hai** từ T628 (trước là ba) — xem `BONG_NHANH_GAP`. Hàm này
+ * không chốt con số nào: nó nhận `nhanhGap` làm tham số, nên đổi tỉ lệ không
+ * phải sửa ở đây.
+ *
  * Đó là toàn bộ khác biệt giữa chuyền và dẫn bóng trên hình: **tốc độ**. Không
  * vệt sáng, không đổi độ cong — người dùng đã chốt như vậy ở `/clarify`.
  */
@@ -220,7 +224,7 @@ export function thoiLuongDoan(
   if (!(msNhip > 0) || !(nhanhGap > 0) || !(msNguoi > 0)) return 0
   /*
     Cùng MỘT quãng đường thì chuyền nhanh hơn rê bóng đúng `nhanhGap` lần —
-    đó là cách phát biểu bằng thời gian của câu "bóng đi nhanh gấp ba người"
+    đó là cách phát biểu bằng thời gian của câu "bóng đi nhanh gấp đôi người"
     (AC-35.1, AC-35.4). Lấy mốc là thời lượng chặng của NGƯỜI chứ không phải
     của nhịp: người đi nhanh hay chậm là do thể lực và quãng đường (D93, T525),
     và quả bóng phải nhanh hơn **anh ta**, không phải nhanh hơn đồng hồ.

@@ -133,7 +133,7 @@ sút và một pha dẫn bóng**, để **tôi đọc được trận mà không
 
 **Acceptance criteria:**
 
-- [ ] AC-35.1 — KHI bóng rời chân (chuyền hoặc sút) THÌ nó PHẢI đi **nhanh hơn người giữ bóng ít nhất ba lần**, nên nó tới đích hẳn trước những cầu thủ đang chạy cùng hướng.
+- [ ] AC-35.1 — KHI bóng rời chân (chuyền hoặc sút) THÌ nó PHẢI đi **nhanh hơn người giữ bóng ít nhất hai lần**, nên nó tới đích hẳn trước những cầu thủ đang chạy cùng hướng. *(Ngưỡng hạ từ **ba** xuống **hai** ngày 2026-11-22 — xem nhật ký làm rõ.)*
 - [ ] AC-35.2 — KHI một đường chuyền tới một đồng đội THÌ bóng PHẢI tới **đúng chân** người nhận (trong một bán kính điểm), và người ấy PHẢI trở thành người giữ bóng **ngay khi bóng tới**, không sớm hơn.
 
   > *Làm rõ ngày 2026-11-19 sau `/analyze`, phát hiện số 1.* Engine **không nói ai
@@ -143,7 +143,7 @@ sút và một pha dẫn bóng**, để **tôi đọc được trận mà không
   > nhận ở câu hỏi 1 của `/clarify`. Nó tất định và **không đổi một con số nào** của
   > trận; nó không được vào dòng tường thuật hay thống kê.
 - [ ] AC-35.3 — KHI dòng tường thuật kể một cú sút THÌ bóng PHẢI đi **về phía khung thành của đội bị sút**, và kết thúc ở nơi dòng ấy kể (vào lưới, ra ngoài, hay thủ môn cản).
-- [ ] AC-35.4 — KHI đặt một pha dẫn bóng cạnh một đường chuyền cùng quãng đường THÌ **thời gian đi phải khác nhau ít nhất ba lần**, tức người xem đọc ra được hai thứ khác nhau mà không cần chữ.
+- [ ] AC-35.4 — KHI đặt một pha dẫn bóng cạnh một đường chuyền cùng quãng đường THÌ **thời gian đi phải khác nhau ít nhất hai lần**, tức người xem đọc ra được hai thứ khác nhau mà không cần chữ. *(Ngưỡng hạ từ **ba** xuống **hai** ngày 2026-11-22 — xem nhật ký làm rõ.)*
 - [ ] AC-35.5 — KHI vẽ một đường chuyền và một cú sút THÌ hai thứ chỉ được khác nhau ở **tốc độ và đích đến**: sút nhanh hơn chuyền và đi về khung thành, chuyền tới chân đồng đội. KHÔNG thêm vệt sáng, không đổi độ cong, không thêm hình vẽ nào khác.
 
 ### US-36: Người không có bóng cũng di chuyển có mục đích
@@ -312,3 +312,25 @@ loại** khi phát ra ngoài. Nên "qua người" là chuyện thật của tr�
 đổi một con số nào**; thứ duy nhất phải hỏi lại là nghĩa của chữ "không đổi engine",
 và câu 1b chốt nó.
 
+## Nhật ký làm rõ — bổ sung 2026-11-22
+
+Người dùng xem bản chạy ở T617 và xin **hạ ngưỡng của AC-35.1 và AC-35.4 từ ba lần xuống
+hai lần**: *"đường bóng chậm hơn nữa"*.
+
+**Số đo trước khi đổi**, ở mức Chậm trên 10 mã trận: tốc độ quả bóng trên mỗi đoạn có trung
+vị **152 đơn vị/giây** — trên một sân rộng 100, tức bóng băng hết chiều ngang sân trong
+**0,66 giây**. Phân vị 90 là **342** và lớn nhất **728**.
+
+**Cái giá đã nói trước khi họ chốt**: ba lần là tỉ lệ chính họ chọn ở `/clarify`, và nó là
+**toàn bộ** cách giao diện phân biệt một đường chuyền với một pha rê bóng — không vệt sáng,
+không đổi độ cong, chỉ tốc độ. Hạ xuống hai làm hai thứ ấy gần nhau hơn. Người dùng chốt
+đổi sau khi nghe điều đó.
+
+**Một chi tiết đã đo và tỉ lệ KHÔNG chữa được**: **41,2% số pha có hơn ba đoạn**, và lớp
+dòng thời gian nén mọi đoạn cho vừa một nhịp. Đó mới là chỗ sinh ra cái đuôi 342–728 — một
+đường chuyền đơn lẻ đi ở 152, còn một pha mười ba đoạn bay ở 728. Hạ tỉ lệ làm cả hai chậm
+đi một phần ba, nhưng không làm phẳng cái đuôi ấy.
+
+**Vì sao sửa thẳng vào AC**: spec 006 **còn mở**, nên AC của nó sửa được. Đây khác hẳn
+trường hợp D116 — ở đó AC-30.4 thuộc spec 005 **đã đóng**, nên quyết định chỉ thay con số
+đang chạy chứ không sửa ngược tài liệu đã khoá.

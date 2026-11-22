@@ -525,7 +525,7 @@ describe('thủ môn không rời dải của mình KỂ CẢ KHI ĐANG CẦM B�
   */
   const NHIP = MS_MOI_PHUT.cham
   const NGUOI = thoiGianChuyen(NHIP)
-  const NHANH_GAP = 3
+  const NHANH_GAP = 2
   const CAC_TI_LE = [0, 0.25, 0.5, 0.75, 1]
 
   it('mọi dòng của 10 mã trận × 7 quân số: thủ môn luôn trong dải của mình', () => {
@@ -654,11 +654,11 @@ describe('XƯƠNG SỐNG — tại tỉ lệ 1, MỌI điểm vẫn ở đúng m
   const NHIP = MS_MOI_PHUT.cham
   const NGUOI = thoiGianChuyen(NHIP)
   /*
-    Bóng nhanh gấp ba người — viết lại ở đây chứ không import `BONG_NHANH_GAP`:
+    Bóng nhanh gấp đôi người (T628) — viết lại ở đây chứ không import `BONG_NHANH_GAP`:
     một phép kiểm dùng chính hằng số của code thì không còn bắt được việc ai đó
     đổi hằng số ấy.
   */
-  const NHANH_GAP = 3
+  const NHANH_GAP = 2
 
   it('mọi dòng của 10 mã trận × 7 quân số: tỉ lệ 1 trả đúng mốc tới 10 chữ số', () => {
     let soDong = 0
@@ -1730,7 +1730,7 @@ describe('thủ môn KHÔNG mở pha bóng khi dòng không nêu tên anh ta (T6
   */
   const NHIP = MS_MOI_PHUT.cham
   const NGUOI = thoiGianChuyen(NHIP)
-  const NHANH_GAP = 3
+  const NHANH_GAP = 2
   const CAC_TI_LE = [0, 0.2, 0.4, 0.6, 0.8, 1]
 
   it('mọi dòng của 10 mã trận: thủ môn đứng yên khi cầm bóng, và bóng ở sát chân', () => {

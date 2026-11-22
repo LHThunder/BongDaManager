@@ -35,7 +35,7 @@ import {
 
 const NHIP = 1000
 const NGUOI = 900
-const NHANH_GAP = 3
+const NHANH_GAP = 2
 
 function buoc(x: number, y: number, loai: BuocDaQuyDoi['loai']): BuocDaQuyDoi {
   return { diem: { x, y }, loai }
@@ -130,9 +130,10 @@ describe('tổng thời lượng không bao giờ vượt một nhịp', () => {
 
   it('pha ngắn thì KHÔNG bị kéo dãn cho đầy nhịp — trừ đoạn cuối', () => {
     /*
-      Một pha hai bước toàn đường chuyền chỉ tốn 2/3 nhịp. Đoạn cuối được kéo
-      tới hết nhịp để quả bóng không "biến mất" khỏi dòng thời gian, nhưng
-      những đoạn trước giữ đúng thời lượng của chúng.
+      Một pha hai bước toàn đường chuyền chỉ tốn 2 × (1/2) = **một nhịp** kể từ
+      T628 (trước, với tỉ lệ ba, là 2/3 nhịp). Đoạn cuối được kéo tới hết nhịp để
+      quả bóng không "biến mất" khỏi dòng thời gian, nhưng những đoạn trước giữ
+      đúng thời lượng của chúng.
     */
     const cac = dongThoiGianPhaBong({
       batDau: { x: 0, y: 0 },
@@ -141,8 +142,8 @@ describe('tổng thời lượng không bao giờ vượt một nhịp', () => {
       msNguoi: NGUOI,
       nhanhGap: NHANH_GAP,
     })
-    // Chuyền tốn `msNguoi / 3` = 300ms trên nhịp 1000ms.
-    expect(cac[0]?.tiLeKetThuc).toBeCloseTo(0.3, 6)
+    // Chuyền tốn `msNguoi / 2` = 450ms trên nhịp 1000ms (T628: tỉ lệ hai).
+    expect(cac[0]?.tiLeKetThuc).toBeCloseTo(0.45, 6)
   })
 })
 
@@ -193,10 +194,11 @@ describe('chỗ quả bóng tại một tỉ lệ của nhịp', () => {
   })
 
   it('đi qua TỪNG bước, không cắt góc', () => {
-    // Hết đoạn đầu — một đường chuyền tốn `msNguoi / 3` = 300ms trên nhịp
-    // 1000ms — bóng phải ở ĐÚNG bước giữa, không cắt góc sang bước cuối.
-    expect(viTriBongTrongPha(cac, 0.3).x).toBeCloseTo(30, 6)
-    expect(viTriBongTrongPha(cac, 0.15).x).toBeCloseTo(15, 6)
+    // Hết đoạn đầu — một đường chuyền tốn `msNguoi / 2` = 450ms trên nhịp
+    // 1000ms (T628) — bóng phải ở ĐÚNG bước giữa, không cắt góc sang bước cuối.
+    expect(viTriBongTrongPha(cac, 0.45).x).toBeCloseTo(30, 6)
+    // Nửa đoạn đầu thì nửa quãng: 0,225 là giữa đoạn [0; 0,45].
+    expect(viTriBongTrongPha(cac, 0.225).x).toBeCloseTo(15, 6)
   })
 
   it('đầu vào vô lý không làm nó ném hay trả NaN', () => {
@@ -623,7 +625,7 @@ describe('cửa sổ cầm bóng của một người', () => {
       **Đây là chỗ bản đầu của T606 làm sai.** Người chuyền vẫn là `nguoiGiu`
       của đoạn chuyền — anh ta là người **rời** bóng ở đó — nên cửa sổ kéo luôn
       qua đoạn ấy, và anh ta bị dính vào quả bóng mà **bay theo đường chuyền ở
-      tốc độ của bóng**, nhanh gấp ba tốc độ người, rồi giật ngược về mốc.
+      tốc độ của bóng**, nhanh gấp đôi tốc độ người, rồi giật ngược về mốc.
 
       D104 nói rõ: chỉ ở đoạn `re-bong` thì người và bóng mới chung một đường;
       ở các đoạn khác **bóng tự bay còn người đi chặng của mình**.
@@ -779,18 +781,25 @@ describe('chỗ của người đang có bóng (AC-33.2, AC-34.1, D104, D105)', 
   })
 })
 
-describe('chuyền và sút nhanh hơn rê bóng đúng ba lần (AC-35.1, AC-35.4, T602)', () => {
+describe('chuyền và sút nhanh hơn rê bóng đúng hai lần (AC-35.1, AC-35.4, T628)', () => {
   /*
     **Hiến pháp P5 bắt buộc phép kiểm này tồn tại.** AC-35.1 và AC-35.4 là AC dạng
-    so sánh ("nhanh hơn ba lần"), mà P5 không cho đánh dấu xong một AC như vậy bằng
+    so sánh ("nhanh hơn N lần"), mà P5 không cho đánh dấu xong một AC như vậy bằng
     một con số đo trên bản build. Số đo trên build là bằng chứng thứ hai.
 
     Phép kiểm duyệt `MS_MOI_PHUT` nên nó **tự phủ mức tốc độ thứ năm** khi T614
     thêm mức Rất chậm — không phải sửa một dòng nào ở đây.
-  */
-  const NHANH_GAP_CHUAN = 3
 
-  it('ở MỌI mức tốc độ, cùng quãng đường thì chuyền nhanh hơn rê bóng ≥ 3 lần', () => {
+    **Tỉ lệ là HAI từ 2026-11-22, trước là ba** (T628). Người dùng xem bản chạy và
+    xin *"đường bóng chậm hơn nữa"*; đo ở mức Chậm thì tốc độ bóng mỗi đoạn trung
+    vị **152 đơn vị/giây** trên sân rộng 100. Cái giá đã nói trước khi chốt: hạ tỉ
+    lệ làm đường chuyền trông gần giống pha rê bóng hơn. AC-35.1 và AC-35.4 của
+    `spec.md` được sửa theo, vì spec 006 **còn mở** — khác với AC-30.4 của spec 005
+    đã đóng mà D116 không sửa ngược.
+  */
+  const NHANH_GAP_CHUAN = 2
+
+  it('ở MỌI mức tốc độ, cùng quãng đường thì chuyền nhanh hơn rê bóng ≥ 2 lần', () => {
     let soMucDaDo = 0
     for (const [muc, ms] of Object.entries(MS_MOI_PHUT)) {
       const msNguoi = thoiGianChuyen(ms)
@@ -800,7 +809,7 @@ describe('chuyền và sút nhanh hơn rê bóng đúng ba lần (AC-35.1, AC-35
       for (const loai of ['chuyen', 'tat-canh', 'sut'] as const) {
         const bay = thoiLuongDoan(loai, ms, msNguoi, NHANH_GAP_CHUAN)
         expect(bay, `mức ${muc}, loại ${loai}`).toBeGreaterThan(0)
-        expect(re / bay, `mức ${muc}, loại ${loai}`).toBeGreaterThanOrEqual(3)
+        expect(re / bay, `mức ${muc}, loại ${loai}`).toBeGreaterThanOrEqual(2)
       }
     }
     expect(soMucDaDo, 'số mức còn nội suy đã đo').toBeGreaterThanOrEqual(3)
@@ -834,6 +843,6 @@ describe('chuyền và sút nhanh hơn rê bóng đúng ba lần (AC-35.1, AC-35
       (cac[i]?.tiLeKetThuc ?? 0) - (cac[i]?.tiLeBatDau ?? 0)
     expect(cac[0]?.loai).toBe('re-bong')
     expect(cac[1]?.loai).toBe('chuyen')
-    expect(dai(0) / dai(1)).toBeCloseTo(3, 6)
+    expect(dai(0) / dai(1)).toBeCloseTo(2, 6)
   })
 })
