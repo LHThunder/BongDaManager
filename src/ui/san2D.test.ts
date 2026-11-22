@@ -1695,3 +1695,140 @@ describe('đường đi trong một nhịp không phồng thành vòng rộng (A
     ).toBeGreaterThan(5)
   })
 })
+
+
+describe('thủ môn KHÔNG mở pha bóng khi dòng không nêu tên anh ta (T626)', () => {
+  /*
+    **Mắt người dùng bắt được, lần thứ tư trong hai spec**: *"lúc phát bóng thủ
+    môn lên quá cao"* (2026-11-22).
+
+    T622 đã chặn nửa chuyện — thủ môn thuộc **đội kia** không được mở pha. Nửa
+    còn lại: thủ môn thuộc **đúng đội của dòng này**. Sau một pha cứu thua anh ta
+    là người giữ bóng, rồi những dòng sau không nêu ai cả, nên luật D115 để anh ta
+    làm người mở pha của chuỗi kế tiếp và anh ta bị kéo chạy dọc đường bóng của cả
+    đội.
+
+    Đo trên 10 mã trận trước khi sửa: thủ môn vào cửa sổ cầm bóng **378 lần**, và
+    **229 lần (61%)** là ở dòng KHÔNG nêu tên anh ta. Quãng anh ta đi trong một
+    nhịp: trung vị **12,6**, lớn nhất **74,4** trên sân rộng 100.
+
+    Sau khi sửa: **326 cửa sổ**, quãng đi trung vị **0,0**, và tỉ lệ "bóng sát
+    chân người giữ bóng" **tăng** từ 74,0% lên **88,8%** — vì anh ta thôi bị gán
+    vào một pha bóng anh ta không tham gia.
+  */
+  const NHIP = MS_MOI_PHUT.cham
+  const NGUOI = thoiGianChuyen(NHIP)
+  const NHANH_GAP = 3
+  const CAC_TI_LE = [0, 0.2, 0.4, 0.6, 0.8, 1]
+
+  it('mọi dòng của 10 mã trận: thủ môn đứng yên khi cầm bóng, và bóng ở sát chân', () => {
+    const quang: number[] = []
+    const cachBong: number[] = []
+    let soBiChan = 0
+    let soCuaSo = 0
+
+    for (const ma of MA_TRAN_CO_DINH) {
+      const tt = chayHetTran(tranMau(11, ma))
+      const conTrenSan = (id: string) =>
+        cacNguoiTrenSan(tt.ben.nha, true).some((x) => x.playerId === id) ||
+        cacNguoiTrenSan(tt.ben.khach, false).some((x) => x.playerId === id)
+      let giu: string | null = null
+
+      for (const sk of dongSuKien(tt)) {
+        const truoc: string | null = giu
+        giu = nguoiGiuBong(sk, truoc, conTrenSan)
+        const { cacDiem, cacBuocBong, duongBong, khung } = veTu(tt, sk, giu)
+        if (cacDiem.length === 0) continue
+        const buocTho: readonly BuocDaQuyDoi[] =
+          cacBuocBong.length > 0
+            ? cacBuocBong
+            : duongBong.length > 0
+              ? duongBong.map((d) => ({ diem: d, loai: 'chuyen' as const }))
+              : []
+        const diemCuoi = giu ? cacDiem.find((d) => d.playerId === giu) : undefined
+        const choTho = buocTho[buocTho.length - 1]
+        const cacBuoc: readonly BuocDaQuyDoi[] =
+          diemCuoi && choTho
+            ? [
+                ...buocTho.slice(0, -1),
+                { diem: { x: diemCuoi.x, y: diemCuoi.y }, loai: choTho.loai },
+              ]
+            : buocTho
+        const benCamBong = sk.doi
+        const cacNguoi: readonly NguoiTrenSan[] = cacDiem.map((d) => ({
+          playerId: d.playerId,
+          diem: { x: d.x, y: d.y },
+          laDongDoi: d.laDoiNha === (benCamBong === 'nha'),
+        }))
+        /* Đúng phép tính của lớp vẽ, kể cả luật mới của T626. */
+        const laThuMonThuaKe =
+          truoc != null &&
+          cacDiem.some((d) => d.playerId === truoc && d.laThuMon) &&
+          !sk.cacCauThu.includes(truoc)
+        if (laThuMonThuaKe) soBiChan += 1
+        const moPhaHopLe =
+          truoc != null &&
+          !laThuMonThuaKe &&
+          cacNguoi.some((x) => x.playerId === truoc && x.laDongDoi)
+        const gan = ganNguoiGiuBong({
+          cacDoan: dongThoiGianPhaBong({
+            batDau: { x: cacDiem[0]?.x ?? 0, y: cacDiem[0]?.y ?? 0 },
+            cacBuoc,
+            msNhip: NHIP,
+            msNguoi: NGUOI,
+            nhanhGap: NHANH_GAP,
+          }),
+          nguoiBatDau: moPhaHopLe ? truoc : null,
+          nguoiKetThuc: giu,
+          cacNguoi,
+        })
+
+        for (const d of cacDiem) {
+          if (!d.laThuMon) continue
+          const cuaSo = cuaSoGiuBong(gan, d.playerId)
+          if (cuaSo == null) continue
+          soCuaSo += 1
+          const dai = daiThuMon(d.laDoiNha, khung)
+          let duong = 0
+          let truocDiem: { x: number; y: number } | null = null
+          for (const tiLe of CAC_TI_LE) {
+            const tho = viTriNguoiGiuBong({
+              cuaSo,
+              tiLe,
+              viTriBong: (t) => viTriBongTrongPha(gan, t),
+              viTriThuong: { x: d.x, y: d.y },
+              moc: { x: d.x, y: d.y },
+            })
+            const v = { x: Math.min(Math.max(tho.x, dai.tu), dai.den), y: tho.y }
+            if (truocDiem) {
+              duong += Math.hypot(v.x - truocDiem.x, v.y - truocDiem.y)
+            }
+            truocDiem = v
+            const bong = viTriBongTrongPha(gan, tiLe)
+            if (bong && tiLe >= cuaSo.tiLeBatDau && tiLe <= cuaSo.tiLeKetThuc) {
+              cachBong.push(Math.hypot(bong.x - v.x, bong.y - v.y))
+            }
+          }
+          quang.push(duong)
+        }
+      }
+    }
+
+    const sapXep = [...quang].sort((a, b) => a - b)
+    const trungVi = sapXep[Math.floor(sapXep.length / 2)] ?? 0
+    const satChan =
+      (100 * cachBong.filter((v) => v <= 3.4).length) / cachBong.length
+    console.log(
+      `thủ môn: ${soCuaSo} cửa sổ cầm bóng, ${soBiChan} lần bị chặn quyền mở pha — quãng đi trung vị ${trungVi.toFixed(1)}, bóng sát chân ${satChan.toFixed(1)}%`,
+    )
+
+    /*
+      **Luật này phải có việc thật để làm**, như `soLanLeKhiKhongKep` của T622:
+      nếu con số về 0 thì hoặc luật giữ bóng đã đổi, hoặc phép kiểm đang canh một
+      thứ không còn xảy ra — cả hai đều đáng biết.
+    */
+    expect(soBiChan, 'số lần thủ môn bị chặn quyền mở pha').toBeGreaterThan(50)
+    expect(trungVi, 'quãng thủ môn đi trong một nhịp, trung vị').toBe(0)
+    expect(satChan, 'tỉ lệ bóng sát chân thủ môn khi anh ta cầm bóng').toBeGreaterThan(85)
+  })
+})

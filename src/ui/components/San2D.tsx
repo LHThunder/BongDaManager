@@ -1339,8 +1339,41 @@ export function San2D(props: Props) {
       Không thuộc đội của dòng thì để `null`, và `ganNguoiGiuBong` suy người mở
       pha bằng đúng luật D112 — đồng đội đứng gần chỗ pha bóng bắt đầu nhất.
     */
+    /*
+      VÀ THỦ MÔN KHÔNG MỞ PHA BÓNG, TRỪ KHI CHÍNH DÒNG NÀY NÊU TÊN ANH TA
+      (T626).
+
+      T622 ở trên chỉ chặn được nửa chuyện: thủ môn thuộc **đội kia**. Nửa còn
+      lại là thủ môn thuộc **đúng đội của dòng này** — sau một pha cứu thua anh
+      ta là người giữ bóng, rồi những dòng sau **không nêu ai cả** nên luật "dòng
+      không nêu ai thì giữ nguyên người cũ" (D115) để anh ta làm người mở pha của
+      chuỗi kế tiếp. Anh ta bị kéo chạy dọc theo đường bóng của cả đội.
+
+      Người dùng xem bản chạy ngày 2026-11-22 và nói: *"lúc phát bóng thủ môn lên
+      quá cao"*. Đo trên 10 trận, thủ môn vào cửa sổ cầm bóng **378 lần**, và
+      **229 lần trong số đó (61%) là ở dòng KHÔNG nêu tên anh ta** — tức anh ta
+      cầm bóng chỉ vì thừa kế, không vì tình huống. Hệ quả đo được: anh ta đi tới
+      **74,4 đơn vị trong một nhịp** và lên tới **32,3** trên sân rộng 100.
+
+      **Vì sao chặn ở đây chứ không kẹp anh ta vào vòng cấm.** Đã thử kẹp cả hai
+      trục vào vòng cấm: quãng đi lớn nhất tụt 74,4 → 31,8 và chỗ cao nhất 32,3 →
+      13,0, **nhưng tỉ lệ "bóng sát chân người giữ bóng" tụt 74,0% → 51,5%** —
+      tức đổi một lỗi nhìn thấy được lấy một lỗi nhìn thấy được khác, vì quả bóng
+      đi theo đường của engine chứ không theo cái hộp. Chặn ở gốc thì không có
+      đánh đổi ấy: lúc anh ta không phải người giữ bóng thì quả bóng **vốn dĩ
+      không nên ở chân anh ta**.
+
+      Dòng **có** nêu tên anh ta (149 lần — pha cứu thua, pha anh ta thật sự chạm
+      bóng) thì anh ta vẫn mở pha như cũ.
+    */
+    const laThuMonThuaKe =
+      aiGiuBongDauNhip != null &&
+      cacDiem.some((d) => d.playerId === aiGiuBongDauNhip && d.laThuMon) &&
+      !(suKien?.cacCauThu ?? []).includes(aiGiuBongDauNhip)
+
     const moPhaHopLe =
       aiGiuBongDauNhip != null &&
+      !laThuMonThuaKe &&
       cacNguoi.some(
         (x) => x.playerId === aiGiuBongDauNhip && x.laDongDoi,
       )

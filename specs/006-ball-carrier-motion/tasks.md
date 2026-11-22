@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | 21 AC (US-33 → US-36), 16 quyết định D101–D116 |
-| **Tiến độ** | 22/24 — T609 và T610 **bị bỏ**, T625 **sinh ra từ T617** |
+| **Tiến độ** | 23/25 — T609 và T610 **bị bỏ**, T625 và T626 **sinh ra từ T617** |
 | **Sửa đổi** | 2026-11-19 — chẻ lần đầu từ plan |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -293,6 +293,18 @@ là một commit.
   - ⚠️ **Sinh ra từ T617 — đúng điều task ấy đã viết trước là "việc bình thường".** Người dùng xem bản chạy ngày 2026-11-22 và nói: *"tần suất chuyền nhiều lên"* và *"một cầu thủ không thể rê từ đầu sân đến cuối sân hoặc từ trái sang phải thường xuyên được"*.
   - ⚠️ **Đây là task DUY NHẤT của spec 006 đổi một dòng logic trong `src/engine/`**, nên phải nói rõ vì sao nó không phá ràng buộc "không đổi kết quả": nhãn `re-bong`/`chuyen` **không ai trong `engine/` hay `services/` đọc** — chỉ lớp giao diện đọc; loại sự kiện và chỉ tiêu tạt cánh chỉ đọc `'tat-canh'`, một nhánh khác hẳn; và `tuongThichV5.test.ts` so **bảy trường** không có `cacBuocBong`. Dòng ấy cũng không rút thêm số ngẫu nhiên nào — `vungMoi` đã được chọn ở dòng trên.
   - ℹ️ **Trận đã lưu giữ nhãn cũ.** Bản ghi trận lưu cả `cacBuocBong`, nên 20 trận trong lưu trữ vẫn vẽ theo luật cũ khi xem lại. Đấu lại thì engine chạy lại và ra nhãn mới. Không mất dữ liệu, chỉ là hai cách vẽ cho hai thời điểm — và đó là hệ quả của việc bản ghi giữ dữ liệu đã tính, chứ không phải một lỗi.
+
+- [x] **T626** — Thủ môn thôi lên quá cao lúc phát bóng
+  - File: sửa `src/ui/components/San2D.tsx`, sửa `src/ui/san2D.test.ts`
+  - Xong khi: thủ môn **không** được làm người mở pha bóng khi dòng tường thuật **không nêu tên anh ta**. Dòng **có** nêu tên (pha cứu thua, pha anh ta thật sự chạm bóng) thì anh ta vẫn mở pha như cũ.
+  - Xong khi (số đo): quãng thủ môn đi trong một nhịp, **trung vị 12,6 → 0,0**; tỉ lệ "bóng sát chân người giữ bóng" khi anh ta cầm bóng **74,0% → 88,8%**; số cửa sổ cầm bóng 378 → 326, trong đó **135 lần** luật mới chặn quyền mở pha.
+  - Bằng chứng: **số**.
+  - AC: AC-30.7 *(giữ)*, AC-33.1, AC-33.5
+  - Phụ thuộc: T617, T622
+  - ⚠️ **Sinh ra từ T617**, phát hiện thứ tư của mắt người dùng trong hai spec: *"lúc phát bóng thủ môn lên quá cao"* (2026-11-22).
+  - ⚠️ **T622 chỉ chặn được nửa chuyện.** T622 cấm thủ môn thuộc **đội kia** mở pha. Nửa còn lại là thủ môn thuộc **đúng đội của dòng này**: sau một pha cứu thua anh ta là người giữ bóng, rồi những dòng sau không nêu ai cả nên luật D115 để anh ta thừa kế quyền mở pha của chuỗi kế tiếp. Đo được: **229 trong 378** cửa sổ cầm bóng của thủ môn (61%) là ở dòng không nêu tên anh ta.
+  - ⚠️ **Một phương án đã thử và BỊ BỎ, ghi lại để không ai đi lại.** Kẹp thủ môn vào đúng **vòng cấm** theo cả hai trục: quãng đi lớn nhất tụt **74,4 → 31,8** và chỗ cao nhất **32,3 → 13,0** — rất đẹp. Nhưng tỉ lệ bóng sát chân tụt **74,0% → 51,5%**, tức đổi một lỗi nhìn thấy được lấy một lỗi nhìn thấy được khác, vì quả bóng đi theo đường của engine chứ không theo cái hộp. Chặn ở gốc thì không có đánh đổi ấy: lúc anh ta không phải người giữ bóng thì quả bóng **vốn dĩ không nên ở chân anh ta** — và đó là lý do con số ấy **tăng** chứ không giảm.
+  - ℹ️ **Phần đuôi vẫn còn và tôi để lại có chủ ý**: p90 quãng đi 51,6 và lớn nhất 74,4 không đổi. Đó là những lần anh ta **chạy ra đón một đường chuyền về** — bóng đá thật có chuyện ấy, chỉ là 74 đơn vị thì vẫn quá xa. Siết nó đòi đúng cái phép kẹp vừa bị bỏ ở trên, nên nó thuộc về engine liên tục của spec 007, nơi thủ môn có toạ độ mét và một hành động phát bóng thật.
 
 - [ ] **T618** — Tick 21 AC và đóng spec
   - File: sửa `specs/006-ball-carrier-motion/spec.md`
