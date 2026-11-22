@@ -5,7 +5,7 @@
 | **Spec** | `./spec.md` |
 | **Plan** | `./plan.md` |
 | **Phạm vi** | 21 AC (US-33 → US-36), 16 quyết định D101–D116 |
-| **Tiến độ** | 23/25 — T609 và T610 **bị bỏ**, T625 và T626 **sinh ra từ T617** |
+| **Tiến độ** | 24/26 — T609 và T610 **bị bỏ**, T625–T627 **sinh ra từ T617** |
 | **Sửa đổi** | 2026-11-19 — chẻ lần đầu từ plan |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -305,6 +305,18 @@ là một commit.
   - ⚠️ **T622 chỉ chặn được nửa chuyện.** T622 cấm thủ môn thuộc **đội kia** mở pha. Nửa còn lại là thủ môn thuộc **đúng đội của dòng này**: sau một pha cứu thua anh ta là người giữ bóng, rồi những dòng sau không nêu ai cả nên luật D115 để anh ta thừa kế quyền mở pha của chuỗi kế tiếp. Đo được: **229 trong 378** cửa sổ cầm bóng của thủ môn (61%) là ở dòng không nêu tên anh ta.
   - ⚠️ **Một phương án đã thử và BỊ BỎ, ghi lại để không ai đi lại.** Kẹp thủ môn vào đúng **vòng cấm** theo cả hai trục: quãng đi lớn nhất tụt **74,4 → 31,8** và chỗ cao nhất **32,3 → 13,0** — rất đẹp. Nhưng tỉ lệ bóng sát chân tụt **74,0% → 51,5%**, tức đổi một lỗi nhìn thấy được lấy một lỗi nhìn thấy được khác, vì quả bóng đi theo đường của engine chứ không theo cái hộp. Chặn ở gốc thì không có đánh đổi ấy: lúc anh ta không phải người giữ bóng thì quả bóng **vốn dĩ không nên ở chân anh ta** — và đó là lý do con số ấy **tăng** chứ không giảm.
   - ℹ️ **Phần đuôi vẫn còn và tôi để lại có chủ ý**: p90 quãng đi 51,6 và lớn nhất 74,4 không đổi. Đó là những lần anh ta **chạy ra đón một đường chuyền về** — bóng đá thật có chuyện ấy, chỉ là 74 đơn vị thì vẫn quá xa. Siết nó đòi đúng cái phép kẹp vừa bị bỏ ở trên, nên nó thuộc về engine liên tục của spec 007, nơi thủ môn có toạ độ mét và một hành động phát bóng thật.
+
+- [x] **T627** — Thu bán kính điểm cầu thủ
+  - File: sửa `src/ui/components/San2D.tsx`, sửa `src/ui/san2D.test.ts`
+  - Xong khi: `BAN_KINH` **3,4 → 2,6**; cỡ chữ số áo và đường chân chữ **buộc theo** `BAN_KINH` chứ không còn là số viết cứng, nên chữ số chiếm **đúng cùng một tỉ lệ** trong vòng tròn như trước.
+  - Xong khi (ba phép kiểm bất biến): **vẫn xanh, không nới một ngưỡng nào**. Thu điểm lại **nới lỏng** mọi ràng buộc khoảng cách chứ không siết: sàn "hai điểm gần nhau nhất" là **4,457 đơn vị** và không đổi — chỉ cách viết nó theo bán kính đổi, từ 1,3108 thành **1,71**.
+  - Xong khi (quả bóng): **giữ nguyên 1,7**. Người dùng xin thu *điểm cầu thủ*; bóng to hơn so với người thì càng dễ nhìn theo, đúng điều AC-32.1 muốn.
+  - Bằng chứng: **số**.
+  - AC: AC-15.2, AC-30.5, AC-32.1, AC-32.4
+  - Phụ thuộc: T617
+  - ⚠️ **Sinh ra từ T617**: *"tôi muốn vòng tròn hiển thị cầu thủ nhỏ đi"* (2026-11-22). Ở 3,4 một điểm rộng 6,8 trên sân dài 100 — gần **bảy mét** cho một cầu thủ.
+  - ⚠️ **Hai phép kiểm của T514 viết sàn thành `4 / 3.4` bán kính, và cách viết ấy chỉ đúng khi bán kính CÒN LÀ 3,4.** Thu bán kính xuống thì vế phải co lại trong khi `PHI_THEM_NGUOI_GHI_BAN` — vốn suy từ chính sàn 4,0 — lại nở ra, nên phép kiểm đỏ dù **không có gì trên sân sai**. Sửa bằng cách đo theo **đơn vị** thay vì theo bán kính: hằng số khi ấy không bao giờ lệch khỏi thứ nó định nói. Phép kiểm chính của T514 (`khoang >= phongTo`) **xanh suốt**, nên biên phì thêm chưa bao giờ trùm tâm ai.
+  - ℹ️ **Biên của vòng nét đứt lật lần thứ hai.** T624 làm sàn tụt nên biên thật chuyển từ dấu ▲ sang sàn; T627 làm sàn (tính theo bán kính) lớn lên nên biên thật **quay về dấu ▲ = 1,2**. `Math.min` viết ra cả hai nên không ai phải nhớ sửa.
 
 - [ ] **T618** — Tick 21 AC và đóng spec
   - File: sửa `specs/006-ball-carrier-motion/spec.md`

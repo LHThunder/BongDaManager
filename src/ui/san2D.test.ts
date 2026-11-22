@@ -863,7 +863,7 @@ describe('vòng nét đứt quanh người giữ bóng (AC-33.1, AC-33.4, T605)'
 
       Vòng đứng ở `1 + 1,2/3,4` = 1,353 bán kính, dưới sàn ấy một khoảng dự.
     */
-    expect(chatNhat, 'cặp chật nhất, theo bán kính').toBeGreaterThanOrEqual(1.31)
+    expect(chatNhat, 'cặp chật nhất, theo bán kính').toBeGreaterThanOrEqual(1.71)
     /*
       **Đúng 0.** Trước T621 con số này là **2,82%** (148/5246): người giữ bóng
       nhận thẻ đỏ, hoặc bị thay ra sau pha bóng của mình, nên lớp vẽ không vẽ
@@ -966,7 +966,15 @@ describe('điểm người ghi bàn phóng to vẫn đếm được (AC-32.4, R4
           for (const d of cacDiem) {
             if (d.playerId === ghi) continue
             const khoang = Math.hypot(d.x - nguoi.x, d.y - nguoi.y)
-            chatNhat = Math.min(chatNhat, khoang / banKinh)
+            /*
+              Đo bằng ĐƠN VỊ của khung sân 11, không bằng bán kính (T627). Sàn
+              4,0 được đo một lần rồi viết lại thành `4 / 3.4` bán kính — cách
+              viết ấy chỉ đúng khi bán kính CÒN LÀ 3,4. Người dùng xin thu điểm
+              xuống 2,6 ngày 2026-11-22, và lúc ấy `4 / 3.4` bán kính không còn
+              là 4 đơn vị nữa. Đo bằng đơn vị thì hằng số không lệch khỏi thứ nó
+              định nói.
+            */
+            chatNhat = Math.min(chatNhat, khoang / tiLe)
             expect(
               khoang,
               `${ma} quân số ${n} phút ${sk.phut}: ${ghi} ↔ ${d.playerId} cách ${khoang.toFixed(2)}, bán kính phóng to ${phongTo.toFixed(2)}`,
@@ -984,7 +992,7 @@ describe('điểm người ghi bàn phóng to vẫn đếm được (AC-32.4, R4
       ngưỡng cũ làm sàn cứng — không nới theo số đo mới — để biên phì thêm
       của người ghi bàn vẫn được ràng bởi con số khắt nghiệt hơn.
     */
-    expect(chatNhat).toBeGreaterThanOrEqual(4 / 3.4)
+    expect(chatNhat, 'sàn hai điểm, theo đơn vị khung sân 11').toBeGreaterThanOrEqual(4)
   })
 
   it('biên phì thêm không được lớn hơn chỗ trống mà sàn đo được cho phép', () => {
@@ -994,9 +1002,13 @@ describe('điểm người ghi bàn phóng to vẫn đếm được (AC-32.4, R4
     */
     const { banKinh, khung } = veTu(tranMau(11))
     const tiLe = khung.rong / RONG
-expect(banKinh + PHI_THEM_NGUOI_GHI_BAN * tiLe).toBeLessThan(
-      (4 / 3.4) * banKinh,
-    )
+/*
+      Biên là **sàn đã đo, tính bằng đơn vị** — 4,0 trong khung sân 11 — chứ
+      không phải sàn ấy viết lại thành bán kính. `PHI_THEM_NGUOI_GHI_BAN` được
+      suy từ đúng con số 4,0 (`BUOC_GIAN / 2`), nên hai vế luôn nói cùng một thứ
+      dù bán kính điểm có đổi (T627).
+    */
+    expect(banKinh + PHI_THEM_NGUOI_GHI_BAN * tiLe).toBeLessThan(4 * tiLe)
     expect(PHI_THEM_NGUOI_GHI_BAN).toBeGreaterThan(0)
   })
 })

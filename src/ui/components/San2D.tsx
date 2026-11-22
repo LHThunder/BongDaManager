@@ -128,7 +128,23 @@ const DICH_THEO_DO_CAO: Readonly<Record<string, number>> = {
   cao: 3,
 }
 
-const BAN_KINH = 3.4
+/**
+ * Bán kính một điểm cầu thủ, trong khung sân 11 (100 × 64).
+ *
+ * **Thu từ 3,4 xuống 2,6 ngày 2026-11-22** theo yêu cầu của người dùng sau khi
+ * xem bản chạy: *"tôi muốn vòng tròn hiển thị cầu thủ nhỏ đi"*. Ở 3,4 một điểm
+ * rộng 6,8 trên một sân dài 100 — tức gần **bảy mét** cho một cầu thủ.
+ *
+ * Thu điểm lại **nới lỏng** mọi ràng buộc về khoảng cách chứ không siết chúng:
+ * sàn "hai điểm gần nhau nhất" đo bằng **bán kính**, nên bán kính nhỏ đi thì
+ * con số ấy lớn lên. Xem `SAN_HAI_DIEM_GAN_NHAT`.
+ *
+ * Ba thứ đi theo nó và **phải đổi cùng lúc**, nếu không thì chữ số áo tràn ra
+ * ngoài vòng tròn: cỡ chữ số áo, đường chân chữ, và `SAN_HAI_DIEM_GAN_NHAT`.
+ * Quả bóng **cố tình giữ nguyên 1,7**: người dùng xin thu *điểm cầu thủ*, và
+ * bóng to hơn so với người thì càng dễ nhìn theo — đúng điều AC-32.1 muốn.
+ */
+const BAN_KINH = 2.6
 
 /** Khoảng giãn giữa hai người cùng ĐỘI đứng cùng một vùng. */
 const BUOC_GIAN = 8
@@ -825,9 +841,13 @@ const VONG_SANG_NO_GAP = 7
  * không phải số suy ra (T605).
  *
  * Đo trên 10 mã trận × 7 quân số × mọi dòng tường thuật — 5835 dòng, mọi cặp
- * điểm: sàn là **1,3108 bán kính**, làm tròn xuống thành 1,31.
+ * điểm: sàn là **4,457 ĐƠN VỊ**. Viết theo bán kính thì nó là 1,3108 khi bán kính
+ * còn 3,4, và **1,71** từ khi T627 thu bán kính xuống 2,6 — **cùng một khoảng cách
+ * thật**, chỉ khác thước đo. Đó là lý do con số ở đây đổi mà không có gì trên sân
+ * đổi cả.
  *
- * **Nó đã tụt hai lần, và cả hai đều đo được**: 1,5468 → 1,4923 khi T611 thêm lực
+ * **Nó đã tụt hai lần, và cả hai đều đo được** (tính theo bán kính 3,4 của lúc ấy):
+ * 1,5468 → 1,4923 khi T611 thêm lực
  * kéo theo vai trò (D106), rồi 1,4923 → 1,3108 khi T624 nới trần lên một phần sáu
  * (D116). Lý do của cả hai là một: **mọi lực kéo đều kéo về phía bóng**, nên chúng
  * đều làm hai điểm xích lại — đúng điều R48 báo trước.
@@ -843,7 +863,7 @@ const VONG_SANG_NO_GAP = 7
  * không phải một biên cho có — đúng bài học R45 lặp lại lần thứ ba: sàn phụ
  * thuộc vào việc đo quanh ai.
  */
-const SAN_HAI_DIEM_GAN_NHAT = 1.31
+const SAN_HAI_DIEM_GAN_NHAT = 1.71
 
 /**
  * Điểm người ghi bàn được phì thêm tối đa bao nhiêu (AC-32.4, rủi ro R45).
@@ -879,17 +899,19 @@ export const PHI_THEM_NGUOI_GHI_BAN = ((BUOC_GIAN / 2 - BAN_KINH) * 3) / 4
  * lỗi "phì to một điểm mà không đặt biên" hai lần ở R45. Hai biên, và vòng phải
  * nằm dưới **cả hai**:
  *
- * 1. **Sàn đã đo**: hai điểm gần nhau nhất cách nhau **1,3108 bán kính**, xem
+ * 1. **Sàn đã đo**: hai điểm gần nhau nhất cách nhau **1,71 bán kính**, xem
  *    `SAN_HAI_DIEM_GAN_NHAT`. Vòng rộng hơn thế là trùm tâm người khác, tức
  *    đếm sai số người trên sân — điều AC-15.2 cấm.
  * 2. **Dấu ▲** đặt ở `-banKinh - 1,2 · tiLe`. Vòng cao hơn thế là đi xuyên dấu
  *    ▲, mà hai dấu phải đọc ra được riêng rẽ — ▲ đã có nghĩa "đang tham gia
  *    tình huống" từ spec 001.
  *
- * **Biên nào chặt hơn thì đã đổi sau T624**: trước là dấu ▲ (1,2 so với
- * 0,49 · 3,4 = 1,67), nay là **sàn** (0,31 · 3,4 = **1,054** so với 1,2). Đó chính là
- * lý do `Math.min` viết ra cả hai thay vì chốt một con số: nới trần nghiêng khối làm
- * biên kìa thành biên thật, và vòng tự thu lại mà không ai phải nhớ sửa nó.
+ * **Biên nào chặt hơn đã đổi HAI LẦN, và `Math.min` chịu được cả hai mà không ai
+ * phải nhớ sửa nó.** T624 nới trần nghiêng khối lên 1/6, sàn tụt, nên biên thật
+ * chuyển từ dấu ▲ sang **sàn** (0,31 · 3,4 = 1,054 so với 1,2). T627 thu bán kính
+ * điểm xuống 2,6, sàn tính theo bán kính lại **lớn lên** (0,71 · 2,6 = 1,856), nên
+ * biên thật quay về **dấu ▲ = 1,2**. Đó chính là lý do chỗ này viết ra cả hai thay
+ * vì chốt một con số.
  */
 export const VONG_GIU_BONG_THEM = Math.min(
   BAN_KINH * (SAN_HAI_DIEM_GAN_NHAT - 1),
@@ -1808,9 +1830,9 @@ export function San2D(props: Props) {
             />
             <text
               x={0}
-              y={1.3 * tiLe}
+              y={BAN_KINH * 0.38 * tiLe}
               textAnchor="middle"
-              fontSize={3.4 * tiLe}
+              fontSize={BAN_KINH * tiLe}
               fontWeight={d.noiBat ? 800 : 500}
               fill={d.mauChu}
             >
