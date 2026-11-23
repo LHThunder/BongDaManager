@@ -61,11 +61,35 @@ export type MucTocDo =
  * ngồi xem, và đó phải là lựa chọn của người dùng chứ không phải cái họ gặp
  * khi chưa chọn gì.
  */
+/*
+  ====================================================================
+  THANG DỜI XUỐNG HAI NẤC (2026-11-23, người dùng chốt).
+  ====================================================================
+
+  Yêu cầu nguyên văn: "tốc độ chậm bây giờ là tốc độ thường". Tức nhịp mà
+  người dùng vẫn xem — **1000ms một phút trận** — phải mang tên **Thường**,
+  không phải tên Chậm. Thang cũ nhảy từ 1000 xuống 200 ngay sau mức mặc định,
+  nên mọi mức "nhanh hơn mặc định" đều nhanh gấp năm lần trở lên.
+
+      cũ:  rat-cham 2000 | cham 1000* | thuong 200 | nhanh 70 | rat-nhanh 20
+      mới: rat-cham 4000 | cham  2000 | thuong 1000* | nhanh 200 | rat-nhanh 20
+                                          (* = mức mặc định)
+
+  **Nhịp mở hộp KHÔNG đổi**: mặc định đi từ `cham` sang `thuong`, cả hai đều là
+  1000ms. Đó là điều **AC-29.5** của spec 005 đòi ("mức mặc định PHẢI là … một
+  phút trận dài 1000ms") — chỉ cái tên đổi, con số thì không.
+
+  `rat-nhanh` **giữ nguyên 20ms** vì **AC-29.4** ghim nó: ở 20ms thì nội suy tắt
+  hẳn. Cái giá: quãng `nhanh` → `rat-nhanh` nay gấp 10 lần thay vì 3,5 — chấp
+  nhận được, vì cả hai đều là mức "xem cho xong", 18 giây và 1,8 giây một trận.
+
+  Một trận 90 phút: 6 phút / 3 phút / 1,5 phút / 18 giây / 1,8 giây.
+*/
 export const MS_MOI_PHUT: Readonly<Record<MucTocDo, number>> = {
-  'rat-cham': 2000,
-  cham: 1000,
-  thuong: 200,
-  nhanh: 70,
+  'rat-cham': 4000,
+  cham: 2000,
+  thuong: 1000,
+  nhanh: 200,
   'rat-nhanh': 20,
 }
 
@@ -76,9 +100,12 @@ export const MS_MOI_PHUT: Readonly<Record<MucTocDo, number>> = {
   thì người dùng khó đọc ra mình đang ở đâu".
 
   T614 thêm `rat-cham` vào **đầu** thang, nên hai tính chất ấy tách ra: mức mặc
-  định giờ là phần tử **thứ hai**. Thang một chiều thắng, vì một thang tốc độ mà
+  định giờ **không** còn đứng đầu. Thang một chiều thắng, vì một thang tốc độ mà
   thứ tự không đơn điệu thì không đọc được; và mức đang chọn vẫn luôn nhận ra
   được, vì nút của nó được tô khác và `aria-checked` nói ra điều đó (P9).
+
+  Từ 2026-11-23 mặc định là phần tử **thứ ba** (`thuong`), vì thang dời xuống
+  hai nấc — xem khối chú thích của `MS_MOI_PHUT`.
 */
 /**
  * Một nhịp lặng sau bàn thắng, mực thời gian thật (AC-32.5, T515).
@@ -209,7 +236,12 @@ export function useMatch() {
     như AC-29.5 viết, và là một trong những phát hiện MEDIUM còn mở của
     `/analyze` nếu sau này muốn nhớ lựa chọn.
   */
-  const [tocDo, datTocDo] = useState<MucTocDo>('cham')
+  /*
+    Mặc định là `thuong` từ 2026-11-23, trước đó là `cham`. Con số KHÔNG đổi —
+    cả hai đều là 1000ms một phút trận — chỉ cái tên đổi khi thang dời xuống
+    hai nấc. AC-29.5 của spec 005 nói về con số, nên nó vẫn đúng từng chữ.
+  */
+  const [tocDo, datTocDo] = useState<MucTocDo>('thuong')
   const [lyDoKhongBatDau, datLyDoKhongBatDau] = useState<
     readonly LyDoKhongBatDau[]
   >([])

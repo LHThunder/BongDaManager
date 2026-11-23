@@ -119,6 +119,14 @@ tới chỗ mới**.
 - [x] AC-29.4 — KHI người dùng chọn mức nhanh nhất, nơi một phút trận chỉ dài vài chục mili-giây, THÌ hệ thống PHẢI thôi nội suy: các điểm nhảy thẳng tới vị trí tại mốc, và KHÔNG điểm nào được bị giật khi đang đi nửa đường — ở nhịp ấy không có chuyển động nào đọc được bằng mắt, nên vẽ đường đi chỉ sinh ra cú giật.
 - [x] AC-29.5 — KHI mở một trận lần đầu THÌ mức tốc độ mặc định PHẢI là mức chậm nhất (một phút trận dài 1000ms), và người dùng PHẢI đổi được sang mức khác ngay trong lúc trận đang chạy.
 
+  > **Ghi chú 2026-11-23: AC này vẫn đúng, chỉ TÊN của mức đổi.** Người dùng chốt
+  > "tốc độ chậm bây giờ là tốc độ thường", nên cả thang dời xuống hai nấc:
+  > `rat-cham` 4000, `cham` 2000, `thuong` **1000**, `nhanh` 200, `rat-nhanh` 20.
+  > Mức mặc định đi từ `cham` sang `thuong` — **vẫn là 1000ms một phút trận**, tức
+  > nhịp người dùng gặp khi mở một trận không đổi một mili-giây nào. Vế "mức chậm
+  > nhất" thì đã không còn đúng từ spec 006 (T614 thêm `rat-cham`), như chính chú
+  > thích ở `useMatch.ts` đã ghi.
+
 ### US-30: Chuyển động trông như người chạy
 
 Là một **người dùng**, tôi muốn **chuyển động trên sân trông như cầu thủ thật
@@ -255,6 +263,9 @@ quan trọng nhất của nó**.
   phút rưỡi, mỗi cú di chuyển dài gần một giây. Mức này là **mặc định** khi
   mở một trận. Ba mức cũ (200ms, 70ms, 20ms) giữ nguyên, nhưng mức 20ms
   thôi nội suy hoàn toàn (AC-29.4).
+
+  > **2026-11-23:** mức 1000ms ấy nay mang tên **Thường** chứ không phải Chậm,
+  > và hai mức 70ms/200ms cũ được thay bằng 200ms/2000ms — xem ghi chú ở AC-29.5.
 - **Biên độ chuyển động chờ (chốt ngày 2026-11-18, siết lại cùng ngày sau
   `/analyze`):** một người đứng ngoài tình huống dao động quanh chỗ mình, và
   biên độ **khác nhau theo hai trục**:
