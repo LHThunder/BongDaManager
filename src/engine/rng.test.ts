@@ -2,9 +2,11 @@ import { describe, expect, it } from 'vitest'
 import type { Rng } from '../domain/types'
 import {
   BANG_CHU_MA_TRAN,
+  BUOC_HAT_GIONG,
   DO_DAI_MA_TRAN,
   hatGiongTuMaTran,
   laMaTranHopLe,
+  nhayRut,
   taoMaTran,
   taoRng,
   taoRngTuHatGiong,
@@ -160,6 +162,118 @@ describe('mã trận (quyết định D20)', () => {
     const a = taoMaTran(taoRng('nguon a'))
     const b = taoMaTran(taoRng('nguon b'))
     expect(b).not.toBe(a)
+  })
+})
+
+/*
+  `nhayRut` — nhảy N lần rút trong O(1) (T702, quyết định D118).
+
+  Ba dòng rút của engine liên tục cách nhau đúng `2^30` lần rút. Hằng số thật
+  (`LECH_DONG`) sống ở `lienTuc/hatGiong.ts` của T717; ở đây nó là một số địa
+  phương, vì file này chỉ canh CHÍNH phép nhảy.
+
+  Oracle là `BigInt`, không phải một biểu thức giống hệt bản cài đặt: số học
+  `BigInt` là chính xác tuyệt đối, nên nó bắt được đúng cái lỗi mà phép nhân
+  float gây ra. Một phép kiểm viết lại cùng biểu thức với bản cài đặt thì xanh
+  cả khi cả hai cùng sai.
+*/
+const LECH = 2 ** 30
+const HAI_MU_32 = 2 ** 32
+
+/** Trạng thái sau `soLan` lần rút, tính bằng số học chính xác. */
+function oracle(hatGiong: number, soLan: number): number {
+  const m = BigInt(HAI_MU_32)
+  return Number(
+    (((BigInt(hatGiong | 0) + BigInt(soLan) * BigInt(BUOC_HAT_GIONG)) % m) + m) %
+      m,
+  )
+}
+
+describe('nhayRut — nhảy N lần rút trong O(1) (T702, D118)', () => {
+  it('bước cộng có tên đúng bằng con số thuật toán đang dùng', () => {
+    expect(BUOC_HAT_GIONG).toBe(0x6d2b79f5)
+  })
+
+  it('nhảy N lần cho đúng hạt giống của N lần rút thật', () => {
+    for (const ma of ['ABC', 'K7M2R9XQ4B', 'PH4M V1 D0']) {
+      const goc = hatGiongTuMaTran(ma)
+      const rng = taoRngTuHatGiong(goc)
+      let daRut = 0
+      for (const moc of [1, 5, 64, 1000, 5754]) {
+        while (daRut < moc) {
+          rng.next()
+          daRut += 1
+        }
+        expect(nhayRut(goc, moc), `${ma} sau ${moc} lần`).toBe(rng.hatGiong())
+      }
+    }
+  })
+
+  it('nhảy 0 lần là không nhảy', () => {
+    expect(nhayRut(HAT_GIONG_ABC, 0)).toBe(HAT_GIONG_ABC >>> 0)
+  })
+
+  it('khớp vector cố định đã có: 5 lần rút từ mã ABC', () => {
+    expect(nhayRut(HAT_GIONG_ABC, 5)).toBe(HAT_GIONG_ABC_SAU_5)
+  })
+
+  /*
+    Đây là phép kiểm có răng. Ở `soLan = 2^30` phép nhân thường cho
+    `-2114711040` còn `Math.imul` cho `-2114710997` — lệch 43. Một phép kiểm
+    chỉ chạy với `soLan` nhỏ sẽ XANH mà sai.
+  */
+  it('đúng cả ở soLan lớn, nơi nhân thường mất độ chính xác float', () => {
+    const goc = hatGiongTuMaTran('ABC')
+    for (const soLan of [LECH, 2 * LECH, 3 * LECH, 5754 * LECH]) {
+      expect(nhayRut(goc, soLan), `soLan = ${soLan}`).toBe(oracle(goc, soLan))
+
+      // Và nó phải KHÁC bản nhân thường — nếu không thì phép kiểm vô nghĩa.
+      const nhanThuong = (goc + soLan * BUOC_HAT_GIONG) >>> 0
+      expect(nhayRut(goc, soLan), `soLan = ${soLan}`).not.toBe(nhanThuong)
+    }
+  })
+
+  it('cộng dồn được: nhảy a rồi nhảy b bằng nhảy a+b', () => {
+    const goc = hatGiongTuMaTran('K7M2R9XQ4B')
+    for (const [a, b] of [
+      [1, 1],
+      [64, 64],
+      [LECH, LECH],
+      [LECH, 5754 * LECH],
+    ]) {
+      expect(nhayRut(nhayRut(goc, a), b), `${a} + ${b}`).toBe(
+        oracle(goc, a + b),
+      )
+    }
+  })
+
+  /*
+    Đẳng thức mà ba dòng rút đứng trên: khoảng cách giữa dòng i và dòng j đúng
+    bằng `(j − i) · 2^30 mod 2^32`, với MỌI mã trận — không chỉ với mẫu fixture.
+  */
+  it('khoảng cách(i, j) = (j − i)·2^30 mod 2^32 trên 20.000 mã', () => {
+    const nguon = taoRngTuHatGiong(20_000)
+    const mongDoi = new Map<number, number>()
+    for (let i = 0; i < 3; i += 1) {
+      for (let j = 0; j < 3; j += 1) {
+        mongDoi.set(j * 3 + i, (((j - i) * LECH) % HAI_MU_32 + HAI_MU_32) % HAI_MU_32)
+      }
+    }
+
+    for (let n = 0; n < 20_000; n += 1) {
+      const ma = taoMaTran(nguon)
+      const goc = hatGiongTuMaTran(ma)
+      const dong = [0, 1, 2].map((i) => nhayRut(goc, i * LECH))
+      for (let i = 0; i < 3; i += 1) {
+        for (let j = 0; j < 3; j += 1) {
+          const khoangCach =
+            ((dong[j]! - dong[i]!) % HAI_MU_32 + HAI_MU_32) % HAI_MU_32
+          expect(khoangCach, `${ma}: dòng ${i} → ${j}`).toBe(
+            mongDoi.get(j * 3 + i),
+          )
+        }
+      }
+    }
   })
 })
 

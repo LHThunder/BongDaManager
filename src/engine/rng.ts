@@ -34,13 +34,39 @@ export function hatGiongTuMaTran(maTran: string): number {
   return (h ^ (h >>> 16)) >>> 0
 }
 
+/**
+ * Bước cộng của `mulberry32` ở mỗi lần rút.
+ *
+ * Tách thành hằng số có tên để `nhayRut` dùng lại CHÍNH con số ấy: hai bản sao
+ * của một hằng số là hai dãy số rồi sẽ trôi khỏi nhau mà không ai thấy.
+ */
+export const BUOC_HAT_GIONG = 0x6d2b79f5
+
+/**
+ * Nhảy `soLan` lần rút trong O(1), thay vì rút `soLan` lần.
+ *
+ * Trạng thái của `mulberry32` tiến đúng MỘT phép cộng mỗi lần rút, nên cả
+ * không gian trạng thái 2^32 là một vòng duy nhất và "nhảy tới đâu" chỉ là một
+ * phép nhân. Đây là thứ cho phép mỗi mốc của engine liên tục có một dòng rút
+ * riêng mà không phải rút qua toàn bộ các mốc trước nó (D118).
+ *
+ * PHẢI dùng `Math.imul`, KHÔNG được nhân thường. `soLan × BUOC_HAT_GIONG` vượt
+ * 2^53 ngay từ `soLan = 2^30`, nên `*` mất độ chính xác float: lệch **43** ở
+ * `2^30` và lệch **781.781** ở `5754 · 2^30`. `Math.imul` lấy đúng phần dư
+ * mod 2^32 với mọi `soLan` — kể cả `soLan` vượt 2^31, vì phép nhân mod 2^32
+ * chỉ phụ thuộc đầu vào mod 2^32.
+ */
+export function nhayRut(hatGiong: number, soLan: number): number {
+  return ((hatGiong | 0) + Math.imul(soLan, BUOC_HAT_GIONG)) >>> 0
+}
+
 /** Nguồn ngẫu nhiên chạy tiếp từ một hạt giống đã có (mulberry32). */
 export function taoRngTuHatGiong(hatGiongBanDau: number): RngCoTrangThai {
   let a = hatGiongBanDau | 0
 
   return {
     next(): number {
-      a = (a + 0x6d2b79f5) | 0
+      a = (a + BUOC_HAT_GIONG) | 0
       let t = Math.imul(a ^ (a >>> 15), 1 | a)
       t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
       return ((t ^ (t >>> 14)) >>> 0) / 4294967296

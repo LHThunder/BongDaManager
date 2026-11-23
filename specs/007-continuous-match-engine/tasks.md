@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **30 AC**) |
 | **Plan** | `./plan.md` (Status `Approved`, D117–D134, R51–R64) |
-| **Tiến độ** | 1/47 |
+| **Tiến độ** | 2/47 |
 | **Nền đo** | commit `5c652eb`, engine v6, **1.304 test xanh / 63 file test** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -84,7 +84,7 @@
     - `apHangDoi` chạy ở **1365**, **trước** `taoRngTuHatGiong` ở 1367, nên nó tiêu **0 lần
       rút**. Thêm `export` **không được** dịch biên ấy (D127, AC-45.4).
 
-- [ ] **T702** [P] — `nhayRut` + `BUOC_HAT_GIONG` vào `rng.ts`, ba dòng rút cách đều 2^30
+- [x] **T702** [P] — `nhayRut` + `BUOC_HAT_GIONG` vào `rng.ts`, ba dòng rút cách đều 2^30
   - File: `src/engine/rng.ts`, `src/engine/rng.test.ts`
   - Xong khi: phép kiểm **đẳng thức** `khoảng cách(i, j) = (j − i) · 2^30 mod 2^32` xanh trên
     20.000 mã do `taoMaTran` sinh, **và** ba vector cố định của `rng.test.ts`
