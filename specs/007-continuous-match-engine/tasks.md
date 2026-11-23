@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **30 AC**) |
 | **Plan** | `./plan.md` (Status `Approved`, D117–D134, R51–R64) |
-| **Tiến độ** | 7/48 |
+| **Tiến độ** | 8/48 |
 | **Nền đo** | commit `5c652eb`, engine v6, **1.304 test xanh / 63 file test** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -306,7 +306,7 @@
     và AC-37.5 vỡ **mà mọi test vẫn xanh** — vì `taiLap.test.ts` so engine với chính nó (xem
     điều kiện ra số 2).
 
-- [ ] **T718** — `lienTuc/khongChepModel.test.ts`: lưới **duy nhất** của R54
+- [x] **T718** — `lienTuc/khongChepModel.test.ts`: lưới **duy nhất** của R54
   - File: tạo `src/engine/lienTuc/khongChepModel.test.ts`
   - Xong khi: phép kiểm quét **source thô** của mọi file trong `src/engine/lienTuc/` và đỏ nếu
     bất kỳ file nào **nhắc tên** `chayChuoiBong`, `xacSuatTrungDich`, `xacSuatBiCuu`,
@@ -322,6 +322,20 @@
   - Ghi chú: `plan.md` mục 7 có một hàng riêng cho file này và R54 gọi nó là lưới **duy nhất**
     giữ cho "hai bảng thống kê còn so được" — nhưng bản đầu của `tasks.md` viết "(T751 tạo)"
     trong khi File của T751 chỉ có `sosanh.haiCheDo.test.ts`, nên **không ai tạo nó**.
+    ✅ **Làm xong 2026-11-23, và hai điều đo được khác dự đoán:**
+    1. **Cấm trong MÃ, không cấm trong chú thích.** Bản plan viết "kể cả trong chú
+       thích" và nó **đỏ ngay lúc sinh ra**: `hatGiong.ts` phải dẫn `nguoiTaiVung` để
+       nói vì sao dòng kết cục không có dải rút cố định. Chú thích không chạy; lệnh cấm
+       thu về phần có hiệu lực, dùng khuôn `chiCode` của `rng.test.ts`. Plan mục 7 đã
+       sửa theo.
+    2. **Bẫy "phép kiểm tự cắn chính nó" KHÔNG tồn tại ở cơ chế này.** Đo được:
+       `import.meta.glob` của Vite **không** trả về module đang gọi nó. Nên phép tự
+       miễn là lớp đệm chứ không phải thứ đang gánh — và có một phép kiểm riêng khẳng
+       định đúng điều đó, để nếu Vite đổi hành vi thì nó đỏ ở chỗ nói rõ lý do.
+    Cộng hai phép kiểm mà ghi chú cũ không đòi: một ca **ngược** chứng minh phép quét
+    đỏ được, và một ca canh rằng năm cái tên bị cấm **còn là hàm thật** của engine gốc
+    — nếu ai đổi tên hàm mà quên sửa danh sách thì lệnh cấm canh một cái tên chết và
+    `lienTuc/` được tự do chép hàm mới.
     ⚠️ **Phạm vi lệnh cấm: TUYỆT ĐỐI cho mọi file mà `tasks.md` tạo.** `plan.md` mục 7 cho
     "trừ đúng một dòng import ở `quyetDinh.ts`", nhưng **không task nào tạo `quyetDinh.ts`**
     nên ngoại lệ ấy **vô hiệu hôm nay**. Chỗ lệch giữa plan và tasks về `quyetDinh.ts` /
