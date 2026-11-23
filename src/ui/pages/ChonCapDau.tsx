@@ -10,6 +10,7 @@ import {
 } from '../../domain/misplacement'
 import type { Player, Tactic } from '../../domain/types'
 import {
+  SO_CAU_THU_CHINH,
   SO_CAU_THU_DU_BI_TOI_DA,
   type LyDoKhongBatDau,
 } from '../../engine/batDau'
@@ -17,9 +18,11 @@ import { DO_DAI_MA_TRAN, laMaTranHopLe, taoMaTran } from '../../engine/rng'
 import {
   CAC_QUAN_SO,
   CAC_THOI_LUONG,
+  CHE_DO_MAC_DINH,
   QUAN_SO_MAC_DINH,
   THOI_LUONG_MAC_DINH,
   type CauHinhTran,
+  type CheDoMoPhong,
   type DangKyBen,
 } from '../../engine/tran'
 import { useMatch } from '../../hooks/useMatch'
@@ -155,6 +158,22 @@ export function ChonCapDau({ onQuayLai, onDaBatDau }: Props) {
   */
   const [quanSo, datQuanSo] = useState(QUAN_SO_MAC_DINH)
   const [thoiLuong, datThoiLuong] = useState(THOI_LUONG_MAC_DINH)
+  /*
+    Chế độ mô phỏng (AC-45.1, quyết định D122 và D134).
+
+    `cheDoDaChon` là điều người dùng BẤM; `cheDoDung` là điều thật sự đi vào
+    cấu hình. Hai thứ khác nhau vì chế độ liên tục chỉ chạy được ở sân 11
+    (AC-45.8): người dùng chọn "liên tục" ở sân 11 rồi hạ quân số xuống 7 thì
+    lựa chọn cũ **không được** theo họ xuống — `taoTran` sẽ NÉM LỖI (T707).
+
+    Dẫn xuất thay vì đồng bộ bằng `useEffect`: một effect sẽ vẽ một khung với
+    trạng thái sai trước khi sửa, và còn mở đường cho chuỗi cập nhật vòng.
+  */
+  const [cheDoDaChon, datCheDo] = useState<CheDoMoPhong>(CHE_DO_MAC_DINH)
+  const lienTucDuocPhep = quanSo === SO_CAU_THU_CHINH
+  const cheDoDung: CheDoMoPhong = lienTucDuocPhep
+    ? cheDoDaChon
+    : CHE_DO_MAC_DINH
   /*
     Mã trận SỬA ĐƯỢC, và mở ra với mã của lần chạy trước nếu phiên này đã chạy
     một trận (AC-8.11, AC-8.12).
@@ -302,6 +321,7 @@ export function ChonCapDau({ onQuayLai, onDaBatDau }: Props) {
       quanSo,
       thoiLuong,
       sanTrungLap,
+      cheDoMoPhong: cheDoDung,
     }
     if (batDauTran(cauHinh)) onDaBatDau()
   }
@@ -436,6 +456,71 @@ export function ChonCapDau({ onQuayLai, onDaBatDau }: Props) {
                 {CHON_CAP_DAU.moTaThoiLuong}
               </span>
             </label>
+
+            {/*
+              Nhóm radio, không phải `<select>` có `<option disabled>` (D134):
+              repo chưa từng khoá một `<option>` nào — 40 chỗ `disabled` trong
+              `src/ui`, không một chỗ nào trên `<option>` — nên không có mẫu để
+              chép, và trạng thái khoá của `<option>` khó đọc bằng trình đọc màn
+              hình.
+
+              Khoá thì phải nói VÌ SAO chứ không im lặng ẩn đi — đúng nguyên tắc
+              đã ghi ở `TrangLichSu.tsx:266-271`, và câu giải thích dùng lại đúng
+              chuỗi mà engine phát ra cho lý do ấy, nên chỉ có MỘT bản dịch.
+            */}
+            <div
+              role="radiogroup"
+              aria-labelledby="nhan-che-do"
+              className="text-sm text-chu"
+            >
+              <span id="nhan-che-do" className="block font-medium">
+                {CHON_CAP_DAU.nhanCheDo}
+              </span>
+              <label className="mt-1 flex items-center gap-2">
+                <input
+                  type="radio"
+                  name="cheDoMoPhong"
+                  value="co-dien"
+                  checked={cheDoDung === 'co-dien'}
+                  onChange={() => datCheDo('co-dien')}
+                  className="h-4 w-4"
+                />
+                <span>
+                  <span className="block">{CHON_CAP_DAU.cheDoCoDien}</span>
+                  <span className="block text-xs text-chu-phu">
+                    {CHON_CAP_DAU.moTaCheDoCoDien}
+                  </span>
+                </span>
+              </label>
+              <label className="mt-1 flex items-center gap-2">
+                <input
+                  type="radio"
+                  name="cheDoMoPhong"
+                  value="lien-tuc"
+                  checked={cheDoDung === 'lien-tuc'}
+                  disabled={!lienTucDuocPhep}
+                  onChange={() => datCheDo('lien-tuc')}
+                  className="h-4 w-4"
+                />
+                <span className={lienTucDuocPhep ? undefined : 'text-chu-phu'}>
+                  <span className="block">{CHON_CAP_DAU.cheDoLienTuc}</span>
+                  <span className="block text-xs text-chu-phu">
+                    {CHON_CAP_DAU.moTaCheDoLienTuc}
+                  </span>
+                </span>
+              </label>
+              {!lienTucDuocPhep && (
+                <p
+                  role="status"
+                  className="mt-2 rounded border border-vien-dam bg-canh-bao-nen p-2 text-xs text-canh-bao-chu"
+                >
+                  {LY_DO_KHONG_BAT_DAU.lienTucChiSan11(
+                    quanSo,
+                    SO_CAU_THU_CHINH,
+                  )}
+                </p>
+              )}
+            </div>
 
             <label className="flex items-center gap-2 text-sm text-chu">
               <input

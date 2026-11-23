@@ -746,6 +746,13 @@ export const CHON_CAP_DAU_EN: BanDich<typeof CHON_CAP_DAU_VI> = {
   sanTrungLap: 'Play on a neutral ground',
   moTaSanTrungLap:
     'Turns home advantage off completely, so two tactics can be compared fairly.',
+  nhanCheDo: 'Simulation mode',
+  cheDoCoDien: 'By the minute',
+  moTaCheDoCoDien:
+    'One line of commentary per match minute — exactly as every match so far.',
+  cheDoLienTuc: 'Continuous',
+  moTaCheDoLienTuc:
+    'Players and the ball move every match second. Score, commentary and player ratings stay identical to the by-the-minute mode.',
   nhanMaTran: 'Match code',
   moTaMaTran:
     'Keep this code — or paste an old one back in — and you can replay exactly that match, even after changing your tactics.',

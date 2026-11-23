@@ -797,6 +797,13 @@ export const CHON_CAP_DAU_VI = {
   sanTrungLap: 'Đá trên sân trung lập',
   moTaSanTrungLap:
     'Tắt hoàn toàn lợi thế sân nhà, để so hai chiến thuật cho công bằng.',
+  nhanCheDo: 'Chế độ mô phỏng',
+  cheDoCoDien: 'Theo phút',
+  moTaCheDoCoDien:
+    'Mỗi phút trận một dòng tường thuật — đúng như mọi trận từ trước tới nay.',
+  cheDoLienTuc: 'Liên tục',
+  moTaCheDoLienTuc:
+    'Người và bóng đổi chỗ mỗi giây trận. Tỉ số, tường thuật và điểm cầu thủ y hệt chế độ theo phút.',
   nhanMaTran: 'Mã trận',
   moTaMaTran:
     'Giữ lại mã này — hoặc dán lại một mã cũ — thì đấu lại được đúng trận đó, kể cả khi bạn đổi chiến thuật.',

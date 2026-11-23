@@ -357,6 +357,42 @@
     ấy**; `npx tsc --noEmit` sạch; và lý do khoá hiện **bằng chữ** theo ngôn ngữ đang chọn
     (tiền lệ `TrangLichSu.tsx:271-292`).
   - AC: AC-45.1, AC-45.8, và P8 + P9
+  - ⏳ **MỚI LÀM MỘT TRONG BA PHẦN, 2026-11-23.** Phần nhóm radio + chuỗi song ngữ đã
+    xong và **đã xem bằng mắt** (xem dưới). Hai phần còn lại **chặn vì lỗ của plan**, mô tả
+    ngay sau đây — chưa tick.
+  - ✅ **Phần đã xong: nhóm radio.** `cheDoDaChon` (người dùng bấm) tách khỏi `cheDoDung`
+    (thứ vào cấu hình), **dẫn xuất chứ không `useEffect`**: chọn "Liên tục" ở sân 11 rồi hạ
+    xuống sân 7 thì lựa chọn cũ **không** theo xuống — nếu theo thì `taoTran` **ném lỗi**
+    (T707). Đo trên app thật ở sân 7: `lien-tuc` `disabled`, `co-dien` `checked`, và
+    `role="status"` mang đúng câu "…chỉ chạy được ở sân 11 người; trận này đang là sân 7…";
+    quay về 11 thì mở khoá lại **và nhớ lựa chọn cũ**. 0 lỗi console. Câu giải thích dùng
+    lại đúng chuỗi `lienTucChiSan11` của T707 nên chỉ có **một** bản dịch.
+    `ngonNgu.test.ts` **0 dòng sửa**, 235 xanh — và đã đột biến kiểm nó thật sự phủ năm
+    khoá mới (bỏ một dấu tiếng Việt vào bản EN → đỏ đúng khối `CHON_CAP_DAU`).
+  - 🛑 **CHẶN 1 — `AnhChupMet` KHÔNG CÓ CHỦ.** `plan.md` nhắc kiểu này ở D121, ở sơ đồ mục 3
+    và ở diff mục 4.1, nhưng `tasks.md` **không nhắc tên nó một lần nào** trong cả 48 task,
+    và `grep -rn AnhChupMet src/` **rỗng**. Cộng thêm: hôm nay prop ấy **không có người sản
+    xuất lẫn người đọc** — người đọc chỉ xuất hiện ở **T714** (tạo `viTriVe.ts`, sửa
+    `San2D.tsx`) và **T733** (nới vòng rAF). Đây đúng hình dạng món mà **T704 đã hoãn có
+    tên** vì cùng lý do: nối dây không người đọc, vào đúng tầng mà **R52** nói không một
+    phép kiểm nào canh. **Đề nghị**: hoãn sang **T714**, nơi kiểu có cả chủ lẫn người đọc.
+  - 🛑 **CHẶN 2 — `dungBanGhi` KHÔNG BIẾT ĐƯỢC chế độ.** Nó đọc từ `TrangThaiTran`, mà
+    `TrangThaiTran` **đóng băng ở đúng 16 trường** (D119) và **không** mang chế độ.
+    `cauHinhDauLai(hienTai, ma)` ở `useMatch.ts:346` vướng đúng chuyện ấy — tham số thứ ba
+    của T705 không có gì để truyền vào. Chỗ nhớ tự nhiên là store, mà `src/store/` **không**
+    nằm trong danh sách file của T709.
+  - 🛑 **CHẶN 3 — và đây là một LỖI ĐO ĐƯỢC, không phải câu hỏi thiết kế.**
+    `taoTranLienTuc` (`tranLienTuc.ts:75`) gọi `taoTran` rồi chỉ đè `hatGiong`, nên
+    `tran.phienBanEngine` **vẫn là 6** — đã đo bằng một trận thật, in ra **6**. Nhưng
+    `phienBanEngineHienTaiCua('lien-tuc')` trả **101**, và `lyDoKhongDauLai`
+    (`matchRepo.ts:246`) so bằng `!==`. Hệ quả: **mọi** trận liên tục vừa lưu xong là
+    **mất ngay nút đấu lại** với lý do `khac-phien-ban-engine` — đúng thứ mà T708 vừa dựng
+    hai số phiên bản riêng để **tránh**.
+    👉 Và chữa CHẶN 3 chữa luôn CHẶN 2: nếu `taoTranLienTuc` đặt
+    `phienBanEngine: PHIEN_BAN_ENGINE_LIEN_TUC` thì `dungBanGhi` **dẫn xuất** chế độ từ
+    `tt.phienBanEngine` — không thêm trường vào `TrangThaiTran`, không thêm state vào store,
+    không có hai nguồn sự thật để lệch nhau. Giá: chạm `tranLienTuc.ts`, là file của **T704
+    đã tick**.
   - Phụ thuộc: T707, T708
   - Ghi chú — hai thứ tự động và một thứ bắt buộc:
     - `ngonNgu.test.ts:65` đặt `TEN_KHOI = Object.keys(BO_CHUOI.vi)` rồi sinh một describe
