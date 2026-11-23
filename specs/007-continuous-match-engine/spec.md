@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **ID** | `007-continuous-match-engine` |
-| **Status** | Clarified |
+| **Status** | Planned |
 | **Created** | 2026-11-19 |
 | **Clarified** | 2026-11-19, bổ sung 2026-11-22 khi lập plan |
 | **Branch** | `007-continuous-match-engine` — **chưa cắt**, xem mục 9 |
