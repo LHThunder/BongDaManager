@@ -9,7 +9,13 @@ import {
   taoTran,
   type TrangThaiTran,
 } from '../engine/tran'
-import { DB_NAME, dongDb, type AnhChupDoi, type TranDaLuu } from '../storage/db'
+import {
+  DB_NAME,
+  DB_VERSION,
+  dongDb,
+  type AnhChupDoi,
+  type TranDaLuu,
+} from '../storage/db'
 import * as matchRepo from './matchRepo'
 
 /*
@@ -378,5 +384,89 @@ describe('quân số và thời lượng của trận đã lưu', () => {
     const cac = await matchRepo.danhSach()
     expect(cac[0].quanSo).toBe(5)
     expect(cac[0].thoiLuong).toBe(20)
+  })
+})
+
+/*
+  Chế độ mô phỏng đi qua lớp lưu trữ (T708, D122, AC-45.1 + P7).
+
+  Phép kiểm xương sống là cái mang chữ BẪY: một bản ghi CÓ `quanSo` và
+  `thoiLuong` nhưng KHÔNG có chế độ — tức bản ghi của spec 002 tới 006 — vẫn
+  phải đọc ra `'co-dien'`. Nó là phép kiểm duy nhất bắt được cái bẫy ở đường rẽ
+  sớm của `dienMacDinh`: nếu đường ấy chỉ hỏi hai trường thì bản ghi kiểu này
+  trả về sớm với chế độ vẫn `undefined`, và cả ứng dụng lại phải tự đoán.
+*/
+describe('chế độ mô phỏng trong bản ghi (T708, AC-45.1)', () => {
+  it('DB_VERSION giữ nguyên 3 — thêm trường tuỳ chọn, không migration', () => {
+    expect(DB_VERSION).toBe(3)
+  })
+
+  it('bản ghi không có chế độ đọc ra co-dien', () => {
+    const cu = tranThu(0)
+    expect(cu.cheDoMoPhong, 'fixture phải là bản ghi kiểu CŨ').toBeUndefined()
+    expect(matchRepo.cheDoCua(cu)).toBe('co-dien')
+  })
+
+  it('bản ghi có chế độ đọc ra đúng chế độ ấy', () => {
+    for (const cheDo of ['co-dien', 'lien-tuc'] as const) {
+      const tran: TranDaLuu = { ...tranThu(0), cheDoMoPhong: cheDo }
+      expect(matchRepo.cheDoCua(tran), cheDo).toBe(cheDo)
+    }
+  })
+
+  it('BẪY: bản ghi CÓ quanSo và thoiLuong mà KHÔNG có chế độ vẫn được điền', async () => {
+    const cu = tranThu(1)
+    expect(cu.quanSo).not.toBeUndefined()
+    expect(cu.thoiLuong).not.toBeUndefined()
+    expect(cu.cheDoMoPhong).toBeUndefined()
+
+    await matchRepo.luu(cu)
+
+    const daDoc = await matchRepo.doc(cu.id)
+    expect(daDoc?.cheDoMoPhong, 'đường rẽ sớm của dienMacDinh đã bỏ sót').toBe(
+      'co-dien',
+    )
+
+    const ds = await matchRepo.danhSach()
+    const nhe = ds.find((t) => t.id === cu.id)
+    expect(nhe?.cheDoMoPhong).toBe('co-dien')
+  })
+
+  it('bản ghi liên tục lưu rồi đọc lại vẫn là liên tục', async () => {
+    const moi: TranDaLuu = { ...tranThu(2), cheDoMoPhong: 'lien-tuc' }
+    await matchRepo.luu(moi)
+    expect((await matchRepo.doc(moi.id))?.cheDoMoPhong).toBe('lien-tuc')
+    expect(matchRepo.cheDoCua((await matchRepo.doc(moi.id))!)).toBe('lien-tuc')
+  })
+
+  it('tomTatCua mang chế độ sang phần nhẹ', () => {
+    const moi: TranDaLuu = { ...tranThu(3), cheDoMoPhong: 'lien-tuc' }
+    expect(matchRepo.tomTatCua(moi).cheDoMoPhong).toBe('lien-tuc')
+    expect(matchRepo.tomTatCua(tranThu(3)).cheDoMoPhong).toBeUndefined()
+  })
+
+  it('hai chế độ mang HAI số phiên bản engine riêng', () => {
+    /*
+      Đây là chỗ giữ cho 20 trận đã lưu bằng v6 không mất nút đấu lại lần thứ
+      hai: `lyDoKhongDauLai` so `tran.phienBanEngine` với số của CHẾ ĐỘ của
+      chính trận ấy, không với một số dùng chung.
+    */
+    expect(matchRepo.phienBanEngineHienTaiCua('co-dien')).toBe(6)
+    expect(matchRepo.phienBanEngineHienTaiCua('lien-tuc')).toBe(101)
+    expect(matchRepo.phienBanEngineHienTaiCua('lien-tuc')).not.toBe(
+      matchRepo.phienBanEngineHienTaiCua('co-dien'),
+    )
+  })
+
+  it('và một trận v6 đã lưu vẫn ĐẤU LẠI ĐƯỢC ở chế độ của nó', () => {
+    const cu = tranThu(4)
+    expect(cu.phienBanEngine).toBe(6)
+    expect(
+      matchRepo.lyDoKhongDauLai(
+        matchRepo.tomTatCua(cu),
+        matchRepo.phienBanEngineHienTaiCua(matchRepo.cheDoCua(cu)),
+        () => true,
+      ),
+    ).toBeNull()
   })
 })

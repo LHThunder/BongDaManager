@@ -4,6 +4,7 @@ import { CHI_THI_MAC_DINH } from '../domain/instructions'
 import { vaiTroMacDinh } from '../domain/roles'
 import type { Player, Tactic, Team } from '../domain/types'
 import type { BaoCaoTran } from '../engine/baoCao'
+import type { CheDoMoPhong } from '../engine/tran'
 import type { BenDoi, SuKien, TiSo } from '../engine/suKien'
 import type { CanThiep } from '../engine/tran'
 import type { HoSoCauThu } from '../engine/sucManh'
@@ -84,6 +85,22 @@ export interface TomTatTran {
   readonly quanSo?: number
   /** Thời lượng trận bằng phút chơi. Thiếu nghĩa là 90 (AC-12.6). */
   readonly thoiLuong?: number
+  /**
+   * Chế độ mô phỏng của trận (AC-45.1, quyết định D122).
+   *
+   * KHÔNG bắt buộc, và `DB_VERSION` **giữ nguyên 3** vì thế — đúng tiền lệ
+   * `quanSo` của D61: thêm một trường không bắt buộc thì bản ghi cũ vẫn đọc
+   * được nguyên vẹn, mà nâng phiên bản IndexedDB là cả một đường migration
+   * cộng rủi ro tab cũ chặn.
+   *
+   * Thiếu nghĩa là trận lưu TRƯỚC spec 007 — lúc ấy chỉ có một chế độ, nên
+   * `'co-dien'` là sự thật chắc chắn chứ không phải phỏng đoán. `matchRepo`
+   * điền mặc định khi đọc, đúng MỘT chỗ.
+   *
+   * ⚠️ Trường này **chỉ có ở bản ghi**, không có ở `TrangThaiTran` — trạng
+   * thái trận đóng băng ở đúng 16 trường (D119).
+   */
+  readonly cheDoMoPhong?: CheDoMoPhong
 }
 
 /** Đăng ký của một bên, đủ để dựng lại trận theo AC-8.11. */

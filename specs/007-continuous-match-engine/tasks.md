@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **30 AC**) |
 | **Plan** | `./plan.md` (Status `Approved`, D117–D134, R51–R64) |
-| **Tiến độ** | 11/48 |
+| **Tiến độ** | 12/48 |
 | **Nền đo** | commit `5c652eb`, engine v6, **1.304 test xanh / 63 file test** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -311,7 +311,7 @@
   - AC: AC-45.8, và P8
   - Phụ thuộc: T705
 
-- [ ] **T708** [P] — Chế độ vào bản ghi, tệp sao lưu, và hai hàm đọc
+- [x] **T708** [P] — Chế độ vào bản ghi, tệp sao lưu, và hai hàm đọc
   - File: `src/storage/db.ts` (`TomTatTran` + một trường tuỳ chọn),
     `src/services/matchRepo.ts` (`dienMacDinh`, `tomTatCua`, thêm `cheDoCua` +
     `phienBanEngineHienTaiCua`), `src/services/matchRepo.test.ts`,
@@ -320,6 +320,30 @@
     v5 **không có** `cheDoMoPhong`, nhập ở chế độ `'thay-the'`, đọc ra `'co-dien'` (P7); và
     `npx vitest run src/services/` xanh.
   - AC: AC-45.4, AC-45.1
+  - ⚠️ **Hai ca vòng xuất–nhập là VACUOUS với dòng schema — đã đo.**
+    `TranDaLuuSchema` kết bằng `.passthrough()` (`backupSchema.ts:243`) và `.extend()`
+    giữ nguyên nết ấy, nên một trường **không khai** trong schema vẫn đi qua tệp nguyên
+    vẹn: xoá hẳn dòng `cheDoMoPhong` của schema mà **58/58 vẫn xanh**. Vì thế file nhận
+    **ba** ca chứ không phải "+1": ca thứ ba cho một tệp mang chế độ lạ `'ba-chieu'` và
+    đòi `importAll` **từ chối** với mã `SchemaInvalid`. Đột biến lại: bỏ dòng schema →
+    **đúng ca ấy đỏ** (1 failed / 59). Đó là giá trị thật của việc khai trường ở schema —
+    không phải để tệp mang được chế độ, mà để chế độ lạ **không** lọt vào IndexedDB rồi
+    nằm chờ làm vỡ một `switch` về sau.
+  - ✅ **Ca BẪY có gánh thật, đã đột biến kiểm.** Đổi đường rẽ sớm của `dienMacDinh` về
+    hai trường (bỏ điều kiện thứ ba) → **đúng một** ca đỏ, và là đúng ca BẪY
+    (1 failed / 32). Không có ca ấy thì bản ghi của spec 002–006 trả về sớm với chế độ
+    vẫn `undefined`.
+  - ⚠️ **`exportAll` trả về ZIP, không phải JSON.** `JSON.parse(await tep.text())` ném
+    `Unexpected token 'P', "PK"...`. Ca từ chối phải mở manifest rồi gói lại bằng
+    `docZip` + `taoZip` — đúng đường mà ca "tệp lỗi ở BẢN GHI CUỐI"
+    (`backupService.test.ts:380`) đã đi.
+  - ✅ **`src/storage/migrations.ts` 0 dòng sửa** — đúng điều ghi chú trên đòi: chỗ điền
+    mặc định vẫn chỉ có **một**, ở `dienMacDinh`, chứ không mọc thêm chỗ thứ hai ở
+    `nangV4LenV5`. Một tệp v4 nhập vào thiếu chế độ thì `dienMacDinh` điền lúc ĐỌC.
+  - 📏 **Đo được**: `DB_VERSION` 3, `SCHEMA_VERSION` 5 (`migrations.ts:22`) — cả hai 0 dòng
+    sửa. Toàn bộ: **72 file / 1443 phép kiểm xanh** (trước T708 là 1432). Ba file mà
+    `plan.md` mục 7 tuyên 0 dòng sửa — `tuongThichEngine.test.ts`, `taiLap.test.ts`,
+    `phatLai.test.ts` — `git diff --stat` **rỗng**.
   - Phụ thuộc: T705
   - Ghi chú: `src/storage/migrations.ts:97` `nangV4LenV5` là **chỗ thứ hai** dễ điền mặc định
     nhầm, và chú thích `matchRepo.ts:25-34` nói rõ chỗ điền mặc định chỉ được có **một** —
