@@ -61,6 +61,26 @@ export interface DangKyBen {
   readonly cacCauThu: readonly HoSoCauThu[]
 }
 
+/**
+ * Chế độ mô phỏng của một trận (T705 của spec 007, quyết định D122).
+ *
+ * `'co-dien'` là engine v6, một mốc mỗi phút — mọi trận trước spec 007.
+ * `'lien-tuc'` là engine liên tục, mốc theo giây và toạ độ mét.
+ *
+ * Hai chế độ **sống song song**: engine mới là lối vào thứ hai, không phải bản
+ * thay thế. Vì thế chế độ thuộc về **trận**, không thuộc về đội.
+ */
+export type CheDoMoPhong = 'co-dien' | 'lien-tuc'
+
+/**
+ * Chế độ của một trận không khai chế độ.
+ *
+ * Có tên thay vì rải chuỗi `'co-dien'` khắp nơi: hai chỗ cùng điền một mặc
+ * định là hai chỗ để chúng trôi khỏi nhau. Mọi bản ghi lưu trước spec 007 đều
+ * là `'co-dien'` theo định nghĩa — lúc ấy chưa có chế độ nào khác.
+ */
+export const CHE_DO_MAC_DINH: CheDoMoPhong = 'co-dien'
+
 export interface CauHinhTran {
   readonly maTran: string
   readonly nha: DangKyBen
@@ -88,6 +108,16 @@ export interface CauHinhTran {
    * (AC-9.8). Không khai thì mặc định là đội chủ nhà.
    */
   readonly doiCuaNguoiDung?: BenDoi
+  /**
+   * Chế độ mô phỏng (AC-45.1). Không khai thì `CHE_DO_MAC_DINH`.
+   *
+   * ⚠️ Nó **KHÔNG** vào `TrangThaiTran`: trạng thái trận đóng băng ở đúng 16
+   * trường (D119), và bản ghi trận không phình thêm một byte vì chế độ
+   * (AC-45.4 — `TomTatTran` nhận nó ở T708, còn trạng thái thì không). Nên hai
+   * đường dựng lại cấu hình — `cauHinhDauLai` và `cauHinhTuBanGhi` — phải được
+   * **truyền** chế độ, chứ không đọc nó ra từ trạng thái.
+   */
+  readonly cheDoMoPhong?: CheDoMoPhong
 }
 
 export interface ThongKeBen {
@@ -1343,9 +1373,21 @@ export function dangKyTuTrangThai(ben: BenTran): DangKyBen {
 }
 
 /** Cấu hình để chạy lại đúng cặp đấu này (AC-11.6). */
+/**
+ * Cấu hình để đấu lại một trận, dựng từ trạng thái của nó.
+ *
+ * ⚠️ `cheDo` là **tham số**, không đọc từ `tt`: trạng thái trận đóng băng ở
+ * đúng 16 trường (D119) nên chế độ không có ở đó. Nếu để nó tự suy thì nút
+ * "đấu lại" của một trận liên tục sẽ lặng lẽ chạy ở chế độ cổ điển — chỗ gọi
+ * (`useMatch`) là nơi biết chế độ, nên chỗ gọi phải nói ra.
+ *
+ * Không khai thì `CHE_DO_MAC_DINH`, nên mọi chỗ gọi có từ trước không đổi hành
+ * vi (T705 của spec 007).
+ */
 export function cauHinhDauLai(
   tt: TrangThaiTran,
   maTran: string,
+  cheDo: CheDoMoPhong = CHE_DO_MAC_DINH,
 ): CauHinhTran {
   return {
     maTran,
@@ -1353,6 +1395,7 @@ export function cauHinhDauLai(
     quanSo: tt.quanSo,
     thoiLuong: tt.thoiLuong,
     doiCuaNguoiDung: tt.doiCuaNguoiDung,
+    cheDoMoPhong: cheDo,
     nha: dangKyTuTrangThai(tt.ben.nha),
     khach: dangKyTuTrangThai(tt.ben.khach),
   }

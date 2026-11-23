@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **30 AC**) |
 | **Plan** | `./plan.md` (Status `Approved`, D117–D134, R51–R64) |
-| **Tiến độ** | 8/48 |
+| **Tiến độ** | 9/48 |
 | **Nền đo** | commit `5c652eb`, engine v6, **1.304 test xanh / 63 file test** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -211,12 +211,25 @@
     **đúng một tầng** — một thư mục con nữa là vỡ. Lô là **đầu ra chỉ-ghi**; trạng thái mô
     phỏng sống trong float64 cục bộ (D119).
 
-- [ ] **T705** — `cheDoMoPhong` vào kiểu + `CauHinhTran`, và **hai đường dựng lại cấu hình**
+- [x] **T705** — `cheDoMoPhong` vào kiểu + `CauHinhTran`, và **hai đường dựng lại cấu hình**
   - File: `src/engine/tran.ts` (type `CheDoMoPhong` + `CauHinhTran` + `cauHinhDauLai` nhận tham
     số thứ ba), `src/services/phatLai.ts` (`cauHinhTuBanGhi` mang chế độ)
   - Xong khi: `npx vitest run src/engine/tran.test.ts src/services/phatLai.test.ts` xanh **với
     0 dòng sửa ở `phatLai.test.ts`**; và `TrangThaiTran` vẫn **đúng 16 trường** (D119) — chế độ
     **không** vào đó.
+  - ⚠️ **Phạm vi nới hai file TEST, 2026-11-23, và đây là lý do.** Hiến pháp mục 4 bắt
+    buộc unit test cho lớp engine **và** lớp đọc/ghi dữ liệu, nhưng danh sách file của task
+    không có file test nào. Nên:
+    1. **`src/engine/tran.test.ts`** nhận bảy ca mới (nó vốn đã nằm trong dòng "Xong khi").
+    2. **`src/services/phatLai.cheDo.test.ts`** là file MỚI, không phải ca thêm vào
+       `phatLai.test.ts` — file ấy là một trong **ba file mà `plan.md` mục 7 tuyên 0 dòng
+       sửa**, tức một trong ba lưới giữ AC-45.2, và sửa nó là tự bỏ lưới.
+    ✅ Đã kiểm sau khi xong: `git diff` của cả ba file bất khả xâm phạm là **rỗng**.
+  - ⚠️ **Một phép kiểm ghi lại BẪY chứ không canh tính năng.** Vì chế độ không vào
+    `TrangThaiTran`, `cauHinhDauLai` mà quên truyền chế độ sẽ lặng lẽ đấu lại một trận liên
+    tục ở chế độ **cổ điển**. Có một ca khẳng định đúng điều đó, để nó là một sự thật được
+    ghi chứ không phải một chỗ sập bất ngờ — và để T709 biết nó **phải** truyền chế độ từ
+    `useMatch`.
   - AC: AC-45.1, AC-45.4
   - Phụ thuộc: T701
   - Ghi chú — **hai chỗ chế độ bị rơi im lặng, plan không liệt kê, và đây là cả nội dung task:**
