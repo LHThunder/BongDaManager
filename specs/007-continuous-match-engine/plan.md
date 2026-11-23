@@ -605,13 +605,49 @@ hạ ngưỡng**").
 
 ---
 
-## 11. Hai chỗ `spec.md` đã lạc hậu (plan **nêu**, không tự sửa)
+## 11. Hai chỗ `spec.md` đã lạc hậu — **người dùng cho sửa 2026-11-23**
 
-1. **Spec còn viết "Engine v5" ở bốn chỗ** (dòng 19, 81, 211, 448) trong khi code là
-   `PHIEN_BAN_ENGINE = 6` (tran.ts:1316) từ commit `f537d7d`. Và câu "20 trận đã lưu đấu lại y
-   nguyên" ở dòng 19/81 **đã sai** từ lúc engine lên 6 — chúng đã mất nút đấu lại một lần.
-2. **Cảnh báo ở dòng 211–215 đã hết hiệu lực.** Nó viết "Engine v5 đo được **3,95 bàn một
-   trận**… trong khi spec 010 đòi 2–3 bàn. Nên AC-45.3 đang ghim vào mức mà spec 010 **bắt buộc
-   phải phá**". Đo lại trên v6 với 200 mã: **2,475 bàn một trận** (và 2,50 / 2,75 trên hai mẫu
-   khác) — **đã nằm trong dải 2–3**. "Hợp đồng tạm có ngày hết hạn" ấy đã **hết hạn sớm**, nên
-   AC-45.3 không còn ghim vào mức nào phải phá.
+Plan **nêu** hai chỗ này và không tự sửa, vì sửa chúng đổi **lập luận** của spec. Người dùng
+cho sửa trong cùng ngày; `spec.md` mục 15 là nhật ký chính thức (hàng 25 và 26).
+
+1. **Bốn chỗ viết "Engine v5", và câu "20 trận đã lưu ĐẤU LẠI y nguyên".** Code là
+   `PHIEN_BAN_ENGINE = 6` (`tran.ts:1316`) từ `f537d7d`, và `lyDoKhongDauLai` trả
+   `'khac-phien-ban-engine'` khi phiên bản khác (`matchRepo.ts:202`) — nên trận lưu bằng v5
+   **mở và xem lại được** (bản ghi mang dòng sự kiện đầy đủ) nhưng **không đấu lại được**.
+   ✅ Đã sửa ở `spec.md`: khối mở đầu, non-goal "thay thế engine", ghi chú lớp suy ra. Lời hứa
+   đúng của spec vẫn là **AC-45.2**, vốn đã viết "bằng engine **hiện tại**" ngay từ đầu.
+
+   ⚠️ **Và danh sách "bốn chỗ" ở trên đã THIẾU.** Soát chéo sau khi sửa tìm thêm **ba chỗ**
+   mang đúng lời hứa ấy mà không mang chữ "v5", nên một lần grep `"Engine v5"` không thấy:
+   hàng **P3 của mục 10** trong spec (nặng nhất — mục 10 mở đầu bằng "Mọi AC dưới đây PHẢI
+   còn đúng khi spec 007 đóng", và DoD đòi chạy lại chúng cho xanh, nên đó là yêu cầu **còn
+   sống**); hàng tình huống biên "mở lại một trận cũ mà engine đã đổi kể từ đó", vốn nói
+   "chuyển động có thể khác" trong khi sự thật là **đấu lại bị từ chối thẳng**; và quyết định
+   1 của nhật ký 2026-11-19 (giữ nguyên lời cũ, chỉ thêm con trỏ sang bản sửa). Bài học cho
+   các spec sau: **grep theo lời hứa, không grep theo con số phiên bản.**
+
+2. **Cảnh báo "hợp đồng tạm" của AC-45.3 ghim vào 3,95 bàn một trận của v5.**
+   ⚠️ **Và bản trước của chính mục 11 này đã kết luận SAI.** Nó viết v6 đo được "**2,475 bàn
+   một trận** — đã nằm trong dải 2–3", rồi bảo hợp đồng tạm "đã hết hạn sớm". Con số ấy
+   **không dựng lại được**, và kết luận thì **ngược**. Đo lại 2026-11-23 (200 mã do `taoMaTran`
+   sinh, bốn hạt giống 1/2/7/99, sân trung lập, `benMau` + `chayHetTran`):
+
+   | Cặp đấu | Bàn một trận (4 mẫu × 200 mã) | Dải 2–3 của spec 010 |
+   |---|---|---|
+   | Hai đội **bằng nhau** (chỉ số 12) | 2,495 / 2,565 / 2,760 / 2,870 | **trong dải** |
+   | **A15 vs B10** — cặp mà **D131** chọn cho phép kiểm AC-45.3 | 3,110 / 3,230 / 3,285 / 3,390 | **trên dải, cả bốn mẫu** |
+
+   2,475 là mức của hai đội **bằng nhau**; phép kiểm thật sự dùng cặp **lệch chỉ số**. Nên
+   cảnh báo **còn hiệu lực**, chỉ nhẹ hơn: khoảng cách tới dải co từ ~0,95 bàn xuống
+   ~0,2–0,4 bàn, và spec 010 **vẫn phải phá** AC-45.3. ✅ Đã sửa ở `spec.md`: cảnh báo được
+   **giữ lại và viết lại bằng số của v6** thay vì bị xoá.
+
+   > **Một hệ quả để người dùng biết, plan KHÔNG tự quyết:** cặp A15 vs B10 của D131 được
+   > chọn vì lý do khác (tách lợi thế sân nhà khỏi ngân sách 0,5 bàn), và nó tình cờ là cặp
+   > **ghi nhiều bàn nhất** trong các cặp đã đo. Nếu sau này muốn AC-45.3 nằm sẵn trong dải
+   > của spec 010 thì phải đổi cặp đấu — nhưng đổi cặp là đổi **ý nghĩa** của phép kiểm, nên
+   > nó là một câu hỏi, không phải một phép tối ưu. Hôm nay D131 **giữ nguyên**.
+
+   > **Lỗi này đúng loại mà chính plan đã đặt lệnh cấm số 3 ở mục 7 để chặn:** trích một con
+   > số mà không kèm lệnh dựng lại được và điều kiện đo. Lệnh cấm ấy viết cho số **thời
+   > gian**; từ đây nó áp cho **mọi** con số đo được.
