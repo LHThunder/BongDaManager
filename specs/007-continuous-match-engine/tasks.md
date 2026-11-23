@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **30 AC**) |
 | **Plan** | `./plan.md` (Status `Approved`, D117–D134, R51–R64) |
-| **Tiến độ** | 3/47 |
+| **Tiến độ** | 4/47 |
 | **Nền đo** | commit `5c652eb`, engine v6, **1.304 test xanh / 63 file test** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -66,7 +66,7 @@
   - Ghi chú: `grep -rn NGAN_SACH src/` ra **đúng một** file hôm nay. "Các file ngân sách" là
     số ít cho tới T752.
 
-- [ ] **T701** — Bóc `quyetKetCucChuoi` + thêm `export` cho ba hàm, **bốn ký hiệu**
+- [x] **T701** — Bóc `quyetKetCucChuoi` + thêm `export` cho ba hàm, **bốn ký hiệu**
   - File: `src/engine/tran.ts`
   - Xong khi: `quyetKetCucChuoi(benNha, benKhach, sanTrungLap, quanSo, rng)` tồn tại **trong
     `tran.ts`** và `buocTiep` gọi nó; `thuRutThe`, `giamTheLuc`, `apHangDoi` có thêm chữ
