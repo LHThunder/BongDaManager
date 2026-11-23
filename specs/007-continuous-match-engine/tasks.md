@@ -4,19 +4,30 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **30 AC**) |
 | **Plan** | `./plan.md` (Status `Approved`, D117–D134, R51–R64) |
-| **Tiến độ** | 0/44 |
+| **Tiến độ** | 0/47 |
 | **Nền đo** | commit `5c652eb`, engine v6, **1.304 test xanh / 63 file test** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
 > Mỗi task phải: chạm file cụ thể + có cách kiểm chứng + đủ nhỏ để làm trong một lần.
 
-> **Số task do `plan.md` mục 9 gán.** Bảy lát Phase 53–59, **44 task** T700–T762.
-> Bốn số dùng thêm so với plan — **T706, T707, T708, T709** — đều nằm trong khoảng trống plan
-> đã chừa, và chúng có lý do viết ra: **T706** lấp một lỗ thật của plan (`dienPha.ts` được
-> plan nhắc ba lần mà không task nào tạo), còn **T707/T708/T709** là phép chẻ `T705` cũ, vốn
-> khai **12 file trải 5 tầng** — quá to theo đúng luật "mô tả cần hơn 3 câu thì chẻ tiếp".
-> Plan mục 9 đã được cập nhật cùng ngày. Các khoảng trống còn lại: T716–T719, T725–T729,
-> T739, T746–T749, T755–T759.
+> **Số task do `plan.md` mục 9 gán.** Bảy lát Phase 53–59, **47 task** T700–T762.
+> **Bảy số dùng thêm so với plan**, đều nằm trong khoảng trống plan đã chừa, và mỗi số có một
+> lý do viết ra:
+> - **T706, T717, T718** lấp **ba lỗ thật** của plan — ba file được plan nhắc nhiều lần ở sơ
+>   đồ, ở quyết định và ở bảng Contracts mà **không task nào tạo**: `dienPha.ts`,
+>   `hatGiong.ts`, `khongChepModel.test.ts`.
+> - **T716** lấp một lỗ **CRITICAL**: `viTriTrongTai`, chủ sở hữu duy nhất của **AC-38.10**.
+> - **T707/T708/T709** là phép chẻ `T705` cũ, vốn khai **12 file trải 5 tầng** — quá to theo
+>   đúng luật "mô tả cần hơn 3 câu thì chẻ tiếp".
+>
+> ⚠️ **Số task KHÔNG đi đúng thứ tự phase, và đó là cố ý:** **T716** nằm ở **Phase 54** (nó
+> sửa `coHoc.ts` cùng T713), còn **T717** và **T718** nằm ở **Phase 53** (chúng là nền và lưới
+> cho mọi thứ sau). Người đọc quét theo số sẽ tưởng T71x thuộc Phase 54 — đi theo **tiêu đề
+> phase**, đừng đi theo số.
+>
+> Bốn lỗ đầu đều cùng một hình dạng, và chúng được tìm ra bằng **một phép soát duy nhất**:
+> grep từng ký hiệu của bảng Contracts (plan mục 5) trong `tasks.md`. Plan mục 9 đã được cập
+> nhật cùng ngày. Các khoảng trống còn lại: T719, T725–T729, T739, T746–T749, T755–T759.
 
 > ## Điều kiện RA chung của mọi task chạm `src/engine/`
 > Không task nào được tick nếu thiếu một trong năm điều này — chúng là lưới giữ **AC-45.2**,
@@ -95,9 +106,21 @@
   - File: tạo `src/engine/hinhHocSan.ts`, `src/engine/hinhHocSan.test.ts`,
     `src/ui/quyDoiMet.ts`, `src/ui/quyDoiMet.test.ts`; sửa `src/ui/components/San2D.tsx`
     (thêm `export` cho `BAN_KINH`)
-  - Xong khi: hai đẳng thức tâm sân xanh — 52,5 m → x = **50,000** và 34 m → y = **32,000**;
-    `TI_LE_MET` tính **một** hệ số `min(...) = 0,864706`; và `grep -n "2\.6" src/ui/quyDoiMet.ts`
-    ra **rỗng** (hệ số phải đọc `BAN_KINH` chứ không chép số).
+  - Xong khi: bốn đẳng thức xanh — hai ở **tâm** (52,5 m → x = **50,000**; 34 m → y =
+    **32,000**) và **hai ở biên**, dựng từ `BAN_KINH` chứ không chép số: 0 m → x = **4,603**
+    (= 50 − 52,5·0,864706) và 0 m → y = **61,400** (= 32 + 34·0,864706). ⚠️ **Chiều y bị đảo**
+    (`plan.md` mục 6 AC-37.1: "`quyDoiMet.ts` **đảo dấu y** cho gốc góc dưới trái"), nên **0 m
+    là mép DƯỚI** và nó cho y lớn; 68 m mới cho y = **2,600** (= `BAN_KINH`). Bản đầu của điều
+    kiện này ghi "0 m → y = 2,600" — **sai mép**, và nó sẽ làm T703 đỏ ở chính điều kiện của
+    mình. `TI_LE_MET` tính **một** hệ số `min(...) = 0,864706`. Và
+    `test -f src/ui/quyDoiMet.ts && ! grep -q "2\.6" src/ui/quyDoiMet.ts` (hệ số phải đọc
+    `BAN_KINH` chứ không chép số — khuôn `test -f &&` để điều kiện không thoả khi file chưa có).
+  - ⚠️ **Hai đẳng thức tâm KHÔNG có răng, và `plan.md` D121 gọi chúng là "phép kiểm có răng"
+    là sai.** `/analyze` chứng minh: (52,5; 34) là đúng tâm sân nên nó ánh xạ vào tâm ảnh
+    (`RONG/2 = 50`, `CAO/2 = 32`) với **mọi** hệ số đẳng hướng — cả hai phương án plan đã loại
+    (100/105 = 0,952381 và 64/68 = 0,941176) **cũng thoả**. Răng nằm ở hai đẳng thức **biên**:
+    dưới 0,952381 thì x(0 m) = **0,000**, dưới 0,941176 thì **0,588**, so với **4,603**; và ở
+    trục y, 0,941176 cho y(0 m) = **64,000** so với **61,400**.
   - AC: AC-37.1, AC-37.2, AC-38.8
   - Phụ thuộc: —
   - Ghi chú — hai thứ plan nói sai, đã kiểm:
@@ -117,11 +140,14 @@
   - File: tạo `src/engine/lienTuc/moc.ts`, `src/engine/lienTuc/moc.test.ts`,
     `src/engine/lienTuc/loMoc.ts`, `src/engine/lienTuc/tranLienTuc.ts`; sửa
     `src/hooks/useMatch.ts` (ref ngoài React giữ lô)
-  - Xong khi: ba đẳng thức lưới xanh — `soBuoc === tongPhutTran(tt) * BUOC_MOI_PHUT`,
+  - Xong khi: **phép kiểm dải rút mỗi mốc** mà `plan.md` mục 7 đòi, đo trên **một trận thật**
+    (nó sống ở đây chứ không ở T717, vì T717 chạy **trước** khi có trận): với **mọi** mốc, số
+    lần rút tiêu trong mốc ấy `<= RUT_MOI_MOC`. Cộng ba đẳng thức lưới xanh —
+    `soBuoc === tongPhutTran(tt) * BUOC_MOI_PHUT`,
     `MOC_MOI_PHUT * 2 === BUOC_MOI_PHUT`, `MOC_MOI_CHUOI * SO_CHUOI_MOI_PHUT === MOC_MOI_PHUT`;
     `npx vitest run src/engine/boundaries.test.ts` xanh **với 0 dòng sửa** ở file đó.
   - AC: AC-37.1, AC-37.5, AC-37.6, AC-37.7, AC-45.7
-  - Phụ thuộc: T701, T702, T703
+  - Phụ thuộc: T701, T702, **T717**, T703
   - Ghi chú: `boundaries.test.ts:17` glob `./**/*.ts` là **đệ quy** nên `lienTuc/` tự vào phạm
     vi — đã kiểm bằng số học chứ không tin lời plan: `raNgoaiEngine` tính
     `duongDanFile.split('/').length - 2`, nên từ `./lienTuc/moc.ts` thì `'../tran'` là **trong**
@@ -206,6 +232,46 @@
       `<option>` (40 chỗ `disabled` trong `src/ui`, không chỗ nào trên `<option>`), nên D134
       chọn **nhóm radio**.
 
+- [ ] **T717** — `lienTuc/hatGiong.ts`: ba dòng rút có nhà, và **dải mỗi mốc** có lưới
+  - File: tạo `src/engine/lienTuc/hatGiong.ts`, `src/engine/lienTuc/hatGiong.test.ts`
+  - Xong khi: bốn ký hiệu của **D118** tồn tại — `hatGiongDong`, `hatGiongMoc`,
+    `LECH_DONG = 2 ** 30`, `RUT_MOI_MOC = 64`; đẳng thức khoảng cách dòng xanh trên 20.000 mã
+    do `taoMaTran` sinh; và một ca chứng minh `hatGiongMoc(ma, i)` **khác nhau cho mọi `i`** đã
+    thử. ⚠️ Phép kiểm **"không mốc nào tiêu quá dải của nó"** mà `plan.md` mục 7 đòi **không
+    thuộc task này**: nó cần **một trận thật**, mà trận thì T704 mới dựng — và T704 phụ thuộc
+    T717, nên đặt nó ở đây là làm T717 **không tick được ở chỗ nó đứng**. Nó là điều kiện ra
+    của **T704**.
+  - AC: AC-37.5, AC-45.7
+  - Phụ thuộc: T702
+  - Ghi chú: `plan.md` khai bốn ký hiệu này ở **D118**, ở bảng Contracts và ở bảng ánh xạ
+    AC-37.5, cộng một tầng test riêng ở mục 7 — nhưng bản đầu của `tasks.md` chỉ có T702 thêm
+    `nhayRut` + `BUOC_HAT_GIONG` vào `rng.ts`, nên **cả file lẫn phép kiểm dải đều không ai
+    tạo**. Không có phép kiểm dải, một mốc tiêu quá 64 lần rút sẽ **lấn sang dải của mốc sau**
+    và AC-37.5 vỡ **mà mọi test vẫn xanh** — vì `taiLap.test.ts` so engine với chính nó (xem
+    điều kiện ra số 2).
+
+- [ ] **T718** — `lienTuc/khongChepModel.test.ts`: lưới **duy nhất** của R54
+  - File: tạo `src/engine/lienTuc/khongChepModel.test.ts`
+  - Xong khi: phép kiểm quét **source thô** của mọi file trong `src/engine/lienTuc/` và đỏ nếu
+    bất kỳ file nào **nhắc tên** `chayChuoiBong`, `xacSuatTrungDich`, `xacSuatBiCuu`,
+    `xacSuatCoHoiRoRang`, `nguoiTaiVung` — **kể cả trong chú thích**; cộng một **ca ngược**
+    chứng minh phép kiểm đỏ được (một chuỗi thử trong fixture).
+    ⚠️ **Phép kiểm phải TỰ MIỄN chính nó**, nếu không nó đỏ ngay lúc sinh ra: file này nằm
+    trong `lienTuc/` và **buộc phải chứa** năm cái tên ấy để mà grep. Tiền lệ có sẵn trong
+    repo: `boundaries.test.ts` dùng `laFileTest()` để bỏ qua file test, và `rng.test.ts` dùng
+    `chiCode()` để bóc chú thích trước khi quét. Danh sách cấm là một `const` **trong chính
+    file ấy**, và phép quét bỏ qua đúng đường dẫn của nó.
+  - AC: — (lưới của R54, và là điều kiện để AC-45.3 còn nghĩa)
+  - Phụ thuộc: T704
+  - Ghi chú: `plan.md` mục 7 có một hàng riêng cho file này và R54 gọi nó là lưới **duy nhất**
+    giữ cho "hai bảng thống kê còn so được" — nhưng bản đầu của `tasks.md` viết "(T751 tạo)"
+    trong khi File của T751 chỉ có `sosanh.haiCheDo.test.ts`, nên **không ai tạo nó**.
+    ⚠️ **Phạm vi lệnh cấm: TUYỆT ĐỐI cho mọi file mà `tasks.md` tạo.** `plan.md` mục 7 cho
+    "trừ đúng một dòng import ở `quyetDinh.ts`", nhưng **không task nào tạo `quyetDinh.ts`**
+    nên ngoại lệ ấy **vô hiệu hôm nay**. Chỗ lệch giữa plan và tasks về `quyetDinh.ts` /
+    `NguonQuyetDinh` là một phát hiện **MEDIUM** chưa xử — nó cần một quyết định: thêm task tạo
+    mối hàn, hay khai rằng mối hàn đã bị bỏ và `tranLienTuc.ts` gọi thẳng `quyetKetCucChuoi`.
+
 **Xem được gì ngay sau Phase 53:** màn chọn cặp đấu có hai lựa chọn chế độ, "liên tục" bị khoá
 **kèm một câu giải thích** khi quân số ≠ 11. Bấm bắt đầu: sân 2D vẽ 22 điểm và quả bóng đổi chỗ
 **mỗi giây trận**, tỉ số và dòng tường thuật **y hệt** chế độ phút. Chuyển động còn **thô** —
@@ -229,11 +295,22 @@ chưa có trần tốc độ, chưa có đường cong. **Phải nói trước �
 - [ ] **T711** — Kẹp vector gia tốc/giảm tốc + cổng quay ba băng + tích phân Euler
   - File: `src/engine/lienTuc/coHoc.ts`, `src/engine/lienTuc/coHoc.test.ts`
   - Xong khi: trên 1.000 bộ đầu vào, `|Δv| / Δt ≤ 6` khi tăng và `≤ 8` khi giảm ở **mọi** bước;
-    và một ca hội tụ: điểm xuất phát cách đích 30 m đến đích trong `≤ ⌈30/9⌉ + 1` giây.
+    một ca hội tụ (điểm xuất phát cách đích 30 m đến đích trong `≤ ⌈30/9⌉ + 1` giây); **và cả
+    HAI vế của AC-38.3** — vế (i) Δθ > 90° thì `|v|` mốc trước **< 3,0** m/s, vế (ii)
+    **45° ≤ Δθ ≤ 90°** thì `|v(sau)| <= 0,60 · |v(trước)|`.
+  - ⚠️ **Vế (ii) bị bỏ sót ở cả ba tài liệu** cho tới khi `/analyze` bắt được, và thêm khẳng
+    định thôi thì **chưa đủ — cơ chế phải mở rộng theo**. D123 đang áp hệ số **0,57** chỉ ở
+    băng **3,0–6,0 m/s**; dưới 3,0 m/s Δθ **tự do và không giảm tốc**, nên một cú quay 60° ở
+    **2,9 m/s giữ 100% tốc độ** và T711 sẽ đỏ ở chính điều kiện của nó. Vì thế T711 **áp hệ số
+    0,57 cho MỌI cú quay > 45°**, ở cả ba băng. Cái giá: người quay ở 1 m/s cũng mất tốc độ —
+    đúng vật lý, và nó **không** đụng trần AC-38.2 (0,57 là một phép **giảm**). Phương án bị
+    loại: để băng dưới 3,0 m/s tự do → **AC-38.3 vế (ii) không dựng nổi**, mà mục 9 của spec
+    cấm tự hạ ngưỡng. Trên 6,0 m/s vế (ii) **rỗng theo cấu trúc**: trần 30°/giây cho tối đa
+    15° mỗi bước 0,5 giây, nên không có cú quay 45–90° nào ở băng ấy.
   - AC: AC-38.2, AC-38.3
   - Phụ thuộc: T710
   - Ghi chú: hằng số mét phải **import từ `hinhHocSan.ts`** (T703). Tự viết lại hằng số sân ở
-    đây là sinh nguồn sự thật thứ hai. Và `lienTuc/khongChepModel.test.ts` (T751 tạo) cấm mọi
+    đây là sinh nguồn sự thật thứ hai. Và `lienTuc/khongChepModel.test.ts` (**T718** tạo) cấm mọi
     file trong `lienTuc/` **nhắc tên** `chayChuoiBong`, `xacSuatTrungDich`, `xacSuatBiCuu`,
     `xacSuatCoHoiRoRang`, `nguoiTaiVung` — **kể cả trong chú thích**, vì nó quét source thô.
 
@@ -297,6 +374,29 @@ chưa có trần tốc độ, chưa có đường cong. **Phải nói trước �
     bộ sinh riêng **trong chính file test** (file test được `boundaries.test.ts` miễn ở
     `laFileTest`, `:55-57`) — nhưng **không** dùng `Math.random`, vì thế là mất tính tái lập
     của chính phép kiểm (lệnh cấm số 1).
+
+- [ ] **T716** — `viTriTrongTai`: ba điểm trọng tài **có vị trí**, không chỉ có ô (**AC-38.10**)
+  - File: `src/engine/lienTuc/coHoc.ts`, `src/engine/lienTuc/coHoc.test.ts`,
+    `src/engine/lienTuc/loMoc.ts` (đường ghi ba cột `REF`/`AR1`/`AR2`)
+  - Xong khi: trên 20 mã, ở **mọi** mốc, **cả ba** mệnh đề của AC-38.10 đúng — (a) khoảng cách
+    trọng tài chính tới bóng ∈ **[15; 35] m**; (b) trọng tài **không nằm trên đường chuyền**
+    (khoảng cách từ điểm tới đoạn thẳng người giữ bóng → người nhận lớn hơn một lề nêu được
+    bằng số); (c) mỗi trợ lý **ngang hàng hậu vệ cuối cùng** của nửa sân mình phụ trách (sai số
+    nêu bằng số). Và ba điểm ấy **không teleport**: `|Δv|/Δt` của chúng không vượt trần AC-38.2.
+  - AC: **AC-38.10**, AC-38.2, AC-38.11
+  - Phụ thuộc: T711 (cần `kepVanToc`), T713 (cùng sửa `coHoc.ts`), **T704** (nó sửa
+    `loMoc.ts` và điều kiện ra của nó đo trên một trận thật)
+  - Ghi chú — **task này lấp một lỗ CRITICAL mà `/analyze` tìm ra ngày 2026-11-23.**
+    `viTriTrongTai(bong, hangThuCuoi, huong)` được `plan.md` nhắc **bốn lần** (sơ đồ mục 3,
+    **D133**, bảng Contracts mục 5, bảng ánh xạ mục 6) nhưng **0 lần** trong bản đầu của
+    `tasks.md`, và bảng phủ AC trỏ AC-38.10 vào T713 + T742 — mà T713 chỉ làm
+    `tranhNguoi`/`tachChen` và T742 chỉ **đo**. Hệ quả nếu để nguyên: T704 đã cấp **26 ô** thực
+    thể nên ba cột `REF`/`AR1`/`AR2` **tồn tại** mà không đường nào ghi toạ độ → `doCoHoc` báo
+    vi phạm ở **mọi** mốc, hoặc ba điểm đứng ở (0,0) và thoả dải 15–35 m **một cách tình cờ**.
+    Đây là lỗ thứ hai cùng loại với `dienPha.ts` (T706).
+    ⚠️ **Hai mệnh đề (b) và (c) chưa từng có cơ chế nào trong repo.** Nếu lúc dựng hoá ra một
+    trong hai **không dựng nổi** cùng với trần cơ học của AC-38.1/38.2, thì xử đúng mục 9 của
+    spec: **dừng và hỏi người dùng, KHÔNG tự hạ ngưỡng** — đúng cách dải 15–25 m đã được xử.
 
 **Xem được gì ngay sau Phase 54:** cầu thủ chạy, tăng tốc và **phanh** trong mức người thật làm
 được; không ai nhảy một đoạn; người rê bóng đi **vòng qua** đối thủ; thủ môn **tự** ở lại sân
@@ -401,8 +501,15 @@ một dòng chữ nói thời tiết và gió, bằng ngôn ngữ đang chọn.
 - [ ] **T731** — Làm dày cả cửa sổ chuỗi lên 0,5 giây; bảng bóng chết ở **đúng một chỗ**
   - File: tạo `src/engine/lienTuc/mocChuoi.ts`, `src/engine/lienTuc/mocChuoi.test.ts`; sửa
     `src/engine/lienTuc/moc.ts`, `src/engine/lienTuc/dienPha.ts`
-  - Xong khi: trong `tinh_huong[]`, `Δt` giữa hai khung liền nhau **luôn = 0,5**; độ dài cửa sổ
-    `≥ 10` giây; **không lỗ**; và `taiLap.test.ts` còn xanh — làm dày là quyết định **chỉ ở đầu
+  - Xong khi: trong `tinh_huong[]`, `Δt` giữa hai khung liền nhau **luôn = 0,5**; **không lỗ**;
+    và **hai cái neo của AC-37.4**, vốn bị bỏ sót tới khi `/analyze` bắt được — cửa sổ **bắt
+    đầu tại mốc mở đầu cửa sổ chuỗi** (D124 bảo đảm nó cách tình huống **10–14 giây**, nên nó
+    chứa `[t−6; t]` bất cứ khi nào tình huống nằm sau giây thứ 6 của cửa sổ, và khi tình huống
+    rơi sớm hơn thì cửa sổ vẫn là **cả** cửa sổ chuỗi, không có gì bị cắt), và **khung cuối của
+    cửa sổ là mốc `bongChet` của chính pha ấy**. *(Phát biểu "cửa sổ chứa `[t−6; t]`" một mình
+    **không thoả được** khi `ketCuc` rơi trước giây thứ 6 — nên neo được đặt ở hai đầu cửa sổ
+    chuỗi thay vì ở một khoảng tương đối.)* *(Điều kiện cũ "độ dài ≥ 10 giây" một mình là **không đủ**: một cửa sổ 10
+    giây nằm **hoàn toàn SAU** sự kiện vẫn thoả cả ba điều kiện cũ.)* và `taiLap.test.ts` còn xanh — làm dày là quyết định **chỉ ở đầu
     ra**, nên nó **không dịch một hạt giống nào** (AC-37.5).
   - AC: AC-37.4, AC-37.5, AC-37.7
   - Phụ thuộc: T704, **T706** (`dienPha.ts` — nhà của bảng bóng chết), T730
@@ -489,8 +596,14 @@ một dòng chữ nói thời tiết và gió, bằng ngôn ngữ đang chọn.
   - File: tạo `src/engine/lienTuc/tuaToi.test.ts`
   - Xong khi: quét mã nguồn `lienTuc/**/*.ts` và `src/hooks/useMatch.ts`, **không một đường
     nào** đặt `chiSoMoc` **giảm**; và quét theo **ký hiệu** trong `src/ui/components/` +
-    `src/hooks/` — không có `<input type="range"`, không có `tuaVe`, không có phép gán làm
-    `chiSoMoc` giảm.
+    `src/hooks/` — `grep -rn 'type="range"' src/ui/components src/hooks` ra **đúng một** dòng
+    đã biết (`ChonAnh.tsx:198`, slider **zoom của tính năng cắt ảnh**, nêu tên trong chính phép
+    kiểm chứ không lặng lẽ mở rộng), không có `tuaVe`, và không phép gán nào làm `chiSoMoc`
+    giảm.
+    ⚠️ **Bản trước quét `<input type="range"` và nó khớp 0 file** — đã chạy thử, exit 1 — vì
+    JSX trong repo format **nhiều dòng**, nên thuộc tính nằm một dòng riêng. Đó đúng hình dạng
+    của cái CRITICAL vừa vá bằng T716: chủ **duy nhất** của AC-45.10 được canh bằng một phép
+    kiểm **không bao giờ đỏ được**.
     ⚠️ **Không** quét theo từ tiếng Anh chung trên cả `src/ui/`: `grep -ril "timeline\|slider"`
     hôm nay đã ra **hai** kết quả không liên quan gì tới spec 007 — `src/ui/ngonNgu/en.ts`
     (chuỗi "use the slider to zoom in or out" của tính năng cắt ảnh) và
@@ -548,11 +661,14 @@ trận tiến theo giây**. Vòng cấm và khung thành vẽ đúng mét.
     `src/engine/lienTuc/tepXuat.ts` (export kiểu đã parse + `khoa_bong`/`khoa_nguoi`),
     `src/engine/lienTuc/coHoc.ts` (export ba trần số)
   - Xong khi: `doCoHoc` đo **MƯỜI** AC cơ học — AC-38.1→38.7, **38.9, 38.10, 38.11** (AC-38.8
-    là **ngoại lệ** đo ở lớp vẽ, T735); bộ test **ngược** bơm một mốc sai cho **mỗi** ngưỡng và
+    là **ngoại lệ** đo ở lớp vẽ, T735) — và AC-38.3 phải đo **cả hai vế**, gồm vế (ii)
+    `45° ≤ Δθ ≤ 90° → |v(sau)| <= 0,60 · |v(trước)|`, vì chính chỗ **không gọi tên nó** là cách
+    vế (ii) biến mất lần đầu; bộ test **ngược** bơm một mốc sai cho **mỗi** ngưỡng và
     đòi **đúng một** `ViPham`, **gồm một ca bơm trọng tài ra 36 m**; và một test chứng minh
     phép đo **độc lập với thứ tự cột** (tra cột bằng tên qua `khoa_nguoi.indexOf`).
   - AC: AC-45.6, AC-37.1, AC-37.3, AC-37.4, AC-37.7, AC-38.1→38.7, AC-38.9, AC-38.10, AC-38.11
-  - Phụ thuộc: T740, T741, T711, **T712** (AC-38.4 + AC-38.11), **T721** (AC-38.5), T723
+  - Phụ thuộc: T740, T741, T711, **T712** (AC-38.4 + AC-38.11), **T716** (AC-38.10 — nguồn
+    toạ độ ba điểm trọng tài), **T721** (AC-38.5), T723
   - Ghi chú: `doCoHoc` trả **một** mảng `ViPham[]`. Mảng thứ hai `chuaChot` đã bị bỏ — nó chỉ
     tồn tại khi dải 15–25 m còn bất khả thi, và dải **15–35 m** canh tuyệt đối được (người dùng
     chốt câu 6). Ba trần số (9 m/s, gia tốc 6, giảm tốc 8) phải **import** từ `coHoc.ts`, không
@@ -577,8 +693,13 @@ trận tiến theo giây**. Vòng cấm và khung thành vẽ đúng mét.
     - `src/services/backupService.ts` đã có khuôn "dựng chuỗi **rồi mới** tạo Blob";
       `src/ui/components/SaoLuu.tsx` (43-56 + `xuat()` 58-68) đã có khuôn "đo kích thước rồi
       hiện trước khi dựng tệp"; `src/ui/components/HopXacNhan.tsx` đã có Esc + focus sẵn vào
-      nút Huỷ; `src/ui/ngonNgu/soLieu.ts` `coTep(byte)` đã in **MiB dưới nhãn "MB"** — **đúng
-      đơn vị của AC-45.11**, nên dùng lại nó.
+      nút Huỷ; `src/ui/ngonNgu/soLieu.ts` `coTep(byte)` chia `1024*1024` rồi in nhãn
+      **"MB"**, tức nó in **MiB dưới nhãn MB** — **KHÔNG phải** đơn vị của AC-45.11, vốn đã
+      chốt **thập phân** (11.000.000 byte). ⚠️ T743 là chỗ con số **đi ra màn hình**, nên nếu
+      dùng `coTep` y nguyên thì một tệp **11.000.000 byte** hiện ra **"10,5 MB"** cho người
+      dùng trong khi T745 coi nó **đúng ngưỡng**. Task này phải chọn một đường và nói ra: hiện
+      theo cơ số thập phân (`byte / 1.000.000`), hoặc sửa nhãn của `coTep` — nếu chọn đường thứ
+      hai thì thêm `soLieu.ts` vào ô File và nhớ `ngonNgu.test.ts` đang canh khối chuỗi đó.
     - `src/ui/components/BieuTuong.tsx` `TEN_TEP` chỉ có **10** biểu tượng và `rutDuongNet`
       **ném lỗi lúc nạp module** nếu thiếu tệp — dùng lại `saoLuu`, **đừng** thêm svg mới.
     - `src/domain/boundaries.test.ts` tự bắt `xuatTranService.ts` và chặn `react`, `../hooks`,
@@ -599,14 +720,20 @@ trận tiến theo giây**. Vòng cấm và khung thành vẽ đúng mét.
     và plan mục 2.3 có cùng con số. **Không** đặt lại ngưỡng — ngưỡng là của AC-45.11.
   - AC: AC-45.11 (đo), AC-45.5
   - Phụ thuộc: T740, T741
+  - Ghi chú đơn vị — **phải báo CẢ HAI cơ số**, vì repo đang in một cơ số dưới nhãn của cơ
+    số kia: `src/ui/ngonNgu/soLieu.ts` `coTep(byte)` chia `1024*1024` rồi in nhãn **"MB"**, tức
+    nó in **MiB dưới nhãn MB**. AC-45.11 chốt **thập phân** (11.000.000 byte), nên T744 báo
+    `byteLength`, số MB thập phân **và** số MiB, để không ai phải đoán. Lệch giữa hai cơ số ở
+    ngưỡng này là **534.336 byte, tức 4,9%** — đủ để một tệp 11,3 MB xanh ở phép kiểm MiB mà
+    **vi phạm** AC-45.11.
   - Ghi chú: `TextEncoder` **chưa xuất hiện ở đâu** trong repo (`backupService.ts:187` chỉ dùng
     `TextDecoder`). `tsconfig.json` có `lib: ["ES2022","DOM","DOM.Iterable"]` nên nó **có kiểu
     sẵn**, không phải thêm `@types/node`. Khuôn báo cáo giống **T753**.
 
-- [ ] **T745** — Phép kiểm ngưỡng `soByte <= 11 MiB` + một **ca ngược**
+- [ ] **T745** — Phép kiểm ngưỡng `soByte <= 11_000_000` + một **ca ngược**
   - File: `src/engine/lienTuc/tepXuat.test.ts` (+2 ca)
   - Xong khi: trận **90 phút ca xấu** (nhiều tình huống quan trọng nhất trong 20 mã) cho
-    `soByte <= 11 * 1024 * 1024`; **và** ca ngược chứng minh ngưỡng **đỏ được** (bơm thêm
+    `soByte <= 11_000_000`; **và** ca ngược chứng minh ngưỡng **đỏ được** (bơm thêm
     tình huống tới khi vượt).
   - AC: AC-45.11
   - Phụ thuộc: T744
@@ -747,20 +874,20 @@ giải để người dùng quyết.
 | AC-37.2 mốc hình học sân | T703, T736 |
 | AC-37.3 đổi phần sân ở hiệp 2 | T704, T742 |
 | AC-37.4 dày 0,5 giây ở tình huống quan trọng | T706, T730, T731, T742 |
-| AC-37.5 mỗi mốc tái lập được một mình | T702, T704, T731, T740 |
+| AC-37.5 mỗi mốc tái lập được một mình | T702, **T717**, T704, T731, T740 |
 | AC-37.6 ai đang giữ bóng, hoặc không ai | T704, T714 |
 | AC-37.7 mốc 1 giây / 0,5 giây | T704, T706, T731, T732, T742 |
 | AC-37.8 định nghĩa bằng loại sự kiện | T730 |
 | AC-38.1 ≤ 9 m/s | T710, T715, T742 |
 | AC-38.2 gia tốc ≤ 6, giảm tốc ≤ 8 | T711, T715, T742 |
-| AC-38.3 đổi hướng > 90° | T711, T715, T742 |
+| AC-38.3 đổi hướng > 90° (**cả hai vế**) | T711, T715, T742 |
 | AC-38.4 lùi ≤ 4, ngang ≤ 5 m/s | T712, T715, T742 |
 | AC-38.5 z theo mét, đánh đầu 1,5–2,8 m | T721, T742 |
 | AC-38.6 12–20 / 20–30 m/s, thời gian bay khớp | T706, T720, T742 |
 | AC-38.7 ma sát sân khô 1–2 m/s², sân ướt ít hơn | T723, T742 |
 | AC-38.8 pha trên 6 m/s vẽ thành đường cong | T703, T735 |
 | AC-38.9 thời tiết và gió tất định từ mã trận | T722, T723, T724, T742 |
-| AC-38.10 trọng tài + 2 trợ lý, 15–35 m | T713, T742 |
+| AC-38.10 trọng tài + 2 trợ lý, 15–35 m | **T716**, T742 |
 | AC-38.11 hướng người 0–360° | T712, T742 |
 | AC-45.1 chọn được hai chế độ | T705, T708, T709, T761 |
 | AC-45.2 trận cũ mở lại, xem lại, đấu lại y nguyên | T701, và **điều kiện ra của mọi task** chạm `src/engine/` |
@@ -768,7 +895,7 @@ giải để người dùng quyết.
 | AC-45.4 bản ghi không lưu vị trí | T701, T705, T708 |
 | AC-45.5 xuất tệp đọc được bằng công cụ thường | T740, T741, T743, T744 |
 | AC-45.6 mọi phép kiểm cơ học đo trên chính tệp | T741, T742 |
-| AC-45.7 mọi tính ngẫu nhiên đến từ mã trận | T702, T704, T722 |
+| AC-45.7 mọi tính ngẫu nhiên đến từ mã trận | T702, **T717**, T704, T722 |
 | AC-45.8 quân số ≠ 11 thì chế độ liên tục bị khoá | T707, T709, T761 |
 | AC-45.9 giảm chuyển động | T714, T734, T737 |
 | AC-45.10 "tua" chỉ nghĩa là tua TỚI | T738 |
@@ -783,22 +910,27 @@ AC-34.2 → **T713** (nợ của spec 006 được trả ở đây); AC-40.4 →
 
 ## Chuỗi phụ thuộc và phần chạy song song được
 
-**Chuỗi dài nhất — 10 task, tính từ chính các dòng `Phụ thuộc:` ở trên:**
+**Chuỗi dài nhất — 11 task, tính lại từ chính các dòng `Phụ thuộc:` ở trên sau khi vá
+CRITICAL + HIGH ngày 2026-11-23:**
 
-`T701 → T704 → T732 → T733 → T734 → T736 → T754 → T760 → T761 → T762`
+`T702 → T717 → T704 → T732 → T733 → T734 → T736 → T754 → T760 → T761 → T762`
 
-⚠️ **Chuỗi này KHÁC chuỗi `plan.md` mục 9 khai**, và chuỗi của plan không đứng được:
-plan viết `T700 → T701 → …`, nhưng **T701 không phụ thuộc T700** — phép bóc hàm không cần
-con số nền nào; và plan viết `… → T751 → T762`, trong khi T762 phụ thuộc **T761**, không phụ
-thuộc T751. Cả hai chuỗi dài 10, nhưng chuỗi ở trên là một **đường đi thật** trong đồ thị.
-Đã sửa plan mục 9 cùng ngày. Không có chu trình nào, và không task nào phụ thuộc vào một task
-ở phase sau nó.
+Chuỗi dài thêm **một** task so với trước khi vá, vì **T717** (`hatGiong.ts`) chen vào giữa
+T702 và T704 — T704 cần dải rút mỗi mốc có nhà trước khi nó dựng lưới mốc.
 
-**14 task mang `[P]`:** T700, T702, T703 (Phase 53 — ba file khác nhau, chạy được cùng lúc);
-T707, T708 (hai tầng khác nhau, cùng đứng sau T705); T720, T722, T724 (Phase 55); T730, T732,
-T738 (Phase 56); T743 (Phase 57); T752, T754 (Phase 58).
+`plan.md` mục 9 khai **cùng** chuỗi này (đã sửa cùng ngày). Không có chu trình nào, và không
+task nào phụ thuộc vào một task ở phase sau nó — đã kiểm bằng cách dựng đồ thị từ 47 dòng
+`Phụ thuộc:`.
 
-**Phase 54 không có một `[P]` nào, và đó là sự thật chứ không phải sơ suất:** cả sáu task ở đó
+**14 task mang `[P]`:** T700, T702, T703 (Phase 53 — ba file khác nhau); T707, T708
+(hai tầng khác nhau, cùng đứng sau T705); T720, T722, T724 (Phase 55); T730, T732, T738
+(Phase 56); T743 (Phase 57); T752, T754 (Phase 58).
+**T717 và T718 không mang `[P]`.** T717 **phụ thuộc T702**, nên dán `[P]` cho nó là phá đúng
+quy ước ở đầu tài liệu ("khác file, **không phụ thuộc nhau**") — nó vẫn chạy chồng được với
+T703, nhưng chỉ **sau** T702. T718 thì là **lưới** cho mọi file `lienTuc/`, nên nó phải xong
+trước khi Phase 54 bắt đầu đổ file vào đó.
+
+**Phase 54 không có một `[P]` nào, và đó là sự thật chứ không phải sơ suất:** cả **bảy** task ở đó
 hoặc chạm `lienTuc/coHoc.ts` hoặc đứng trên nó — kể cả T714, vì nó sửa `coHoc.ts` để kẹp
 **đích** thủ môn.
 
@@ -808,7 +940,14 @@ hoặc chạm `lienTuc/coHoc.ts` hoặc đứng trên nó — kể cả T714, v�
 
 - **Không tạo file nào ngoài danh sách trên.** Phát sinh thêm → **dừng**, báo người dùng, cập
   nhật `plan.md`/`tasks.md` trước.
-- **Mỗi phase xong là một commit.** Tiêu đề commit tiếng Việt, kèm
+- **Mỗi task xong là một commit, tiêu đề nêu rõ mã task** — `constitution.md` mục 4 ràng
+  thẳng ("Mỗi task trong `tasks.md` hoàn thành là một commit, thông điệp commit nêu rõ task
+  nào"). ⚠️ Tiền lệ repo **lẫn cả hai**: `T628`, `T627`, `T626`, `T625` là commit riêng từng
+  task, nhưng `0119f53` gộp "T615 và T616", và cả spec 006 vào `main` bằng **một** commit gộp
+  (`7e1b065`). Nên đây là hiến pháp **sửa lại** tiền lệ, không phải tiền lệ xác nhận hiến pháp.
+  Bản đầu của tài liệu này viết "mỗi phase một commit" — với Phase 53 có **mười hai** task chạm
+  **năm** tầng thì đó là một commit khổng lồ, và nó mất đúng thứ hiến pháp muốn: khả năng lùi
+  về trước **một** task cụ thể. Tiêu đề commit tiếng Việt, kèm
   `Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>`.
 - **Ba phép kiểm bất biến của `src/ui/san2D.test.ts`** (không chồng khít trên 10 mã trận; thủ
   môn trong một phần ba sân; tám hàng xen kẽ ở chín tổ hợp độ cao) phải **chạy lại ở MỖI lát**,

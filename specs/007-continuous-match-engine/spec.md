@@ -320,7 +320,8 @@ thay vì phải tin**.
       pha đã trôi qua PHẢI chạy lại trận bằng **cùng mã trận** — AC-37.5 bảo đảm họ thấy
       đúng chuyển động ấy.
 - [ ] AC-45.11 — KHI xuất tệp JSON của một trận **90 phút** ở chế độ liên tục (AC-45.5) THÌ
-      tệp PHẢI **không vượt 11 MB**, và phép kiểm PHẢI **đo kích thước thật** của tệp sinh
+      tệp PHẢI **không vượt 11 MB = 11.000.000 byte** (cơ số **thập phân** — cùng cơ số với
+      phép tính "dư 37%" ở ghi chú dưới), và phép kiểm PHẢI **đo kích thước thật** của tệp sinh
       ra, không ước lượng từ số mốc.
 
   > **Ba AC mới, người dùng chốt 2026-11-23 khi đọc `plan.md`.** Cả ba lấp ba chỗ **không một
