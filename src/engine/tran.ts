@@ -1661,7 +1661,23 @@ export function congPhaVaoTran(
     : { tiSo, benNha: benThuMoi, benKhach: benCongMoi }
 }
 
-export function buocTiep(ttVao: TrangThaiTran): TrangThaiTran {
+/**
+ * Quan sát kết cục từng pha bóng khi `buocTiep` chạy (D136, T704).
+ *
+ * Mối hàn **quan sát**: chế độ liên tục cần biết ba pha bóng của một phút kết
+ * thúc ra sao để dựng chuyển động, nhưng nó KHÔNG được dựng lại luật trận.
+ * Callback này cho nó đủ thứ nó cần mà không chép một dòng nào.
+ *
+ * ⚠️ Nó PHẢI thuần và PHẢI không rút `rng`: nó chạy giữa vòng chuỗi, nên một
+ * lần rút ở đây là dịch thứ tự rút của cả trận. Chuyển động rút từ **dòng 2**
+ * qua `hatGiongMoc`, tức ngoài hàm này — đó là lý do D118 có ba dòng.
+ */
+export type QuanSatPha = (pha: KetCucPhaV6) => void
+
+export function buocTiep(
+  ttVao: TrangThaiTran,
+  quanSatPha?: QuanSatPha,
+): TrangThaiTran {
   if (ttVao.ketThuc) return ttVao
 
   // Can thiệp có hiệu lực từ ĐẦU phút này, trước khi mô phỏng (D30b).
@@ -1741,6 +1757,7 @@ export function buocTiep(ttVao: TrangThaiTran): TrangThaiTran {
       tt.quanSo,
       rng,
     )
+    quanSatPha?.(pha)
 
     const sau = congPhaVaoTran(phut, tiSo, pha, rng, themUngVien)
     tiSo = sau.tiSo

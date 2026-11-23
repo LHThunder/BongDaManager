@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **30 AC**) |
 | **Plan** | `./plan.md` (Status `Approved`, D117–D134, R51–R64) |
-| **Tiến độ** | 6/48 |
+| **Tiến độ** | 7/48 |
 | **Nền đo** | commit `5c652eb`, engine v6, **1.304 test xanh / 63 file test** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -163,11 +163,17 @@
       `hinhHocSan.ts` là nguồn sự thật và `SanBong.tsx` là một bản vẽ đã dịch — **không** sửa
       `SanBong.tsx` ở task này.
 
-- [ ] **T704** — `lienTuc/moc.ts` + `buocPhutLienTuc` trả lô + `loMoc` stride 8, 26 thực thể
+- [x] **T704** — `lienTuc/moc.ts` + `buocPhutLienTuc` trả lô + `loMoc` stride 8, 26 thực thể
   - File: tạo `src/engine/lienTuc/moc.ts`, `src/engine/lienTuc/moc.test.ts`,
     `src/engine/lienTuc/loMoc.ts`, `src/engine/lienTuc/loMoc.test.ts`,
     `src/engine/lienTuc/tranLienTuc.ts`; sửa `src/hooks/useMatch.ts` (ref ngoài React giữ
     lô) **và `src/engine/tran.ts`** — xem ghi chú phạm vi dưới
+  - ⚠️ **Kiến trúc vòng phút: `buocTiep` + callback quan sát (D136), chốt 2026-11-23.**
+    `taoTranLienTuc` đặt `hatGiong` về `hatGiongDong(ma, 1)` rồi `buocPhutLienTuc` gọi
+    `buocTiep(tt, quanSat)`. Hai chế độ vì thế chạy **cùng một code luật** trên **hai dòng
+    rút khác nhau** — AC-45.3 giữ nguyên từng chữ, và không một dòng luật nào bị chép.
+    Phương án "tự dựng vòng phút" đã được chọn rồi bỏ trong cùng ngày, vì lý do loại nó ở
+    D135 không đứng được: `buocTiep` lấy hạt giống thuần từ `tt.hatGiong`, không từ `maTran`.
   - ⚠️ **Phạm vi được nới một file, 2026-11-23, và đây là lý do.** Phần đuôi theo PHÚT mà
     `tranLienTuc.ts` cần (kiệt sức, huỷ trận, hạt giống, mẫu câu, dựng trạng thái) gọi sáu
     hàm của `tran.ts`, và đo ra **ba hàm chưa export**: `moiKietSuc`, `gomUngVienCuaPhut`,
@@ -186,6 +192,16 @@
     `soBuoc === tongPhutTran(tt) * BUOC_MOI_PHUT`,
     `MOC_MOI_PHUT * 2 === BUOC_MOI_PHUT`, `MOC_MOI_CHUOI * SO_CHUOI_MOI_PHUT === MOC_MOI_PHUT`;
     `npx vitest run src/engine/boundaries.test.ts` xanh **với 0 dòng sửa** ở file đó.
+  - ⚠️ **Một món của T704 được HOÃN có tên, 2026-11-23: chỗ giữ ref ngoài React cho lô.**
+    Nó nằm trong danh sách file của task nhưng **không** nằm trong dòng "Xong khi", và hôm
+    nay nó không có **người đọc nào**: lớp vẽ chỉ nhận lô khi **T733** nới vòng rAF và
+    **T709** truyền `anhChup` vào `San2D`. Cắm nó bây giờ là viết code nối dây **không có
+    người đọc** vào đúng tầng mà **R52** nói không có một phép kiểm nào canh (`src/hooks`
+    có bảy file, **0** file test) — tức một cái sai sẽ **xanh** và nằm đó ba lát cắt.
+    Chuyển nó sang **T733** (nơi vòng rAF đọc lô) và **T709** (nơi `San2D` nhận prop), và
+    **T761** là chỗ kiểm bằng mắt rằng đồng hồ mốc thật sự tiến. Ba món còn lại của "Xong
+    khi" — phép kiểm dải rút trên một trận thật, ba đẳng thức lưới, `boundaries.test.ts`
+    xanh với 0 dòng sửa — đều đã đạt, nên task được tick.
   - AC: AC-37.1, AC-37.5, AC-37.6, AC-37.7, AC-45.7
   - Phụ thuộc: T701, **T719**, T702, **T717**, T703
   - Ghi chú: `boundaries.test.ts:17` glob `./**/*.ts` là **đệ quy** nên `lienTuc/` tự vào phạm
