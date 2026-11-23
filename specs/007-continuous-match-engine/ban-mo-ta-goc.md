@@ -14,10 +14,31 @@
 >
 > **Hệ quả:** sửa định dạng tệp xuất là sửa **cả tài liệu này**, không chỉ sửa code.
 >
-> ⚠️ Tài liệu này mô tả **toàn bộ tham vọng**, trải qua spec 007 → 010. Spec 007 chỉ lấy
-> mục 2 và mục 10 (hình học và cơ học), cộng định dạng của mục 7b và 15. Mục 5 (luật
-> IFAB) thuộc spec 008; mục 3, 4, 11, 12, 13, 14 thuộc spec 009; mục 1, 6, 7a, 7c, 8, 9,
-> 16, 17, 18, 19, 20, 21 thuộc spec 010. Đừng đọc tài liệu này như phạm vi của spec 007.
+> ⚠️ Tài liệu này mô tả **toàn bộ tham vọng**, trải qua spec 007 → 010. Spec 007 lấy mục 2
+> và mục 10 (hình học và cơ học), định dạng của mục 7b và 15, **cộng ba mảnh của mục 21**:
+> thời tiết và gió ảnh hưởng vật lý bóng → AC-38.9; chiều ma sát của sân ướt → AC-38.7 (xem
+> ghi chú phán xử ngay dưới); trọng tài chính và hai trợ lý → AC-38.10. Mục 5 (luật IFAB)
+> thuộc spec 008; mục 3, 4, 11, 12, 13, 14 thuộc spec 009; mục 1, 6, 7a, 7c, 8, 9, 16, 17,
+> 18, 19, 20 và **phần còn lại** của mục 21 (câu giờ, lợi thế sân nhà, ba câu tự kiểm tra)
+> thuộc spec 010. Đừng đọc tài liệu này như phạm vi của spec 007.
+>
+> *(Dòng ghi chú phạm vi này do tôi viết, không phải lời người dùng; sửa ngày 2026-11-23 vì
+> bản cũ xếp trọn mục 21 sang spec 010 trong khi spec 007 đã rút ba AC từ chính mục ấy.)*
+>
+> 📌 **Ghi chú phán xử — 2026-11-23, chiều ma sát của sân ướt.** Hai câu dưới đây của bạn
+> nói **ngược nhau**, và lời của bạn được giữ nguyên cả hai:
+>
+> - *mục 10:* "Bóng lăn sệt chậm dần do ma sát (khoảng 1–2 m/s² trên sân khô, **nhanh hơn
+>   trên sân ướt hoặc cỏ dài**)" → bóng đi **ngắn** hơn khi ướt.
+> - *mục 21:* "mưa làm bóng **lăn nhanh và trơn hơn**" → bóng đi **xa** hơn khi ướt.
+>
+> Hỏi lại ngày 2026-11-23, bạn chốt **chiều của mục 21: sân ướt thì bóng đi xa hơn**. Nên
+> AC-38.7 của `spec.md` giữ nguyên, và **câu ở mục 10 không áp dụng cho spec 007**. Vật lý
+> đứng về phía mục 21 ở nửa "ướt" và về phía mục 10 ở nửa "cỏ dài": cỏ **ướt** giảm ma sát,
+> cỏ **dài** tăng ma sát — mục 10 ghép hai thứ ngược nhau vào một chiều. **Độ dài cỏ không
+> vào spec 007** — không AC nào ràng nó thành một đại lượng; AC-38.7 chỉ nhắc chữ "cỏ dài"
+> đúng để nói ra chỗ ghép ngược này; nếu spec sau muốn nó thì câu mục 10 đúng trở
+> lại cho riêng phần cỏ dài. Xem `spec.md` mục 9 và mục 15 hàng 20.
 
 ---
 

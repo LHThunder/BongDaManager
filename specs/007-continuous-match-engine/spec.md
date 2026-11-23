@@ -5,8 +5,8 @@
 | **ID** | `007-continuous-match-engine` |
 | **Status** | Planned |
 | **Created** | 2026-11-19 |
-| **Clarified** | 2026-11-19, bổ sung 2026-11-22 khi lập plan |
-| **Branch** | `007-continuous-match-engine` — **chưa cắt**, xem mục 9 |
+| **Clarified** | 2026-11-19, bổ sung 2026-11-22 và **2026-11-23** khi lập plan (mục 14 và 15) |
+| **Branch** | `007-continuous-match-engine` — **đã cắt** từ `main` tại `7e1b065` |
 
 > ⚠️ Tài liệu này mô tả **WHAT** và **WHY**. Mọi chi tiết kỹ thuật (thư viện, schema, API, tên file) thuộc về `plan.md`.
 
@@ -173,9 +173,24 @@ hơn mức một cầu thủ thật làm được**, để **không còn cảm g
       bóng lăn sệt (AC-38.7) và quỹ đạo bóng bổng dài. Ảnh hưởng tới thể lực và tới tỉ lệ
       khống chế hỏng thuộc spec 009 và 010.
 - [ ] AC-38.10 — KHI xuất một khung hình THÌ trọng tài chính và hai trợ lý PHẢI **có trong
-      dữ liệu** với mã `REF`, `AR1`, `AR2`: trọng tài chính cách bóng **15–25 m** và không
+      dữ liệu** với mã `REF`, `AR1`, `AR2`: trọng tài chính cách bóng **15–35 m** và không
       nằm trên đường chuyền, mỗi trợ lý **ngang hàng hậu vệ cuối cùng** của nửa sân mình phụ
       trách. Sân 2D PHẢI **không vẽ** ba điểm này ở spec 007.
+
+  > **Dải nới từ 15–25 m lên 15–35 m, người dùng chốt 2026-11-23.** Dải cũ **bất khả thi về
+  > số học** với AC-38.1 (tối đa 9 m/s) và AC-38.2 (gia tốc tối đa 6 m/s²): một quả phát bóng
+  > 70 m ở 25 m/s bay 2,8 giây, trọng tài phải dịch tối thiểu 20 m nhưng tối đa đi được
+  > 9·2,8 − 6,75 = **18,45 m** — thiếu **1,55 m** ở trường hợp **thuận lợi nhất**. Hai đường
+  > còn lại đã bị loại khi hỏi: phát biểu theo **phần trăm** số mốc (≥ 95%) bỏ trống ~270 mốc
+  > một trận mà không ai canh; chuyển AC sang spec 008 thì ba điểm vẫn nằm trong dữ liệu khung
+  > hình mà **không bất biến nào** canh vị trí. Dải mới dựng được bằng một phép kiểm **tuyệt
+  > đối**, không ngoại lệ. Cái giá đã nói trước khi chốt: 35 m là hơn một phần ba chiều dài
+  > sân, nên ý "trọng tài theo sát bóng" yếu hẳn đi.
+  >
+  > **Hai mệnh đề còn lại của AC này không đổi** — "không nằm trên đường chuyền" và "ngang
+  > hàng hậu vệ cuối cùng" vẫn là yêu cầu tuyệt đối, và `plan.md` D133 là chủ sở hữu của
+  > chúng. Nếu lúc dựng chúng cũng hoá ra không dựng nổi thì xử đúng mục 9: **quay lại hỏi
+  > người dùng, không tự hạ ngưỡng**.
 - [ ] AC-38.11 — KHI một cầu thủ di chuyển THÌ mỗi mốc PHẢI có **hướng người** (0–360°), và
       hướng ấy PHẢI khớp với hướng di chuyển trừ khi anh ta đang chạy lùi hoặc chạy ngang.
 
@@ -270,6 +285,45 @@ thay vì phải tin**.
   > có điều kiện riêng. Cái giá đã nói trước khi chốt: **người chơi sân 7 không bao giờ
   > thấy chuyển động mới**, và giao diện phải giải thích vì sao nút bị khoá.
 
+- [ ] AC-45.9 — KHI người dùng bật **giảm chuyển động** VÀ trận đang ở **chế độ liên tục**
+      THÌ đồng hồ **mốc** PHẢI vẫn chạy đủ mọi mốc (1 giây ở phần thường, 0,5 giây ở tình
+      huống quan trọng — AC-37.7), còn lớp **nội suy** và lớp **dao động** PHẢI tắt
+      (AC-31.1): ở mọi khung vẽ, toạ độ của mọi điểm PHẢI **trùng khít** toạ độ của một mốc
+      đã phát, PHẢI không bao giờ là một giá trị nằm giữa hai mốc.
+- [ ] AC-45.10 — KHI spec 007 nói "**tua**" THÌ nó PHẢI chỉ nghĩa là tua **TỚI**: đổi mức
+      tốc độ, và *Chạy hết trận*. Chế độ liên tục trong spec 007 PHẢI **không** có tua ngược
+      và PHẢI **không** có thanh thời gian nhảy về giây thứ N. Người dùng muốn xem lại một
+      pha đã trôi qua PHẢI chạy lại trận bằng **cùng mã trận** — AC-37.5 bảo đảm họ thấy
+      đúng chuyển động ấy.
+- [ ] AC-45.11 — KHI xuất tệp JSON của một trận **90 phút** ở chế độ liên tục (AC-45.5) THÌ
+      tệp PHẢI **không vượt 11 MB**, và phép kiểm PHẢI **đo kích thước thật** của tệp sinh
+      ra, không ước lượng từ số mốc.
+
+  > **Ba AC mới, người dùng chốt 2026-11-23 khi đọc `plan.md`.** Cả ba lấp ba chỗ **không một
+  > AC nào trong 27 AC cũ nói tới**, nên plan không được quyền tự quyết:
+  >
+  > - **AC-45.9.** AC-31.1 chỉ nói "không nội suy, không dao động" — nó **không** nói "ít
+  >   chuyển động hơn", nên ba cách đọc đều thoả đúng từng chữ. Cái giá đã nói trước khi chốt
+  >   và PHẢI không được che: bóng tới 30 m/s nên một đường chuyền dài là một bước nhảy
+  >   **~26 đơn vị vẽ**, lớn hơn bước nhảy lớn nhất của **người** (7,78 đơn vị) **3,3 lần** —
+  >   tức ở riêng chỗ ấy, người bật giảm chuyển động thấy **tệ hơn hôm nay**. Bù lại: tần số
+  >   cập nhật ×60, và bước nhảy lớn nhất của **người** nhỏ hơn hôm nay 6,1 lần vì AC-38.1
+  >   chặn. Hai phương án bị loại: giữ mỗi phút một mốc như v6 (họ không nhận **một phần nào**
+  >   của spec 007); chia đường chuyền thành nhiều chặng ngắn (đó là nội suy dưới tên khác,
+  >   nên nó buộc viết lại AC-31.1 của spec 005 chứ không chỉ thêm AC mới).
+  > - **AC-45.10.** Mục 4 bước 3 viết "dừng và tua được" nhưng không AC nào định nghĩa "tua",
+  >   và hôm nay trong app chỉ có nút *Chạy hết trận*. Cái giá đã chọn: xem lại một pha vừa
+  >   trôi qua thì phải chạy lại cả trận. Phương án thanh thời gian bị loại vì nó buộc chọn
+  >   một trong hai cái giá nặng: sinh lại từ mốc 0 mỗi lần kéo, hoặc giữ bộ đệm cả trận
+  >   **3,4 MB** thường trú — hình dạng bộ đệm ấy đã bị plan loại vì bộ nhớ.
+  > - **AC-45.11.** Đo được trên hình dạng tệp đề nghị: **~7,2 MB** ca trung bình, **8,0 MB**
+  >   ca xấu, **~9,0 MB** sau khi spec 009 điền hai trường còn `null`. **11 MB** dư 37% hôm
+  >   nay và 22% sau spec 009, nên nó **vẫn đỏ được** — một ngân sách không bao giờ đỏ được
+  >   thì vô dụng. Con số này **ở trong spec 007, KHÔNG vào hiến pháp**: ràng cả spec 008–010
+  >   vào một con số đo trên hình dạng dữ liệu của hôm nay thì spec 009 thêm chỉ số thể lực
+  >   vào mỗi mốc là vỡ ngay. Phương án 6,6 MB bị loại vì nó phải bỏ trường trạng thái khỏi
+  >   khối mỏng, làm AC-38.5 chỉ gác được **7%** thời lượng trận thay vì 100%.
+
 ---
 
 ## 4. Luồng chính (happy path)
@@ -278,7 +332,8 @@ thay vì phải tin**.
    mô phỏng** → hệ thống nhận một mã trận, và thời tiết của trận sinh ra từ mã ấy.
 2. Người dùng bấm bắt đầu → trận chạy ở chế độ liên tục: mọi điểm di chuyển theo cơ học của
    US-38, bóng có độ cao, người giữ bóng luôn xác định.
-3. Người dùng xem sân 2D, dừng và tua được; ở các tình huống quan trọng chuyển động dày lên
+3. Người dùng xem sân 2D, **dừng và tua TỚI được** (đổi mức tốc độ, *Chạy hết trận* —
+   AC-45.10; spec 007 không có tua ngược); ở các tình huống quan trọng chuyển động dày lên
    **0,5 giây một mốc**.
 4. Giữa trận, người dùng thay người hoặc đổi chỉ thị; mọi can thiệp được ghi lại để phát
    lại (P1).
@@ -324,7 +379,9 @@ thay vì phải tin**.
   khi spec 009 hay 010 chốt kiến trúc. Nếu con số không vừa thì đó là việc của người dùng
   quyết — nới hiến pháp, hay cho mùa giải chạy ở chế độ hiện tại.
 - **Dữ liệu.** Bản ghi trận **không phình thêm một byte**: vị trí sinh lại từ mã trận, không
-  lưu (AC-45.4). Đây là cách spec này giữ P10 mà không phải cắt bớt gì.
+  lưu (AC-45.4). Đây là cách spec này giữ P10 mà không phải cắt bớt gì. **Tệp xuất** thì khác
+  bản ghi: nó mang vị trí từng mốc, nên nó có ngân sách riêng **11 MB** cho một trận 90 phút
+  (AC-45.11). Con số ấy **chỉ ràng spec 007**, không vào hiến pháp.
 - **Tái lập được (P1).** Mọi tính ngẫu nhiên — kể cả thời tiết của trận — PHẢI đến từ mã
   trận. PHẢI không có nguồn ngẫu nhiên toàn cục, PHẢI không bám đồng hồ thật.
 - **Luật bóng đá tách khỏi giao diện (P2).** Toàn bộ cơ học chuyển động và mọi quyết định của
@@ -342,7 +399,7 @@ thay vì phải tin**.
 - [ ] Toàn bộ AC ở mục 3 pass
 - [ ] Trường hợp biên mục 5 được xử lý
 - [ ] Không vi phạm nguyên tắc nào trong constitution
-- [ ] Mọi AC dạng **khoảng số** (AC-37.7, AC-38.1 → AC-38.8, AC-38.11, AC-45.3) có **test tự
+- [ ] Mọi AC dạng **khoảng số** (AC-37.7, AC-38.1 → AC-38.8, AC-38.11, AC-45.3, AC-45.11) có **test tự
       động** đo đúng khoảng đó trên nhiều mã trận — không AC nào trong nhóm này được tick bằng
       cách xem mắt (P5, và chuẩn chất lượng mục 4)
 - [ ] Ngân sách mùa giải đã được **đo và báo số**, dù spec này không bị nó ràng (mục 6)
@@ -381,7 +438,11 @@ Spec này đã qua cổng chặn của hiến pháp mục 5 và sẵn sàng cho 
   lăn "chậm dần nhanh hơn trên sân ướt **hoặc cỏ dài**", còn mục 21 viết "mưa làm bóng lăn
   **nhanh** và trơn hơn". Hai câu ngược nhau: cỏ ướt **giảm** ma sát (bóng đi xa hơn), cỏ dài
   **tăng** ma sát. AC-38.7 lấy theo vật lý và theo mục 21 — **sân ướt thì bóng đi xa hơn**.
-  Nếu ý người dùng là chiều kia thì AC-38.7 phải sửa.
+  **Người dùng xác nhận chiều này ngày 2026-11-23**, nên AC-38.7 **không đổi**. Kèm theo: **độ
+  dài cỏ KHÔNG vào spec 007** — nó là một đại lượng mới chưa có trong AC nào, và thêm nó thì
+  phải thêm một AC, một nguồn sinh từ mã trận và một hằng số ma sát nữa. Câu ở mục 10 của
+  `ban-mo-ta-goc.md` vì thế **không đúng** cho spec 007; tài liệu ấy **giữ nguyên lời của
+  người dùng** và chỉ được **thêm một ghi chú phán xử** có ngày, không sửa câu nào.
 - Người dùng vẫn là **một người, trên một máy, offline**.
 - Bản mô tả 21 mục là **yêu cầu của người dùng**, không phải tài liệu kỹ thuật: những con số
   trong đó là **mức mong muốn**, và spec này ghi chúng thành AC đo được. Nếu một con số hoá ra
@@ -587,10 +648,11 @@ bóng phải có một mục đích gọi tên được từ danh mục mục 11
 
 ## 13. Bước tiếp theo
 
-Mục 8 đã rỗng, nên cổng chặn của hiến pháp mục 5 đã mở. Chạy `/plan`.
+Mục 8 đã rỗng, nên cổng chặn của hiến pháp mục 5 đã mở. `plan.md` viết xong **2026-11-23**
+(18 quyết định D117–D134, 14 rủi ro R51–R64, bảy lát Phase 53–59), và **tám câu** plan không
+tự quyết đã được người dùng trả lời trong cùng ngày — xem mục 15. Chạy `/tasks`.
 
-Trước khi code: **đóng spec 006** (T608 và Phase 52, bỏ Phase 50), rồi cắt nhánh
-`007-continuous-match-engine`.
+Spec 006 đã đóng và nhánh `007-continuous-match-engine` đã cắt từ `main` tại `7e1b065`.
 
 
 ---
@@ -624,3 +686,31 @@ lập plan được**, cộng hai chỗ sửa kèm. Người dùng chốt cả b
 không mang lại gì. Lớp nội suy và lớp dao động đều tắt cho họ, nên họ nhận đúng kiểu nhảy
 mốc mà spec 005 và 006 sinh ra để chữa — chỉ là dày hơn 60 lần. Plan phải ghi điều này,
 không phải một dòng bảng để tick.
+
+---
+
+## 15. Nhật ký làm rõ — bổ sung 2026-11-23 (tám câu `plan.md` không tự quyết)
+
+`plan.md` chốt 18 quyết định thiết kế nhưng **từ chối tự trả lời tám câu**, vì mỗi câu đổi một
+điều spec chưa nói. Người dùng trả lời cả tám trong hai lượt ngày 2026-11-23, **cả tám theo
+phương án được khuyến nghị**. Ba câu trong số đó sinh ra AC mới (AC-45.9, AC-45.10, AC-45.11),
+một câu sửa số của AC-38.10, bốn câu còn lại chốt mà **không** đổi AC nào.
+
+| # | Câu hỏi | Quyết định | Spec đổi gì |
+|---|---|---|---|
+| 17 | **"Bóng chết" nghĩa là gì, và 20 giây một pha chia thế nào** (engine chỉ sinh 1,92 hành động mỗi chuỗi nên phần dư phải đi đâu đó) | **Để bốn con số trong `plan.md`, KHÔNG thành AC.** Phép kiểm chỉ khẳng định **tính nhất quán** (tổng thời lượng mỗi phút khớp 60 giây), không khẳng định giá trị | **Không đổi.** Lý do: mức thật "bóng chỉ lăn 55–60 phút" là nguyên văn phạm vi spec 010, và spec 008 sẽ **thay** định nghĩa này khi mang luật IFAB vào. Cái giá đã nói: bốn số không có AC nào canh |
+| 18 | **Ngân sách kích thước tệp xuất, và nó có vào hiến pháp không** | **11 MB, chỉ trong spec 007.** Không bump hiến pháp | **AC-45.11 mới** + một câu ở mục 6. Hiến pháp **không** đổi, nên spec 008–010 không bị ràng vào con số đo trên hình dạng dữ liệu hôm nay |
+| 19 | **Bán kính điểm cầu thủ ở chế độ liên tục** | **Giữ 2,6** (người dùng vừa xin thu 3,4 → 2,6 ở T627) | **Không đổi.** Cái giá đã nói: hai người tranh chấp vẽ thành hai đĩa chồng **71–89%**; bất biến "không hai điểm chồng khít" phải được phát biểu lại theo **đúng chữ của AC-15.2** chứ không theo cách đo hôm nay — việc của `plan.md` R58, không phải của spec |
+| 20 | **Chiều ma sát sân ướt — bản mô tả gốc tự nói ngược ở mục 10 và mục 21** | **Sân ướt thì bóng đi XA hơn** (chiều mục 21, đúng chiều AC-38.7 đang viết). Độ dài cỏ **không** vào spec 007 | **AC-38.7 không đổi**; mục 9 ghi lại xác nhận. `ban-mo-ta-goc.md` **giữ nguyên cả hai câu của người dùng** và chỉ nhận một **ghi chú phán xử** có ngày — tài liệu ấy là *lời của họ*, nên tôi không sửa lời |
+| 21 | **Người bật giảm chuyển động thấy gì ở chế độ liên tục** (AC-31.1 nói "không nội suy, không dao động" — nó không nói "ít chuyển động hơn") | **Đồng hồ mốc chạy, chỉ tắt nội suy và dao động** | **AC-45.9 mới.** Nó nói thẳng chỗ **tệ hơn hôm nay**: đường chuyền dài thành bước nhảy ~26 đơn vị, gấp 3,3 lần bước nhảy lớn nhất của người |
+| 22 | **AC-38.10 đòi một con số không dựng nổi** (15–25 m mâu thuẫn số học với AC-38.1/38.2, thiếu 1,55 m ở ca thuận lợi nhất) | **Nới dải thành 15–35 m**, giữ phép kiểm **tuyệt đối** | **AC-38.10 sửa số.** Hai mệnh đề còn lại của AC không đổi, `plan.md` D133 là chủ sở hữu |
+| 23 | **Phép kiểm AC-45.3 tốn 400 trận — trong `npm test` mặc định hay chạy theo yêu cầu?** | **Trong `npm test` mặc định.** AC-45.3 là lưới duy nhất canh "hai chế độ ra cùng một kết quả", tức canh P1 | **Không đổi.** Cái giá đã nói: suite có thể từ ~27 giây lên ~68 giây ở nhánh xấu nhất — file này một mình thêm 46–54% |
+| 24 | **Chữ "tua" ở mục 4 bước 3 nghĩa là gì** (không AC nào định nghĩa nó) | **Tua TỚI thôi** — đổi mức tốc độ và *Chạy hết trận*. **Không** tua ngược, **không** thanh thời gian | **AC-45.10 mới** + mục 4 bước 3 viết lại. Cái giá: xem lại một pha vừa trôi qua thì phải chạy lại cả trận |
+
+**Tổng AC sau lượt này: 30** (US-37: 8, US-38: 11, US-45: 11). `plan.md` mục 6 phải phủ 30/30.
+
+**Một chỗ `plan.md` nêu mà spec vẫn chưa sửa, và nó là của người dùng:** spec còn viết "Engine
+v5" ở bốn chỗ (dòng 19, 81, 211, 448) trong khi code là `PHIEN_BAN_ENGINE = 6` từ commit
+`f537d7d`, và câu "20 trận đã lưu đấu lại y nguyên" ở dòng 19/81 **đã sai** từ lúc engine lên
+6 — chúng đã mất nút đấu lại một lần. Sửa hai chỗ ấy đổi **lập luận** của spec, không phải
+sổ sách, nên nó chờ người dùng quyết chứ không phải việc tôi tự làm. Xem `plan.md` mục 11.
