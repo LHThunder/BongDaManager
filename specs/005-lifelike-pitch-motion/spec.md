@@ -200,7 +200,16 @@ quan trọng nhất của nó**.
 - [x] AC-32.2 — KHI dòng đang hiện là khai cuộc hay hết hiệp THÌ bóng PHẢI nằm ở điểm giao bóng giữa sân.
 - [x] AC-32.3 — KHI dòng đang hiện không kể một pha bóng và cũng không phải khai cuộc hay hết hiệp (thay người, kiệt sức) THÌ bóng PHẢI giữ đúng chỗ nó được thấy lần cuối, KHÔNG nhảy về giữa sân.
 - [x] AC-32.4 — KHI một bàn thắng được ghi THÌ sân PHẢI hiện một hiệu ứng gồm ba phần cùng lúc: một vòng sáng lan ra từ chỗ ghi bàn, điểm của người ghi bàn phóng to, và dòng chữ "BÀN THẮNG!"; dòng chữ ấy PHẢI có cả tiếng Việt và tiếng Anh.
-- [x] AC-32.5 — KHI hiệu ứng bàn thắng chạy THÌ đồng hồ trận PHẢI lặng khoảng 1,5 giây rồi **tự** chạy tiếp, mà nút Tạm dừng / Tiếp tục KHÔNG được đổi nghĩa: người dùng PHẢI không thể tưởng là mình đã bấm Tạm dừng.
+- [x] AC-32.5 — KHI hiệu ứng bàn thắng chạy THÌ đồng hồ trận PHẢI lặng khoảng 4 giây rồi **tự** chạy tiếp, mà nút Tạm dừng / Tiếp tục KHÔNG được đổi nghĩa: người dùng PHẢI không thể tưởng là mình đã bấm Tạm dừng.
+
+  > **Sửa 2026-11-23, người dùng chốt: 1,5 giây → 4 giây.** Spec này đã `Done`, và
+  > sửa ngược một AC đã đóng là chuyện phải ghi rõ chứ không làm lặng lẽ. Lý do: 1,5
+  > giây đủ để *thấy* hiệu ứng nhưng không đủ để *đọc* dòng tường thuật vừa hiện rồi
+  > nhìn lại sân. Chỗ sửa là **một hằng số**, `MS_LANG_SAU_BAN_THANG` ở
+  > `src/hooks/useMatch.ts` — không phép kiểm nào đặt cứng con số ấy, nên đây là một
+  > lát kiểm **bằng mắt**, đúng như AC-32.5 vốn đã được nghiệm thu ở T518.
+  > Kèm theo: ở mức Rất nhanh (20 ms/phút) một bàn thắng nay dừng lâu bằng 200 phút
+  > trận thay vì 75.
 - [x] AC-32.6 — KHI người dùng bật chế độ giảm chuyển động THÌ hiệu ứng bàn thắng PHẢI chỉ còn phần chữ — không vòng sáng, không phóng to — nhưng đồng hồ VẪN lặng một nhịp, vì một nhịp lặng không phải là chuyển động.
 - [x] AC-32.7 — KHI trận đang tạm dừng hoặc đã kết thúc THÌ quả bóng PHẢI vẫn có mặt: đóng băng sân không có nghĩa là bóng mất.
 - [x] AC-32.8 — KHI nhìn vào sân THÌ quả bóng PHẢI **trông ra một quả bóng đá**: hình tròn **trắng có mảng đen** như bóng thật, chứ không phải một chấm màu trơn; và nó PHẢI phân biệt được với mọi điểm cầu thủ ở cả hai chế độ sáng/tối.

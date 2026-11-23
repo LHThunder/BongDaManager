@@ -86,8 +86,17 @@ export const MS_MOI_PHUT: Readonly<Record<MucTocDo, number>> = {
  * Đủ để xem hết hiệu ứng trên sân và đọc dòng tường thuật vừa hiện, như khi
  * truyền hình dừng lại một nhịp ở bàn thắng. Không phụ thuộc mức tốc độ: mắt
  * người cần một khoảng thời gian thật, không phải một số phút trận.
+ *
+ * **1.500 → 4.000 ngày 2026-11-23, người dùng chốt.** AC-32.5 của spec 005 đã
+ * sửa theo. 1,5 giây là đủ để *thấy* hiệu ứng nhưng không đủ để *đọc* dòng
+ * tường thuật vừa hiện rồi nhìn lại sân.
+ *
+ * ⚠️ Con số này là thời gian THẬT, nên ở mức Rất nhanh (20 ms mỗi phút trận)
+ * một bàn thắng dừng lâu bằng **200 phút trận** — trước đây là 75. Mức ấy vốn
+ * để xem nhanh kết cục, và "Chạy hết trận" chạy đồng bộ nên không dính nhịp
+ * lặng nào; nhưng nếu thấy chướng thì chỗ sửa là ở đây.
  */
-export const MS_LANG_SAU_BAN_THANG = 1500
+export const MS_LANG_SAU_BAN_THANG = 4000
 
 export const CAC_MUC_TOC_DO: readonly MucTocDo[] = [
   'rat-cham',
