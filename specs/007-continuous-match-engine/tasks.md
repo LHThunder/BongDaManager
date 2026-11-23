@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **30 AC**) |
 | **Plan** | `./plan.md` (Status `Approved`, D117–D134, R51–R64) |
-| **Tiến độ** | 2/47 |
+| **Tiến độ** | 3/47 |
 | **Nền đo** | commit `5c652eb`, engine v6, **1.304 test xanh / 63 file test** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -102,7 +102,7 @@
     (`rng.test.ts` đọc **source** của `rng.ts` qua `import.meta.glob('./rng.ts', {query:'?raw'})`
     ở dòng 13 và cấm `Math.random`/`Date.now`/`crypto` ở 167-180 — `Math.imul` không bị cấm.)
 
-- [ ] **T703** [P] — `engine/hinhHocSan.ts` + `ui/quyDoiMet.ts` (một hệ số đẳng hướng)
+- [x] **T703** [P] — `engine/hinhHocSan.ts` + `ui/quyDoiMet.ts` (một hệ số đẳng hướng)
   - File: tạo `src/engine/hinhHocSan.ts`, `src/engine/hinhHocSan.test.ts`,
     `src/ui/quyDoiMet.ts`, `src/ui/quyDoiMet.test.ts`; sửa `src/ui/components/San2D.tsx`
     (thêm `export` cho `BAN_KINH`)

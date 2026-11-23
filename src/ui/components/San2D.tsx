@@ -144,7 +144,7 @@ const DICH_THEO_DO_CAO: Readonly<Record<string, number>> = {
  * Quả bóng **cố tình giữ nguyên 1,7**: người dùng xin thu *điểm cầu thủ*, và
  * bóng to hơn so với người thì càng dễ nhìn theo — đúng điều AC-32.1 muốn.
  */
-const BAN_KINH = 2.6
+export const BAN_KINH = 2.6
 
 /** Khoảng giãn giữa hai người cùng ĐỘI đứng cùng một vùng. */
 const BUOC_GIAN = 8
