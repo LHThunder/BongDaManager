@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **30 AC**) |
 | **Plan** | `./plan.md` (Status `Approved`, D117–D134, R51–R64) |
-| **Tiến độ** | 10/48 |
+| **Tiến độ** | 11/48 |
 | **Nền đo** | commit `5c652eb`, engine v6, **1.304 test xanh / 63 file test** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -286,13 +286,29 @@
     đổi chỗ **giữa** hai mốc quyết định, tức là chính thứ Phase 53 hứa "xem được ngay" — thiếu
     nó thì 20 giây của một pha không có gì lấp. Đã thêm vào plan mục 9 cùng ngày.
 
-- [ ] **T707** [P] — Khoá chế độ liên tục khi quân số ≠ 11
+- [x] **T707** [P] — Khoá chế độ liên tục khi quân số ≠ 11
   - File: `src/engine/batDau.ts` (nhánh thứ năm của `LyDoKhongBatDau` + kiểm trong
     `kiemTraBatDauDuoc`), `src/engine/batDau.test.ts`
   - Xong khi: test thuần trên `kiemTraBatDauDuoc` cho **cả 7** giá trị của `CAC_QUAN_SO` — 11
     thì đi được, 5–10 thì trả đúng lý do mới; và `npx vitest run src/engine/batDau.test.ts`
     xanh.
-  - AC: AC-45.8
+  - ⚠️ **Phạm vi nới ba file, 2026-11-23, và `tsc` BẮT BUỘC phải thế.**
+    `cauLyDo` ở `src/ui/pages/ChonCapDau.tsx:571` là một `switch` **vét cạn, không có
+    `default`**, và hàm trả `string`. Nên thêm nhánh thứ năm vào `LyDoKhongBatDau` làm
+    **`tsc` đỏ ngay** (TS2366) — T707 không thể sạch một mình. Vì thế cặp chuỗi vi/en và
+    nhánh `switch` vào **cùng commit** này, đúng điều **P8** đòi ("một chuỗi hiển thị mới
+    MUST kèm cả hai ngôn ngữ trong CÙNG MỘT commit"). Soát chéo của `/analyze` đã dự đúng
+    chỗ này (phát hiện LOW số 49). Ba file thêm: `src/ui/ngonNgu/vi.ts`,
+    `src/ui/ngonNgu/en.ts`, `src/ui/pages/ChonCapDau.tsx`. T709 giữ phần **nhóm radio**.
+  - ✅ **`ngonNgu.test.ts` tự động canh cặp chuỗi mới, 0 dòng sửa** — đúng cái cơ chế
+    `TEN_KHOI = Object.keys(BO_CHUOI.vi)` mà bảng phạm vi đã nêu.
+  - ⚠️ **Phép kiểm đi qua CẢ BẢY giá trị của `CAC_QUAN_SO`, không chỉ một.** Lý do khoá là
+    hình học sân, và hình học ấy đúng ở **đúng một** quân số. Một phép kiểm chỉ thử sân 7 sẽ
+    xanh cả khi điều kiện viết là `quanSo < 11` — và lúc ấy một sân 12 người (nếu spec sau
+    mở ra) lọt qua. Cộng ba ca chống tầm thường: cả bảy quân số **đi được** ở chế độ cổ điển
+    (khoá không lan ra), không khai chế độ thì không khoá, và khoá nói **cùng lúc** với lý
+    do khác chứ không che chúng.
+  - AC: AC-45.8, và P8
   - Phụ thuộc: T705
 
 - [ ] **T708** [P] — Chế độ vào bản ghi, tệp sao lưu, và hai hàm đọc

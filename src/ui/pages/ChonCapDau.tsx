@@ -571,6 +571,8 @@ function cauLyDo(
   switch (ly.loai) {
     case 'cung-mot-doi':
       return LY_DO_KHONG_BAT_DAU.cungMotDoi
+    case 'lien-tuc-chi-san-11':
+      return LY_DO_KHONG_BAT_DAU.lienTucChiSan11(ly.quanSo, ly.quanSoCan)
     case 'chua-du-chinh':
       return LY_DO_KHONG_BAT_DAU.chuaDuChinh(
         tenDoi(ly.doi),

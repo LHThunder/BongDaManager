@@ -783,6 +783,8 @@ export const LY_DO_KHONG_BAT_DAU_EN: BanDich<typeof LY_DO_KHONG_BAT_DAU_VI> = {
     `${tenDoi} still have players missing attributes: ${tenCauThu.join(', ')}.`,
   khongDuNguoi: (tenDoi: string, co: number) =>
     `${tenDoi} only have ${co} players in the squad, not the 18 needed to register.`,
+  lienTucChiSan11: (quanSo: number, can: number) =>
+    `Continuous mode only runs on ${can}-a-side; this match is ${quanSo}-a-side. Both the pitch geometry and the movement mechanics of that mode are ${can}-a-side figures.`,
 }
 
 export const TRAN_DAU_EN: BanDich<typeof TRAN_DAU_VI> = {

@@ -46,6 +46,24 @@ export type LyDoKhongBatDau =
       readonly doi: BenDoi
       readonly cacLyDo: readonly LyDoChuaDuDieuKien[]
     }
+  /**
+   * Chế độ liên tục chỉ chạy được ở sân 11 (AC-45.8, quyết định D122).
+   *
+   * Vì sao KHOÁ chứ không co sân: AC-37.1 và AC-37.2 chỉ định nghĩa hình học
+   * **105×68 của sân 11** — vòng cấm 16,5 m, khung thành 7,32 m, chấm phạt đền
+   * 11 m đều là số của sân 11. Co sân theo quân số thì mọi con số ấy phải co
+   * theo, trong khi cơ học của US-38 (9 m/s, gia tốc 6 m/s²) **không co** vì
+   * người vẫn là người — tỉ lệ người trên sân đổi hẳn.
+   *
+   * Engine liên tục là **lối vào thứ hai**, nên nó được phép có điều kiện
+   * riêng. Cái giá đã nói trước khi chốt: người chơi sân 7 không bao giờ thấy
+   * chuyển động mới, và giao diện **phải** giải thích vì sao nút bị khoá.
+   */
+  | {
+      readonly loai: 'lien-tuc-chi-san-11'
+      readonly quanSo: number
+      readonly quanSoCan: number
+    }
 
 export type KetQuaKiemTraBatDau =
   | { readonly batDauDuoc: true }
@@ -101,6 +119,15 @@ export function kiemTraBatDauDuoc(
   const cacLyDo: LyDoKhongBatDau[] = [
     ...(cauHinh.nha.teamId === cauHinh.khach.teamId
       ? [{ loai: 'cung-mot-doi' } as const]
+      : []),
+    ...(cauHinh.cheDoMoPhong === 'lien-tuc' && quanSo !== SO_CAU_THU_CHINH
+      ? [
+          {
+            loai: 'lien-tuc-chi-san-11',
+            quanSo,
+            quanSoCan: SO_CAU_THU_CHINH,
+          } as const,
+        ]
       : []),
     ...kiemTraMotBen(cauHinh.nha, 'nha', quanSo),
     ...kiemTraMotBen(cauHinh.khach, 'khach', quanSo),

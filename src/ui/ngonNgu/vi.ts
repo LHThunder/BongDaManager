@@ -838,6 +838,8 @@ export const LY_DO_KHONG_BAT_DAU_VI = {
     `${tenDoi} còn cầu thủ thiếu chỉ số: ${tenCauThu.join(', ')}.`,
   khongDuNguoi: (tenDoi: string, co: number) =>
     `${tenDoi} mới có ${co} cầu thủ trong đội, chưa đủ 18 người để đăng ký.`,
+  lienTucChiSan11: (quanSo: number, can: number) =>
+    `Chế độ liên tục chỉ chạy được ở sân ${can} người; trận này đang là sân ${quanSo}. Hình học sân và cơ học chuyển động của chế độ ấy đều là số của sân ${can}.`,
 } as const
 
 export const TRAN_DAU_VI = {

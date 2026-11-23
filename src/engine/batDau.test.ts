@@ -12,7 +12,7 @@ import {
   SO_CAU_THU_DU_BI_TOI_DA,
   type LyDoKhongBatDau,
 } from './batDau'
-import { taoTran, type CauHinhTran } from './tran'
+import { CAC_QUAN_SO, taoTran, type CauHinhTran } from './tran'
 
 const MA = MA_TRAN_CO_DINH[0]
 
@@ -231,5 +231,83 @@ describe('taoTran từ chối cấu hình chưa bắt đầu được', () => {
 
   it('cấu hình hợp lệ thì không ném', () => {
     expect(() => taoTran(cauHinhMau(MA))).not.toThrow()
+  })
+})
+
+/*
+  Chế độ liên tục chỉ chạy được ở sân 11 (T707, AC-45.8, D122).
+
+  Phép kiểm đi qua CẢ BẢY giá trị của `CAC_QUAN_SO` chứ không chỉ một: lý do
+  khoá là hình học sân, và hình học ấy chỉ đúng ở đúng một quân số. Một phép
+  kiểm chỉ thử sân 7 sẽ xanh cả khi điều kiện viết là `quanSo < 11`, và lúc ấy
+  một sân 12 người (nếu spec sau mở ra) lọt qua.
+*/
+describe('chế độ liên tục chỉ cho sân 11 (T707, AC-45.8)', () => {
+  /** Cấu hình đủ điều kiện bắt đầu, ở một quân số bất kỳ. */
+  function cauHinhOQuanSo(quanSo: number, cheDo?: CauHinhTran['cheDoMoPhong']) {
+    return {
+      ...cauHinhMau(MA),
+      nha: benMauQuanSo('A', quanSo),
+      khach: benMauQuanSo('B', quanSo),
+      quanSo,
+      cheDoMoPhong: cheDo,
+    }
+  }
+
+  it('sân 11 thì chế độ liên tục đi được', () => {
+    expect(cacLoaiLyDo(cauHinhOQuanSo(11, 'lien-tuc'))).toEqual([])
+  })
+
+  it('sáu quân số còn lại đều bị khoá, và đúng MỘT lý do ấy', () => {
+    for (const quanSo of CAC_QUAN_SO.filter((q) => q !== 11)) {
+      const lyDo = cacLoaiLyDo(cauHinhOQuanSo(quanSo, 'lien-tuc'))
+      expect(lyDo, `sân ${quanSo}`).toEqual(['lien-tuc-chi-san-11'])
+    }
+  })
+
+  it('cả bảy quân số đi được ở chế độ cổ điển — khoá KHÔNG lan ra', () => {
+    for (const quanSo of CAC_QUAN_SO) {
+      expect(cacLoaiLyDo(cauHinhOQuanSo(quanSo, 'co-dien')), `sân ${quanSo}`).toEqual(
+        [],
+      )
+    }
+  })
+
+  it('không khai chế độ thì không khoá — mặc định là cổ điển', () => {
+    for (const quanSo of CAC_QUAN_SO) {
+      expect(cacLoaiLyDo(cauHinhOQuanSo(quanSo)), `sân ${quanSo}`).toEqual([])
+    }
+  })
+
+  it('lý do mang đủ hai con số để giao diện nói được câu hoàn chỉnh', () => {
+    const kq = kiemTraBatDauDuoc(cauHinhOQuanSo(7, 'lien-tuc'))
+    expect(kq.batDauDuoc).toBe(false)
+    if (kq.batDauDuoc) return
+
+    const ly = kq.cacLyDo[0]!
+    expect(ly.loai).toBe('lien-tuc-chi-san-11')
+    if (ly.loai !== 'lien-tuc-chi-san-11') return
+    expect(ly.quanSo).toBe(7)
+    expect(ly.quanSoCan).toBe(SO_CAU_THU_CHINH)
+  })
+
+  it('khoá nói CÙNG LÚC với lý do khác, không che chúng', () => {
+    /*
+      `kiemTraBatDauDuoc` trả MỌI lý do cùng lúc — người dùng nên thấy hết việc
+      cần sửa trong một lần. Nếu khoá chế độ dừng sớm thì một trận sân 7 cùng
+      một đội sẽ chỉ hiện một lý do, và người dùng sửa hai lần.
+    */
+    const lyDo = cacLoaiLyDo({
+      ...cauHinhOQuanSo(7, 'lien-tuc'),
+      khach: benMauQuanSo('A', 7),
+    })
+    expect(lyDo).toContain('lien-tuc-chi-san-11')
+    expect(lyDo).toContain('cung-mot-doi')
+  })
+
+  it('và taoTran NÉM LỖI chứ không lặng lẽ chạy chế độ cổ điển', () => {
+    expect(() => taoTran(cauHinhOQuanSo(7, 'lien-tuc'))).toThrow(
+      LoiCauHinhTran,
+    )
   })
 })
