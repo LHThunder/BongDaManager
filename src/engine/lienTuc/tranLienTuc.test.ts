@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { cauHinhMau, MA_TRAN_CO_DINH } from '../__fixtures__/doiMau'
 import {
+  cauHinhDauLai,
   chayHetTran,
   dongSuKien,
+  PHIEN_BAN_ENGINE,
   taoTran,
   tongPhutTran,
 } from '../tran'
@@ -13,6 +15,7 @@ import { BUOC_MOI_PHUT, MOC_MOI_PHUT, SO_THUC_THE } from './moc'
 import {
   buocPhutLienTuc,
   chayHetTranLienTuc,
+  cheDoCuaTrangThai,
   PHIEN_BAN_ENGINE_LIEN_TUC,
   taoTranLienTuc,
 } from './tranLienTuc'
@@ -259,5 +262,76 @@ describe('ai đang giữ bóng ở từng mốc (AC-37.6, T706)', () => {
     for (let i = 1; i < cac.length; i += 1) {
       expect(cac[i]! - cac[i - 1]!).toBe(2)
     }
+  })
+})
+
+/*
+  Trạng thái tự nói nó do engine nào sinh ra (T709 phần 3, D122).
+
+  Ca quan trọng nhất là cái cuối, và nó TRÔNG NHƯ SAI: một cấu hình khai
+  `cheDoMoPhong: 'lien-tuc'` đưa cho `taoTran` vẫn đọc ra `'co-dien'`. Đúng như
+  vậy. Chế độ của bản ghi phải nói **engine nào đã chạy**, không nói người dùng
+  đã bấm gì — vì chính `phienBanEngine` ấy là thứ quyết định trận còn đấu lại
+  được hay không. Ghi lựa chọn của người dùng vào thì sẽ có bản ghi mang nhãn
+  "liên tục" cùng số 6, và nó **không đấu lại được**: một bản ghi nói dối về
+  chính nó.
+*/
+describe('cheDoCuaTrangThai — dẫn xuất từ phienBanEngine (T709)', () => {
+  it('trạng thái liên tục mang 101, khác hẳn số của v6', () => {
+    const lt = taoTranLienTuc(cauHinhMau(MA))
+    expect(lt.tran.phienBanEngine).toBe(PHIEN_BAN_ENGINE_LIEN_TUC)
+    expect(lt.tran.phienBanEngine).not.toBe(PHIEN_BAN_ENGINE)
+    expect(cheDoCuaTrangThai(lt.tran)).toBe('lien-tuc')
+  })
+
+  it('trạng thái v6 đọc ra co-dien', () => {
+    const v6 = taoTran(cauHinhMau(MA))
+    expect(v6.phienBanEngine).toBe(PHIEN_BAN_ENGINE)
+    expect(cheDoCuaTrangThai(v6)).toBe('co-dien')
+  })
+
+  it('số 101 SỐNG SÓT qua cả trận, không bị một bước nào xoá', () => {
+    /*
+      `buocTiep` dựng trạng thái mới bằng cách trải trạng thái cũ. Nếu một ngày
+      nó dựng lại từ đầu thì số phiên bản rơi về 6 giữa chừng, và bản ghi lưu ra
+      lúc hết trận sẽ sai — mà mọi phép kiểm khác vẫn xanh.
+    */
+    for (const ma of MA_TRAN_CO_DINH.slice(0, 5)) {
+      const xong = chayHetTranLienTuc(taoTranLienTuc(cauHinhMau(ma)))
+      expect(xong.tran.ketThuc, ma).toBe(true)
+      expect(xong.tran.phienBanEngine, ma).toBe(PHIEN_BAN_ENGINE_LIEN_TUC)
+      expect(cheDoCuaTrangThai(xong.tran), ma).toBe('lien-tuc')
+    }
+  })
+
+  it('đấu lại một trận liên tục ra một cấu hình liên tục', () => {
+    const xong = chayHetTranLienTuc(taoTranLienTuc(cauHinhMau(MA)))
+    const lai = cauHinhDauLai(
+      xong.tran,
+      MA,
+      cheDoCuaTrangThai(xong.tran),
+    )
+    expect(lai.cheDoMoPhong).toBe('lien-tuc')
+
+    // Và một trận cổ điển vẫn ra cấu hình cổ điển — khoá không lan ra.
+    const coDien = chayHetTran(taoTran(cauHinhMau(MA)))
+    expect(
+      cauHinhDauLai(coDien, MA, cheDoCuaTrangThai(coDien)).cheDoMoPhong,
+    ).toBe('co-dien')
+  })
+
+  it('BẪY: cấu hình khai liên tục mà chạy bằng taoTran vẫn đọc ra co-dien', () => {
+    /*
+      Hôm nay `batDauTranNgay` gọi `taoTran` cho CẢ HAI chế độ — engine liên tục
+      chưa được nối vào giao diện (T733). Nên một trận người dùng bấm "liên tục"
+      thật sự chạy bằng v6, và bản ghi phải nói đúng điều đó.
+
+      Ca này sẽ đổi vế khi T733 đến. Lúc ấy nó là chỗ nhắc rằng đường nối đã xong.
+    */
+    const tt = taoTran({
+      ...cauHinhMau(MA),
+      cheDoMoPhong: 'lien-tuc',
+    })
+    expect(cheDoCuaTrangThai(tt)).toBe('co-dien')
   })
 })

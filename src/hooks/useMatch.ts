@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { LoiCauHinhTran, type LyDoKhongBatDau } from '../engine/batDau'
 import { chuanHoaLoiLuuTru } from '../services/errors'
 import { dungBaoCao } from '../engine/baoCao'
+import { cheDoCuaTrangThai } from '../engine/lienTuc/tranLienTuc'
 import { taoMaTran } from '../engine/rng'
 import {
   apDungCanThiep,
@@ -132,6 +133,16 @@ function dungBanGhi(
     tiSo: tt.tiSo,
     quanSo: tt.quanSo,
     thoiLuong: tt.thoiLuong,
+    /*
+      Chế độ ĐỌC RA từ trạng thái, không nhận từ ngoài (AC-45.1, AC-45.4).
+
+      `dungBanGhi` chỉ có `TrangThaiTran` trong tay, mà kiểu ấy đóng băng ở
+      đúng 16 trường (D119) nên không mang chế độ. Nhận chế độ qua tham số thì
+      phải nhớ nó ở đâu đó suốt trận — một nguồn sự thật thứ hai, và nó sẽ lệch
+      khỏi engine thật sự đã chạy. `cheDoCuaTrangThai` hỏi `phienBanEngine`,
+      thứ đã nằm sẵn trong trạng thái và đã là thứ `lyDoKhongDauLai` so.
+    */
+    cheDoMoPhong: cheDoCuaTrangThai(tt),
     doiChuNha: anhChupDoi(tt.ben.nha.teamId, teams),
     doiKhach: anhChupDoi(tt.ben.khach.teamId, teams),
     sanTrungLap: tt.sanTrungLap,
@@ -343,7 +354,14 @@ export function useMatch() {
     if (!hienTai) return false
 
     const ma = dungMaCu ? hienTai.maTran : taoMaTran(RNG_THAT)
-    return batDauTran(cauHinhDauLai(hienTai, ma))
+    /*
+      Đấu lại giữ nguyên CHẾ ĐỘ của trận đang xem (tham số thứ ba của T705).
+      Bỏ trống thì một trận liên tục đấu lại ra một trận cổ điển — đổi cả tỉ số,
+      vì hai chế độ chạy trên hai dòng rút khác nhau (D118).
+    */
+    return batDauTran(
+      cauHinhDauLai(hienTai, ma, cheDoCuaTrangThai(hienTai)),
+    )
   }, [batDauTran])
 
   return {

@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **30 AC**) |
 | **Plan** | `./plan.md` (Status `Approved`, D117–D134, R51–R64) |
-| **Tiến độ** | 12/48 |
+| **Tiến độ** | 13/48 |
 | **Nền đo** | commit `5c652eb`, engine v6, **1.304 test xanh / 63 file test** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -349,14 +349,79 @@
     nhầm, và chú thích `matchRepo.ts:25-34` nói rõ chỗ điền mặc định chỉ được có **một** —
     task này **không** thêm chỗ thứ hai, nó mở đường rẽ sớm của `dienMacDinh`.
 
-- [ ] **T709** — Nhóm radio chọn chế độ + chuỗi song ngữ + `San2D` đón `anhChup?`
+- [x] **T709** — Nhóm radio chọn chế độ + chuỗi song ngữ + `San2D` đón `anhChup?`
   - File: `src/ui/pages/ChonCapDau.tsx`, `src/ui/ngonNgu/vi.ts`, `src/ui/ngonNgu/en.ts`,
     `src/ui/components/San2D.tsx` (`Props` + `anhChup?`), `src/ui/pages/TrangTran.tsx`,
-    `src/hooks/useMatch.ts` (`dungBanGhi` ghi chế độ vào bản ghi)
+    `src/hooks/useMatch.ts` (`dungBanGhi` ghi chế độ vào bản ghi),
+    `src/engine/lienTuc/tranLienTuc.ts` + `.test.ts` (số 101 + `cheDoCuaTrangThai`),
+    `src/services/matchRepo.test.ts`, `src/ui/pages/TrangLichSu.tsx` (cửa gác — ngoài danh sách gốc)
   - Xong khi: `npx vitest run src/ui/ngonNgu/ngonNgu.test.ts` xanh **với 0 dòng sửa ở file
     ấy**; `npx tsc --noEmit` sạch; và lý do khoá hiện **bằng chữ** theo ngôn ngữ đang chọn
     (tiền lệ `TrangLichSu.tsx:271-292`).
   - AC: AC-45.1, AC-45.8, và P8 + P9
+  - ✅ **CHẶN 3 ĐÃ CHỮA, người dùng chốt "đặt 101" ngày 2026-11-23.**
+    `taoTranLienTuc` đặt `phienBanEngine: PHIEN_BAN_ENGINE_LIEN_TUC`, và chế độ được
+    **dẫn xuất** qua `cheDoCuaTrangThai(tt)` mới ở `tranLienTuc.ts` thay vì cất ở store —
+    `TrangThaiTran` vẫn **đúng 16 trường** (D119), và không có nguồn sự thật thứ hai để
+    lệch. `useMatch.dungBanGhi` ghi `cheDoMoPhong: cheDoCuaTrangThai(tt)`, `dauLai` truyền
+    nó làm tham số thứ ba của `cauHinhDauLai`.
+    **Ba ca đã ĐỎ trước khi dòng sửa tồn tại**, in ra đúng triệu chứng
+    `expected 'khac-phien-ban-engine' to be null` — tức nút đấu lại đã thật sự mất.
+  - ⚠️ **Ca TRÔNG NHƯ SAI mà đúng**: cấu hình khai `cheDoMoPhong: 'lien-tuc'` đưa cho
+    `taoTran` vẫn đọc ra `'co-dien'`. Chế độ của bản ghi nói **engine nào đã chạy**, không
+    nói người dùng đã bấm gì — vì chính `phienBanEngine` ấy là thứ `lyDoKhongDauLai` so.
+    Ghi lựa chọn của người dùng vào thì sinh ra bản ghi mang nhãn "liên tục" cùng số 6, và
+    nó **không đấu lại được**: một bản ghi nói dối về chính nó. Ca này **đổi vế khi T733
+    đến** — lúc ấy nó là chỗ nhắc rằng đường nối đã xong.
+  - 📏 **Kiểm tay trên app thật, vì `src/hooks` có 7 file và 0 phép kiểm (R52).**
+    `dungBanGhi` **không export** và không file test nào chạm nó — chỉ ba file lấy hằng
+    `MS_MOI_PHUT` từ `useMatch`. Nên dòng mới ấy **không có phép kiểm tự động nào canh**;
+    đã kiểm bằng cách chạy hết trận rồi đọc thẳng IndexedDB:
+    - bản ghi lưu TRƯỚC thay đổi: `phienBanEngine: 6`, **không có** trường chế độ;
+    - bản ghi lưu SAU thay đổi: `cheDoMoPhong: "co-dien"`, `phienBanEngine: 6`;
+    - chọn **Liên tục** rồi chạy hết trận → bản ghi vẫn `"co-dien"` + 6, **nhất quán**
+      (engine liên tục chưa nối vào giao diện);
+    - mở bản ghi **không có** trường chế độ trong lịch sử → nút "Đấu lại trận này" **còn
+      và không khoá**, không cảnh báo phiên bản — T708 đúng trên dữ liệu thật.
+  - ➡️ **CHẶN 1 chuyển sang T714.** `anhChup?: AnhChupMet | null` và kiểu `AnhChupMet` đi
+    theo task ấy — nơi `viTriVe.ts` sinh toạ độ và `San2D.tsx` đọc chúng, tức nơi kiểu có
+    **cả chủ lẫn người đọc**. Cùng lý lẽ mà T704 đã hoãn chỗ giữ ref: nối dây không người
+    đọc, vào đúng tầng mà R52 nói không phép kiểm nào canh.
+  - 🚪 **CỬA GÁC: `TrangLichSu.tsx:73` phải sửa, nếu không "đặt 101" KHÔNG ĐỔI GÌ.**
+    Dòng ấy truyền thẳng `PHIEN_BAN_ENGINE` (= 6) vào `lyDoKhongDauLai`, và theo chú thích
+    ngay trên nó thì đây là **chỗ duy nhất** trong ứng dụng gọi hàm ấy — dùng chung cho cả
+    "đấu lại" lẫn "rẽ nhánh". Nên engine có đóng dấu 101 đúng tới đâu cũng vô ích.
+    Đã đo trên app thật, nhét một bản ghi `phienBanEngine: 101, cheDoMoPhong: "lien-tuc"`
+    thẳng vào IndexedDB:
+    - **chưa sửa**: "Đấu lại trận này" `disabled`, số nút "Rẽ nhánh" **0**, và hiện hai câu
+      "…chạy bằng phiên bản engine **cũ hơn**…";
+    - **đã sửa**: nút đấu lại mở, **87** nút rẽ nhánh, không một câu cảnh báo nào.
+    Đây là **một file ngoài danh sách của T709** — làm vì không có nó thì phần việc người
+    dùng vừa chốt nằm đó mà không chạm tới ai, và trận liên tục còn bị khoá kèm một câu nói
+    SAI. Sửa: hỏi `phienBanEngineHienTaiCua(cheDoCua(dangMo))` thay cho số đặt cứng.
+  - 🐞 **Câu từ chối nói "engine CŨ HƠN" trong khi phép so chỉ biết "KHÁC" — chưa chữa.**
+    Đã thấy tận mắt ở ca đo trên: bản ghi mang **101** (mới hơn 6) mà câu hiện ra là "chạy
+    bằng phiên bản engine cũ hơn". `lyDoKhongDauLai` chỉ trả `khac-phien-ban-engine`, không
+    mang chiều. Hôm nay sửa cửa gác xong thì câu ấy không còn gặp bản ghi 101 nữa, nên nó
+    chỉ lộ ra ở lần nâng phiên bản sau. Là việc của **chuỗi song ngữ** (P8, hai file).
+  - 🧪 **Bài học về cách chạy soát chéo: subagent CÓ QUYỀN GHI đã sửa cây làm việc.**
+    Vòng soát chéo lần này sửa **ba** chỗ mà không ai yêu cầu, và không hoàn nguyên:
+    (1) `tran.ts:427` thành `cauHinh.cheDoMoPhong === 'lien-tuc' ? 101 : PHIEN_BAN_ENGINE`
+    — vừa ngoài phạm vi vừa **sai**, vì `taoTran` là hàm dựng của v6 nên nó sẽ đúc ra một
+    trận chạy bằng v6 mà tự nhận là liên tục; (2) xoá hẳn dòng `cheDoMoPhong:` trong
+    `dungBanGhi`, chỉ chừa chú thích; (3) moi ruột `cheDoCuaTrangThai` thành
+    `return CHE_DO_MAC_DINH`. Hai trong số đó rồi được chính các agent khác **báo lại như
+    phát hiện CRITICAL** — tức vòng soát tự tạo ra lỗi rồi tự tìm thấy nó.
+    Đã hoàn nguyên cả ba và dựng lại bằng chính script đã dùng, rồi chạy lại từ đầu.
+    **Lần sau: commit TRƯỚC khi soát, hoặc cho agent soát chạy trong worktree riêng.**
+  - 🐞 **LỖI CÓ SẴN tìm được khi dò đường đấu lại — KHÔNG thuộc T709, chưa chữa.**
+    `App.tsx:91` dựng cấu hình đấu-lại-từ-lịch-sử **bằng tay với đúng năm trường**, không
+    qua `cauHinhTuBanGhi` — và `cauHinhTuBanGhi` **không có một chỗ gọi sản phẩm nào**,
+    chỉ test gọi. Thiếu `quanSo` và `thoiLuong`, mà `taoTran` mặc định về 11/90. Đã đo
+    trên một trận sân 5: `batDauTranNgay` trả
+    `[{loai:"chua-du-chinh",soCo:5,soCan:11}, …]` chứ không `null`, nên `App.tsx:98`
+    `if (loi === null)` không chạy và nút **"Đấu lại trận này" không làm gì cả** — im lặng,
+    không báo lỗi. Có từ spec 002, và chế độ mô phỏng sẽ mất trên đúng đường ấy.
   - ⏳ **MỚI LÀM MỘT TRONG BA PHẦN, 2026-11-23.** Phần nhóm radio + chuỗi song ngữ đã
     xong và **đã xem bằng mắt** (xem dưới). Hai phần còn lại **chặn vì lỗ của plan**, mô tả
     ngay sau đây — chưa tick.
@@ -523,9 +588,16 @@ chưa có trần tốc độ, chưa có đường cong. **Phải nói trước �
     **chữ** của AC-15.2, chỉ cho chế độ liên tục" (R58, và người dùng chốt **giữ 2,6** ngày
     2026-11-23). T713 **để lại một chỗ mốc** cho T754 và **không sửa** hai con số ấy.
 
-- [ ] **T714** — Tách `ui/viTriVe.ts` thành hàm thuần export **trước**, rồi gắn các cổng
+- [ ] **T714** — Tách `ui/viTriVe.ts` thành hàm thuần export **trước**, rồi gắn các cổng,
+  **cộng kiểu `AnhChupMet` + prop `anhChup?`** (nhận từ T709, 2026-11-23)
   - File: tạo `src/ui/viTriVe.ts`, `src/ui/viTriVe.test.ts`; sửa
-    `src/ui/components/San2D.tsx`, `src/engine/lienTuc/coHoc.ts` (kẹp **đích** thủ môn)
+    `src/ui/components/San2D.tsx` (`Props` += `anhChup?: AnhChupMet | null`),
+    `src/engine/lienTuc/coHoc.ts` (kẹp **đích** thủ môn)
+  - ➡️ **Nhận từ T709, 2026-11-23**: `plan.md` nhắc `AnhChupMet` ở D121, ở sơ đồ mục 3 và
+    ở diff mục 4.1, nhưng **không task nào trong 48 task tạo nó** — `tasks.md` không nhắc
+    tên ấy một lần, `grep -rn AnhChupMet src/` rỗng. Đặt ở T709 thì prop ấy **không có
+    người sản xuất lẫn người đọc**; đặt ở đây thì kiểu, nơi sinh toạ độ và nơi vẽ nằm
+    cùng một lát. **T714 phải định nghĩa kiểu**, không chỉ dùng nó.
   - Xong khi: `viTriVe.ts` export hàm thuần nhận **tham số**, không đọc hook nào; ở tỉ lệ 1 và
     chế độ liên tục, toạ độ trả về **trùng khít** mốc engine phát; và cả bốn file
     `npx vitest run src/ui/san2D.test.ts src/ui/daoDong.test.ts src/ui/phaBong.test.ts src/ui/noiSuy.test.ts`

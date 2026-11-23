@@ -1,6 +1,8 @@
 import {
   buocTiep,
   type CauHinhTran,
+  CHE_DO_MAC_DINH,
+  type CheDoMoPhong,
   type KetCucPhaV6,
   taoTran,
   tongPhutTran,
@@ -53,6 +55,27 @@ import {
 /** Engine liên tục mang số phiên bản RIÊNG, không đụng `PHIEN_BAN_ENGINE`. */
 export const PHIEN_BAN_ENGINE_LIEN_TUC = 101
 
+/**
+ * Chế độ mô phỏng đã sinh ra một trạng thái trận.
+ *
+ * **Dẫn xuất, không cất.** `TrangThaiTran` đóng băng ở đúng 16 trường (D119),
+ * nên chế độ không vào được trạng thái; và cất nó ở store sẽ là nguồn sự thật
+ * thứ hai. `phienBanEngine` đã có sẵn trong trạng thái, đã đi vào bản ghi, và
+ * **đã là** thứ `lyDoKhongDauLai` so — nên nó là chỗ hợp lẽ nhất để hỏi.
+ *
+ * Hệ quả cố ý: bản ghi nói ĐÚNG engine nào đã chạy, chứ không nói người dùng
+ * đã bấm gì. Hôm nay `batDauTranNgay` còn gọi `taoTran` cho cả hai chế độ, nên
+ * một trận người dùng chọn "liên tục" vẫn lưu ra `co-dien` — và đó là sự thật,
+ * vì engine liên tục chưa được nối vào giao diện (T733). Nếu thay vào đó ta ghi
+ * thẳng lựa chọn của người dùng thì bản ghi sẽ nói "liên tục" trong khi mang số
+ * 6, và nó **không đấu lại được** — một bản ghi nói dối về chính nó.
+ */
+export function cheDoCuaTrangThai(tt: TrangThaiTran): CheDoMoPhong {
+  return tt.phienBanEngine === PHIEN_BAN_ENGINE_LIEN_TUC
+    ? 'lien-tuc'
+    : CHE_DO_MAC_DINH
+}
+
 /** Trạng thái trận ở chế độ liên tục: **bọc** trạng thái v6, thêm đồng hồ mốc. */
 export interface TrangThaiLienTuc {
   /** Trạng thái v6, nhưng chạy trên dòng rút 1. */
@@ -75,7 +98,25 @@ export interface MotPhutLienTuc {
 export function taoTranLienTuc(cauHinh: CauHinhTran): TrangThaiLienTuc {
   const tran = taoTran(cauHinh)
   return {
-    tran: { ...tran, hatGiong: hatGiongDong(cauHinh.maTran, 1) },
+    /*
+      ⚠️ `phienBanEngine` phải đổi theo, không chỉ `hatGiong`.
+
+      Bản đầu của T704 chỉ đè hạt giống, nên trạng thái liên tục mang số **6**
+      của v6. Mà `phienBanEngineHienTaiCua('lien-tuc')` trả **101** và
+      `lyDoKhongDauLai` so bằng `!==` — nên MỌI trận liên tục vừa lưu xong là
+      mất ngay nút đấu lại, đúng thứ mà hai số phiên bản riêng sinh ra để
+      tránh. Phép kiểm ở `matchRepo.test.ts` đã ĐỎ trước khi dòng này tồn tại.
+
+      Và nó là chỗ DUY NHẤT nói "trạng thái này do engine nào sinh ra":
+      `TrangThaiTran` đóng băng ở đúng 16 trường (D119) nên không nhận thêm
+      một trường chế độ, còn nhớ chế độ ở store là dựng nguồn sự thật thứ
+      hai — rồi hai nguồn ấy lệch nhau mà không ai biết.
+    */
+    tran: {
+      ...tran,
+      hatGiong: hatGiongDong(cauHinh.maTran, 1),
+      phienBanEngine: PHIEN_BAN_ENGINE_LIEN_TUC,
+    },
     maTran: cauHinh.maTran,
     chiSoMoc: 0,
   }

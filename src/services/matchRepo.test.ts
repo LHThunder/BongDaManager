@@ -16,6 +16,11 @@ import {
   type AnhChupDoi,
   type TranDaLuu,
 } from '../storage/db'
+import {
+  chayHetTranLienTuc,
+  PHIEN_BAN_ENGINE_LIEN_TUC,
+  taoTranLienTuc,
+} from '../engine/lienTuc/tranLienTuc'
 import * as matchRepo from './matchRepo'
 
 /*
@@ -468,5 +473,68 @@ describe('chế độ mô phỏng trong bản ghi (T708, AC-45.1)', () => {
         () => true,
       ),
     ).toBeNull()
+  })
+})
+
+/*
+  Một trận LIÊN TỤC đã lưu vẫn đấu lại được (T709 phần 3, AC-45.4, D122).
+
+  Đây là ca đã ĐỎ khi được viết ra, và nó là lý do `taoTranLienTuc` phải tự
+  đóng dấu số phiên bản của mình. Trước khi sửa: `taoTranLienTuc` gọi `taoTran`
+  rồi chỉ đè `hatGiong`, nên `phienBanEngine` của trận liên tục **vẫn là 6**;
+  còn `phienBanEngineHienTaiCua('lien-tuc')` trả **101** và `lyDoKhongDauLai`
+  so bằng `!==`. Hệ quả: MỌI trận liên tục vừa lưu xong là mất ngay nút đấu
+  lại — đúng thứ mà hai số phiên bản riêng của T708 sinh ra để tránh.
+*/
+describe('trận liên tục đã lưu vẫn ĐẤU LẠI ĐƯỢC (T709, AC-45.4)', () => {
+  /** Một trận liên tục chạy hết, đóng thành bản ghi. */
+  function tranLienTucDaLuu(i: number): TranDaLuu {
+    const ma = MA_TRAN_CO_DINH[i % MA_TRAN_CO_DINH.length]
+    const lt = chayHetTranLienTuc(
+      taoTranLienTuc({ ...cauHinhMau(ma), cheDoMoPhong: 'lien-tuc' }),
+    )
+    return {
+      ...tranDaLuu(lt.tran, `lt-${String(i).padStart(3, "0")}`, 2_000 + i),
+      cheDoMoPhong: 'lien-tuc',
+    }
+  }
+
+  it('trạng thái của trận liên tục mang số 101, không phải 6', () => {
+    const ban = tranLienTucDaLuu(0)
+    expect(ban.phienBanEngine).toBe(PHIEN_BAN_ENGINE_LIEN_TUC)
+  })
+
+  it('và lyDoKhongDauLai trả null — nút đấu lại CÒN', () => {
+    const ban = tranLienTucDaLuu(1)
+    expect(
+      matchRepo.lyDoKhongDauLai(
+        matchRepo.tomTatCua(ban),
+        matchRepo.phienBanEngineHienTaiCua(matchRepo.cheDoCua(ban)),
+        () => true,
+      ),
+    ).toBeNull()
+  })
+
+  /*
+    Ca chống tầm thường: hai số KHÔNG được hoán đổi cho nhau. Nếu một ngày
+    `taoTran` cũng trả 101 thì hai ca trên vẫn xanh mà cả cơ chế đã hỏng.
+  */
+  it('trận cổ điển vẫn mang 6, và hai chế độ KHÔNG chéo nhau', () => {
+    const coDien = tranThu(0)
+    expect(coDien.phienBanEngine).toBe(6)
+    expect(
+      matchRepo.lyDoKhongDauLai(
+        matchRepo.tomTatCua(coDien),
+        matchRepo.phienBanEngineHienTaiCua('lien-tuc'),
+        () => true,
+      ),
+    ).toBe('khac-phien-ban-engine')
+    expect(
+      matchRepo.lyDoKhongDauLai(
+        matchRepo.tomTatCua(tranLienTucDaLuu(2)),
+        matchRepo.phienBanEngineHienTaiCua('co-dien'),
+        () => true,
+      ),
+    ).toBe('khac-phien-ban-engine')
   })
 })
