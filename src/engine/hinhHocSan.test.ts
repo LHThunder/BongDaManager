@@ -32,11 +32,10 @@ import {
 */
 
 describe('hằng số gốc là con số của luật bóng đá (AC-37.2)', () => {
-  it('bảy hằng số gốc đúng giá trị', () => {
+  it('sáu hằng số gốc đúng giá trị', () => {
     expect(DAI_SAN).toBe(105)
     expect(RONG_SAN).toBe(68)
     expect(SAU_VONG_CAM).toBe(16.5)
-    expect(RONG_VONG_CAM).toBe(40.3)
     expect(CHAM_PHAT_DEN).toBe(11)
     expect(RONG_KHUNG_THANH).toBe(7.32)
     expect(BAN_KINH_VONG_GIUA).toBe(9.15)
@@ -55,6 +54,17 @@ describe('hằng số gốc là con số của luật bóng đá (AC-37.2)', () 
 })
 
 describe('hai số suy ra được canh bằng QUAN HỆ, không bằng giá trị', () => {
+  it('vòng cấm rộng = khung thành + hai lần chiều sâu vòng cấm', () => {
+    expect(RONG_VONG_CAM).toBeCloseTo(RONG_KHUNG_THANH + 2 * SAU_VONG_CAM, 10)
+
+    /*
+      Giá trị hôm nay là 40,32 — và đó là HỆ QUẢ. `SanBong.tsx` ghi 40,3 trong
+      thuộc tính SVG của nó; con số ấy đã làm tròn, nên nó KHÔNG phải nguồn.
+    */
+    expect(RONG_VONG_CAM).toBeCloseTo(40.32, 10)
+    expect(RONG_VONG_CAM).not.toBe(40.3)
+  })
+
   it('hai cột dọc đối xứng quanh tâm và cách nhau đúng bề rộng khung thành', () => {
     expect(Y_COT_XA - Y_COT_GAN).toBeCloseTo(RONG_KHUNG_THANH, 10)
     expect((Y_COT_GAN + Y_COT_XA) / 2).toBeCloseTo(TAM_Y, 10)

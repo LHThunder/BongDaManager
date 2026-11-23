@@ -112,7 +112,7 @@ trong `src/engine`. Tệp xuất là JSON thô qua `JSON.stringify`, không nén
 
 | Đại lượng | Số | Điều kiện đo |
 |---|---|---|
-| v6 một trận | **trung bình 9,7–21,9 ms / lớn nhất 14,8–48,7 ms** — một **DẢI** trên **bảy lượt**, không phải một cặp số *(đo lại T700, 2026-11-23, commit `37961e4`)* | `npx vitest run src/engine/hieuNang.test.ts`, 20 mã, có lượt khởi động, bảy lượt nối tiếp. ⚠️ **Con số cũ 7,4 / 12,6 ms không sai — nó là MỘT LƯỢT**, nằm ở hoặc dưới đáy dải này; không một dòng `src/` nào đổi từ `f537d7d`, nên chênh lệch là **nhiễu máy**, không phải engine phình ra. Chi tiết năm lượt ghi ở đầu `src/engine/hieuNang.test.ts` |
+| v6 một trận | **trung bình 6,5–7,1 ms / lớn nhất 9,7–10,3 ms** — bảy lượt, dải chỉ **×1,06–1,09** *(đo lại T700, 2026-11-23)* | `npx vitest run src/engine/hieuNang.test.ts`, 20 mã, có lượt khởi động, bảy lượt nối tiếp, **máy rỗi**. ✅ **Con số cũ 7,4 / 12,6 ms TÁI LẬP ĐƯỢC** — số đo này ổn định ±6–9%. Điều kiện quyết định là **tải của máy**: cùng lệnh ấy chạy khi máy đang gánh một đàn tiến trình khác cho dải ×3,3, và bản đầu của T700 đã ghi chính con số nhiễu ấy vào đây. Chi tiết ở đầu `src/engine/hieuNang.test.ts` |
 | Cơ học thuần 11.508 bước | **13,64 / 17,67 / 21,13 ms** (min/trung vị/max) | Node, tiến trình mới, 200.000 bước khởi động, một luồng, 20 lượt |
 | Một trận liên tục (ước) | **25,1 ms trung vị / 33,7 ms lớn nhất** | tổng hai dòng trên, cùng điều kiện |
 | Bộ nhớ lô một phút | **97,5 KiB** | `process.memoryUsage().arrayBuffers` (đo `heapUsed` là đo nhầm quầy — nó báo 0,00 MB) |
@@ -125,11 +125,19 @@ trong `src/engine`. Tệp xuất là JSON thô qua `JSON.stringify`, không nén
 lần**. `hieuNang.test.ts` 200 ms → dư **6,2 lần** ở số đo mới (32,3 ms). Mùa giải 380 trận
 < 30 giây = **78,95 ms một trận**.
 
-⚠️ **"Hệ số nở 3,5 lần" KHÔNG ĐO ĐƯỢC bằng cách ấy — T700, 2026-11-23.** Nhiễu run-to-run của
-chính lệnh **chạy riêng** đã là **×3,3** ở "lớn nhất" (14,8 → 48,7 ms trên bảy lượt), tức **lớn
-hơn** cả hệ số 3,5 mà phép đo muốn tìm. Nên **mọi** tỉ số dựng từ hai lượt đơn lẻ đều không có
-nền, kể cả phép tính cũ `33,7 × 3,5 = 118 ms`. Muốn một con số có nghĩa: nhiều lượt rồi lấy
-phân vị, hoặc ghép một **số đếm thuần** không nhiễu — đúng như mục 7 đã đòi cho **T752**. Plan **báo con số, không kết luận** (nghĩa vụ mục 6
+⚠️ **Hệ số nở đo được là ~1,6–2,5 lần (trung vị ~1,8–2,0), KHÔNG phải 3,5 — T700, 2026-11-23,
+máy rỗi.** Chạy riêng cho 6,5–7,1 / 9,7–10,3 ms (7 lượt); trong cả suite cho 11,0–14,3 /
+18,2–24,5 ms (3 lượt). Chênh lệch so với 3,5 đổi hẳn độ lớn của phép tính ngân sách mùa giải,
+nên **T753 phải tính lại bằng con số của chính nó** — plan **báo hệ số đo được, không kết
+luận** ngân sách vỡ hay không (nghĩa vụ mục 6 của spec). Hàng "Một trận liên tục (ước)" vẫn là
+**ước** và nó đứng trên hàng "v6 một trận", nên T753 không được trích con số 33,7 cũ.
+
+⚠️ **Và một bài học về chính phép đo, trả giá một lần rồi.** Bản đầu của T700 (commit
+`4ddfa5e`) ghi dải ×3,3 và từ đó kết luận hệ số nở "không đo được" cùng phép tính 118 ms
+"không có nền". **Cả hai kết luận ấy sai**: phép đo chạy trong lúc máy đang gánh một đàn tiến
+trình soát chéo. Trên máy rỗi dải co xuống ×1,06. Nên **tải của máy là một phần của con số**,
+không phải một dòng thủ tục — đúng điều lệnh cấm số 3 ở mục 7 muốn chặn, và lần đầu nó bị phá
+bởi chính task được gán cho nó. Plan **báo con số, không kết luận** (nghĩa vụ mục 6
 của spec): con số thật cho một trận ở chế độ **liên tục** chưa tồn tại, vì engine liên tục chưa
 có. **T753** là task đo-và-báo nó, và **không** có task tối ưu để lọt ngưỡng. Hàng "Một trận
 liên tục (ước)" ở bảng trên vẫn là **ước**, và nó đứng trên hàng "v6 một trận" vừa đổi, nên
@@ -420,7 +428,7 @@ không lưu. Đo được: một bản ghi 61.954 byte với 75 sự kiện; 20 
 | AC | Thiết kế đáp ứng | Kiểm bằng |
 |---|---|---|
 | **AC-37.1** toạ độ mét, thời gian giây | `hinhHocSan.ts` (`DAI_SAN 105`, `RONG_SAN 68`) + `loMoc` stride 8 mang mét; `quyDoiMet.ts` đảo dấu y cho gốc góc dưới trái | `doCoHoc` trên tệp xuất: mọi toạ độ trong [0,105]×[0,68] |
-| **AC-37.2** mốc hình học sân | `hinhHocSan.ts` hằng số 16,5 / 40,3 / 11 / 7,32 + hai số **suy ra** 30,34–37,66 kiểm bằng **quan hệ** chứ bằng giá trị | test thuần trên `hinhHocSan.ts`; phần **vẽ** là T736, nhánh phút là nợ có tên |
+| **AC-37.2** mốc hình học sân | `hinhHocSan.ts` hằng số 16,5 / 11 / 7,32 / 9,15 + **ba** số **suy ra** kiểm bằng **quan hệ**: 30,34 và 37,66 (cột dọc), và **40,32** (vòng cấm = 7,32 + 2·16,5 — bản trước khai **40,3**, con số đã làm tròn trong SVG của `SanBong.tsx`) chứ bằng giá trị | test thuần trên `hinhHocSan.ts`; phần **vẽ** là T736, nhánh phút là nợ có tên |
 | **AC-37.3** đổi phần sân ở hiệp 2 | `huongTanCong(ben, hiep)` **hàm dẫn xuất** (D128) + `mocHetHiep1(tt) = tongPhutHiep1(tt) * 60` | test thuần: dấu hướng của hai bên ở hai hiệp, 4 tổ hợp; và `doCoHoc` đo trung bình x của hai đội trước/sau mốc hết hiệp |
 | **AC-37.4** dày 0,5 giây ở tình huống quan trọng, 6–10 giây trước, tới khi bóng chết, không khuyết mốc | **D124**: đơn vị dày là cả cửa sổ chuỗi 20 giây → 20 ≥ 10 nên biên thừa 10–14 giây, và cửa sổ **không bao giờ vắt biên phút**; không khuyết vì nó là khối liền. Tích phân 0,5 giây luôn (mục 0) nên làm dày **không dịch** hạt giống mốc nào | `doCoHoc`: trong `tinh_huong[]`, `Δt` giữa hai khung liền nhau luôn = 0,5; không lỗ; **và hai cái neo** — cửa sổ **chứa** `[t−6; t]`, và khung cuối là mốc `bongChet` của chính pha ấy. *(Điều kiện "độ dài ≥ 10 giây" một mình không đủ: một cửa sổ nằm hoàn toàn SAU sự kiện vẫn thoả — `/analyze` 2026-11-23.)* |
 | **AC-37.5** mỗi mốc tái lập được một mình | **D118** `hatGiongMoc(ma, chiSoMoc)` dải cố định `RUT_MOI_MOC = 64` cho dòng cơ học + **D119** bộ đệm là đầu ra **chỉ-ghi** + **D120** engine không bao giờ biết mức tốc độ | `taiLap`-style: chạy hai lần cùng mã → tệp xuất **giống từng byte**; và "không mốc nào tiêu quá dải của nó" |

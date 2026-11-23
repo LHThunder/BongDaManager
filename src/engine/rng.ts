@@ -50,11 +50,18 @@ export const BUOC_HAT_GIONG = 0x6d2b79f5
  * phép nhân. Đây là thứ cho phép mỗi mốc của engine liên tục có một dòng rút
  * riêng mà không phải rút qua toàn bộ các mốc trước nó (D118).
  *
- * PHẢI dùng `Math.imul`, KHÔNG được nhân thường. `soLan × BUOC_HAT_GIONG` vượt
- * 2^53 ngay từ `soLan = 2^30`, nên `*` mất độ chính xác float: lệch **43** ở
- * `2^30` và lệch **781.781** ở `5754 · 2^30`. `Math.imul` lấy đúng phần dư
- * mod 2^32 với mọi `soLan` — kể cả `soLan` vượt 2^31, vì phép nhân mod 2^32
- * chỉ phụ thuộc đầu vào mod 2^32.
+ * PHẢI dùng `Math.imul`, KHÔNG được nhân thường — và cơ chế làm sai KHÔNG phải
+ * chỗ người ta tưởng. Ở `soLan = 2^30` thì phép NHÂN vẫn chính xác tuyệt đối:
+ * `2^30 × 0x6d2b79f5` là một số 31 bit dịch trái 30 bit, nên float giữ đủ.
+ * Thứ làm sai là phép CỘNG hạt giống vào nó: tích ấy khoảng `1,97e18`, tức
+ * `ulp = 256`, nên `hatGiong` (cỡ `1e9`) bị làm tròn về bội của 256 và mất
+ * phần thấp. Lệch đo được: **43** ở `2^30`, **781.781** ở `5754 · 2^30`.
+ *
+ * Ca mà phép nhân mới thật sự mất chính xác là `soLan` KHÔNG phải luỹ thừa 2 —
+ * ví dụ `2^30 + 1`, nơi tích có hơn 53 bit ý nghĩa. Phép kiểm canh cả hai ca.
+ *
+ * `Math.imul` lấy đúng phần dư mod 2^32 với mọi `soLan` — kể cả `soLan` vượt
+ * 2^31 hay vượt 2^32 — vì phép nhân mod 2^32 chỉ phụ thuộc đầu vào mod 2^32.
  */
 export function nhayRut(hatGiong: number, soLan: number): number {
   return ((hatGiong | 0) + Math.imul(soLan, BUOC_HAT_GIONG)) >>> 0

@@ -23,40 +23,43 @@ import { chayHetTran, dongSuKien, taoTran } from './tran'
     • `NGAN_SACH_MS = 200` cho "chạy hết một trận"  (dùng ở `it` thứ nhất)
     • `NGAN_SACH_MS / 10 = 20` cho "tạo trận"       (dùng ở `it` thứ hai)
 
-  MỘT LƯỢT ĐO LÀ VÔ NGHĨA Ở ĐÂY. Chạy đúng một lệnh, năm lượt liền nhau:
+  Hai lệnh, và ĐIỀU KIỆN ĐO quan trọng hơn con số — xem cảnh báo ở cuối khối.
 
-    $ npx vitest run src/engine/hieuNang.test.ts     (× 5)
-      trung bình: 11,4 | 15,5 | 18,0 | 18,7 | 21,9 ms   → dải ×1,9
-      lớn nhất:   20,3 | 25,2 | 35,9 | 47,3 | 48,7 ms   → dải ×2,4
+    $ npx vitest run src/engine/hieuNang.test.ts     (× 7, máy RỖI)
+      trung bình: 6,5 | 6,6 | 6,6 | 6,7 | 6,7 | 6,7 | 7,1 ms   → dải ×1,09
+      lớn nhất:   9,7 | 9,7 | 9,9 | 9,9 | 10,1 | 10,2 | 10,3 ms → dải ×1,06
+      tạo trận:   0,09–0,13 ms
 
-    Cộng hai lượt rời trước đó: 17,5/32,3 và 9,7/14,8.
-    Gộp bảy lượt: trung bình 9,7–21,9 ms (×2,3), lớn nhất 14,8–48,7 ms (×3,3).
+    $ npx vitest run        (× 3, máy RỖI, 65 file / 1.339 test)
+      trung bình: 11,0 | 11,8 | 14,3 ms
+      lớn nhất:   18,2 | 19,9 | 24,5 ms
 
-    $ npx vitest run        (cả suite, 63 file / 1.304 test, 28,47 s)
-      một lượt: trung bình 17,5 ms — lớn nhất 38,6 ms
-      tạo trận: trung bình 0,08 ms (chạy riêng: 0,09 và 0,13 ms)
+  Điều kiện đo: 20 mã (10 mã của `MA_TRAN_CO_DINH` + 10 mã dẫn xuất), một lượt
+  khởi động trước khi bấm đồng hồ, `environment: 'node'`, các lượt nối tiếp
+  nhau, và — điều kiện quyết định — **máy không chạy việc nặng nào khác**.
 
-  Điều kiện đo: 20 mã (10 mã của `MA_TRAN_CO_DINH` + 10 mã dẫn xuất), có một
-  lượt khởi động trước khi bấm đồng hồ, `environment: 'node'`, máy của người
-  dùng, không đóng ứng dụng nào khác, các lượt chạy nối tiếp nhau.
+  HAI ĐIỀU ĐO ĐƯỢC:
 
-  HAI ĐIỀU T700 ĐO ĐƯỢC — báo số, không kết luận:
+  1. **Số đo này ỔN ĐỊNH, và con số nền 7,4 / 12,6 ms của `plan.md` mục 2.3
+     tái lập được.** Bảy lượt chỉ tản ×1,06–1,09, tức ±6–9%. Không có gì phải
+     sửa ở kết luận cũ; chỉ nên đọc nó là một dải hẹp thay vì một điểm.
 
-  1. **Con số nền của `plan.md` mục 2.3 (7,4 ms trung bình / 12,6 ms lớn nhất)
-     không sai, nhưng nó là MỘT LƯỢT.** Nó nằm ở hoặc dưới đáy dải đo được hôm
-     nay, và vì không một dòng `src/` nào đổi từ `f537d7d`, chênh lệch ấy là
-     NHIỄU MÁY chứ không phải engine phình ra. Số nên đọc là **một dải**.
+  2. **Hệ số nở giữa chạy riêng và cả suite ĐO ĐƯỢC, và nó là ~1,6–2,5 lần
+     (trung vị ~1,8–2,0), KHÔNG phải 3,5 lần** như `plan.md` mục 2.3 dùng.
+     Chênh lệch ấy đổi hẳn phép tính ngân sách mùa giải về mặt độ lớn, nên
+     **T753 phải tính lại bằng con số của chính nó** — task này chỉ báo hệ số
+     đo được, và KHÔNG kết luận gì về việc ngân sách vỡ hay không vỡ.
 
-  2. **"Hệ số nở 3,5 lần giữa chạy riêng và suite song song" KHÔNG đo được
-     bằng cách này** — và đó là điều đáng nói nhất. Nhiễu run-to-run của chính
-     lệnh chạy riêng đã là **×3,3** ở "lớn nhất", tức LỚN HƠN cả hệ số 3,5 mà
-     phép đo muốn tìm. Nên mọi phép tính ngân sách dựa trên một tỉ số giữa hai
-     lượt đơn lẻ đều không có nền. Muốn một con số có nghĩa thì phải: nhiều
-     lượt rồi lấy phân vị, hoặc — tốt hơn — ghép một **số đếm thuần** không
-     nhiễu, đúng như `plan.md` mục 7 đã đòi cho **T752**.
+  ⚠️ **BÀI HỌC ĐẮT, GHI LẠI ĐỂ KHÔNG AI TRẢ LẦN HAI.** Bản đầu của khối này
+  (commit `4ddfa5e`) ghi "trung bình 9,7–21,9 ms, lớn nhất 14,8–48,7 ms, nhiễu
+  run-to-run ×3,3" và từ đó kết luận rằng hệ số nở 3,5 "không đo được" và phép
+  tính `33,7 × 3,5 = 118 ms` "không có nền". **Cả hai kết luận ấy đều sai**, và
+  nguyên nhân là chính phép đo: nó chạy trong lúc máy đang gánh một đàn tiến
+  trình soát chéo. Trên máy rỗi, dải co từ ×3,3 xuống ×1,06.
 
-  Hệ quả cho ngân sách mùa giải là việc của **T753** (task đo-và-báo) và của
-  người dùng, KHÔNG phải của task này.
+  Nên "điều kiện đo" không phải là một dòng thủ tục: **tải của máy là một phần
+  của con số**. Đó đúng là điều lệnh cấm số 3 ở `plan.md` mục 7 muốn chặn, và
+  lần đầu nó bị phá bởi chính task được gán cho nó.
   ───────────────────────────────────────────────────────────────────────────
 */
 

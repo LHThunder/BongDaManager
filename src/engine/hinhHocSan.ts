@@ -9,8 +9,8 @@
   nó chỉ thôi là nguồn sự thật.
 
   Mọi con số dưới đây là mét của sân 11 người, đúng dải Luật bóng đá IFAB cho
-  sân thi đấu quốc tế. Hai con số SUY RA (`Y_COT_GAN`, `Y_COT_XA`) được tính
-  từ hai hằng số trên nó chứ không viết tay — AC-37.2 phải kiểm được bằng
+  sân thi đấu quốc tế. BA con số SUY RA (`RONG_VONG_CAM`, `Y_COT_GAN`,
+  `Y_COT_XA`) được tính từ hằng số trên nó chứ không viết tay — AC-37.2 phải kiểm được bằng
   QUAN HỆ, không phải bằng giá trị, nếu không thì phép kiểm chỉ chép lại số.
 
   Hệ toạ độ: gốc ở GÓC DƯỚI TRÁI, x theo chiều dài sân (0 → 105), y theo chiều
@@ -26,14 +26,21 @@ export const RONG_SAN = 68
 /** Vòng cấm sâu bao nhiêu mét tính từ vạch vôi. */
 export const SAU_VONG_CAM = 16.5
 
-/** Vòng cấm rộng bao nhiêu mét. */
-export const RONG_VONG_CAM = 40.3
+/** Khoảng giữa hai cột dọc, mét. */
+export const RONG_KHUNG_THANH = 7.32
+
+/**
+ * Vòng cấm rộng bao nhiêu mét. Số **SUY RA**, không viết tay.
+ *
+ * Luật bóng đá định nghĩa vòng cấm bằng hai đoạn 16,5 m kéo ra từ hai cột dọc,
+ * nên bề rộng của nó là `7,32 + 2 · 16,5 = 40,32` m. Thuộc tính SVG của
+ * `SanBong.tsx` ghi `40.3` — một con số đã làm tròn, và chép nó vào đây là
+ * chép lại đúng cái bản dịch mà file này vừa tuyên bố thôi làm nguồn sự thật.
+ */
+export const RONG_VONG_CAM = RONG_KHUNG_THANH + 2 * SAU_VONG_CAM
 
 /** Chấm phạt đền cách vạch vôi bao nhiêu mét. */
 export const CHAM_PHAT_DEN = 11
-
-/** Khoảng giữa hai cột dọc, mét. */
-export const RONG_KHUNG_THANH = 7.32
 
 /** Bán kính vòng tròn giữa sân, mét. */
 export const BAN_KINH_VONG_GIUA = 9.15

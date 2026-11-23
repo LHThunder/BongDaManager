@@ -218,19 +218,37 @@ describe('nhayRut — nhảy N lần rút trong O(1) (T702, D118)', () => {
   })
 
   /*
-    Đây là phép kiểm có răng. Ở `soLan = 2^30` phép nhân thường cho
-    `-2114711040` còn `Math.imul` cho `-2114710997` — lệch 43. Một phép kiểm
-    chỉ chạy với `soLan` nhỏ sẽ XANH mà sai.
+    Đây là phép kiểm có răng, và nó canh HAI cơ chế khác nhau:
+
+    • `soLan` là luỹ thừa của 2 (2^30, 2·2^30, …): phép NHÂN vẫn chính xác,
+      nhưng phép CỘNG hạt giống vào một số có `ulp = 256` thì mất phần thấp.
+    • `soLan = 2^30 + 1`: tích có hơn 53 bit ý nghĩa, nên chính phép NHÂN sai.
+
+    Mệnh đề "khác bản nhân thường" là tính chất của CẶP (hạt giống, soLan), không
+    của riêng phép toán: với một hạt giống chia hết cho 2^22 thì hai bản trùng
+    nhau. Nên nó được chạy trên NHIỀU hạt giống, và có một ca nói thẳng điều đó.
   */
   it('đúng cả ở soLan lớn, nơi nhân thường mất độ chính xác float', () => {
-    const goc = hatGiongTuMaTran('ABC')
-    for (const soLan of [LECH, 2 * LECH, 3 * LECH, 5754 * LECH]) {
-      expect(nhayRut(goc, soLan), `soLan = ${soLan}`).toBe(oracle(goc, soLan))
+    for (const ma of ['ABC', 'K7M2R9XQ4B', 'PH4M V1 D0']) {
+      const goc = hatGiongTuMaTran(ma)
+      for (const soLan of [LECH, LECH + 1, 2 * LECH, 3 * LECH, 5754 * LECH]) {
+        expect(nhayRut(goc, soLan), `${ma} / ${soLan}`).toBe(oracle(goc, soLan))
 
-      // Và nó phải KHÁC bản nhân thường — nếu không thì phép kiểm vô nghĩa.
-      const nhanThuong = (goc + soLan * BUOC_HAT_GIONG) >>> 0
-      expect(nhayRut(goc, soLan), `soLan = ${soLan}`).not.toBe(nhanThuong)
+        // Và nó phải KHÁC bản nhân thường — nếu không thì phép kiểm vô nghĩa.
+        const nhanThuong = (goc + soLan * BUOC_HAT_GIONG) >>> 0
+        expect(nhayRut(goc, soLan), `${ma} / ${soLan}`).not.toBe(nhanThuong)
+      }
     }
+  })
+
+  it('bản nhân thường TRÙNG bản đúng ở hạt giống chia hết cho 2^22', () => {
+    /*
+      Phản ví dụ cho chính phép kiểm trên: ở hạt giống như vậy, phần thấp bị
+      làm tròn đi vốn đã là 0. Ghi ra để không ai đọc phép kiểm trên thành
+      "nhân thường luôn sai".
+    */
+    const gocTron = 4 * 2 ** 22
+    expect(nhayRut(gocTron, LECH)).toBe((gocTron + LECH * BUOC_HAT_GIONG) >>> 0)
   })
 
   it('cộng dồn được: nhảy a rồi nhảy b bằng nhảy a+b', () => {
@@ -249,28 +267,40 @@ describe('nhayRut — nhảy N lần rút trong O(1) (T702, D118)', () => {
 
   /*
     Đẳng thức mà ba dòng rút đứng trên: khoảng cách giữa dòng i và dòng j đúng
-    bằng `(j − i) · 2^30 mod 2^32`, với MỌI mã trận — không chỉ với mẫu fixture.
+    bằng `(j − i) · LECH · BUOC_HAT_GIONG mod 2^32`.
+
+    ⚠️ Hệ số `BUOC_HAT_GIONG` ở vế phải là BẮT BUỘC. Bản đầu của phép kiểm này
+    bỏ nó và vẫn xanh — nhưng chỉ vì `BUOC_HAT_GIONG ≡ 1 (mod 4)` và
+    `LECH = 2^30`, nên `LECH · BUOC_HAT_GIONG ≡ LECH (mod 2^32)`. Nếu `LECH_DONG`
+    của T717 hoá ra không phải 2^30 hay 2^31 thì cách viết cũ SAI.
+
+    Vế trái không phụ thuộc mã trận (hiệu hai hạt giống triệt tiêu `goc`), nên
+    20.000 vòng ở đây KHÔNG mua thêm thông tin cho đẳng thức ấy. Chúng mua một
+    thứ khác, và thứ ấy thì phụ thuộc mã trận thật: **ba dòng rút của cùng một
+    mã không bao giờ trùng nhau**, trên 20.000 mã do `taoMaTran` sinh.
   */
-  it('khoảng cách(i, j) = (j − i)·2^30 mod 2^32 trên 20.000 mã', () => {
+  it('khoảng cách(i, j) = (j − i)·LECH·BUOC mod 2^32, và ba dòng không trùng', () => {
     const nguon = taoRngTuHatGiong(20_000)
-    const mongDoi = new Map<number, number>()
-    for (let i = 0; i < 3; i += 1) {
-      for (let j = 0; j < 3; j += 1) {
-        mongDoi.set(j * 3 + i, (((j - i) * LECH) % HAI_MU_32 + HAI_MU_32) % HAI_MU_32)
-      }
-    }
+    const mongDoi = (i: number, j: number) =>
+      Number(
+        ((BigInt(j - i) * BigInt(LECH) * BigInt(BUOC_HAT_GIONG)) %
+          BigInt(HAI_MU_32) +
+          BigInt(HAI_MU_32)) %
+          BigInt(HAI_MU_32),
+      )
 
     for (let n = 0; n < 20_000; n += 1) {
       const ma = taoMaTran(nguon)
       const goc = hatGiongTuMaTran(ma)
       const dong = [0, 1, 2].map((i) => nhayRut(goc, i * LECH))
+
+      expect(new Set(dong).size, `${ma}: ba dòng phải khác nhau`).toBe(3)
+
       for (let i = 0; i < 3; i += 1) {
         for (let j = 0; j < 3; j += 1) {
           const khoangCach =
             ((dong[j]! - dong[i]!) % HAI_MU_32 + HAI_MU_32) % HAI_MU_32
-          expect(khoangCach, `${ma}: dòng ${i} → ${j}`).toBe(
-            mongDoi.get(j * 3 + i),
-          )
+          expect(khoangCach, `${ma}: dòng ${i} → ${j}`).toBe(mongDoi(i, j))
         }
       }
     }

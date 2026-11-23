@@ -4,9 +4,10 @@ import { DAI_SAN, RONG_SAN } from '../engine/hinhHocSan'
   Quy đổi mét của engine → đơn vị viewBox của sân 2D (T703, quyết định D121).
 
   MỘT hệ số duy nhất, dùng cho CẢ HAI trục. Hai hệ số riêng (một cho x, một
-  cho y) sẽ làm ảnh méo 1,19%, và cái giá của méo là AC-38.8: AC ấy đặt ngưỡng
-  theo GÓC, nên dưới hai hệ số một hướng 45° trong mét vẽ ra 44,661° — ngưỡng
-  đo được không còn là ngưỡng mà AC phát biểu. Thêm nữa, mọi vòng tròn thật
+  cho y) sẽ làm ảnh méo **4,412%** — đo trên khung ĐÃ TRỪ LỀ, tức hai hệ số
+  thật là 0,902857 và 0,864706. Cái giá của méo là AC-38.8: AC ấy đặt ngưỡng
+  theo GÓC, nên dưới hai hệ số một hướng 45° trong mét vẽ ra **43,764°** —
+  ngưỡng đo được không còn là ngưỡng mà AC phát biểu. Thêm nữa, mọi vòng tròn thật
   (vòng tròn giữa, vòng cấm người giữ bóng) sẽ thành `<ellipse>`.
 
   Khung ảnh là THAM SỐ, không phải hằng số nhập khẩu. Lý do: `San2D.tsx` là
