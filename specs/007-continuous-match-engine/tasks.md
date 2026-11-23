@@ -4,19 +4,21 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **30 AC**) |
 | **Plan** | `./plan.md` (Status `Approved`, D117–D134, R51–R64) |
-| **Tiến độ** | 5/47 |
+| **Tiến độ** | 5/48 |
 | **Nền đo** | commit `5c652eb`, engine v6, **1.304 test xanh / 63 file test** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
 > Mỗi task phải: chạm file cụ thể + có cách kiểm chứng + đủ nhỏ để làm trong một lần.
 
-> **Số task do `plan.md` mục 9 gán.** Bảy lát Phase 53–59, **47 task** T700–T762.
-> **Bảy số dùng thêm so với plan**, đều nằm trong khoảng trống plan đã chừa, và mỗi số có một
+> **Số task do `plan.md` mục 9 gán.** Bảy lát Phase 53–59, **48 task** T700–T762.
+> **Tám số dùng thêm so với plan**, đều nằm trong khoảng trống plan đã chừa, và mỗi số có một
 > lý do viết ra:
 > - **T706, T717, T718** lấp **ba lỗ thật** của plan — ba file được plan nhắc nhiều lần ở sơ
 >   đồ, ở quyết định và ở bảng Contracts mà **không task nào tạo**: `dienPha.ts`,
 >   `hatGiong.ts`, `khongChepModel.test.ts`.
 > - **T716** lấp một lỗ **CRITICAL**: `viTriTrongTai`, chủ sở hữu duy nhất của **AC-38.10**.
+> - **T719** lấp một lỗ **kiến trúc**, tìm ra lúc implement T704: không tài liệu nào nói chế
+>   độ liên tục cộng tỉ số và thống kê ở đâu. Người dùng chốt **bóc tiếp** (D135).
 > - **T707/T708/T709** là phép chẻ `T705` cũ, vốn khai **12 file trải 5 tầng** — quá to theo
 >   đúng luật "mô tả cần hơn 3 câu thì chẻ tiếp".
 >
@@ -84,6 +86,31 @@
     - `apHangDoi` chạy ở **1365**, **trước** `taoRngTuHatGiong` ở 1367, nên nó tiêu **0 lần
       rút**. Thêm `export` **không được** dịch biên ấy (D127, AC-45.4).
 
+- [ ] **T719** — Bóc `congPhaVaoTran`: **mối hàn thứ hai** (D135)
+  - File: `src/engine/tran.ts`
+  - Xong khi: `congPhaVaoTran(phut, tiSoVao, pha, rng, themUngVien)` tồn tại **trong
+    `tran.ts`** và vòng chuỗi của `buocTiep` gọi nó; closure `themUngVien` nhận `tiSo` làm
+    **tham số tường minh**; và năm điều kiện ra chung đều đạt — trong đó `MOC_V6` là thứ
+    duy nhất chứng minh được rằng 62 dòng ấy đổi chỗ mà **không dịch một lần rút nào**.
+  - AC: AC-45.2, và là **nền của AC-45.3** (hai bảng thống kê chỉ còn so được nếu chúng do
+    cùng một đoạn code tính — R54)
+  - Phụ thuộc: T701
+  - Ghi chú — **task này không có trong bản đầu của `tasks.md`.** Nó sinh ra lúc implement
+    T704: cả plan lẫn tasks đều không nói chế độ liên tục cộng tỉ số và thống kê bằng cách
+    nào. Sau lời gọi `quyetKetCucChuoi` còn **190 dòng** trong `buocTiep` gọi **13 hàm**
+    (`congThongKeCong`, `congThongKeThu`, `loaiCuaChuoi`, `duongBongCuaChuoi`,
+    `diemCuaChuoi`, `nguoiThamGiaTinhHuong`, `nguoiDeMatBong`, `thuRutThe`, `moiKietSuc`,
+    `nguongHuyTran`, `taoUngVien`, `gomUngVienCuaPhut`, `tongPhutHiep1`), và không task nào
+    sở hữu chúng. Người dùng chốt **bóc tiếp** ngày 2026-11-23 — xem **D135** để biết ba
+    phương án và vì sao hai phương án kia bị loại.
+    ⚠️ **Phạm vi là 62 dòng TRONG vòng chuỗi, không phải cả 190.** Phần đuôi theo PHÚT
+    (kiệt sức, huỷ trận, hạt giống, mẫu câu, dựng `sauTt`) dính chặt vào hình dạng
+    `TrangThaiTran`, nên nó **chưa** bóc ở đây; ai dựng `tranLienTuc.ts` phải nói rõ nó
+    dùng phần đuôi ấy thế nào, và đó là một câu hỏi còn mở.
+    ⚠️ **Bẫy closure, đã tìm được trước khi viết:** `themUngVien` hiện đọc biến `tiSo` của
+    `buocTiep` qua closure, và tỉ số được cộng **bên trong** phần sắp bóc. Nếu để nguyên
+    closure thì ứng viên sự kiện chụp tỉ số **trước** bàn thắng, và dòng tường thuật lệch —
+    `MOC_V6` sẽ đỏ. Vì thế `tiSo` thành tham số tường minh của `themUngVien`.
 - [x] **T702** [P] — `nhayRut` + `BUOC_HAT_GIONG` vào `rng.ts`, ba dòng rút cách đều 2^30
   - File: `src/engine/rng.ts`, `src/engine/rng.test.ts`
   - Xong khi: phép kiểm **đẳng thức** `khoảng cách(i, j) = (j − i) · 2^30 mod 2^32` xanh trên
@@ -147,7 +174,7 @@
     `MOC_MOI_PHUT * 2 === BUOC_MOI_PHUT`, `MOC_MOI_CHUOI * SO_CHUOI_MOI_PHUT === MOC_MOI_PHUT`;
     `npx vitest run src/engine/boundaries.test.ts` xanh **với 0 dòng sửa** ở file đó.
   - AC: AC-37.1, AC-37.5, AC-37.6, AC-37.7, AC-45.7
-  - Phụ thuộc: T701, T702, **T717**, T703
+  - Phụ thuộc: T701, **T719**, T702, **T717**, T703
   - Ghi chú: `boundaries.test.ts:17` glob `./**/*.ts` là **đệ quy** nên `lienTuc/` tự vào phạm
     vi — đã kiểm bằng số học chứ không tin lời plan: `raNgoaiEngine` tính
     `duongDanFile.split('/').length - 2`, nên từ `./lienTuc/moc.ts` thì `'../tran'` là **trong**
@@ -891,7 +918,7 @@ giải để người dùng quyết.
 | AC-38.11 hướng người 0–360° | T712, T742 |
 | AC-45.1 chọn được hai chế độ | T705, T708, T709, T761 |
 | AC-45.2 trận cũ mở lại, xem lại, đấu lại y nguyên | T701, và **điều kiện ra của mọi task** chạm `src/engine/` |
-| AC-45.3 200 mã, hai chế độ | T750, T751 |
+| AC-45.3 200 mã, hai chế độ | **T719** (nền: hai bảng thống kê do cùng một đoạn code tính), T750, T751 |
 | AC-45.4 bản ghi không lưu vị trí | T701, T705, T708 |
 | AC-45.5 xuất tệp đọc được bằng công cụ thường | T740, T741, T743, T744 |
 | AC-45.6 mọi phép kiểm cơ học đo trên chính tệp | T741, T742 |
