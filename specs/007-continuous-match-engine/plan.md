@@ -112,21 +112,28 @@ trong `src/engine`. Tệp xuất là JSON thô qua `JSON.stringify`, không nén
 
 | Đại lượng | Số | Điều kiện đo |
 |---|---|---|
-| v6 một trận | **7,4 ms trung bình / 12,6 ms lớn nhất** | `npx vitest run src/engine/hieuNang.test.ts`, 20 mã, có lượt khởi động |
+| v6 một trận | **trung bình 9,7–21,9 ms / lớn nhất 14,8–48,7 ms** — một **DẢI** trên **bảy lượt**, không phải một cặp số *(đo lại T700, 2026-11-23, commit `37961e4`)* | `npx vitest run src/engine/hieuNang.test.ts`, 20 mã, có lượt khởi động, bảy lượt nối tiếp. ⚠️ **Con số cũ 7,4 / 12,6 ms không sai — nó là MỘT LƯỢT**, nằm ở hoặc dưới đáy dải này; không một dòng `src/` nào đổi từ `f537d7d`, nên chênh lệch là **nhiễu máy**, không phải engine phình ra. Chi tiết năm lượt ghi ở đầu `src/engine/hieuNang.test.ts` |
 | Cơ học thuần 11.508 bước | **13,64 / 17,67 / 21,13 ms** (min/trung vị/max) | Node, tiến trình mới, 200.000 bước khởi động, một luồng, 20 lượt |
 | Một trận liên tục (ước) | **25,1 ms trung vị / 33,7 ms lớn nhất** | tổng hai dòng trên, cùng điều kiện |
 | Bộ nhớ lô một phút | **97,5 KiB** | `process.memoryUsage().arrayBuffers` (đo `heapUsed` là đo nhầm quầy — nó báo 0,00 MB) |
-| Toàn suite | **27,34 s** / 63 file / 1.304 test | `npx vitest run`, máy này |
+| Toàn suite | **28,47 s** / 63 file / 1.304 test *(đo lại T700, 2026-11-23)* | `npx vitest run`, máy này |
 | `src/ui/san2D.test.ts` chạy riêng | **8,16 s** / 55 test | `npx vitest run src/ui/san2D.test.ts`, tiến trình mới |
 | Số mốc một trận | **5.520–6.000, trung bình 5.754** | `tongPhutTran = thoiLuong + buGio.hiep1 + buGio.hiep2`, bù giờ 1–5 phút mỗi hiệp |
 | v6, A15 vs B10, 200 mã, sân trung lập | **174–17–9 = 87,0% thắng, hiệu số +2,255 bàn** | `npx vitest run src/engine/sosanh.doiManhHon.test.ts` in đúng 174-17-9 |
 
 **Ba ngân sách, và plan nói rõ nó viết cho cái nào.** AC-31.3 "một trận < 3 giây" → dư **89
-lần**. `hieuNang.test.ts` 200 ms → dư **5,9 lần**. Mùa giải 380 trận < 30 giây = **78,95 ms một
-trận** → dư 2,3 lần ở điều kiện **tốt nhất**, nhưng dưới hệ số nở 3,5 lần đã đo giữa chạy riêng
-và suite song song thì 33,7 × 3,5 = **118 ms, ngân sách mùa giải VỠ**. Plan **báo con số, không
-kết luận** (nghĩa vụ mục 6 của spec), và T753 là task đo-và-báo, **không** có task tối ưu để
-lọt ngưỡng.
+lần**. `hieuNang.test.ts` 200 ms → dư **6,2 lần** ở số đo mới (32,3 ms). Mùa giải 380 trận
+< 30 giây = **78,95 ms một trận**.
+
+⚠️ **"Hệ số nở 3,5 lần" KHÔNG ĐO ĐƯỢC bằng cách ấy — T700, 2026-11-23.** Nhiễu run-to-run của
+chính lệnh **chạy riêng** đã là **×3,3** ở "lớn nhất" (14,8 → 48,7 ms trên bảy lượt), tức **lớn
+hơn** cả hệ số 3,5 mà phép đo muốn tìm. Nên **mọi** tỉ số dựng từ hai lượt đơn lẻ đều không có
+nền, kể cả phép tính cũ `33,7 × 3,5 = 118 ms`. Muốn một con số có nghĩa: nhiều lượt rồi lấy
+phân vị, hoặc ghép một **số đếm thuần** không nhiễu — đúng như mục 7 đã đòi cho **T752**. Plan **báo con số, không kết luận** (nghĩa vụ mục 6
+của spec): con số thật cho một trận ở chế độ **liên tục** chưa tồn tại, vì engine liên tục chưa
+có. **T753** là task đo-và-báo nó, và **không** có task tối ưu để lọt ngưỡng. Hàng "Một trận
+liên tục (ước)" ở bảng trên vẫn là **ước**, và nó đứng trên hàng "v6 một trận" vừa đổi, nên
+T753 phải tính lại chứ không được trích con số 33,7 cũ.
 
 **Hằng số không được chạm.** `PHIEN_BAN_ENGINE = 6`, `DB_VERSION = 3`, `SCHEMA_VERSION = 5`,
 bảng `MOC_V6` (393 dòng), `BAN_KINH = 2.6`, `RONG = 100`, `CAO = 64`, thân `toaDo`, thân bốn

@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **30 AC**) |
 | **Plan** | `./plan.md` (Status `Approved`, D117–D134, R51–R64) |
-| **Tiến độ** | 0/47 |
+| **Tiến độ** | 1/47 |
 | **Nền đo** | commit `5c652eb`, engine v6, **1.304 test xanh / 63 file test** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -54,7 +54,7 @@
 
 ## Phase 53 — Nền tất định, phép bóc, và một trận liên tục xem được ở độ phân giải giây
 
-- [ ] **T700** [P] — Đo lại mốc nền v6 và ghi vào file ngân sách
+- [x] **T700** [P] — Đo lại mốc nền v6 và ghi vào file ngân sách
   - File: `src/engine/hieuNang.test.ts`, `specs/007-continuous-match-engine/plan.md` (mục 2.3)
   - Xong khi: đầu `hieuNang.test.ts` có một khối chú thích ghi **cả hai** ngưỡng file ấy đang
     canh (`NGAN_SACH_MS = 200` ở dòng 19, và `NGAN_SACH_MS / 10 = 20 ms` cho `taoTran` ở dòng
