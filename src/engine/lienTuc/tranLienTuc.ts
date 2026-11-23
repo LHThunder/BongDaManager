@@ -6,6 +6,7 @@ import {
   tongPhutTran,
   type TrangThaiTran,
 } from '../tran'
+import { BUOC_MOI_CHUOI, dienChuoiRaMoc } from './dienPha'
 import { hatGiongDong, RUT_MOI_MOC } from './hatGiong'
 import {
   CHI_SO_BONG,
@@ -13,11 +14,9 @@ import {
   CHI_SO_TRO_LY_2,
   CHI_SO_TRONG_TAI,
   BUOC_MOI_PHUT,
-  laMocThuong,
   SO_THUC_THE,
 } from './moc'
 import {
-  ghiMoc,
   KHONG_AI_GIU,
   type LoMoc,
   taoLoMoc,
@@ -80,6 +79,27 @@ export function taoTranLienTuc(cauHinh: CauHinhTran): TrangThaiLienTuc {
     maTran: cauHinh.maTran,
     chiSoMoc: 0,
   }
+}
+
+/**
+ * Ô của người đang giữ bóng trong một pha, theo bố cục 26 ô của `loMoc`.
+ *
+ * Ô 0–10 là người trên sân của đội NHÀ, 11–21 của đội KHÁCH. Tra trong
+ * `pha.benCong.trenSan` — tức đội hình **lúc pha ấy diễn ra** — chứ không
+ * trong trạng thái cuối phút: một thẻ đỏ ở chuỗi thứ nhất sẽ làm danh sách
+ * cuối phút ngắn hơn, và tra ở đó là tra lệch ô.
+ *
+ * Không tìm thấy thì trả `KHONG_AI_GIU`: người kết thúc có thể là `null` khi
+ * danh sách ứng viên rỗng — `nguoiTaiVung` trả `null` trước khi rút, đúng lý
+ * do loại (c) của D118.
+ */
+function oCuaNguoiGiu(pha: KetCucPhaV6): number {
+  const id = pha.gan.nguoiKetThuc
+  if (id === null) return KHONG_AI_GIU
+
+  const viTri = pha.benCong.trenSan.indexOf(id)
+  if (viTri < 0 || viTri >= 11) return KHONG_AI_GIU
+  return pha.doi === 'nha' ? viTri : 11 + viTri
 }
 
 /** Thực thể chưa có chuyển động: đứng ở gốc, chỉ `coMat` là thật. */
@@ -145,31 +165,36 @@ export function buocPhutLienTuc(ttVao: TrangThaiLienTuc): MotPhutLienTuc {
   })
 
   /*
-    Phát mốc. Hôm nay chỉ phát mốc THƯỜNG (bước chẵn, 1 giây một mốc); mốc lẻ
-    của tình huống quan trọng là T731, và nó là quyết định CHỈ Ở ĐẦU RA nên nó
-    không dịch một lần rút nào.
+    Phát mốc, một cửa sổ chuỗi mỗi lần, qua `dienChuoiRaMoc` của T706.
+
+    Hôm nay chỉ phát mốc THƯỜNG (bước chẵn, 1 giây một mốc); mốc lẻ của tình
+    huống quan trọng là T731, và nó là quyết định CHỈ Ở ĐẦU RA nên nó không dịch
+    một lần rút nào.
   */
   const rutMoiMoc: number[] = []
   const mocDau = ttVao.chiSoMoc
-  for (let b = 0; b < BUOC_MOI_PHUT; b += 1) {
-    if (!laMocThuong(b)) continue
-    const chiSoMoc = mocDau + b
+  const coMat = cacThucTheCuaMoc(tranSau).map((t) => t.coMat)
+
+  for (let i = 0; i < cacPha.length; i += 1) {
+    const pha = cacPha[i]!
+    const truocKhiGhi = lo.soMocDaGhi
+    dienChuoiRaMoc(pha, mocDau + i * BUOC_MOI_CHUOI, lo, oCuaNguoiGiu(pha), coMat)
 
     /*
-      Số lần rút dòng cơ học mà mốc này tiêu. Hôm nay là 0 — chuyển động chưa
-      tồn tại — và `tranLienTuc.test.ts` khẳng định đúng con số 0 ấy, CỐ Ý: khi
-      Phase 54 làm nó khác 0 thì phép kiểm kia đỏ và buộc người sửa nhìn lại
-      ngưỡng `RUT_MOI_MOC`. Một ngưỡng không ai canh là một ngưỡng vô dụng.
+      Số lần rút dòng cơ học mà mỗi mốc vừa ghi đã tiêu. Hôm nay là 0 — chuyển
+      động chưa tồn tại — và `tranLienTuc.test.ts` khẳng định đúng con số 0 ấy,
+      CỐ Ý: khi Phase 54 làm nó khác 0 thì phép kiểm kia đỏ và buộc người sửa
+      nhìn lại ngưỡng `RUT_MOI_MOC`. Một ngưỡng không ai canh là ngưỡng vô dụng.
     */
-    const daRut = 0
-    if (daRut > RUT_MOI_MOC) {
-      throw new Error(
-        `mốc ${chiSoMoc} tiêu ${daRut} lần rút, quá dải ${RUT_MOI_MOC}`,
-      )
+    for (let m = truocKhiGhi; m < lo.soMocDaGhi; m += 1) {
+      const daRut = 0
+      if (daRut > RUT_MOI_MOC) {
+        throw new Error(
+          `mốc thứ ${m} tiêu ${daRut} lần rút, quá dải ${RUT_MOI_MOC}`,
+        )
+      }
+      rutMoiMoc.push(daRut)
     }
-    rutMoiMoc.push(daRut)
-
-    ghiMoc(lo, chiSoMoc, KHONG_AI_GIU, cacThucTheCuaMoc(tranSau))
   }
 
   return {

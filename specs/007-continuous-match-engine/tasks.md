@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **30 AC**) |
 | **Plan** | `./plan.md` (Status `Approved`, D117–D134, R51–R64) |
-| **Tiến độ** | 9/48 |
+| **Tiến độ** | 10/48 |
 | **Nền đo** | commit `5c652eb`, engine v6, **1.304 test xanh / 63 file test** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -243,13 +243,42 @@
       tham số thứ ba. `tran.test.ts:62` và `:587` đã canh `quanSo`/`thoiLuong` đi qua đường
       này — **không ai canh chế độ**, nên task này phải thêm phép kiểm ấy.
 
-- [ ] **T706** — `lienTuc/dienPha.ts`: bốn pha con của **D126** lấp 20 giây một pha bóng
+- [x] **T706** — `lienTuc/dienPha.ts`: bốn pha con của **D126** lấp 20 giây một pha bóng
   - File: tạo `src/engine/lienTuc/dienPha.ts`, `src/engine/lienTuc/dienPha.test.ts`
   - Xong khi: `dienChuoiRaMoc(kq, boiCanh, rng, lo)` chẻ một pha thành bốn pha con có tên
     (`lenBong` 0–8 giây hấp thụ phần dư → `chuoi` → `ketCuc` → `bongChet`); **tổng thời lượng
     mỗi phút khớp đúng 60 giây** trên 20 mã; và **không** đường chuyền nào dưới sàn 12 m/s của
     AC-38.6.
-  - AC: AC-37.4, AC-37.7, AC-38.6
+  - ⚠️ **BẢNG BÓNG CHẾT CỦA `plan.md` MỤC 3.1 KHÔNG VỪA CỬA SỔ 20 GIÂY — đo được
+    2026-11-23.** Bảng cho `pham-loi` **20 giây** (trọn cửa sổ, nên hành động còn **0
+    giây**) và `dut-diem` **30 giây** (**vượt** cửa sổ 10 giây). Tần suất đo trên 20.000
+    chuỗi: mất bóng **62,85%** | bóng ra ngoài **17,40%** | phạm lỗi **14,29%** | dứt điểm
+    **5,46%** — nên **19,75% số pha, một phần năm, không vừa cửa sổ của nó.**
+    Kỳ vọng thì bảng ĐÚNG: 7,11 giây một pha, khớp con số 7,35 plan ghi. Chỗ sai không phải
+    giá trị trung bình mà là **bố cục từng pha**.
+    **Cách xử đã chọn: cắt theo cửa sổ** — `bongChet` kẹp xuống `40 − TOI_THIEU_HANH_DONG`
+    bước. Hai phương án bị loại: (a) **tràn sang chuỗi sau** phá ba thứ đã viết và đã có
+    test (`chuoiCuaMoc` của `moc.ts`, đơn vị "cả cửa sổ chuỗi 20 giây" của D124/T731, lô một
+    phút của `loMoc`); (b) **đổi bốn con số** đi ngược quyết định câu 1 ngày 2026-11-23 (giữ
+    chúng trong plan) và spec 008 sẽ THAY cả định nghĩa "bóng chết" khi mang luật IFAB vào.
+    **Cái giá, bằng số và có phép kiểm canh:** kỳ vọng bóng chết tụt từ **7,11** xuống
+    **5,77** giây một pha, nên bóng lăn tăng từ **~61,6** lên **~68,1** phút. Spec 010 muốn
+    **55–60**, nên phép cắt đẩy con số **xa hơn** khỏi đích. Một con số để **báo**, không
+    phải chỗ tự nới — spec 010 sở hữu nó.
+  - ⚠️ **Phạm vi nới hai file, 2026-11-23:** `tranLienTuc.ts` và `tranLienTuc.test.ts`.
+    `dienChuoiRaMoc` mà không ai gọi là code chết, và `buocPhutLienTuc` của T704 đang ghi
+    mốc bằng tay. Cắm nó vào làm **AC-37.6 bắt đầu có thật**: trong `bongChet` thì không ai
+    giữ bóng, ba pha con kia thì người của bên tổ chức giữ — ba phép kiểm mới canh điều đó,
+    gồm hai phép **chống tầm thường** (phải CÓ mốc có người giữ, và ô người giữ phải là một
+    người **có mặt** trên sân).
+  - ⚠️ **Chữ ký lệch `plan.md` mục 5, nêu chứ không im:** contract ghi
+    `dienChuoiRaMoc(kq, boiCanh, rng, lo)`. Thực tế là
+    `(pha: KetCucPhaV6, chiSoMocDau, lo, chiSoNguoiGiu, coMatCuaO)`: `boiCanh` đã nằm trong
+    `pha`, và `rng` **chưa có việc gì làm** khi chưa có chuyển động — nó vào khi Phase 54 tới.
+  - ⚠️ **Một mệnh đề của "Xong khi" KHÔNG làm được ở đây:** "không đường chuyền nào dưới sàn
+    12 m/s của AC-38.6" cần tốc độ bóng, mà tốc độ bóng là `vatLyBong.ts` của **T720**. Nó
+    là điều kiện ra của T720, không phải của task này.
+  - AC: AC-37.4, AC-37.7, **AC-37.6** (ai giữ bóng ở từng mốc)
   - Phụ thuộc: T704
   - Ghi chú — **task này không có trong `plan.md` mục 9, và đó là một lỗ của plan.** `dienPha.ts`
     được plan nhắc **ba lần** (sơ đồ mục 3 dòng 187, quyết định **D126**, bảng Contracts

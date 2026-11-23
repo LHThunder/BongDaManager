@@ -8,6 +8,7 @@ import {
 } from '../tran'
 import { hatGiongDong, RUT_MOI_MOC } from './hatGiong'
 import { docMoc } from './loMoc'
+import { BUOC_MOI_CHUOI } from './dienPha'
 import { BUOC_MOI_PHUT, MOC_MOI_PHUT, SO_THUC_THE } from './moc'
 import {
   buocPhutLienTuc,
@@ -189,5 +190,74 @@ describe('dải rút mỗi mốc (plan mục 7, AC-37.5)', () => {
       lonNhat,
       'Chuyển động đã bắt đầu rút số: hãy đo lại dải RUT_MOI_MOC = 64 rồi sửa dòng này',
     ).toBe(0)
+  })
+})
+
+/*
+  AI ĐANG GIỮ BÓNG Ở TỪNG MỐC (AC-37.6) — thứ mà T706 cắm vào mang lại.
+
+  Trước T706, mọi mốc ghi `KHONG_AI_GIU` vì chưa có bố cục thời gian. Nay
+  `dienChuoiRaMoc` chia cửa sổ thành bốn pha con, nên trong `bongChet` thì
+  không ai giữ, còn ba pha con kia thì người của bên tổ chức giữ.
+
+  Hai phép kiểm chống tầm thường ở đây: (1) phải CÓ mốc có người giữ, nếu
+  không thì "không ai giữ ở mọi mốc" cũng xanh; (2) ô người giữ phải nằm đúng
+  nửa của bên tổ chức — 0–10 cho nhà, 11–21 cho khách — nếu không thì một
+  phép tra lệch ô cũng xanh.
+*/
+describe('ai đang giữ bóng ở từng mốc (AC-37.6, T706)', () => {
+  it('có mốc có người giữ, và có mốc không ai giữ', () => {
+    let lt = taoTranLienTuc(cauHinhMau(MA))
+    let coNguoi = 0
+    let khongAi = 0
+
+    for (let p = 0; p < 20; p += 1) {
+      const phut = buocPhutLienTuc(lt)
+      for (let i = 0; i < phut.lo.soMocDaGhi; i += 1) {
+        const moc = docMoc(phut.lo, i)
+        if (moc.nguoiGiu === -1) khongAi += 1
+        else coNguoi += 1
+      }
+      lt = phut.tt
+    }
+
+    expect(coNguoi).toBeGreaterThan(0)
+    expect(khongAi).toBeGreaterThan(0)
+  })
+
+  it('ô người giữ luôn nằm trong nửa của bên tổ chức', () => {
+    let lt = taoTranLienTuc(cauHinhMau(MA))
+
+    for (let p = 0; p < 10; p += 1) {
+      const phut = buocPhutLienTuc(lt)
+      for (let i = 0; i < phut.lo.soMocDaGhi; i += 1) {
+        const moc = docMoc(phut.lo, i)
+        if (moc.nguoiGiu === -1) continue
+        expect(moc.nguoiGiu, `mốc ${moc.chiSoMoc}`).toBeGreaterThanOrEqual(0)
+        expect(moc.nguoiGiu, `mốc ${moc.chiSoMoc}`).toBeLessThan(22)
+
+        // Và ô ấy phải là một người CÓ MẶT trên sân.
+        expect(
+          moc.cacThucThe[moc.nguoiGiu]!.coMat,
+          `ô ${moc.nguoiGiu} ở mốc ${moc.chiSoMoc}`,
+        ).toBe(1)
+      }
+      lt = phut.tt
+    }
+  })
+
+  it('bố cục bốn pha con phủ kín cửa sổ của từng chuỗi', () => {
+    const phut = buocPhutLienTuc(taoTranLienTuc(cauHinhMau(MA)))
+
+    // Ba chuỗi, mỗi chuỗi 20 mốc thường, không lỗ và không trùng.
+    expect(phut.lo.soMocDaGhi).toBe(3 * (BUOC_MOI_CHUOI / 2))
+    const cac: number[] = []
+    for (let i = 0; i < phut.lo.soMocDaGhi; i += 1) {
+      cac.push(docMoc(phut.lo, i).chiSoMoc)
+    }
+    expect(new Set(cac).size).toBe(cac.length)
+    for (let i = 1; i < cac.length; i += 1) {
+      expect(cac[i]! - cac[i - 1]!).toBe(2)
+    }
   })
 })
