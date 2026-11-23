@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **30 AC**) |
 | **Plan** | `./plan.md` (Status `Approved`, D117–D134, R51–R64) |
-| **Tiến độ** | 4/47 |
+| **Tiến độ** | 5/47 |
 | **Nền đo** | commit `5c652eb`, engine v6, **1.304 test xanh / 63 file test** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -232,7 +232,7 @@
       `<option>` (40 chỗ `disabled` trong `src/ui`, không chỗ nào trên `<option>`), nên D134
       chọn **nhóm radio**.
 
-- [ ] **T717** — `lienTuc/hatGiong.ts`: ba dòng rút có nhà, và **dải mỗi mốc** có lưới
+- [x] **T717** — `lienTuc/hatGiong.ts`: ba dòng rút có nhà, và **dải mỗi mốc** có lưới
   - File: tạo `src/engine/lienTuc/hatGiong.ts`, `src/engine/lienTuc/hatGiong.test.ts`
   - Xong khi: bốn ký hiệu của **D118** tồn tại — `hatGiongDong`, `hatGiongMoc`,
     `LECH_DONG = 2 ** 30`, `RUT_MOI_MOC = 64`; đẳng thức khoảng cách dòng xanh trên 20.000 mã
