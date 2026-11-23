@@ -381,20 +381,40 @@ describe('quả bóng luôn có mặt (AC-32.1 → AC-32.3, T513)', () => {
 
 describe('hai nhóm di chuyển theo hai nguyên tắc (AC-36.2, AC-36.3, D106, T611)', () => {
   /*
-    Đồng đội của người giữ bóng dâng lên phía khung thành đối phương; đối
-    phương lùi về vây quanh quả bóng. Cả hai lực cộng vào lớp co khối của D94, và
-    **tổng vẫn bị chặn ở một phần mười chiều dài sân** — ngưỡng người dùng chốt ở
-    `/clarify` của spec 005 (AC-30.4).
+    Đồng đội của người giữ bóng dâng lên; đối phương LÙI VỀ KHUNG THÀNH NHÀ, mạnh
+    hơn. Hai lực **cùng một chiều** — về phía khung thành của đội đang phòng ngự —
+    nên pha bóng dồn vào một phần ba sân của họ mà khoảng cách giữa hai khối không
+    co lại.
+
+    **Đổi 2026-11-23, người dùng chốt.** Bản cũ kéo đối phương *về phía bóng* và
+    cho cả hai lớp dùng CHUNG một phép kẹp, nên phần dâng lên riêng chỉ được
+    **2,881 đơn vị** trên sân dài 100 — người dùng nói không thấy, và số đo nói họ
+    đúng. Nay hai lớp có trần riêng, và nhánh "lùi về" vốn đã được nhật ký làm rõ
+    của spec 006 (dòng 5) cho phép: "đối phương lùi về **hoặc** ép theo bóng".
   */
   const khung = khungSan(11)
-  const BIEN = khung.rong / 6
+  /** Trần của lớp co khối (AC-30.4) và trần RIÊNG của lớp vai trò. */
+  const BIEN_KHOI = khung.rong / 6
+  const BIEN_VAI_TRO = khung.rong / 6
   const CAC_DAI = [0, 1, 2, 3]
 
   function vung(dai: number): VungSan {
     return { id: `d${dai}`, dai, cot: 1 } as unknown as VungSan
   }
 
-  it('tổng mọi lực kéo vẫn trong một phần sáu chiều dài sân (D116)', () => {
+  /** Dịch chuyển RIÊNG của lớp vai trò: có vai trò trừ đi chỉ-co-khối. */
+  function rieng(
+    ben: 'nha' | 'khach',
+    dNguoi: number,
+    dBong: number,
+    vaiTro: 'dong-doi' | 'doi-phuong',
+  ): number {
+    const goc = nghiengKhoiTheoBong(vung(dNguoi), ben, vung(dBong), khung)
+    const co = nghiengKhoiTheoBong(vung(dNguoi), ben, vung(dBong), khung, vaiTro)
+    return co - goc
+  }
+
+  it('tổng mọi lực kéo nằm trong hai trần cộng lại', () => {
     for (const ben of ['nha', 'khach'] as const) {
       for (const dNguoi of CAC_DAI) {
         for (const dBong of CAC_DAI) {
@@ -409,110 +429,131 @@ describe('hai nhóm di chuyển theo hai nguyên tắc (AC-36.2, AC-36.3, D106, 
             expect(
               Math.abs(v),
               `${ben} dải ${dNguoi}, bóng dải ${dBong}, ${vaiTro}`,
-            ).toBeLessThanOrEqual(BIEN + 1e-9)
+            ).toBeLessThanOrEqual(BIEN_KHOI + BIEN_VAI_TRO + 1e-9)
           }
         }
       }
     }
   })
 
+  /*
+    ⚠️ PHÉP KIỂM CÓ RĂNG, và nó là thứ đáng lẽ phải có từ đầu.
+
+    Bản cũ chỉ đòi "không bao giờ ngược hướng" và "có hơn 16 cặp dâng thêm" — cả
+    hai đều xanh khi độ dâng là 2,881 đơn vị, tức nửa bề ngang một chấm cầu thủ.
+    Một phép kiểm không đo ĐỘ LỚN thì không bắt được "có nhưng không thấy".
+
+    Ngưỡng dưới đây đặt dưới số đo thật (8,333 và 11,111) một quãng an toàn, nên
+    nó không vỡ vì một lần tinh chỉnh nhỏ, nhưng vỡ ngay nếu ai đó đưa lớp vai trò
+    về lại mức vô hình.
+  */
+  it('ĐỘ LỚN đủ để NHÌN THẤY: dâng ≥ 7, lùi ≥ 9 đơn vị', () => {
+    let dangNhat = 0
+    let luiNhat = 0
+    for (const ben of ['nha', 'khach'] as const) {
+      for (const dNguoi of CAC_DAI) {
+        for (const dBong of CAC_DAI) {
+          dangNhat = Math.max(dangNhat, Math.abs(rieng(ben, dNguoi, dBong, 'dong-doi')))
+          luiNhat = Math.max(luiNhat, Math.abs(rieng(ben, dNguoi, dBong, 'doi-phuong')))
+        }
+      }
+    }
+    // Một chấm cầu thủ rộng 5,2 đơn vị; dưới ngần này thì mắt không bắt được.
+    expect(dangNhat, 'độ dâng lớn nhất của lớp vai trò').toBeGreaterThanOrEqual(7)
+    expect(luiNhat, 'độ lùi lớn nhất của lớp vai trò').toBeGreaterThanOrEqual(9)
+    expect(luiNhat, 'khối phòng ngự phải lùi SÂU HƠN mức tấn công dâng').toBeGreaterThan(
+      dangNhat,
+    )
+  })
+
   it('đồng đội của người giữ bóng dâng về phía khung thành đối phương', () => {
-    /*
-      Ở những cặp dải xa nhau nhất thì **lớp co khối đã chạm trần một phần
-      mười** (AC-30.4), nên lực kéo theo vai trò không thêm được gì — đúng ý của
-      cái trần ấy. Vì thế phép kiểm đòi **không bao giờ ngược hướng**, và đếm số
-      cặp thật sự dâng thêm để câu "có dâng" không thành một lời nói suông.
-    */
     let soCapDangThem = 0
     for (const ben of ['nha', 'khach'] as const) {
       const huong = ben === 'nha' ? 1 : -1
       for (const dNguoi of CAC_DAI) {
         for (const dBong of CAC_DAI) {
-          const goc = nghiengKhoiTheoBong(vung(dNguoi), ben, vung(dBong), khung)
-          const voiBong = nghiengKhoiTheoBong(
-            vung(dNguoi),
-            ben,
-            vung(dBong),
-            khung,
-            'dong-doi',
+          const d = rieng(ben, dNguoi, dBong, 'dong-doi')
+          expect(d * huong, `${ben} dải ${dNguoi}, bóng dải ${dBong}`).toBeGreaterThanOrEqual(
+            -1e-9,
           )
-          expect(
-            (voiBong - goc) * huong,
-            `${ben} dải ${dNguoi}, bóng dải ${dBong}`,
-          ).toBeGreaterThanOrEqual(-1e-9)
-          if ((voiBong - goc) * huong > 1e-9) soCapDangThem += 1
+          if (d * huong > 1e-9) soCapDangThem += 1
         }
       }
     }
     expect(soCapDangThem, 'số cặp dải thật sự dâng thêm').toBeGreaterThan(16)
   })
 
-  it('đối phương bị kéo MẠNH HƠN về phía bóng, không bao giờ ngược lại', () => {
-    let soCapKeoManhHon = 0
+  /*
+    Đây là ca đổi vế ngày 2026-11-23: trước đó phép kiểm đòi đối phương bị kéo
+    **về phía bóng**. Nay họ lùi về khung thành NHÀ, tức ngược chiều tấn công của
+    chính họ — và cùng chiều với lực đẩy đồng đội của người giữ bóng.
+  */
+  it('đối phương LÙI VỀ KHUNG THÀNH NHÀ, cùng chiều với đồng đội đang dâng', () => {
+    let soCapLui = 0
     for (const ben of ['nha', 'khach'] as const) {
+      const huongTanCongCuaHo = ben === 'nha' ? 1 : -1
       for (const dNguoi of CAC_DAI) {
         for (const dBong of CAC_DAI) {
-          const goc = nghiengKhoiTheoBong(vung(dNguoi), ben, vung(dBong), khung)
-          const canh = nghiengKhoiTheoBong(
-            vung(dNguoi),
-            ben,
-            vung(dBong),
-            khung,
-            'doi-phuong',
-          )
+          const d = rieng(ben, dNguoi, dBong, 'doi-phuong')
+          // Ngược chiều tấn công của chính họ = lùi về khung thành nhà.
           expect(
-            Math.abs(canh),
+            d * huongTanCongCuaHo,
             `${ben} dải ${dNguoi}, bóng dải ${dBong}`,
-          ).toBeGreaterThanOrEqual(Math.abs(goc) - 1e-9)
-          // Cùng chiều với lớp co khối: về phía bóng, không phải ngược lại.
-          expect(canh * goc).toBeGreaterThanOrEqual(0)
-          if (Math.abs(canh) > Math.abs(goc) + 1e-9) soCapKeoManhHon += 1
+          ).toBeLessThanOrEqual(1e-9)
+          if (d * huongTanCongCuaHo < -1e-9) soCapLui += 1
+
+          // Và cùng chiều với lực đẩy một đồng đội của người giữ bóng nhận được.
+          const cuaDongDoi = rieng(ben === 'nha' ? 'khach' : 'nha', dNguoi, dBong, 'dong-doi')
+          if (Math.abs(d) > 1e-9 && Math.abs(cuaDongDoi) > 1e-9) {
+            expect(Math.sign(d)).toBe(Math.sign(cuaDongDoi))
+          }
         }
       }
     }
-    expect(soCapKeoManhHon, 'số cặp dải bị kéo mạnh hơn').toBeGreaterThan(16)
+    expect(soCapLui, 'số cặp dải thật sự lùi').toBeGreaterThan(16)
   })
 
-  it('lực kéo theo vai trò TỈ LỆ với lớp co khối, nên nó tắt cùng một lúc', () => {
-    /*
-      Đây là thứ giữ AC-30.5, và nó phải đúng **bằng cấu trúc**: người **tham gia
-      tình huống** được đặt thẳng vào vùng của tình huống và không nhận lực kéo
-      nào, nên một lực kéo đều tay sẽ triệt tiêu khoảng lệch tách họ khỏi người
-      không tham gia đứng cùng chỗ — hai bản đầu của T510 đã làm hỏng đúng kiểu ấy.
+  /*
+    Thứ giữ AC-30.5, và nó phải đúng **bằng cấu trúc**: người tham gia tình huống
+    được đặt thẳng vào vùng của tình huống và KHÔNG nhận lực kéo nào, nên một lực
+    kéo đều tay sẽ triệt tiêu đúng khoảng lệch tách họ khỏi người không tham gia
+    đứng cùng dải — hai bản đầu của T510 đã làm hỏng đúng kiểu ấy.
 
-      Không có cặp dải nào cho lớp co khối bằng đúng không — bảng dải của đội và
-      bảng trung lập không trùng nhau ở điểm nào (T523) — nên phép kiểm canh thẳng
-      **tính tỉ lệ**: lực kéo thêm luôn bằng đúng một phần tư lớp co khối về độ lớn.
-      Tỉ lệ thì tự bằng không ở chỗ lớp co khối bằng không.
-    */
+    Sau khi tách trần, lực kéo theo vai trò không còn là một phần cố định của lớp
+    co khối (hai lớp có hướng riêng), nên phép kiểm canh thẳng tính chất cần có:
+    nó **tỉ lệ với |cách|**, và vì thế bằng đúng KHÔNG ở dải có bóng.
+  */
+  it('lực kéo theo vai trò TỈ LỆ với khoảng cách tới dải có bóng', () => {
     let soCapDaDo = 0
     for (const ben of ['nha', 'khach'] as const) {
-      for (const dNguoi of CAC_DAI) {
-        for (const dBong of CAC_DAI) {
-          const goc = nghiengKhoiTheoBong(vung(dNguoi), ben, vung(dBong), khung)
-          // Bỏ những cặp đã chạm trần: ở đó phép kẹp che mất tỉ lệ.
-          if (Math.abs(goc) > BIEN * 0.74) continue
-          soCapDaDo += 1
-          for (const vaiTro of ['dong-doi', 'doi-phuong'] as const) {
-            const v = nghiengKhoiTheoBong(
-              vung(dNguoi),
-              ben,
-              vung(dBong),
-              khung,
-              vaiTro,
+      for (const vaiTro of ['dong-doi', 'doi-phuong'] as const) {
+        /*
+          KHÔNG khẳng định "bằng 0 ở dải có bóng": không cặp dải nào cho `cách = 0`,
+          vì bảng dải của ĐỘI và bảng TRUNG LẬP không trùng nhau ở điểm nào (T523).
+          Tính chất thật sự giữ AC-30.5 là TỈ LỆ — lực kéo nhỏ dần liên tục về 0 khi
+          người ta tiến tới dải có bóng, nên nó không bao giờ là một lượng dịch đều
+          tay cho mọi người.
+        */
+        const mau: { cach: number; d: number }[] = []
+        for (const dNguoi of CAC_DAI) {
+          for (const dBong of CAC_DAI) {
+            const cach = Math.abs(
+              tiLeTest(dBong, 'trung-lap') - tiLeTest(dNguoi, ben),
             )
-            expect(
-              Math.abs(v - goc),
-              `${ben} dải ${dNguoi}, bóng dải ${dBong}, ${vaiTro}`,
-            ).toBeCloseTo(Math.abs(goc) / 4, 10)
+            const d = Math.abs(rieng(ben, dNguoi, dBong, vaiTro))
+            if (d > 1e-9 && d < BIEN_VAI_TRO * 0.95) mau.push({ cach, d })
           }
+        }
+        soCapDaDo += mau.length
+        const heSo = mau[0]!.d / mau[0]!.cach
+        for (const m of mau) {
+          expect(m.d / m.cach, `${ben} ${vaiTro}`).toBeCloseTo(heSo, 10)
         }
       }
     }
     expect(soCapDaDo, 'số cặp dải chưa chạm trần').toBeGreaterThan(8)
   })
 })
-
 describe('thủ môn không rời dải của mình KỂ CẢ KHI ĐANG CẦM BÓNG (AC-30.7, T622)', () => {
   /*
     **Mắt người dùng bắt được lỗi này khi 1291 phép kiểm đều xanh**: "thủ môn

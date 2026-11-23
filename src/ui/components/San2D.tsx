@@ -349,14 +349,77 @@ const PHAN_CO_KHOI = BIEN_NGHIENG_KHOI / KHOANG_TOI_DA_TOI_BONG
  */
 export type VaiTroTheoBong = 'dong-doi' | 'doi-phuong' | 'chua-ro'
 
+/*
+  ======================================================================
+  HAI KHỐI DỊCH VỀ CÙNG MỘT PHÍA (sửa 2026-11-23, người dùng chốt).
+  ======================================================================
+
+  Người dùng nói họ **không thấy** đội tấn công dâng lên. Số đo nói họ đúng:
+  phần dâng lên riêng của lớp vai trò chỉ được **2,881 đơn vị** trên sân dài
+  100 — hơn nửa bề ngang một chấm cầu thủ (5,2) một chút, và bằng **20%**
+  khoảng cách giữa hai dải đội hình (14,0). Hai nguyên nhân, cả hai đã đo:
+
+  **(1) Một phép kẹp CHUNG cho hai lớp.** Lớp co khối một mình đã chạm trần
+  `BIEN_NGHIENG_KHOI` ở cặp dải xa nhất, nên lớp vai trò chỉ còn phần thừa.
+  Nới trần chung thì cả hai lớp cùng được lợi và tỉ lệ vẫn thế — đó là vì sao
+  lần nới 1/10 → 1/6 ngày 19/11 không đổi được gì. Nay mỗi lớp có trần riêng.
+
+  **(2) Hướng kéo của đối phương SAI so với điều người dùng mô tả.** Bản cũ kéo
+  đối phương **về phía bóng** ("vây quanh quả bóng"). Người dùng muốn khối phòng
+  ngự **lùi về khung thành nhà**. Hai thứ ngược nhau khi bóng còn ở sân nhà của
+  đội tấn công. Nhật ký làm rõ của spec 006 (dòng 5) đã cho phép **cả hai**:
+  "đối phương lùi về **hoặc** ép theo bóng" — nên đây là chọn nhánh còn lại,
+  không phải sửa một AC.
+
+  Và nhánh ấy còn **an toàn hơn**, đo trên 10 mã × 7 quân số × mọi dòng:
+
+      thiết kế                        dâng     lùi     sàn chồng điểm
+      nền (đối phương ép theo bóng)   2,881    2,881   1,4696
+      ép theo bóng, tỉ lệ /3          5,556    5,556   0,4474  ← ĐỎ
+      cùng chiều /4 /3                4,167    5,556   1,6746
+      cùng chiều /2 /1,5  ← chọn      8,333   11,111   1,5163
+      cùng chiều /1,5 /1             11,111   16,667   1,3580  ← vỡ vòng nét đứt
+
+  Ngưỡng đỏ của sàn là **1,0 bán kính** (`khoangPhanBiet`). Mức đã chọn cho sàn
+  **1,5163 — CAO HƠN cả nền 1,4696**: kéo hai đội **hội tụ vào bóng** mới là thứ
+  ăn hết biên chống chồng điểm, còn dịch cả hai khối **về cùng một phía** thì giữ
+  nguyên khoảng cách giữa chúng. Mức mạnh hơn nữa không vỡ AC-30.5 mà vỡ
+  **AC-33.1**: vòng nét đứt quanh người giữ bóng trùm lên tâm một người khác.
+*/
+
 /**
- * Lực kéo thêm theo **vai trò**, so với lớp co khối: **một nửa**.
+ * Lực kéo thêm cho **đồng đội** của người giữ bóng: cả đội dâng lên.
  *
- * Không lấy bằng lớp co khối: hai lực cùng độ lớn thì tổng chạm trần
- * `BIEN_NGHIENG_KHOI` ở gần nửa sân, và mọi người bị kẹp vào cùng một lượng dịch
- * — đúng kiểu "dịch cả khối một lượng như nhau" mà T510 đã làm hỏng hai lần.
+ * Vẫn **tỉ lệ** với khoảng cách tới dải có bóng, nên nó nhỏ dần liên tục về không
+ * khi người ta tiến tới dải ấy. (Không cặp dải nào cho khoảng cách bằng đúng không:
+ * bảng dải của ĐỘI và bảng TRUNG LẬP không trùng nhau ở điểm nào — T523.)
+ * Tính tỉ lệ không phải thẩm mỹ mà là thứ giữ **AC-30.5**: người tham gia tình huống
+ * được đặt thẳng vào vùng của tình huống và không nhận lực kéo nào, nên một lực
+ * kéo **đều tay** sẽ triệt tiêu đúng khoảng lệch tách họ khỏi người không tham gia
+ * đứng cùng dải — hai bản đầu của T510 đã làm hỏng đúng kiểu ấy. Tách trần thì
+ * được; bỏ tính tỉ lệ thì không.
  */
-const PHAN_VAI_TRO = PHAN_CO_KHOI / 4
+const PHAN_DONG_DOI = PHAN_CO_KHOI / 2
+
+/**
+ * Lực kéo thêm cho **đối phương**: lùi về khung thành nhà, **mạnh hơn** đồng đội.
+ *
+ * Mạnh hơn vì đó là hình ảnh thật của một khối phòng ngự: nó lùi sâu hơn mức đội
+ * tấn công dâng lên, nên pha bóng dồn vào một phần ba sân của đội đang phòng ngự —
+ * đúng điều người dùng mô tả. Cùng chiều với đồng đội, nên khoảng cách giữa hai
+ * khối không co lại và sàn chồng điểm không xấu đi.
+ */
+const PHAN_DOI_PHUONG = PHAN_CO_KHOI / 1.5
+
+/**
+ * Trần **riêng** của lớp vai trò, tách khỏi `BIEN_NGHIENG_KHOI`.
+ *
+ * Tổng dịch lớn nhất vì thế là `BIEN_NGHIENG_KHOI + BIEN_VAI_TRO` = một phần ba
+ * chiều dài sân. Nghe nhiều, nhưng hai lớp chỉ cộng dồn hết cỡ ở những cặp dải xa
+ * nhau nhất, và cả ba bất biến đã đo đều còn nguyên: sàn chồng điểm 1,5163 bán
+ * kính, thủ môn vẫn trong một phần ba sân nhà, tám hàng vẫn xen kẽ đúng thứ tự.
+ */
+const BIEN_VAI_TRO = 1 / 6
 
 /**
  * Một người KHÔNG tham gia dịch bao nhiêu theo trục dọc, vì bóng đang ở dải
@@ -393,7 +456,12 @@ export function nghiengKhoiTheoBong(
 
     - **Đồng đội của người giữ bóng** được kéo thêm về phía khung thành đối
       phương: cả đội dâng lên khi đang cầm bóng.
-    - **Đối phương** được kéo thêm về phía bóng: cả đội lùi về vây quanh quả bóng.
+    - **Đối phương** được kéo thêm về **khung thành của chính họ**, mạnh hơn: cả
+      khối phòng ngự lùi sâu. (Trước 2026-11-23 nhánh này kéo họ *về phía bóng*;
+      xem khối chú thích ở `PHAN_DONG_DOI` để biết vì sao đổi và cái giá đã đo.)
+
+    **Hai lực cùng một chiều** — về khung thành của đội đang phòng ngự — nên pha
+    bóng dồn vào một phần ba sân của họ, mà khoảng cách giữa hai khối không co lại.
 
     **Cả hai lực đều tỉ lệ với khoảng cách tới dải có bóng, nên chúng bằng KHÔNG
     ở đúng dải ấy.** Đó không phải thẩm mỹ: người **tham gia tình huống** được
@@ -404,17 +472,32 @@ export function nghiengKhoiTheoBong(
     Tổng mọi lực kéo vẫn bị chặn ở `BIEN_NGHIENG_KHOI` (AC-30.4 của spec 005).
   */
   const huongTanCong = benNguoi === 'khach' ? -1 : 1
-  const them =
+  /*
+    Chiều của CẢ HAI nhóm là chiều tấn công của người đang giữ bóng. Với một
+    đồng đội thì đó là chiều tấn công của chính anh ta; với một đối phương thì
+    đó là chiều ngược lại — tức lùi về khung thành nhà.
+  */
+  const huongNguoiGiuBong =
+    vaiTro === 'doi-phuong' ? -huongTanCong : huongTanCong
+  const phanTheoVaiTro =
     vaiTro === 'dong-doi'
-      ? PHAN_VAI_TRO * Math.abs(cach) * huongTanCong
+      ? PHAN_DONG_DOI
       : vaiTro === 'doi-phuong'
-        ? PHAN_VAI_TRO * cach
+        ? PHAN_DOI_PHUONG
         : 0
+  const them = phanTheoVaiTro * Math.abs(cach) * huongNguoiGiuBong
 
-  const tong = PHAN_CO_KHOI * cach + them
-  return (
-    Math.max(-BIEN_NGHIENG_KHOI, Math.min(BIEN_NGHIENG_KHOI, tong)) * khung.rong
+  /*
+    HAI PHÉP KẸP RIÊNG. Một phép kẹp chung nghĩa là lớp co khối — thứ chạm trần
+    ở cặp dải xa nhất — ăn hết ngân sách và lớp vai trò chỉ còn phần thừa, đúng
+    cái lỗi mà khối chú thích ở `PHAN_DONG_DOI` kể.
+  */
+  const coKhoi = Math.max(
+    -BIEN_NGHIENG_KHOI,
+    Math.min(BIEN_NGHIENG_KHOI, PHAN_CO_KHOI * cach),
   )
+  const theoVaiTro = Math.max(-BIEN_VAI_TRO, Math.min(BIEN_VAI_TRO, them))
+  return (coKhoi + theoVaiTro) * khung.rong
 }
 
 /**
