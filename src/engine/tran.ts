@@ -1550,6 +1550,117 @@ export function quyetKetCucChuoi(
   }
 }
 
+/**
+ * Dựng một ứng viên sự kiện. `tiSo` tường minh — xem ghi chú ở `buocTiep`.
+ *
+ * Là **tham số** của `congPhaVaoTran` chứ không phải một hàm module: nó phải
+ * đóng lại trên `tt`, `phut` và mảng ứng viên của riêng từng phút.
+ */
+export type ThemUngVien = (
+  tiSo: TiSo,
+  loai: LoaiSuKien,
+  doi: BenDoi,
+  cacCauThu: readonly string[],
+  vung: VungSan | null,
+  duongBong: readonly VungSan[],
+  diem: number,
+  cacBuocBong?: readonly BuocBong[],
+) => void
+
+/** Trạng thái hai bên và tỉ số sau khi cộng một pha bóng vào trận. */
+export interface KetQuaCongPha {
+  readonly tiSo: TiSo
+  readonly benNha: BenTran
+  readonly benKhach: BenTran
+}
+
+/*
+  MỐI HÀN THỨ HAI (T719 của spec 007, quyết định D135).
+
+  `quyetKetCucChuoi` nói pha bóng kết thúc RA SAO; hàm này cộng kết cục ấy VÀO
+  trận — tỉ số, thống kê hai bên, ứng viên sự kiện, và lần rút thẻ.
+
+  Vì sao nó phải là một hàm chung chứ không phải 62 dòng chép sang
+  `lienTuc/`: **AC-45.3** so hiệu số bàn thắng và tỉ lệ thắng giữa hai chế độ,
+  và **R54** nói hai bảng thống kê chỉ còn so được **nếu** chúng do cùng một
+  đoạn code tính. Hai bản sao của 62 dòng này là hai bảng sẽ trôi khỏi nhau,
+  và không phép kiểm nào thấy.
+
+  ⚠️ Thứ tự tiêu thụ `rng` ở đây cũng là HỢP ĐỒNG, y như `quyetKetCucChuoi`:
+  mẫu câu của sự kiện chuỗi → lần rút thẻ → mẫu câu của sự kiện thẻ. `MOC_V6`
+  là thứ duy nhất chứng minh được nó không dịch.
+*/
+export function congPhaVaoTran(
+  phut: number,
+  tiSoVao: TiSo,
+  pha: KetCucPhaV6,
+  rng: RngCoTrangThai,
+  themUngVien: ThemUngVien,
+): KetQuaCongPha {
+  const { doi, benCong, benThu, kq, gan, coBan, biCuu, coHoiRoRang, thuMonThu } =
+    pha
+
+  const tiSo: TiSo = !coBan
+    ? tiSoVao
+    : doi === 'nha'
+      ? { nha: tiSoVao.nha + 1, khach: tiSoVao.khach }
+      : { nha: tiSoVao.nha, khach: tiSoVao.khach + 1 }
+
+  const benCongMoi = congThongKeCong(
+    benCong,
+    kq,
+    coBan,
+    gan,
+    coHoiRoRang,
+    biCuu,
+  )
+  let benThuMoi = congThongKeThu(benThu, kq, gan, biCuu ? thuMonThu : null)
+
+  const loaiSuKien = loaiCuaChuoi(kq, coBan, biCuu)
+  const phaBong = duongBongCuaChuoi(kq)
+  themUngVien(
+    tiSo,
+    loaiSuKien,
+    doi,
+    nguoiThamGiaTinhHuong(
+      loaiSuKien,
+      gan,
+      biCuu ? thuMonThu : null,
+      nguoiDeMatBong(kq, gan),
+    ),
+    kq.vungKetThuc,
+    phaBong.duong,
+    diemCuaChuoi(kq, coBan),
+    phaBong.cacBuoc,
+  )
+
+  /*
+    Phạm lỗi: đội PHÒNG NGỰ là bên có thể ăn thẻ, và người ăn thẻ phải là
+    ĐÚNG người vừa phạm lỗi — trước đây hai chỗ rút riêng nên cầu thủ A
+    phạm lỗi mà cầu thủ B bị ghi tên vào sổ.
+  */
+  if (kq.ketCuc === 'pham-loi') {
+    const kqThe = thuRutThe(benThuMoi, gan.nguoiPhamLoi, rng, phut)
+    benThuMoi = kqThe.ben
+    if (kqThe.theSauDo && kqThe.playerId) {
+      themUngVien(
+        tiSo,
+        kqThe.theSauDo === 'vang' ? 'the-vang' : 'the-do',
+        doi === 'nha' ? 'khach' : 'nha',
+        [kqThe.playerId],
+        kq.vungKetThuc,
+        phaBong.duong,
+        100,
+        phaBong.cacBuoc,
+      )
+    }
+  }
+
+  return doi === 'nha'
+    ? { tiSo, benNha: benCongMoi, benKhach: benThuMoi }
+    : { tiSo, benNha: benThuMoi, benKhach: benCongMoi }
+}
+
 export function buocTiep(ttVao: TrangThaiTran): TrangThaiTran {
   if (ttVao.ketThuc) return ttVao
 
@@ -1565,18 +1676,27 @@ export function buocTiep(ttVao: TrangThaiTran): TrangThaiTran {
   let benKhach = giamTheLuc(tt.ben.khach)
   const ungVienMoi: UngVienSuKien[] = []
 
-  const themUngVien = (
-    loai: LoaiSuKien,
-    doi: BenDoi,
-    cacCauThu: readonly string[],
-    vung: VungSan | null,
-    duongBong: readonly VungSan[],
-    diem: number,
-    cacBuocBong: readonly BuocBong[] = [],
+  /*
+    `tiSo` là THAM SỐ TƯỜNG MINH, không phải biến đọc qua closure (D135, T719).
+
+    Tỉ số được cộng BÊN TRONG `congPhaVaoTran`, nên một closure đọc biến `tiSo`
+    của `buocTiep` sẽ chụp tỉ số **trước** bàn thắng và dòng tường thuật lệch —
+    `MOC_V6` đỏ ngay. Truyền tường minh thì chỗ gọi chịu trách nhiệm nói nó
+    muốn tỉ số ở thời điểm nào.
+  */
+  const themUngVien: ThemUngVien = (
+    tiSoLucDo,
+    loai,
+    doi,
+    cacCauThu,
+    vung,
+    duongBong,
+    diem,
+    cacBuocBong = [],
   ) => {
     ungVienMoi.push(
       taoUngVien(
-        { ...tt, tiSo },
+        { ...tt, tiSo: tiSoLucDo },
         phut,
         loai,
         doi,
@@ -1594,6 +1714,7 @@ export function buocTiep(ttVao: TrangThaiTran): TrangThaiTran {
   for (const ct of daThay) {
     if (ct.noiDung.loai !== 'thay-nguoi') continue
     themUngVien(
+      tiSo,
       'thay-nguoi',
       ct.doi,
       [ct.noiDung.vao, ct.noiDung.ra],
@@ -1605,78 +1726,26 @@ export function buocTiep(ttVao: TrangThaiTran): TrangThaiTran {
 
   for (let i = 0; i < SO_CHUOI_MOI_PHUT; i += 1) {
     /*
-      Mô hình xác suất v6 quyết kết cục pha bóng; phần còn lại của vòng lặp
-      chỉ CỘNG thống kê và dựng ứng viên sự kiện từ kết cục ấy.
+      Hai mối hàn, và vòng lặp này không còn gì khác: `quyetKetCucChuoi` (T701,
+      D117) nói pha bóng kết thúc RA SAO, `congPhaVaoTran` (T719, D135) cộng
+      kết cục ấy VÀO trận. Engine liên tục gọi đúng hai hàm này, nên hai chế độ
+      dùng chung cả mô hình xác suất lẫn cách cộng thống kê mà không chép một
+      dòng nào — đó là điều kiện để AC-45.3 so được hai bảng (R54).
 
-      Phép bóc T701 của spec 007: engine liên tục gọi đúng hàm này, nên hai
-      chế độ dùng chung một mô hình xác suất mà không chép một dòng nào.
       Thứ tự tiêu thụ `rng` không dịch một lần rút — `MOC_V6` canh điều đó.
     */
-    const { doi, benCong, benThu, kq, gan, coBan, biCuu, coHoiRoRang, thuMonThu } =
-      quyetKetCucChuoi(benNha, benKhach, tt.sanTrungLap, tt.quanSo, rng)
-
-    if (coBan) {
-      tiSo =
-        doi === 'nha'
-          ? { nha: tiSo.nha + 1, khach: tiSo.khach }
-          : { nha: tiSo.nha, khach: tiSo.khach + 1 }
-    }
-
-    let benCongMoi = congThongKeCong(
-      benCong,
-      kq,
-      coBan,
-      gan,
-      coHoiRoRang,
-      biCuu,
-    )
-    let benThuMoi = congThongKeThu(benThu, kq, gan, biCuu ? thuMonThu : null)
-
-    const loaiSuKien = loaiCuaChuoi(kq, coBan, biCuu)
-    const phaBong = duongBongCuaChuoi(kq)
-    themUngVien(
-      loaiSuKien,
-      doi,
-      nguoiThamGiaTinhHuong(
-        loaiSuKien,
-        gan,
-        biCuu ? thuMonThu : null,
-        nguoiDeMatBong(kq, gan),
-      ),
-      kq.vungKetThuc,
-      phaBong.duong,
-      diemCuaChuoi(kq, coBan),
-      phaBong.cacBuoc,
+    const pha = quyetKetCucChuoi(
+      benNha,
+      benKhach,
+      tt.sanTrungLap,
+      tt.quanSo,
+      rng,
     )
 
-    /*
-      Phạm lỗi: đội PHÒNG NGỰ là bên có thể ăn thẻ, và người ăn thẻ phải là
-      ĐÚNG người vừa phạm lỗi — trước đây hai chỗ rút riêng nên cầu thủ A
-      phạm lỗi mà cầu thủ B bị ghi tên vào sổ.
-    */
-    if (kq.ketCuc === 'pham-loi') {
-      const kqThe = thuRutThe(benThuMoi, gan.nguoiPhamLoi, rng, phut)
-      benThuMoi = kqThe.ben
-      if (kqThe.theSauDo && kqThe.playerId) {
-        themUngVien(
-          kqThe.theSauDo === 'vang' ? 'the-vang' : 'the-do',
-          doi === 'nha' ? 'khach' : 'nha',
-          [kqThe.playerId],
-          kq.vungKetThuc,
-          phaBong.duong,
-          100,
-          phaBong.cacBuoc,
-        )
-      }
-    }
-
-    if (doi === 'nha') {
-      benNha = benCongMoi
-      benKhach = benThuMoi
-    } else {
-      benKhach = benCongMoi
-      benNha = benThuMoi
-    }
+    const sau = congPhaVaoTran(phut, tiSo, pha, rng, themUngVien)
+    tiSo = sau.tiSo
+    benNha = sau.benNha
+    benKhach = sau.benKhach
   }
 
   // Kiệt sức: mỗi cầu thủ báo đúng một lần (AC-8.7).
@@ -1687,7 +1756,7 @@ export function buocTiep(ttVao: TrangThaiTran): TrangThaiTran {
     const moi = moiKietSuc(ben)
     if (moi.length === 0) continue
     for (const id of moi) {
-      themUngVien('kiet-suc', doi, [id], null, [], 100)
+      themUngVien(tiSo, 'kiet-suc', doi, [id], null, [], 100)
     }
     const capNhat: BenTran = {
       ...ben,

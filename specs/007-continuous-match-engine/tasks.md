@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **30 AC**) |
 | **Plan** | `./plan.md` (Status `Approved`, D117–D134, R51–R64) |
-| **Tiến độ** | 5/48 |
+| **Tiến độ** | 6/48 |
 | **Nền đo** | commit `5c652eb`, engine v6, **1.304 test xanh / 63 file test** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -29,7 +29,7 @@
 >
 > Bốn lỗ đầu đều cùng một hình dạng, và chúng được tìm ra bằng **một phép soát duy nhất**:
 > grep từng ký hiệu của bảng Contracts (plan mục 5) trong `tasks.md`. Plan mục 9 đã được cập
-> nhật cùng ngày. Các khoảng trống còn lại: T719, T725–T729, T739, T746–T749, T755–T759.
+> nhật cùng ngày. Các khoảng trống còn lại: T725–T729, T739, T746–T749, T755–T759.
 
 > ## Điều kiện RA chung của mọi task chạm `src/engine/`
 > Không task nào được tick nếu thiếu một trong năm điều này — chúng là lưới giữ **AC-45.2**,
@@ -86,7 +86,7 @@
     - `apHangDoi` chạy ở **1365**, **trước** `taoRngTuHatGiong` ở 1367, nên nó tiêu **0 lần
       rút**. Thêm `export` **không được** dịch biên ấy (D127, AC-45.4).
 
-- [ ] **T719** — Bóc `congPhaVaoTran`: **mối hàn thứ hai** (D135)
+- [x] **T719** — Bóc `congPhaVaoTran`: **mối hàn thứ hai** (D135)
   - File: `src/engine/tran.ts`
   - Xong khi: `congPhaVaoTran(phut, tiSoVao, pha, rng, themUngVien)` tồn tại **trong
     `tran.ts`** và vòng chuỗi của `buocTiep` gọi nó; closure `themUngVien` nhận `tiSo` làm
