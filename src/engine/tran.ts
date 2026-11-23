@@ -419,7 +419,7 @@ export function taoTran(cauHinh: CauHinhTran): TrangThaiTran {
   }
 }
 
-function taoUngVien(
+export function taoUngVien(
   tt: TrangThaiTran,
   phut: number,
   loai: LoaiSuKien,
@@ -1025,7 +1025,7 @@ export function thuRutThe(
 }
 
 /** Phát sự kiện kiệt sức đúng MỘT lần cho mỗi cầu thủ mỗi trận (AC-8.7). */
-function moiKietSuc(ben: BenTran): readonly string[] {
+export function moiKietSuc(ben: BenTran): readonly string[] {
   return ben.trenSan.filter(
     (id) =>
       daKietSuc(ben.theLuc[id] ?? THE_LUC_DAY) &&
@@ -1857,7 +1857,7 @@ export function buocTiep(ttVao: TrangThaiTran): TrangThaiTran {
 }
 
 /** Giữ tình huống đáng kể nhất của phút, cộng mọi tình huống bắt buộc. */
-function gomUngVienCuaPhut(
+export function gomUngVienCuaPhut(
   cacUngVien: readonly UngVienSuKien[],
 ): readonly UngVienSuKien[] {
   const batBuoc = cacUngVien.filter((uv) => uv.diemDangKe >= 100)

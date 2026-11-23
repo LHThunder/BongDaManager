@@ -165,8 +165,21 @@
 
 - [ ] **T704** — `lienTuc/moc.ts` + `buocPhutLienTuc` trả lô + `loMoc` stride 8, 26 thực thể
   - File: tạo `src/engine/lienTuc/moc.ts`, `src/engine/lienTuc/moc.test.ts`,
-    `src/engine/lienTuc/loMoc.ts`, `src/engine/lienTuc/tranLienTuc.ts`; sửa
-    `src/hooks/useMatch.ts` (ref ngoài React giữ lô)
+    `src/engine/lienTuc/loMoc.ts`, `src/engine/lienTuc/loMoc.test.ts`,
+    `src/engine/lienTuc/tranLienTuc.ts`; sửa `src/hooks/useMatch.ts` (ref ngoài React giữ
+    lô) **và `src/engine/tran.ts`** — xem ghi chú phạm vi dưới
+  - ⚠️ **Phạm vi được nới một file, 2026-11-23, và đây là lý do.** Phần đuôi theo PHÚT mà
+    `tranLienTuc.ts` cần (kiệt sức, huỷ trận, hạt giống, mẫu câu, dựng trạng thái) gọi sáu
+    hàm của `tran.ts`, và đo ra **ba hàm chưa export**: `moiKietSuc`, `gomUngVienCuaPhut`,
+    `taoUngVien` (ba hàm kia — `nguongHuyTran`, `tongPhutHiep1`, `hiepCuaPhut` — đã
+    export). Nên T704 thêm **ba từ khoá `export`**, không viết lại một dòng nào, đúng khuôn
+    T701 đã làm với bốn ký hiệu.
+    **KHÔNG bóc phần đuôi thành mối hàn thứ ba:** nó chỉ dựng object và gọi các hàm đã có
+    test, **không tính một con thống kê nào**, nên chép hình dạng của nó không sinh ra
+    chuyện "hai bảng thống kê trôi khỏi nhau" mà R54 cảnh báo — khác hẳn 62 dòng tích luỹ
+    của T719. Và trạng thái liên tục là một hình dạng KHÁC (nó **bọc** `TrangThaiTran` rồi
+    thêm `chiSoMoc`), nên một mối hàn dùng chung sẽ phải rẽ nhánh cho cả hai — thêm ràng
+    buộc chứ không bớt.
   - Xong khi: **phép kiểm dải rút mỗi mốc** mà `plan.md` mục 7 đòi, đo trên **một trận thật**
     (nó sống ở đây chứ không ở T717, vì T717 chạy **trước** khi có trận): với **mọi** mốc, số
     lần rút tiêu trong mốc ấy `<= RUT_MOI_MOC`. Cộng ba đẳng thức lưới xanh —
