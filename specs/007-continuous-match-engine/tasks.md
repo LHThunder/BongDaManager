@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **30 AC**) |
 | **Plan** | `./plan.md` (Status `Approved`, D117–D134, R51–R64) |
-| **Tiến độ** | 23/49 |
+| **Tiến độ** | 24/49 |
 | **Nền đo** | commit `5c652eb`, engine v6, **1.304 test xanh / 63 file test** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -1015,7 +1015,7 @@ vì lớp dao động đã tắt — **phải báo trước.**
   - 📏 Toàn bộ: **76 file / 1.547 phép kiểm xanh** (thêm 20); năm điều kiện ra của task chạm
     `src/engine/` đều đạt.
 
-- [ ] **T721** — `zKhiToi` cho `tat-canh` rơi trong [1,5; 2,8] và **chính hàm ấy** phát `trang_thai: 'danh_dau'`
+- [x] **T721** — `zKhiToi` cho `tat-canh` rơi trong [1,5; 2,8] và **chính hàm ấy** phát `trang_thai: 'danh_dau'`
   - File: `src/engine/lienTuc/vatLyBong.ts`, `src/engine/lienTuc/vatLyBong.test.ts`
   - Xong khi: mọi khung có `trang_thai === 'danh_dau'` thì `z ∈ [1,5; 2,8]`; `chuyen` và
     `re-bong` có `z ≡ 0`; **và** `npx vitest run src/engine/suKien.test.ts src/ui/tuongThuat.test.ts src/ui/ngonNgu/ngonNgu.test.ts`
@@ -1038,6 +1038,54 @@ vì lớp dao động đã tắt — **phải báo trước.**
     - Hai chỗ đọc `'tat-canh'` ở `tran.ts:789` và `:875` cũng không vét cạn.
     Kết luận: `'danh_dau'` **phải** là giá trị của `trang_thai` trong tệp xuất, **không** phải
     một `LoaiHanhDong` mới — vì nếu làm sai, **không lưới nào bắt được**.
+  - ⚠️ **Chữ ký của `plan.md` mục 5 KHÔNG làm được việc mà task đòi — nêu chứ không im.**
+    Contract ghi `zKhiToi(d, v0, gocPhat) => number`, nhưng task đòi *"`zKhiToi` **chọn**
+    tham số để rơi trong [1,5; 2,8] và **chính hàm ấy** phát `trang_thai`"*: một hàm **nhận**
+    góc phát thì không **chọn** được góc phát, và một hàm trả `number` thì không phát được
+    nhãn. Nên lát này dựng **hai tầng**, tầng dưới giữ **đúng** chữ ký contract:
+    `zTaiNoiToi(d, v0, gocPhat): number` (nguyên văn), `gocPhatTatCanh(d, v0)` (giải bằng
+    đại số), và `zKhiToi(d, loai): { z, trangThai }` ở trên.
+  - ✅ **Nhãn `danh_dau` phát ra CÙNG CHỖ với `z`, nên AC-38.5 đúng theo cấu trúc.** Nhãn
+    **không thể** tồn tại với một `z` ngoài dải, vì chính phép kiểm dải là thứ sinh ra nhãn.
+    Phương án bị loại: để lớp xuất tệp gắn nhãn theo `loai === 'tat-canh'` — lúc ấy nhãn và
+    `z` là hai đường độc lập và AC-38.5 chỉ còn là một lời hứa. Đã đột biến đúng ca ấy
+    (nhắm 3,0 m + nhãn phát từ `loai`): **4 phép kiểm đỏ**.
+  - ✅ **Phép giải là MỘT DÒNG ĐẠI SỐ, không dò bằng vòng lặp**: `z = d·tan(góc) − g·T²/2`
+    đảo thành `tan(góc) = (zNhắm + g·T²/2) / d`. Đây là chỗ quyết định "công thức đóng" của
+    T720 trả lãi.
+  - ⚠️ **Phép kiểm xương sống là phép ĐỐI CHIẾU HAI ĐƯỜNG**: `zKhiToi` giải độ cao bằng đại
+    số, còn `phatBong` + `bongTaiThoiDiem` dựng nó bằng quỹ đạo. Hai đường độc lập, lệch lớn
+    nhất **< 1e-9** trên 60 quãng. Không có nó thì một hàm chỉ việc `return 2.15` vẫn xanh
+    mọi phép kiểm còn lại — và đột biến **sai một dấu** trong phép giải cho **6 phép kiểm đỏ**
+    đúng vì nó.
+  - ⚠️ **Nhánh `false` của phép kiểm dải KHÔNG tới được từ `zKhiToi`** (quả tạt luôn được
+    chọn góc để rơi đúng giữa dải). Nên nó được bóc thành vị từ có tên `laTamDanhDau`, gọi
+    được **cả hai nhánh** trực tiếp — không phải mã chết mà là một **cái chốt**: đổi
+    `Z_TAT_CANH_NHAM` ra ngoài dải thì nhãn **tắt** chứ không đi kèm độ cao sai.
+  - 📏 **Nhắm GIỮA dải (2,15 m), lề 0,65 m mỗi phía** — không sát mép, nên không sai số float
+    nào đẩy nổi một quả tạt ra ngoài dải mà AC-38.5 canh. Góc phát giải ra: **65,4°** ở quãng
+    1 m (một cú đưa bóng gần), **29,4°** ở 5 m, **21,4°** ở 25 m, **19,9°** ở 60 m.
+  - 🐞 **Góc phát KHÔNG đơn điệu trên toàn dải, và tôi nêu cả hai chỗ nó tăng kèm con số**
+    thay vì viết một phép kiểm sai rồi nới cho nó xanh. (1) **[25; 26,25] m tăng tổng
+    0,0019°** — hai dải tốc độ có độ dốc khác nhau (0,32 so với 0,286 m/s mỗi mét), nên ngay
+    sau chỗ chia tốc độ lớn chậm hơn quãng. (2) **Sau 60 m tăng 0,061° mỗi 0,25 m** — đây
+    **không** phải lỗi mà là vật lý: `QUANG_CHUYEN_DAI_NHAT` là chỗ tốc độ chạm trần 30 m/s,
+    nên xa hơn thì chỉ còn cách nâng cao hơn. Một quả bóng 90 m **phải** bổng hơn quả 60 m.
+    Ba phép kiểm thay chỗ một: giảm nghiêm ngặt ở hai đoạn thật sự giảm, chỗ chia lệch dưới
+    0,01°, và **quá trần thì tăng** — mệnh đề cuối là **ca ngược**, đỏ nếu ai bỏ trần tốc độ.
+  - ✅ **`sut` cũng SỆT**, vì D129 đo rồi mới chốt: `tat-canh` là hành động **duy nhất** có z
+    vượt 1,5 m (3.138/37.202 bước không-sút = 8,4%). Một cú sút nâng lên khỏi mặt sân là
+    **ngoài** spec 007. Đột biến cho `sut` được nâng → 1 phép kiểm đỏ.
+  - ✅ **Hai bản sao của con số 1,5 m có phép kiểm giữ chúng khớp nhau**: `Z_DANH_DAU_THAP`
+    ở `vatLyBong.ts` và `NGUONG_Z_GIO` ở `dieuKien.ts`. Hai file **phải** tách vì T723 sẽ
+    nhập `MA_SAT_LAN_SET` từ `dieuKien.ts` — để chung là nhập vòng. "Bóng bổng" phải có
+    **một** định nghĩa.
+  - ✅ **Điều kiện ra thứ hai đạt**: `suKien.test.ts`, `tuongThuat.test.ts` và
+    `ngonNgu.test.ts` xanh (**272 phép kiểm**) với **0 dòng sửa**; `chuoiBong.ts` và
+    `phaBong.ts` cũng **0 dòng** — `danh_dau` là giá trị của `trang_thai` trong tệp xuất,
+    không phải một `LoaiHanhDong` mới, đúng kết luận mà ghi chú của task đã chứng minh bằng
+    `tsc`. Enum đóng 14 giá trị vẫn là của **T740**.
+  - ✅ **Năm phép đột biến, năm lần đỏ.** Toàn bộ: **77 file / 1.574 phép kiểm xanh**.
 
 - [x] **T722** [P] — `lienTuc/dieuKien.ts`: thời tiết và gió là hàm băm **thuần**, 0 lần rút
   - File: tạo `src/engine/lienTuc/dieuKien.ts`, `src/engine/lienTuc/dieuKien.test.ts`

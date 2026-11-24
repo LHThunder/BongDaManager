@@ -219,3 +219,115 @@ export function bongTaiThoiDiem(
     vz: daDat ? 0 : phat.vz - G_TRONG_TRUONG * t,
   }
 }
+
+/*
+  ====================================================================
+  QUẢ TẠT RƠI ĐÚNG TẦM ĐÁNH ĐẦU (T721, AC-38.5, quyết định D129).
+  ====================================================================
+
+  D129 đã **đo** rồi mới chốt: `tat-canh` là hành động **duy nhất** có `z` vượt
+  1,5 m — 3.138/37.202 bước không-sút, tức 8,4%. Nên ba hành động còn lại
+  (`chuyen`, `re-bong`, `sut`) đi **sệt**, và quả bóng bổng là quả tạt.
+
+  ⚠️ **Chữ ký của `plan.md` mục 5 KHÔNG làm được việc mà task đòi — nêu chứ
+  không im.** Contract ghi `zKhiToi(d, v0, gocPhat) => number`. Nhưng `tasks.md`
+  T721 đòi *"`zKhiToi` **chọn** tham số để rơi trong [1,5; 2,8] và **chính hàm
+  ấy** phát `trang_thai: 'danh_dau'`"* — một hàm **nhận** góc phát thì không
+  **chọn** được góc phát, và một hàm trả `number` thì không phát được nhãn.
+
+  Nên lát này dựng **hai tầng**, và tầng dưới giữ **đúng** chữ ký của contract:
+
+    - `zTaiNoiToi(d, v0, gocPhat): number` — nguyên văn contract: độ cao lúc tới.
+    - `gocPhatTatCanh(d, v0): number` — **giải** góc phát từ đại số.
+    - `zKhiToi(d, loai): { z, trangThai }` — tầng trên, chọn góc và phát nhãn.
+
+  ⚠️ **Và nhãn `'danh_dau'` phát ra CÙNG CHỖ với `z`, cố ý.** Nhờ thế bất biến
+  của AC-38.5 đúng **theo cấu trúc**: nhãn `'danh_dau'` **không thể** tồn tại
+  với một `z` ngoài dải, vì chính phép kiểm dải là thứ sinh ra nhãn. Phương án
+  bị loại: để lớp xuất tệp tự gắn nhãn theo `loai === 'tat-canh'` — lúc ấy nhãn
+  và `z` là hai đường độc lập, và AC-38.5 chỉ còn là một **lời hứa**.
+
+  `'danh_dau'` là một giá trị của `trang_thai` **trong tệp xuất**, KHÔNG phải một
+  `LoaiHanhDong` mới. `tasks.md` T721 đã chứng minh bằng `tsc` rằng thêm nó vào
+  `LoaiHanhDong` thì **không lưới nào bắt được**: `phaBong.ts` xử lý `LoaiDoan` ở
+  hai chỗ **không vét cạn**, nên một giá trị mới **rơi im lặng**. Enum đóng 14
+  giá trị của `trang_thai` là của **T740**; khai nó ở đây là dựng nguồn thứ hai.
+*/
+
+/** Sàn và trần dải đánh đầu, mét — hai con số của AC-38.5. */
+export const Z_DANH_DAU_THAP = 1.5
+export const Z_DANH_DAU_CAO = 2.8
+
+/**
+ * Độ cao mà quả tạt **nhắm** tới lúc rơi, mét — giữa dải đánh đầu.
+ *
+ * Giữa dải chứ không sát mép: nó để lại **0,65 m** lề mỗi phía, nên không một
+ * sai số float nào đẩy được một quả tạt ra ngoài dải mà AC-38.5 canh.
+ */
+export const Z_TAT_CANH_NHAM = (Z_DANH_DAU_THAP + Z_DANH_DAU_CAO) / 2
+
+/**
+ * Độ cao quả bóng lúc **tới đích** — nguyên văn chữ ký contract của `plan.md`.
+ *
+ * `z(T) = v0·tan(góc)·T − g·T²/2` với `T = d / v0`. Thay `v0·T = d` vào:
+ * `z = d·tan(góc) − g·d²/(2·v0²)`.
+ */
+export function zTaiNoiToi(
+  quangMet: number,
+  tocDoNgang: number,
+  gocPhat: number,
+): number {
+  const T = thoiGianBay(quangMet, tocDoNgang)
+  return quangMet * Math.tan((gocPhat * Math.PI) / 180) - (G_TRONG_TRUONG * T * T) / 2
+}
+
+/**
+ * Góc phát, độ, **giải** để quả tạt rơi đúng `Z_TAT_CANH_NHAM`.
+ *
+ * Đảo chính công thức trên: `tan(góc) = (zNhắm + g·T²/2) / d`. Giải được bằng
+ * **một dòng đại số** chứ không phải dò bằng vòng lặp — và đó là lý do T720
+ * chọn công thức đóng thay vì tích phân từng bước.
+ */
+export function gocPhatTatCanh(quangMet: number, tocDoNgang: number): number {
+  if (quangMet <= 0) return 0
+  const T = thoiGianBay(quangMet, tocDoNgang)
+  const tan = (Z_TAT_CANH_NHAM + (G_TRONG_TRUONG * T * T) / 2) / quangMet
+  return (Math.atan(tan) * 180) / Math.PI
+}
+
+/**
+ * `z` có nằm trong dải đánh đầu của AC-38.5 không — **cả hai mép**.
+ *
+ * Bóc thành một vị từ có tên thay vì viết `&&` trong thân `zKhiToi`, vì nhánh
+ * `false` của nó **không tới được** từ `zKhiToi`: quả tạt luôn được chọn góc để
+ * rơi đúng `Z_TAT_CANH_NHAM`, tức luôn trong dải. Có tên thì phép kiểm gọi được
+ * **cả hai nhánh** trực tiếp, nên nó không phải mã chết mà là một **cái chốt**:
+ * đổi `Z_TAT_CANH_NHAM` ra ngoài dải thì nhãn `'danh_dau'` **tắt**, chứ không
+ * đi kèm một độ cao sai.
+ */
+export function laTamDanhDau(z: number): boolean {
+  return z >= Z_DANH_DAU_THAP && z <= Z_DANH_DAU_CAO
+}
+
+/** Độ cao lúc tới, kèm nhãn `trang_thai` mà chính độ cao ấy sinh ra. */
+export interface DoCaoKhiToi {
+  readonly z: number
+  /** `'danh_dau'` **chỉ khi** `z` nằm trong dải của AC-38.5; ngoài ra là `null`. */
+  readonly trangThai: 'danh_dau' | null
+}
+
+/**
+ * Độ cao quả bóng lúc tới chân (hoặc đầu) người nhận, theo **loại hành động**.
+ *
+ * `tat-canh` được **chọn góc** để rơi giữa dải đánh đầu; ba loại còn lại đi sệt
+ * nên `z ≡ 0` — đúng điều AC-38.5 đòi cho `chuyen` và `re-bong`, và đúng phép
+ * đo của D129 cho `sut` (một cú sút nâng lên khỏi mặt sân là **ngoài** spec 007).
+ */
+export function zKhiToi(quangMet: number, loai: LoaiHanhDong): DoCaoKhiToi {
+  if (loai !== 'tat-canh') return { z: 0, trangThai: null }
+
+  const v = tocDoDuongBong(quangMet, loai)
+  const z = zTaiNoiToi(quangMet, v, gocPhatTatCanh(quangMet, v))
+  // Nhãn sinh TỪ phép kiểm dải, nên nó không thể nói sai về `z`.
+  return { z, trangThai: laTamDanhDau(z) ? 'danh_dau' : null }
+}

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type { LoaiHanhDong } from '../chuoiBong'
 import { DAI_SAN, RONG_SAN } from '../hinhHocSan'
 import { TRAN_TOC_DO_TUYET_DOI } from './coHoc'
+import { NGUONG_Z_GIO } from './dieuKien'
 import {
   bongTaiThoiDiem,
   G_TRONG_TRUONG,
@@ -16,6 +17,13 @@ import {
   TOC_DO_CHUYEN_NGAN_CAO,
   TOC_DO_CHUYEN_NGAN_THAP,
   tocDoDuongBong,
+  gocPhatTatCanh,
+  laTamDanhDau,
+  zKhiToi,
+  zTaiNoiToi,
+  Z_DANH_DAU_CAO,
+  Z_DANH_DAU_THAP,
+  Z_TAT_CANH_NHAM,
 } from './vatLyBong'
 
 /*
@@ -360,5 +368,187 @@ describe('vatLyBong.ts KHÔNG rút một lần nào (T720, AC-45.7)', () => {
     expect(chiCode('/* nhắc rng trong chú thích */\nconst x = 1')).not.toContain(
       'rng',
     )
+  })
+})
+
+/*
+  ====================================================================
+  QUẢ TẠT RƠI ĐÚNG TẦM ĐÁNH ĐẦU (T721, AC-38.5).
+  ====================================================================
+
+  ⚠️ **Phép kiểm xương sống của khối này là phép ĐỐI CHIẾU HAI ĐƯỜNG.** `zKhiToi`
+  giải độ cao bằng **đại số**, còn `phatBong` + `bongTaiThoiDiem` dựng nó bằng
+  **quỹ đạo**. Hai đường ấy độc lập nhau, nên nếu đại số sai một dấu thì chúng
+  lệch — còn một phép kiểm "z có trong dải không" đứng một mình thì vẫn xanh với
+  một hàm chỉ việc `return 2.15`.
+*/
+const CAC_QUANG_TAT = Array.from({ length: 60 }, (_, i) => i + 1)
+
+describe('zKhiToi — quả tạt rơi trong dải đánh đầu (T721, AC-38.5)', () => {
+  it('mọi quãng tạt 1–60 m đều rơi TRONG dải, và phát nhãn đánh đầu', () => {
+    let soBo = 0
+    for (const quang of CAC_QUANG_TAT) {
+      const r = zKhiToi(quang, 'tat-canh')
+      expect(r.z, `${quang} m`).toBeGreaterThanOrEqual(Z_DANH_DAU_THAP)
+      expect(r.z, `${quang} m`).toBeLessThanOrEqual(Z_DANH_DAU_CAO)
+      expect(r.trangThai, `${quang} m`).toBe('danh_dau')
+      soBo += 1
+    }
+    // ⚠️ CHỐNG RỖNG.
+    expect(soBo, 'số quãng đã thử').toBe(60)
+  })
+
+  it('và rơi đúng GIỮA dải, nên lề mỗi phía là 0,65 m', () => {
+    for (const quang of CAC_QUANG_TAT) {
+      expect(zKhiToi(quang, 'tat-canh').z, `${quang} m`).toBeCloseTo(
+        Z_TAT_CANH_NHAM,
+        9,
+      )
+    }
+    expect(Z_TAT_CANH_NHAM - Z_DANH_DAU_THAP).toBeCloseTo(0.65, 10)
+    expect(Z_DANH_DAU_CAO - Z_TAT_CANH_NHAM).toBeCloseTo(0.65, 10)
+  })
+
+  /*
+    ⚠️⚠️ XƯƠNG SỐNG. Đại số của `zKhiToi` và quỹ đạo của T720 phải nói **cùng
+    một con số**. Đây là phép kiểm duy nhất bắt được một dấu sai trong phép giải
+    góc phát: một hàm `return 2.15` vẫn xanh mọi phép kiểm khác của khối này.
+  */
+  it('ĐỐI CHIẾU: đại số và quỹ đạo ra cùng một độ cao', () => {
+    let soBo = 0
+    let lechLonNhat = 0
+    for (const quang of CAC_QUANG_TAT) {
+      const tu = { x: 10, y: 20 }
+      const den = { x: 10 + quang, y: 20 }
+      const v = tocDoDuongBong(quang, 'tat-canh')
+      const goc = gocPhatTatCanh(quang, v)
+      const theoQuyDao = bongTaiThoiDiem(
+        phatBong(tu, den, 'tat-canh', goc),
+        thoiGianBay(quang, v),
+      ).z
+      lechLonNhat = Math.max(
+        lechLonNhat,
+        Math.abs(theoQuyDao - zKhiToi(quang, 'tat-canh').z),
+      )
+      soBo += 1
+    }
+    expect(lechLonNhat, 'lệch giữa hai đường, mét').toBeLessThan(1e-9)
+    expect(soBo, 'số quãng đã đối chiếu').toBe(60)
+  })
+
+  /*
+    `chuyen` và `re-bong` có `z ≡ 0` — chữ của AC-38.5. `sut` cũng sệt, vì D129
+    **đo** rồi mới chốt: `tat-canh` là hành động duy nhất có z vượt 1,5 m
+    (3.138/37.202 bước không-sút = 8,4%).
+  */
+  it('chuyen, re-bong và sut đều SỆT: z ≡ 0, không nhãn đánh đầu', () => {
+    for (const loai of ['chuyen', 're-bong', 'sut'] as const) {
+      for (const quang of [1, 10, 24.9, 25, 40, 60]) {
+        const r = zKhiToi(quang, loai)
+        expect(r.z, `${loai} ${quang} m`).toBe(0)
+        expect(r.trangThai, `${loai} ${quang} m`).toBe(null)
+      }
+    }
+  })
+
+  /*
+    Vị từ dải gọi được **cả hai nhánh**, nên nhánh `false` không phải mã chết mà
+    là một cái chốt: nếu `Z_TAT_CANH_NHAM` bị đổi ra ngoài dải thì nhãn
+    `'danh_dau'` **tắt** chứ không đi kèm một độ cao sai.
+  */
+  it('vị từ dải đóng ở CẢ HAI mép, và ngoài dải thì nói không', () => {
+    expect(laTamDanhDau(Z_DANH_DAU_THAP)).toBe(true)
+    expect(laTamDanhDau(Z_DANH_DAU_CAO)).toBe(true)
+    expect(laTamDanhDau(Z_TAT_CANH_NHAM)).toBe(true)
+    expect(laTamDanhDau(Z_DANH_DAU_THAP - 1e-9)).toBe(false)
+    expect(laTamDanhDau(Z_DANH_DAU_CAO + 1e-9)).toBe(false)
+    expect(laTamDanhDau(0)).toBe(false)
+    expect(laTamDanhDau(10)).toBe(false)
+  })
+
+  /*
+    Hai con số 1,5 m sống ở hai file (`Z_DANH_DAU_THAP` ở đây,  `NGUONG_Z_GIO` ở
+    `dieuKien.ts`) vì để chung thì hai module nhập vòng nhau — T723 sẽ nhập
+    `MA_SAT_LAN_SET` từ `dieuKien.ts`. Phép kiểm này là thứ giữ hai bản sao khớp
+    nhau: "bóng bổng" phải có **một** định nghĩa.
+  */
+  it('sàn dải đánh đầu BẰNG ngưỡng độ cao của gió', () => {
+    expect(Z_DANH_DAU_THAP).toBe(NGUONG_Z_GIO)
+  })
+
+  /*
+    ⚠️ **Góc phát KHÔNG đơn điệu trên toàn dải, và tôi nêu cả hai chỗ nó tăng
+    kèm con số — đo trên bước 0,25 m.**
+
+      1. **[25; 26,25] m — tăng tổng 0,0019°.** Hai dải tốc độ có **độ dốc khác
+         nhau** (dải ngắn lên 8/25 = 0,32 m/s mỗi mét, dải dài lên 10/35 =
+         0,286), nên ngay sau chỗ chia, tốc độ lớn chậm hơn quãng và quả tạt
+         phải nâng lên **một phần nghìn độ**. Mắt không thấy nổi con số ấy.
+      2. **Sau 60 m — tăng 0,061° mỗi 0,25 m.** Đây **không** phải lỗi mà là
+         vật lý: `QUANG_CHUYEN_DAI_NHAT` là chỗ tốc độ **chạm trần** 30 m/s, nên
+         xa hơn nữa thì không đánh mạnh hơn được và chỉ còn cách **nâng cao
+         hơn**. Một quả bóng 90 m **phải** bổng hơn một quả 60 m.
+
+    Một phép kiểm "giảm trên toàn dải" vì thế sẽ là một khẳng định **sai**. Ba
+    phép kiểm dưới đây nói đúng thứ đúng: giảm nghiêm ngặt ở hai đoạn thật sự
+    giảm, chỗ chia lệch dưới một phần trăm độ, và quá trần thì tăng.
+  */
+  it('quả tạt càng dài càng PHẲNG trên dải ngắn, và trên dải dài sau 27 m', () => {
+    for (const dai of [
+      CAC_QUANG_TAT.filter((q) => q < NGUONG_CHUYEN_DAI),
+      CAC_QUANG_TAT.filter((q) => q >= 27),
+    ]) {
+      let truoc = Infinity
+      for (const quang of dai) {
+        const goc = gocPhatTatCanh(quang, tocDoDuongBong(quang, 'tat-canh'))
+        expect(goc, `${quang} m`).toBeLessThan(truoc)
+        expect(goc, `${quang} m`).toBeGreaterThan(0)
+        truoc = goc
+      }
+      expect(dai.length, 'đoạn phải có mẫu').toBeGreaterThan(20)
+    }
+  })
+
+  it('chỗ chia hai dải lệch dưới một phần trăm độ, không phải một bước nhảy', () => {
+    const goc = (q: number) => gocPhatTatCanh(q, tocDoDuongBong(q, 'tat-canh'))
+    let tangTongQuaChoChia = 0
+    for (let q = NGUONG_CHUYEN_DAI; q < 27; q += 0.25) {
+      tangTongQuaChoChia += Math.max(0, goc(q + 0.25) - goc(q))
+    }
+    expect(tangTongQuaChoChia, 'tăng tổng qua chỗ chia, độ').toBeLessThan(0.01)
+    // Và nhìn từ xa thì quả tạt dài VẪN phẳng hơn quả tạt ngắn, rất nhiều.
+    expect(goc(60)).toBeLessThan(goc(1) - 40)
+  })
+
+  /*
+    Quá quãng đánh hết lực thì tốc độ chạm trần, nên quả bóng chỉ còn cách nâng
+    cao hơn. Phép kiểm này canh đúng điều đó — và nó là **ca ngược** của phép
+    kiểm trên: nếu một ngày ai bỏ trần tốc độ thì nó đỏ.
+  */
+  it('quá quãng đánh hết lực thì góc phát TĂNG lại, vì tốc độ chạm trần', () => {
+    const goc = (q: number) => gocPhatTatCanh(q, tocDoDuongBong(q, 'tat-canh'))
+    expect(goc(QUANG_CHUYEN_DAI_NHAT + 10)).toBeGreaterThan(
+      goc(QUANG_CHUYEN_DAI_NHAT),
+    )
+    expect(
+      tocDoDuongBong(QUANG_CHUYEN_DAI_NHAT + 10, 'tat-canh'),
+    ).toBeCloseTo(tocDoDuongBong(QUANG_CHUYEN_DAI_NHAT, 'tat-canh'), 10)
+  })
+
+  it('zTaiNoiToi giữ ĐÚNG chữ ký contract, và góc 0 cho z âm', () => {
+    // Góc 0 nghĩa là không nâng lên: trọng lực kéo nó xuống dưới mặt sân.
+    expect(zTaiNoiToi(20, 18, 0)).toBeLessThan(0)
+    // Và góc đã giải thì ra đúng chỗ nhắm.
+    expect(zTaiNoiToi(20, 18, gocPhatTatCanh(20, 18))).toBeCloseTo(
+      Z_TAT_CANH_NHAM,
+      9,
+    )
+  })
+
+  it('quãng 0 không sinh NaN và không phát nhãn', () => {
+    expect(gocPhatTatCanh(0, 20)).toBe(0)
+    const r = zKhiToi(0, 'tat-canh')
+    expect(Number.isNaN(r.z)).toBe(false)
+    expect(r.trangThai).toBe(null)
   })
 })
