@@ -143,12 +143,21 @@ export const GOC_BAT_DAU_GIAM = 45
  */
 export const HE_SO_SAU_QUAY = 0.57
 
-/** Một người trên sân: chỗ đứng và vận tốc, tất cả bằng mét và m/s. */
+/** Một người trên sân: chỗ đứng, vận tốc và **hướng mặt**. */
 export interface TrangThaiCoHoc {
   readonly x: number
   readonly y: number
   readonly vx: number
   readonly vy: number
+  /**
+   * Hướng mặt, **độ, trong [0; 360)** — AC-38.11.
+   *
+   * Đây là một trường của trạng thái chứ không phải thứ suy ra từ vận tốc,
+   * vì người ta **chạy lùi và chạy ngang được**: lúc ấy hướng mặt và hướng
+   * đi là hai thứ khác nhau, và chính khoảng lệch giữa chúng là thứ quyết
+   * định trần tốc độ của AC-38.4.
+   */
+  readonly huong: number
 }
 
 /** Một điểm đích bằng mét. */
@@ -257,7 +266,24 @@ export function buocCoHoc(
   const dx = dich.x - truoc.x
   const dy = dich.y - truoc.y
   const quang = Math.hypot(dx, dy)
-  const vMuon = quang === 0 ? 0 : tocDoMongMuon(quang, tran, dt)
+  const vThoBan = quang === 0 ? 0 : tocDoMongMuon(quang, tran, dt)
+  /*
+    Trần theo HƯỚNG MẶT nằm ở đây, trong Ý ĐỊNH — không phải ở cuối (T712).
+
+    Đặt nó sau phép kẹp gia tốc thì một người đang chạy 9 m/s mà bị phân loại là
+    chạy lùi sẽ bị cắt thẳng về 4 m/s trong một bước, tức giảm tốc **8,95 m/s²**
+    — vỡ AC-38.2, và phép kiểm 1.000 bộ đã bắt đúng con số ấy. Đặt ở ý định thì
+    phép kẹp gia tốc quyết người ta tiến về trần ấy NHANH tới đâu, nên hai AC
+    không còn đánh nhau.
+  */
+  const huongThu =
+    quang === 0
+      ? { x: 0, y: 0 }
+      : { x: (dx / quang) * vThoBan, y: (dy / quang) * vThoBan }
+  const vMuon = Math.min(
+    vThoBan,
+    tranTheoKieu(phanLoaiHuong(truoc.huong, huongThu.x, huongThu.y), tran),
+  )
   const muonX = quang === 0 ? 0 : (dx / quang) * vMuon
   const muonY = quang === 0 ? 0 : (dy / quang) * vMuon
 
@@ -301,7 +327,7 @@ export function buocCoHoc(
     }
   }
 
-  // 5. Trần tốc độ.
+  // 5. Trần tốc độ tuyệt đối. Trần theo hướng mặt đã áp ở bước 1.
   const doCuoi = Math.hypot(vx, vy)
   if (doCuoi > tran && doCuoi > 0) {
     vx = (vx / doCuoi) * tran
@@ -309,5 +335,118 @@ export function buocCoHoc(
   }
 
   // Tích phân Euler bằng vận tốc MỚI: (x' − x) / dt ≡ v'.
-  return { x: truoc.x + vx * dt, y: truoc.y + vy * dt, vx, vy }
+  return {
+    x: truoc.x + vx * dt,
+    y: truoc.y + vy * dt,
+    vx,
+    vy,
+    huong: huongNguoiMocSau(truoc.huong, vx, vy, dt),
+  }
+}
+
+/*
+  ====================================================================
+  TRẦN THEO HƯỚNG MẶT, VÀ HƯỚNG MẶT CÓ TRẦN QUAY (T712, AC-38.4 + AC-38.11).
+  ====================================================================
+
+  Hai AC này đi với nhau và **không tách ra được**: "chạy lùi" chỉ có nghĩa khi
+  có một hướng mặt để so, nên trần 4 m/s của AC-38.4 đứng trên hướng mặt mà
+  AC-38.11 đòi. Làm riêng một cái là làm nửa vời.
+*/
+
+/** Tốc độ tối đa khi **chạy lùi**, m/s — con số của AC-38.4. */
+export const TOC_DO_LUI_TOI_DA = 4
+
+/** Tốc độ tối đa khi **chạy ngang**, m/s — con số của AC-38.4. */
+export const TOC_DO_NGANG_TOI_DA = 5
+
+/**
+ * Ranh giới "chạy tới" / "chạy ngang", độ lệch giữa hướng đi và hướng mặt.
+ *
+ * 60 và 120 chia vòng tròn thành ba phần đều. Ranh giới này là **lựa chọn
+ * thiết kế**, không phải con số của AC: AC-38.4 nói trần của "lùi" và "ngang"
+ * mà không định nghĩa chúng bắt đầu từ góc nào. Phép kiểm vì thế phải dùng
+ * **chính** hàm phân loại này, nếu không nó đo một thứ khác với thứ engine kẹp.
+ */
+export const GOC_TIEN_TOI_DA = 60
+export const GOC_NGANG_TOI_DA = 120
+
+/**
+ * Trần tốc độ quay **của thân người**, độ mỗi giây.
+ *
+ * Khác hẳn `TOC_QUAY_NHANH` — cái ấy là trần quay của **vector vận tốc** ở băng
+ * nhanh. Thân người quay nhanh hơn quỹ đạo chạy nhiều, và chính khoảng chênh ấy
+ * sinh ra những mốc "chạy lùi" và "chạy ngang" thật: khi vận tốc đổi chiều gấp ở
+ * tốc độ thấp (băng chậm quay tự do), hướng mặt **không theo kịp**.
+ */
+export const GOC_QUAY_NGUOI = 120
+
+/**
+ * Dưới tốc độ này thì coi như đứng yên, và hướng mặt **giữ nguyên mốc trước**.
+ *
+ * ⚠️ Đây là chỗ chặn một **con số giả**. `atan2(0, 0)` trả về `0` trong
+ * JavaScript, nên nếu suy hướng thẳng từ vận tốc thì **mọi người đứng im đều
+ * nhìn về +x** — AC-38.11 vẫn "thoả" vì hướng nằm trong [0; 360), nhưng con số
+ * ấy không mang tin gì. Một hàng phòng ngự đứng yên sẽ quay mặt cùng một phía
+ * như trong ảnh chụp lỗi.
+ */
+export const NGUONG_DUNG_YEN = 0.1
+
+/** Đưa một góc về [0; 360). */
+export function chuanHoaGoc(goc: number): number {
+  const g = goc % 360
+  return g < 0 ? g + 360 : g
+}
+
+/** Ba kiểu di chuyển so với hướng mặt. */
+export type KieuDiChuyen = 'tien' | 'ngang' | 'lui'
+
+/**
+ * Người ấy đang chạy tới, chạy ngang hay chạy lùi, so với hướng mặt.
+ *
+ * Đứng yên thì coi như **chạy tới**: không có hướng đi để lệch, và trần của
+ * "tới" là trần rộng nhất nên nó không kẹp nhầm ai.
+ */
+export function phanLoaiHuong(
+  huongNguoi: number,
+  vx: number,
+  vy: number,
+): KieuDiChuyen {
+  if (Math.hypot(vx, vy) < NGUONG_DUNG_YEN) return 'tien'
+  const r = chuanHoaGoc(huongNguoi) / DO_MOI_RADIAN
+  const lech = gocGiua(Math.cos(r), Math.sin(r), vx, vy)
+  if (lech <= GOC_TIEN_TOI_DA) return 'tien'
+  if (lech <= GOC_NGANG_TOI_DA) return 'ngang'
+  return 'lui'
+}
+
+/** Trần tốc độ theo kiểu di chuyển (AC-38.4). */
+export function tranTheoKieu(kieu: KieuDiChuyen, tranCuaNguoi: number): number {
+  if (kieu === 'lui') return Math.min(tranCuaNguoi, TOC_DO_LUI_TOI_DA)
+  if (kieu === 'ngang') return Math.min(tranCuaNguoi, TOC_DO_NGANG_TOI_DA)
+  return tranCuaNguoi
+}
+
+/**
+ * Hướng mặt ở mốc sau: quay về phía đang đi, nhưng không quá trần quay.
+ *
+ * Đứng yên thì **giữ nguyên** hướng cũ — xem `NGUONG_DUNG_YEN` để biết vì sao
+ * đó không phải một phép lười mà là chỗ chặn một con số giả.
+ */
+export function huongNguoiMocSau(
+  huongCu: number,
+  vx: number,
+  vy: number,
+  dt: number,
+): number {
+  const cu = chuanHoaGoc(huongCu)
+  if (Math.hypot(vx, vy) < NGUONG_DUNG_YEN) return cu
+
+  const dich = chuanHoaGoc(Math.atan2(vy, vx) * DO_MOI_RADIAN)
+  // Chênh lệch ngắn nhất, trong (-180; 180].
+  let lech = ((dich - cu + 540) % 360) - 180
+  const toiDa = GOC_QUAY_NGUOI * dt
+  if (lech > toiDa) lech = toiDa
+  if (lech < -toiDa) lech = -toiDa
+  return chuanHoaGoc(cu + lech)
 }

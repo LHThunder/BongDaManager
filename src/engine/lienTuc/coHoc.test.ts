@@ -2,6 +2,13 @@ import { describe, expect, it } from 'vitest'
 import { taoRngTuHatGiong } from '../rng'
 import {
   buocCoHoc,
+  chuanHoaGoc,
+  GOC_QUAY_NGUOI,
+  huongNguoiMocSau,
+  NGUONG_DUNG_YEN,
+  phanLoaiHuong,
+  TOC_DO_LUI_TOI_DA,
+  TOC_DO_NGANG_TOI_DA,
   GIA_TOC_TOI_DA,
   GIAM_TOC_TOI_DA,
   gocGiua,
@@ -158,6 +165,8 @@ function cacBoDauVao() {
         y: rng.next() * 68,
         vx: Math.cos(huong) * toc,
         vy: Math.sin(huong) * toc,
+        // Hướng mặt RỜI khỏi hướng đi, để mẫu có cả chạy lùi và chạy ngang.
+        huong: rng.next() * 360,
       },
       dich: { x: rng.next() * 105, y: rng.next() * 68 },
       tran: TOC_DO_TOI_DA_THAP + rng.next() * (TOC_DO_TOI_DA_CAO - TOC_DO_TOI_DA_THAP),
@@ -210,7 +219,7 @@ describe('tích phân Euler: (x′ − x) / dt ≡ v′ (T711, D123)', () => {
 describe('hội tụ: 30 m tới đích trong ⌈30/9⌉ + 1 giây (T711)', () => {
   it('người nhanh nhất đi 30 m và DỪNG ở đích', () => {
     const GIAY_TOI_DA = Math.ceil(30 / TRAN_TOC_DO_TUYET_DOI) + 1
-    let tt: TrangThaiCoHoc = { x: 0, y: 0, vx: 0, vy: 0 }
+    let tt: TrangThaiCoHoc = { x: 0, y: 0, vx: 0, vy: 0, huong: 0 }
     const dich = { x: 30, y: 0 }
 
     let giay = 0
@@ -231,7 +240,7 @@ describe('hội tụ: 30 m tới đích trong ⌈30/9⌉ + 1 giây (T711)', () =
     động quanh nó mãi. Phép kiểm này bắt đúng chỗ ấy.
   */
   it('và KHÔNG vọt qua đích rồi dao động', () => {
-    let tt: TrangThaiCoHoc = { x: 0, y: 0, vx: 0, vy: 0 }
+    let tt: TrangThaiCoHoc = { x: 0, y: 0, vx: 0, vy: 0, huong: 0 }
     const dich = { x: 30, y: 0 }
     let vuotQua = 0
     for (let b = 0; b < 40; b += 1) {
@@ -247,7 +256,7 @@ describe('AC-38.3 — CẢ HAI vế, và cả hai đều có mẫu thật (T711)
   function chuoiBuocCoQuay() {
     const rng = taoRngTuHatGiong(0xbeef_4321)
     const ra: { truoc: TrangThaiCoHoc; sau: TrangThaiCoHoc; goc: number }[] = []
-    let tt: TrangThaiCoHoc = { x: 52.5, y: 34, vx: 0, vy: 0 }
+    let tt: TrangThaiCoHoc = { x: 52.5, y: 34, vx: 0, vy: 0, huong: 0 }
     for (let b = 0; b < 4000; b += 1) {
       // Đích nhảy lung tung chính là thứ ép người ta phải quay.
       const dich = { x: rng.next() * 105, y: rng.next() * 68 }
@@ -296,5 +305,137 @@ describe('AC-38.3 — CẢ HAI vế, và cả hai đều có mẫu thật (T711)
     expect(gocQuayToiDa(6.01, DT)).toBeCloseTo(30 * DT, 10)
     // Băng giữa dưới 90° THEO CẤU TRÚC — đó là thứ làm vế (i) đúng.
     expect(gocQuayToiDa(4.5, DT)).toBeLessThan(90)
+  })
+})
+
+/**
+ * Một quỹ đạo THẬT: xuất phát từ đứng yên, đích nhảy lung tung mỗi bước.
+ *
+ * Đích nhảy chính là thứ ép người ta vừa quay vừa chạy, nên quỹ đạo sinh ra đủ
+ * cả ba kiểu di chuyển — và mọi mốc trong đó đều là mốc engine dựng ra được.
+ */
+function chuoiQuyDao() {
+  const rng = taoRngTuHatGiong(0xc0de_7712)
+  const ra: { truoc: TrangThaiCoHoc; sau: TrangThaiCoHoc }[] = []
+  let tt: TrangThaiCoHoc = { x: 52.5, y: 34, vx: 0, vy: 0, huong: 0 }
+  for (let b = 0; b < 4000; b += 1) {
+    const dich = { x: rng.next() * 105, y: rng.next() * 68 }
+    const sau = buocCoHoc(tt, dich, TRAN_TOC_DO_TUYET_DOI, DT)
+    ra.push({ truoc: tt, sau })
+    tt = sau
+  }
+  return ra
+}
+
+describe('trần theo hướng mặt — AC-38.4 (T712)', () => {
+  /*
+    ⚠️ Đo trên QUỸ ĐẠO, không trên những cặp (vận tốc, hướng mặt) bốc ngẫu nhiên.
+
+    Một cặp như "đang chạy 9 m/s mà mặt quay ngược 180°" **engine không dựng ra
+    được**: trên 6 m/s vector vận tốc chỉ quay 15° mỗi bước, còn thân người quay
+    tới 60°, nên hướng mặt luôn đuổi kịp. Kẹp một trạng thái bất khả ấy về 4 m/s
+    trong một bước chính là thứ làm **AC-38.2 vỡ với giảm tốc 8,95 m/s²** — phép
+    kiểm 1.000 bộ đã bắt đúng con số đó. Nên AC-38.4 phải đo trên những mốc mà
+    engine thật sự đi qua.
+  */
+  it('chạy lùi ≤ 4 m/s và chạy ngang ≤ 5 m/s trên mọi mốc của quỹ đạo', () => {
+    let soLui = 0
+    let soNgang = 0
+    let soTien = 0
+    for (const { truoc, sau } of chuoiQuyDao()) {
+      const toc = Math.hypot(sau.vx, sau.vy)
+      /*
+        Phân loại bằng hướng mặt của mốc TRƯỚC — đúng thứ engine dùng để kẹp.
+        Dùng hướng mốc sau là đo một thứ khác với thứ engine đã làm.
+      */
+      const kieu = phanLoaiHuong(truoc.huong, sau.vx, sau.vy)
+      if (kieu === 'lui') {
+        soLui += 1
+        expect(toc, `chạy lùi`).toBeLessThanOrEqual(TOC_DO_LUI_TOI_DA + 1e-9)
+      } else if (kieu === 'ngang') {
+        soNgang += 1
+        expect(toc, `chạy ngang`).toBeLessThanOrEqual(TOC_DO_NGANG_TOI_DA + 1e-9)
+      } else {
+        soTien += 1
+      }
+    }
+    /*
+      ⚠️ CHỐNG RỖNG, và ở AC này nó quan trọng hơn bình thường: nếu hướng mặt
+      luôn bám sát hướng đi thì KHÔNG mốc nào bị phân loại là lùi hay ngang, và
+      cả hai trần của AC-38.4 xanh mà chưa bao giờ bị thử.
+    */
+    expect(soLui, 'số mốc chạy lùi trong mẫu').toBeGreaterThan(0)
+    expect(soNgang, 'số mốc chạy ngang trong mẫu').toBeGreaterThan(0)
+    expect(soTien, 'số mốc chạy tới trong mẫu').toBeGreaterThan(0)
+  })
+
+  it('phân loại đúng ba vùng góc', () => {
+    // Mặt nhìn về +x; vận tốc lệch dần.
+    expect(phanLoaiHuong(0, 1, 0)).toBe('tien')
+    expect(phanLoaiHuong(0, Math.cos(Math.PI / 4), Math.sin(Math.PI / 4))).toBe('tien')
+    expect(phanLoaiHuong(0, 0, 1)).toBe('ngang')
+    expect(phanLoaiHuong(0, 0, -1)).toBe('ngang')
+    expect(phanLoaiHuong(0, -1, 0)).toBe('lui')
+    // Đứng yên coi như chạy tới — trần rộng nhất, không kẹp nhầm ai.
+    expect(phanLoaiHuong(0, 0, 0)).toBe('tien')
+  })
+})
+
+describe('hướng mặt — AC-38.11 (T712)', () => {
+  it('hướng luôn nằm trong [0; 360) trên 1.000 bộ', () => {
+    for (const { truoc, dich, tran } of cacBoDauVao()) {
+      const sau = buocCoHoc(truoc, dich, tran, DT)
+      expect(sau.huong).toBeGreaterThanOrEqual(0)
+      expect(sau.huong).toBeLessThan(360)
+    }
+  })
+
+  it('quay về phía đang đi, nhưng không quá trần quay', () => {
+    const toiDa = GOC_QUAY_NGUOI * DT
+    for (const { truoc, dich, tran } of cacBoDauVao()) {
+      const sau = buocCoHoc(truoc, dich, tran, DT)
+      // Chênh lệch NGẮN NHẤT giữa hai hướng, trong [0; 180].
+      const lech = Math.abs(((sau.huong - truoc.huong + 540) % 360) - 180)
+      expect(lech).toBeLessThanOrEqual(toiDa + 1e-9)
+    }
+  })
+
+  /*
+    ⚠️ CA CHỐNG SỐ GIẢ, và đây là ca mà dòng "Xong khi" của T712 gọi tên.
+
+    `atan2(0, 0)` trả về `0` trong JavaScript. Nếu suy hướng thẳng từ vận tốc thì
+    **mọi người đứng im đều nhìn về +x**: AC-38.11 vẫn "thoả" vì 0 nằm trong
+    [0; 360), nhưng con số ấy không mang một tin nào. Một hàng phòng ngự đứng yên
+    sẽ quay mặt cùng một phía như trong ảnh chụp lỗi.
+  */
+  it('người đứng im GIỮ hướng cũ, KHÔNG mặc định nhìn về +x', () => {
+    const cacHuong = [0, 37, 90, 180, 270, 359.5]
+    const raSau: number[] = []
+    for (const huong of cacHuong) {
+      // Đích đúng chỗ đang đứng → không có lý do gì để di chuyển.
+      const truoc = { x: 20, y: 30, vx: 0, vy: 0, huong }
+      const sau = buocCoHoc(truoc, { x: 20, y: 30 }, 9, DT)
+      expect(Math.hypot(sau.vx, sau.vy)).toBeLessThan(NGUONG_DUNG_YEN)
+      expect(sau.huong, `giữ hướng ${huong}`).toBeCloseTo(huong, 10)
+      raSau.push(sau.huong)
+    }
+    // Và điều quan trọng nhất: KHÔNG phải ai cũng ra cùng một con số.
+    expect(new Set(raSau).size, 'số hướng khác nhau').toBe(cacHuong.length)
+    expect(raSau.every((h) => h === 0)).toBe(false)
+  })
+
+  it('và hàm hướng tự nó cũng giữ hướng cũ khi vận tốc dưới ngưỡng', () => {
+    expect(huongNguoiMocSau(137, 0, 0, DT)).toBe(137)
+    expect(huongNguoiMocSau(137, 0.01, 0.01, DT)).toBe(137)
+    // Trên ngưỡng thì nó quay thật.
+    expect(huongNguoiMocSau(0, 0, 5, DT)).toBeGreaterThan(0)
+  })
+
+  it('chuanHoaGoc đưa mọi góc về [0; 360)', () => {
+    expect(chuanHoaGoc(0)).toBe(0)
+    expect(chuanHoaGoc(360)).toBe(0)
+    expect(chuanHoaGoc(-90)).toBe(270)
+    expect(chuanHoaGoc(725)).toBe(5)
+    expect(chuanHoaGoc(-725)).toBe(355)
   })
 })

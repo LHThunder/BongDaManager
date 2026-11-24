@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **30 AC**) |
 | **Plan** | `./plan.md` (Status `Approved`, D117–D134, R51–R64) |
-| **Tiến độ** | 15/48 |
+| **Tiến độ** | 16/48 |
 | **Nền đo** | commit `5c652eb`, engine v6, **1.304 test xanh / 63 file test** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -617,12 +617,37 @@ chưa có trần tốc độ, chưa có đường cong. **Phải nói trước �
     file trong `lienTuc/` **nhắc tên** `chayChuoiBong`, `xacSuatTrungDich`, `xacSuatBiCuu`,
     `xacSuatCoHoiRoRang`, `nguoiTaiVung` — **kể cả trong chú thích**, vì nó quét source thô.
 
-- [ ] **T712** — Trần theo hướng mặt + `huongNguoi` có trần quay
+- [x] **T712** — Trần theo hướng mặt + `huongNguoi` có trần quay
   - File: `src/engine/lienTuc/coHoc.ts`, `src/engine/lienTuc/coHoc.test.ts`
   - Xong khi: chạy lùi `≤ 4` m/s và chạy ngang `≤ 5` m/s trên mọi bộ; `huong ∈ [0, 360)` ở mọi
     mốc; và **một ca chống số giả**: người đứng im **không** được mặc định nhìn về `+x`
     (`atan2(0,0) = 0` làm AC-38.11 thoả bằng một con số giả).
   - AC: AC-38.4, AC-38.11
+  - 🐞 **Trần theo hướng mặt đặt sai chỗ làm vỡ AC-38.2, và phép kiểm bắt được bằng số.**
+    Bản đầu áp trần lùi/ngang ở **cuối** `buocCoHoc`, sau phép kẹp gia tốc. Hệ quả: một người
+    đang chạy 9 m/s mà bị phân loại là chạy lùi bị cắt thẳng về 4 m/s trong một bước — giảm
+    tốc **8,947 m/s²**, vượt trần 8 của AC-38.2. Chữa: đưa trần ấy vào **Ý ĐỊNH** (bước 1),
+    để phép kẹp gia tốc quyết người ta tiến về trần nhanh tới đâu. Hai AC hết đánh nhau.
+  - ⚠️ **Và phép kiểm AC-38.4 phải đo trên QUỸ ĐẠO, không trên cặp (vận tốc, hướng mặt) bốc
+    ngẫu nhiên.** Một cặp như "đang chạy 9 m/s mà mặt quay ngược 180°" engine **không dựng ra
+    được**: trên 6 m/s vector vận tốc chỉ quay 15° mỗi bước (`TOC_QUAY_NHANH`), còn thân người
+    quay tới 60° (`GOC_QUAY_NGUOI`), nên hướng mặt luôn đuổi kịp. Đo trên trạng thái bất khả
+    là đòi engine tuân một luật ở nơi nó không bao giờ tới.
+  - ✅ **`GOC_QUAY_NGUOI` phải NHANH HƠN trần quay của vector vận tốc**, và chính khoảng chênh
+    ấy sinh ra mẫu thật cho AC-38.4. Thân người quay 120°/giây trong khi quỹ đạo ở băng nhanh
+    chỉ quay 30°/giây; khi vận tốc đổi chiều gấp ở tốc độ thấp (băng chậm **tự do**), hướng mặt
+    không theo kịp và mốc ấy thành "chạy lùi" thật.
+  - 📏 **Ba trần đều bị CHẠM ĐÚNG trên 4.000 mốc quỹ đạo** — không trần nào xanh vì chưa bao
+    giờ bị thử: tiến **2.602** mốc, tốc độ lớn nhất **9,0000** m/s; ngang **819** mốc, lớn nhất
+    **5,0000**; lùi **579** mốc, lớn nhất **4,0000**.
+  - ✅ **Ca chống số giả của AC-38.11, đúng cái dòng "Xong khi" gọi tên.** `atan2(0, 0)` trả `0`
+    trong JavaScript, nên suy hướng thẳng từ vận tốc sẽ cho **mọi người đứng im nhìn về +x** —
+    AC-38.11 "thoả" vì 0 nằm trong [0; 360), nhưng đó là một con số rỗng, và cả hàng phòng ngự
+    đứng yên sẽ quay mặt cùng một phía. `huongNguoiMocSau` **giữ hướng mốc trước** khi tốc độ
+    dưới `NGUONG_DUNG_YEN`, và phép kiểm đòi sáu người đứng im ra **sáu hướng khác nhau**.
+  - 📏 Toàn bộ: **73 file / 1475 phép kiểm xanh**; `src/ui/san2D.test.ts` và ba file tuyên 0
+    dòng sửa đều **0 dòng**. `TrangThaiCoHoc` nhận thêm trường `huong`, và `tsc` tự chỉ ra cả
+    bốn chỗ khởi tạo phải sửa — kiểu làm việc kiểm lỗi thay người.
   - Phụ thuộc: T711
 
 - [ ] **T713** — `tranhNguoi` + `tachChen`, bán kính tránh **2,0 m** (trả AC-34.2 của spec 006)
