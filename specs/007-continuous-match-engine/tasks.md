@@ -1614,7 +1614,7 @@ trận, bằng ngôn ngữ đang chọn — và đó là thứ **duy nhất** m�
     kết quả là một trong hai mốc, không phải điểm giữa ấy.
   - ✅ **Hai phép đột biến, hai lần đỏ**: cho giảm chuyển động rơi về đường cổ điển → 3 đỏ;
     cho đường liên tục lệch nửa mét khỏi mốc → 5 đỏ.
-  - 📏 **80 file / 1.633 phép kiểm xanh** (thêm 4).
+  - 📏 **80 file / 1.632 phép kiểm xanh** (thêm 3).
 
 - [ ] **T738** [P] — Phép kiểm **phủ định** của **AC-45.10**: không có tua ngược
   - File: tạo `src/engine/lienTuc/tuaToi.test.ts`
