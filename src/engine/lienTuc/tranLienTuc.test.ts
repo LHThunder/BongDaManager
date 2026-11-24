@@ -11,10 +11,19 @@ import {
 import { hatGiongDong, RUT_MOI_MOC } from './hatGiong'
 import { docMoc } from './loMoc'
 import { BUOC_MOI_CHUOI } from './dienPha'
-import { trongSan } from '../hinhHocSan'
-import { TRAN_TOC_DO_TUYET_DOI } from './coHoc'
+import { RONG_SAN, trongSan } from '../hinhHocSan'
+import {
+  GIA_TOC_TOI_DA,
+  KHOANG_TRONG_TAI,
+  LE_DO_TRE_TRONG_TAI,
+  LE_DUONG_BIEN_TRO_LY,
+  TRAN_TOC_DO_TUYET_DOI,
+} from './coHoc'
 import {
   BUOC_MOI_PHUT,
+  CHI_SO_BONG,
+  CHI_SO_TRO_LY_1,
+  CHI_SO_TRO_LY_2,
   CHI_SO_TRONG_TAI,
   MOC_MOI_PHUT,
   SO_THUC_THE,
@@ -437,4 +446,159 @@ describe('lô mốc mang toạ độ thật (T725)', () => {
       expect(tocMax, 'phải có người thật sự chạy').toBeGreaterThan(5)
     },
   )
+})
+
+/*
+  ====================================================================
+  AC-38.10 TRÊN MỘT TRẬN THẬT — mệnh đề (d), (c) và "không teleport" (T716).
+  ====================================================================
+
+  Ba mệnh đề đầu của AC-38.10 là tính chất của một hàm thuần và được canh ở
+  `coHoc.test.ts`. Khối này canh những thứ **chỉ thấy được khi trận chạy**:
+
+    - **(d)** khoảng cách thật trọng tài–bóng lệch khỏi 25 m không quá 20 m;
+    - **(c)** độ trễ của hai trợ lý so với hậu vệ cuối cùng, nêu bằng số;
+    - ba điểm ấy **không teleport** — gia tốc trong trần của AC-38.2.
+
+  ⚠️ **20 mã, không 10.** `tasks.md` của T716 đòi "trên 20 mã"; `MA_TRAN_CO_DINH`
+  chỉ có 10, nên 10 mã còn lại là **mã đảo ngược** của chúng — vẫn 10 ký tự
+  cùng bộ chữ, và quan trọng hơn: **vẫn tất định**.
+
+  ⚠️ **Δt giữa hai mốc ĐÃ GHI là 1 giây**, không phải 0,5 — `laMocThuong` chỉ
+  ghi 60 trong 120 bước tích phân mỗi phút. Chia cho 0,5 là đọc ra gia tốc gấp
+  đôi sự thật, đúng chỗ T725 suýt báo sai.
+*/
+const HAI_MUOI_MA: readonly string[] = [
+  ...MA_TRAN_CO_DINH,
+  ...MA_TRAN_CO_DINH.map((ma) => [...ma].reverse().join('')),
+]
+
+/** Sai số của mệnh đề (c), nêu bằng số — đo được 13,31 m, nêu 14 m. */
+const LECH_TRO_LY_TOI_DA = 14
+
+describe('AC-38.10 trên trận thật — ba điểm trọng tài (T716)', () => {
+  const DT_GIUA_HAI_MOC = 1
+
+  it('20 mã: (d) ≤ 20 m, (c) ≤ 14 m, và ba điểm không teleport', () => {
+    let soMoc = 0
+    let doTreLonNhat = 0
+    let lechTroLyLonNhat = 0
+    let giaTocLonNhat = 0
+    let soMocCoBongXa = 0
+
+    for (const ma of HAI_MUOI_MA) {
+      let lt = taoTranLienTuc({ ...cauHinhMau(ma), cheDoMoPhong: 'lien-tuc' })
+      const vanTocTruoc = new Map<number, { vx: number; vy: number }>()
+
+      for (let p = 0; p < tongPhutTran(lt.tran) + 2 && !lt.tran.ketThuc; p += 1) {
+        const phut = buocPhutLienTuc(lt)
+        for (let m = 0; m < MOC_MOI_PHUT; m += 1) {
+          const moc = docMoc(phut.lo, m)
+          if (!moc) continue
+          soMoc += 1
+
+          const bong = moc.cacThucThe[CHI_SO_BONG]!
+          const trongTai = moc.cacThucThe[CHI_SO_TRONG_TAI]!
+          const d = Math.hypot(trongTai.x - bong.x, trongTai.y - bong.y)
+          doTreLonNhat = Math.max(doTreLonNhat, Math.abs(d - KHOANG_TRONG_TAI))
+          if (d > KHOANG_TRONG_TAI) soMocCoBongXa += 1
+
+          /*
+            Hậu vệ **thứ hai** từ dưới lên, vì người sâu nhất là thủ môn — đúng
+            đường việt vị của bóng đá thật, và đúng thứ `hangThuCuoiCua` lấy.
+          */
+          const xNha = moc.cacThucThe
+            .slice(0, 11)
+            .map((t) => t.x)
+            .sort((a, b) => a - b)
+          const xKhach = moc.cacThucThe
+            .slice(11, 22)
+            .map((t) => t.x)
+            .sort((a, b) => b - a)
+          lechTroLyLonNhat = Math.max(
+            lechTroLyLonNhat,
+            Math.abs(moc.cacThucThe[CHI_SO_TRO_LY_1]!.x - (xNha[1] ?? 0)),
+            Math.abs(moc.cacThucThe[CHI_SO_TRO_LY_2]!.x - (xKhach[1] ?? 0)),
+          )
+
+          for (const o of [CHI_SO_TRONG_TAI, CHI_SO_TRO_LY_1, CHI_SO_TRO_LY_2]) {
+            const t = moc.cacThucThe[o]!
+            const truoc = vanTocTruoc.get(o)
+            if (truoc) {
+              giaTocLonNhat = Math.max(
+                giaTocLonNhat,
+                Math.hypot(t.vx - truoc.vx, t.vy - truoc.vy) / DT_GIUA_HAI_MOC,
+              )
+            }
+            vanTocTruoc.set(o, { vx: t.vx, vy: t.vy })
+          }
+        }
+        lt = phut.tt
+      }
+    }
+
+    // (d) — con số người dùng chốt ngày 2026-11-24.
+    expect(doTreLonNhat, 'độ trễ lớn nhất, mét').toBeLessThanOrEqual(
+      LE_DO_TRE_TRONG_TAI,
+    )
+    // (c) — sai số nêu bằng số.
+    expect(lechTroLyLonNhat, 'trợ lý lệch lớn nhất, mét').toBeLessThanOrEqual(
+      LECH_TRO_LY_TOI_DA,
+    )
+    /*
+      Không teleport. Trần lấy **gia tốc tăng tốc** của chính lớp cơ học chứ
+      không gõ 6 tay: ba điểm trọng tài đi qua CHÍNH `buocCoHoc`, nên trần của
+      chúng là trần của mọi người.
+    */
+    expect(giaTocLonNhat, 'gia tốc lớn nhất, m/s²').toBeLessThanOrEqual(
+      GIA_TOC_TOI_DA + 1e-6,
+    )
+
+    /*
+      ⚠️ CHỐNG RỖNG, ba lớp. Không có chúng thì cả ba khẳng định trên xanh trên
+      một lô trống, đúng trạng thái trước T716 khi ba ô này mang (0, 0).
+    */
+    expect(soMoc, 'số mốc đã đọc').toBeGreaterThan(100_000)
+    expect(doTreLonNhat, 'phải có độ trễ THẬT, không đứng yên').toBeGreaterThan(1)
+    expect(soMocCoBongXa, 'số mốc trọng tài ở xa hơn 25 m').toBeGreaterThan(
+      10_000,
+    )
+  })
+
+  /*
+    Hai trợ lý chạy trên hai đường biên dọc, lùi vào trong `LE_DUONG_BIEN_TRO_LY`
+    mét. Lùi vào chứ không đứng đúng trên biên: `buocCoHoc` xoay vector vận tốc
+    ở cổng quay mà giữ nguyên độ lớn, nên một trợ lý đổi chiều sẽ có thành phần
+    vận tốc vuông góc với biên trong vài bước — và nó mang ô ấy **ra ngoài sân**,
+    đo được 292 mốc như thế trước khi có lề này.
+  */
+  it('và hai trợ lý ở lại trên hai đường biên dọc của mình', () => {
+    let soMoc = 0
+    let lechBienLonNhat = 0
+    for (const ma of MA_TRAN_CO_DINH.slice(0, 3)) {
+      let lt = taoTranLienTuc({ ...cauHinhMau(ma), cheDoMoPhong: 'lien-tuc' })
+      for (let p = 0; p < 95 && !lt.tran.ketThuc; p += 1) {
+        const phut = buocPhutLienTuc(lt)
+        for (let m = 0; m < MOC_MOI_PHUT; m += 1) {
+          const moc = docMoc(phut.lo, m)
+          if (!moc) continue
+          soMoc += 1
+          const ar1 = moc.cacThucThe[CHI_SO_TRO_LY_1]!
+          const ar2 = moc.cacThucThe[CHI_SO_TRO_LY_2]!
+          expect(trongSan(ar1.x, ar1.y)).toBe(true)
+          expect(trongSan(ar2.x, ar2.y)).toBe(true)
+          lechBienLonNhat = Math.max(
+            lechBienLonNhat,
+            Math.abs(ar1.y - LE_DUONG_BIEN_TRO_LY),
+            Math.abs(ar2.y - (RONG_SAN - LE_DUONG_BIEN_TRO_LY)),
+          )
+        }
+        lt = phut.tt
+      }
+    }
+    expect(lechBienLonNhat, 'trợ lý rời biên dọc, mét').toBeLessThan(
+      LE_DUONG_BIEN_TRO_LY,
+    )
+    expect(soMoc, 'số mốc đã đọc').toBeGreaterThan(15_000)
+  })
 })

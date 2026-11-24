@@ -1,4 +1,4 @@
-import { DAI_SAN, type BenSan } from '../hinhHocSan'
+import { DAI_SAN, RONG_SAN, trongSan, type BenSan } from '../hinhHocSan'
 /*
   Cơ học của một cơ thể người (T710, quyết định D123 và D129).
 
@@ -689,4 +689,201 @@ export function kepDichThuMon(dich: Dich, ben: BenSan): Dich {
   const tu = ben === 'nha' ? 0 : DAI_SAN - MOT_PHAN_BA_SAN
   const den = ben === 'nha' ? MOT_PHAN_BA_SAN : DAI_SAN
   return { x: Math.min(Math.max(dich.x, tu), den), y: dich.y }
+}
+
+/*
+  ====================================================================
+  BA ĐIỂM TRỌNG TÀI (T716, AC-38.10, quyết định D133).
+  ====================================================================
+
+  ⚠️ **Task này lấp một lỗ CRITICAL.** `viTriTrongTai` được `plan.md` nhắc
+  **bốn lần** — sơ đồ mục 3, D133, bảng Contracts, bảng ánh xạ AC — nhưng bản
+  đầu của `tasks.md` **không task nào tạo nó**, và bảng phủ AC trỏ AC-38.10 vào
+  hai task chỉ *đo* chứ không *sinh*. Hệ quả nếu để nguyên: ba ô `REF`/`AR1`/
+  `AR2` **tồn tại** trong lô mà không đường nào ghi toạ độ.
+
+  Ba điểm này **KHÔNG được vẽ** trên sân 2D ở spec 007 — AC-38.10 nói rõ. Chúng
+  chỉ có trong **dữ liệu khung hình**, để tệp xuất của AC-45.5 đọc được.
+
+  Dải 15–35 m là con số **đã sửa**: dải cũ 15–25 m **bất khả thi về số học** với
+  AC-38.1 và AC-38.2. Phép tính của D133: một quả phát bóng 70 m ở 25 m/s bay
+  2,8 giây; trọng tài phải dịch tối thiểu 20 m nhưng tối đa đi được
+  `9 · 2,8 − 6,75 = 18,45` m — **thiếu 1,55 m ở trường hợp thuận lợi nhất**.
+  Người dùng chốt nới dải ngày 2026-11-23 chứ không cho trọng tài vượt trần cơ
+  học, vì mục 9 của spec cấm tự hạ ngưỡng.
+*/
+
+/** Khoảng cách trọng tài chính NHẮM tới, giữa dải 15–35 m của AC-38.10. */
+export const KHOANG_TRONG_TAI = 25
+
+/**
+ * Lề độ trễ của trọng tài chính, mét — con số của **mệnh đề (d)** AC-38.10.
+ *
+ * ⚠️ **Mệnh đề (d) là mệnh đề người dùng thêm ngày 2026-11-24 (câu 25), và nó
+ * tồn tại vì dải 15–35 m KHÔNG dựng nổi trên vị trí thật.** Đích thì đúng tâm
+ * dải — đo 20 mã cho trung vị **25,00 m** — nhưng vị trí thật trễ hơn đích, và
+ * độ trễ ấy bị chặn dưới bởi chính hai AC khác: đổi từ *chạy về phía bóng 9 m/s*
+ * sang *chạy ra xa 9 m/s* thì **AC-38.11** cho 90°/s nên mất **2 giây**, mà trong
+ * 2 giây ấy **AC-38.4** kẹp người chạy lùi ở **4 m/s**. Quả bóng đi 18 m, trọng
+ * tài đi ≤ 8 m sai hướng → khe hở đổi ~16–20 m trong MỘT lần pha bóng đổi chiều,
+ * trong khi dải 15–35 m chỉ cho 10 m dư mỗi phía.
+ *
+ * ⚠️ **Đo được 19,87 m, nên con số này chỉ dư 0,13 m** — và nó đo trên mô hình
+ * bóng **TẠM** của T716, nơi quả bóng bị kẹp chung trần 9 m/s với người. **T720**
+ * cho bóng vật lý thật, nên T720 **phải đo lại** con số này; phép kiểm mệnh đề
+ * (d) ở `tranLienTuc.test.ts` là thứ sẽ bắt được.
+ */
+export const LE_DO_TRE_TRONG_TAI = 20
+
+/** Số hướng thử quanh quả bóng — 64 hướng, tức mỗi 5,625°. */
+export const SO_HUONG_TRONG_TAI = 64
+
+/**
+ * Lề trong của sân cho đường chạy hai trợ lý, mét.
+ *
+ * ⚠️ **Đích nằm ĐÚNG trên đường biên là chưa đủ.** `buocCoHoc` xoay vector vận
+ * tốc ở cổng quay (bước 3) mà **giữ nguyên độ lớn**, nên một trợ lý đang chạy
+ * dọc biên mà đổi chiều sẽ có một thành phần vận tốc **vuông góc** với biên
+ * trong vài bước — và nó mang ô ấy ra ngoài sân. Phép kiểm T725 bắt được
+ * **292 mốc** như thế ở hai ô `AR1`/`AR2` (ô `REF` không góp mốc nào).
+ *
+ * 3 m đủ để thấm cú lệch ấy: thành phần vuông góc không vượt tốc độ hiện tại,
+ * và một bước dài 0,5 giây ở 4 m/s là 2 m. Cái giá: khi hậu vệ cuối cùng vào
+ * sát đường biên ngang, trợ lý **lệch tối đa 3 m** — một con số, đúng thứ mệnh
+ * đề (c) của AC-38.10 đòi nêu.
+ */
+export const LE_DUONG_BIEN_TRO_LY = 3
+
+/** Lề trong của sân cho đích trọng tài chính, mét — cùng lý do, cùng phép đo. */
+export const LE_TRONG_SAN_TRONG_TAI = 4
+
+
+/**
+ * Lề tối thiểu giữa trọng tài và đường chuyền, mét — mệnh đề (b) của AC-38.10.
+ *
+ * Nêu bằng số chứ không để "không nằm trên đường": một điểm cách đường 1 cm vẫn
+ * "không nằm trên" về mặt hình học mà vẫn chắn đúng đường bóng.
+ */
+export const LE_NGOAI_DUONG_CHUYEN = 3
+
+/** Ba đích của tổ trọng tài, bằng mét. */
+export interface DichToTrongTai {
+  readonly trongTai: Diem
+  readonly troLy1: Diem
+  readonly troLy2: Diem
+}
+
+/** Khoảng cách từ một điểm tới ĐOẠN thẳng `tu → den`. */
+export function khoangToiDoan(diem: Diem, tu: Diem, den: Diem): number {
+  const dx = den.x - tu.x
+  const dy = den.y - tu.y
+  const dai2 = dx * dx + dy * dy
+  if (dai2 === 0) return Math.hypot(diem.x - tu.x, diem.y - tu.y)
+  const t = Math.min(
+    1,
+    Math.max(0, ((diem.x - tu.x) * dx + (diem.y - tu.y) * dy) / dai2),
+  )
+  return Math.hypot(diem.x - (tu.x + t * dx), diem.y - (tu.y + t * dy))
+}
+
+/**
+ * Đích của ba điểm trọng tài ở một mốc.
+ *
+ * **Trọng tài chính** đứng cách bóng `KHOANG_TRONG_TAI` mét, lệch **vuông góc**
+ * với đường chuyền đang diễn. Vuông góc chứ không tuỳ ý: đó là hướng làm mệnh đề
+ * (b) đúng **bằng cấu trúc** — ở khoảng cách 25 m theo phương vuông góc thì ông
+ * ta cách đường chuyền đúng 25 m, dư xa hơn lề 3 m. Không có đường chuyền nào
+ * đang diễn thì lệch theo một hướng cố định, để phép tính vẫn tất định (P1).
+ *
+ * **Hai trợ lý** chạy trên hai đường biên dọc, mỗi người **ngang hàng hậu vệ
+ * cuối cùng** của nửa sân mình phụ trách — mệnh đề (c).
+ *
+ * Hàm trả **đích**, không trả vị trí. Ba điểm ấy đi tới đích qua chính
+ * `buocCoHoc` như mọi người khác, nên chúng **không teleport** và AC-38.2 đúng
+ * cho chúng y như cho cầu thủ — đúng điều D133 chốt.
+ */
+/** Điểm nằm trong sân và cách mọi đường biên ít nhất `LE_TRONG_SAN_TRONG_TAI`. */
+function trongSanCoLe(d: Diem): boolean {
+  const le = LE_TRONG_SAN_TRONG_TAI
+  return (
+    trongSan(d.x, d.y) &&
+    d.x >= le &&
+    d.x <= DAI_SAN - le &&
+    d.y >= le &&
+    d.y <= RONG_SAN - le
+  )
+}
+
+/** `x` của một trợ lý, kẹp vào trong sân theo `LE_DUONG_BIEN_TRO_LY`. */
+function xTroLy(x: number): number {
+  return Math.min(
+    Math.max(x, LE_DUONG_BIEN_TRO_LY),
+    DAI_SAN - LE_DUONG_BIEN_TRO_LY,
+  )
+}
+
+export function viTriTrongTai(
+  bong: Diem,
+  duongChuyen: { readonly tu: Diem; readonly den: Diem } | null,
+  hangThuCuoi: { readonly nha: number; readonly khach: number },
+  viTriHienTai: Diem,
+): DichToTrongTai {
+  /*
+    Thử `SO_HUONG_TRONG_TAI` hướng quanh quả bóng, tất cả cách bóng ĐÚNG
+    `KHOANG_TRONG_TAI`, rồi lọc hai lần và chọn hướng **GẦN CHỖ ĐANG ĐỨNG NHẤT**.
+
+    Hai bản trước đều sai, và sai theo hai kiểu khác nhau — cả hai đều đo được:
+
+    1. **Một hướng vuông góc rồi kẹp vào sân.** Phép kẹp kéo trọng tài về sát
+       bóng: **376/5.640 mốc** ngoài dải [15; 35], chỗ gần nhất **0,52 m** — ông
+       ta đứng ngay trên quả bóng ở những pha sát biên.
+    2. **16 hướng, chọn hướng XA ĐƯỜNG CHUYỀN NHẤT.** Khoảng cách tới bóng nay
+       đúng 25 m **theo cấu trúc**, nhưng đích **nhảy sang phía đối diện** mỗi
+       lần đường chuyền đổi chiều, và trọng tài phải **đi xuyên qua quả bóng**
+       để tới đó. Đo trên 5 trận: **1.471/28.440 mốc (5,17%)** có khoảng cách
+       **dưới 15 m**, trung vị của chúng 11,2 m — gần hết số vi phạm nằm ở đầu
+       GẦN của dải, không phải đầu xa.
+
+    Chọn hướng gần chỗ đang đứng nhất thì đích **đi liền** theo quả bóng: nó
+    giữ nguyên phía, nên trọng tài không bao giờ phải băng qua bóng. Quy tắc này
+    vẫn **thuần và tất định** (P1) — nó đọc vị trí hiện tại, không đọc đồng hồ.
+  */
+  let tot: Diem | null = null
+  let dTot = Infinity
+  let duTot: Diem | null = null
+  let xaNhat = -Infinity
+  for (let k = 0; k < SO_HUONG_TRONG_TAI; k += 1) {
+    const goc = (k * Math.PI * 2) / SO_HUONG_TRONG_TAI
+    const thu = {
+      x: bong.x + Math.cos(goc) * KHOANG_TRONG_TAI,
+      y: bong.y + Math.sin(goc) * KHOANG_TRONG_TAI,
+    }
+    if (!trongSanCoLe(thu)) continue
+    const xaDuong = duongChuyen
+      ? khoangToiDoan(thu, duongChuyen.tu, duongChuyen.den)
+      : KHOANG_TRONG_TAI
+    // Dự bị: nếu KHÔNG hướng nào đủ lề thì lấy hướng xa đường chuyền nhất.
+    if (xaDuong > xaNhat) {
+      xaNhat = xaDuong
+      duTot = thu
+    }
+    if (xaDuong < LE_NGOAI_DUONG_CHUYEN) continue
+    const d = Math.hypot(thu.x - viTriHienTai.x, thu.y - viTriHienTai.y)
+    if (d < dTot) {
+      dTot = d
+      tot = thu
+    }
+  }
+
+  /*
+    Không hướng nào trong sân thì lùi về tâm sân — chỉ xảy ra nếu bóng ra ngoài
+    biên, mà lúc ấy pha bóng đã chết.
+  */
+  const chon = tot ?? duTot ?? { x: DAI_SAN / 2, y: RONG_SAN / 2 }
+
+  return {
+    trongTai: chon,
+    troLy1: { x: xTroLy(hangThuCuoi.nha), y: LE_DUONG_BIEN_TRO_LY },
+    troLy2: { x: xTroLy(hangThuCuoi.khach), y: RONG_SAN - LE_DUONG_BIEN_TRO_LY },
+  }
 }

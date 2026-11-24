@@ -186,9 +186,13 @@ hơn mức một cầu thủ thật làm được**, để **không còn cảm g
       bóng lăn sệt (AC-38.7) và quỹ đạo bóng bổng dài. Ảnh hưởng tới thể lực và tới tỉ lệ
       khống chế hỏng thuộc spec 009 và 010.
 - [ ] AC-38.10 — KHI xuất một khung hình THÌ trọng tài chính và hai trợ lý PHẢI **có trong
-      dữ liệu** với mã `REF`, `AR1`, `AR2`: trọng tài chính cách bóng **15–35 m** và không
-      nằm trên đường chuyền, mỗi trợ lý **ngang hàng hậu vệ cuối cùng** của nửa sân mình phụ
-      trách. Sân 2D PHẢI **không vẽ** ba điểm này ở spec 007.
+      dữ liệu** với mã `REF`, `AR1`, `AR2`, và bốn mệnh đề sau PHẢI đúng ở **mọi** mốc:
+      **(a)** chỗ trọng tài chính **NHẮM TỚI** cách bóng **15–35 m**; **(b)** chỗ ấy **không
+      nằm trên đường chuyền** — cách đoạn thẳng người giữ bóng → người nhận hơn một lề nêu
+      bằng số; **(c)** mỗi trợ lý **ngang hàng hậu vệ cuối cùng** của nửa sân mình phụ trách,
+      sai số nêu bằng số; **(d)** khoảng cách **THẬT** từ trọng tài chính tới bóng lệch khỏi
+      khoảng cách anh ta nhắm tới (**25 m**, đúng tâm dải) **không quá 20 m**. Sân 2D PHẢI
+      **không vẽ** ba điểm này ở spec 007.
 
   > **Dải nới từ 15–25 m lên 15–35 m, người dùng chốt 2026-11-23.** Dải cũ **bất khả thi về
   > số học** với AC-38.1 (tối đa 9 m/s) và AC-38.2 (gia tốc tối đa 6 m/s²): một quả phát bóng
@@ -204,6 +208,43 @@ hơn mức một cầu thủ thật làm được**, để **không còn cảm g
   > hàng hậu vệ cuối cùng" vẫn là yêu cầu tuyệt đối, và `plan.md` D133 là chủ sở hữu của
   > chúng. Nếu lúc dựng chúng cũng hoá ra không dựng nổi thì xử đúng mục 9: **quay lại hỏi
   > người dùng, không tự hạ ngưỡng**.
+  >
+  > ---
+  >
+  > **Tách thành ĐÍCH và ĐỘ TRỄ, người dùng chốt 2026-11-24 — và lần này con số 15–35 m
+  > KHÔNG đổi.** Lúc dựng T716 hoá ra dải 15–35 m **vẫn bất khả thi** nếu đo trên **vị trí
+  > thật**: đo 20 mã / **113.460 mốc** thì **749 mốc (0,660%)** ra ngoài dải, dải thật là
+  > **[5,1; 40,3] m**. Nguyên nhân **không** phải đích đặt sai — trung vị khoảng cách là
+  > **25,00 m**, tức đích luôn đúng tâm dải — mà là **độ trễ đuổi theo**, và độ trễ ấy bị
+  > chặn dưới bởi chính hai AC khác của spec này:
+  >
+  > > Để đổi từ *đang chạy về phía bóng 9 m/s* sang *chạy ra xa 9 m/s*, trọng tài phải quay
+  > > 180°. **AC-38.11** cho 90°/s, tức **2 giây**; trong 2 giây ấy **AC-38.4** kẹp anh ta ở
+  > > **4 m/s** vì anh ta đang chạy lùi. Quả bóng đi **18 m**, anh ta đi **≤ 8 m sai hướng**
+  > > → khe hở đổi **~16–20 m chỉ trong MỘT lần pha bóng đổi chiều**, trong khi dải 15–35 m
+  > > chỉ cho **10 m** dư mỗi phía. Số đo khớp phép tính: lệch sâu nhất **19,87 m**, lệch xa
+  > > nhất **15,3 m**.
+  >
+  > Vì thế AC được **tách làm hai mệnh đề tuyệt đối** chứ không nới số lần thứ hai: **(a)**
+  > nói về **đích**, và nó đúng **100% theo cấu trúc** (`viTriTrongTai` chỉ sinh điểm cách
+  > bóng đúng `KHOANG_TRONG_TAI` = 25 m); **(d)** nói về **độ trễ**, nêu bằng một con số.
+  >
+  > Mệnh đề (d) phát biểu theo **khoảng cách tới bóng** chứ không theo "lệch khỏi đích", vì
+  > khoảng cách tới bóng **đọc được từ một khung hình** mà không cần biết trạng thái trong
+  > của engine — và vì đích luôn cách bóng **đúng** 25 m, nó chính là **thành phần hướng
+  > tâm** của độ trễ. Tức (d) tương đương một phép kiểm tuyệt đối trên lô mốc: khoảng cách
+  > trọng tài–bóng nằm trong **[5; 45] m** ở **mọi** mốc.
+  >
+  > Hai đường còn lại đã bị loại khi hỏi: **nới dải thành 5–41 m** thì 41 m là 39% chiều dài
+  > sân và 5 m cho trọng tài đứng ngay trong pha bóng — dải rộng tới mức gần như không canh
+  > gì, đúng thứ đã bị từ chối ở câu 22; **miễn ba điểm trọng tài khỏi AC-38.4 và AC-38.11**
+  > thì phá điều D133 chốt ("ba điểm đi qua CHÍNH `buocCoHoc` như mọi người khác") mà vẫn
+  > không chắc đạt.
+  >
+  > ⚠️ **Con số 20 m chỉ còn 0,13 m dư so với phép đo (19,87 m), và nó đo trên mô hình bóng
+  > TẠM của T716** — quả bóng hiện bị kẹp chung trần 9 m/s. **T720** cho bóng vật lý thật
+  > (bay nhanh hơn người), nên nó **phải đo lại con số này**, và phép kiểm của mệnh đề (d) sẽ
+  > là thứ bắt được.
 - [ ] AC-38.11 — KHI một cầu thủ di chuyển THÌ mỗi mốc PHẢI có **hướng người** (0–360°), và
       hướng ấy PHẢI khớp với hướng di chuyển trừ khi anh ta đang chạy lùi hoặc chạy ngang.
 
@@ -734,6 +775,8 @@ một câu sửa số của AC-38.10, bốn câu còn lại chốt mà **không*
 | 22 | **AC-38.10 đòi một con số không dựng nổi** (15–25 m mâu thuẫn số học với AC-38.1/38.2, thiếu 1,55 m ở ca thuận lợi nhất) | **Nới dải thành 15–35 m**, giữ phép kiểm **tuyệt đối** | **AC-38.10 sửa số.** Hai mệnh đề còn lại của AC không đổi, `plan.md` D133 là chủ sở hữu |
 | 23 | **Phép kiểm AC-45.3 tốn 400 trận — trong `npm test` mặc định hay chạy theo yêu cầu?** | **Trong `npm test` mặc định.** AC-45.3 là lưới duy nhất canh "hai chế độ ra cùng một kết quả", tức canh P1 | **Không đổi.** Cái giá đã nói: suite có thể từ ~27 giây lên ~68 giây ở nhánh xấu nhất — file này một mình thêm 46–54% |
 | 24 | **Chữ "tua" ở mục 4 bước 3 nghĩa là gì** (không AC nào định nghĩa nó) | **Tua TỚI thôi** — đổi mức tốc độ và *Chạy hết trận*. **Không** tua ngược, **không** thanh thời gian | **AC-45.10 mới** + mục 4 bước 3 viết lại. Cái giá: xem lại một pha vừa trôi qua thì phải chạy lại cả trận |
+
+| 25 | **AC-38.10 vẫn không dựng nổi, lần này ở vị trí THẬT** (đo T716: 749/113.460 mốc ngoài dải 15–35 m; dải thật [5,1; 40,3] m) | **Tách thành ĐÍCH và ĐỘ TRỄ**, hai mệnh đề **tuyệt đối**, và **giữ nguyên con số 15–35 m** — không nới dải lần thứ hai | **AC-38.10 viết lại thành bốn mệnh đề**: (a) **đích** cách bóng 15–35 m — đúng 100% theo cấu trúc; (b) và (c) như cũ; **(d) mới** — vị trí thật lệch khỏi đích không quá **20 m**. ⚠️ 20 m chỉ dư **0,13 m** so với phép đo, nên **T720 phải đo lại** khi bóng có vật lý thật |
 
 **Tổng AC sau lượt này: 30** (US-37: 8, US-38: 11, US-45: 11). `plan.md` mục 6 phải phủ 30/30.
 

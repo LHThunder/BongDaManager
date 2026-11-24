@@ -1,7 +1,15 @@
 import { describe, expect, it } from 'vitest'
+import { DAI_SAN, RONG_SAN, trongSan } from '../hinhHocSan'
 import { taoRngTuHatGiong } from '../rng'
 import {
   BAN_KINH_TRANH,
+  khoangToiDoan,
+  KHOANG_TRONG_TAI,
+  LE_DO_TRE_TRONG_TAI,
+  LE_DUONG_BIEN_TRO_LY,
+  LE_NGOAI_DUONG_CHUYEN,
+  LE_TRONG_SAN_TRONG_TAI,
+  viTriTrongTai,
   kepDichThuMon,
   lechToiDaTheoTocDo,
   MOT_PHAN_BA_SAN,
@@ -933,5 +941,295 @@ describe('quỹ đạo dài — AC-38.4 (T715)', () => {
     expect(dem.lui, 'số mốc chạy lùi').toBeGreaterThan(0)
     expect(dem.ngang, 'số mốc chạy ngang').toBeGreaterThan(0)
     expect(dem.tien, 'số mốc chạy tới').toBeGreaterThan(0)
+  })
+})
+
+/*
+  ====================================================================
+  BA ĐIỂM TRỌNG TÀI (T716, AC-38.10, quyết định D133).
+  ====================================================================
+
+  AC-38.10 có **bốn** mệnh đề sau khi người dùng chốt tách đích và độ trễ
+  (2026-11-24, câu 25). Khối này canh ba mệnh đề đầu — chúng là tính chất của
+  một **hàm thuần**, nên đo được bằng cách quét hình học, không cần chạy trận.
+  Mệnh đề (d) nói về độ trễ trên một trận thật, nên nó ở `tranLienTuc.test.ts`.
+
+  ⚠️ **Phép kiểm xương sống của khối này là phép kiểm TÍNH LIỀN.** Hai bản đầu
+  của `viTriTrongTai` đều xanh ở mọi phép kiểm còn lại mà vẫn sai, và chỉ tính
+  liền bắt được: bản thứ hai chọn hướng **xa đường chuyền nhất**, nên mỗi lần
+  đường chuyền đổi chiều thì đích **nhảy sang phía đối diện quả bóng** và trọng
+  tài phải đi xuyên qua bóng để tới đó — 5,17% số mốc có khoảng cách dưới 15 m.
+*/
+
+const GRID_BONG: readonly Diem[] = (() => {
+  const ra: Diem[] = []
+  for (let x = 1; x <= DAI_SAN - 1; x += 5) {
+    for (let y = 1; y <= RONG_SAN - 1; y += 4) ra.push({ x, y })
+  }
+  return ra
+})()
+
+/**
+ * Một đoạn đường chuyền đi **qua** quả bóng theo hướng `k`, nửa dài `nua` mét.
+ *
+ * ⚠️ **`nua` phải chạy cả giá trị LỚN HƠN 25 m, không thì phép kiểm mệnh đề (b)
+ * rỗng.** `khoangToiDoan` đo tới **ĐOẠN**, nên với đoạn ngắn (nửa 12 m) thì một
+ * ứng viên nằm trên chính đường chuyền mà cách bóng 25 m vẫn **vượt quá đầu
+ * đoạn** 13 m — hình học tự làm mệnh đề (b) đúng, và phép lọc lề không gánh gì.
+ * Tôi bỏ hẳn phép lọc ra mà 53 phép kiểm vẫn xanh đúng vì lẽ ấy.
+ *
+ * Đường chuyền thật dài tới **84 m** (tâm vùng dải 0 tới tâm vùng dải 3), và quả
+ * bóng nằm đâu đó **giữa** đoạn ấy, nên nửa 40 m là ca thật chứ không phải ca bịa.
+ */
+function duongChuyenQuaBong(
+  bong: Diem,
+  k: number,
+  nua = 12,
+): { tu: Diem; den: Diem } {
+  const goc = (k * Math.PI) / 4
+  return {
+    tu: { x: bong.x - Math.cos(goc) * nua, y: bong.y - Math.sin(goc) * nua },
+    den: { x: bong.x + Math.cos(goc) * nua, y: bong.y + Math.sin(goc) * nua },
+  }
+}
+
+/** Hai nửa chiều dài đường chuyền: một pha chuyền ngắn, và một quả bóng dài. */
+const CAC_NUA_DUONG_CHUYEN = [12, 40] as const
+
+const HANG_THU_MAU = { nha: 20, khach: 85 }
+const CHO_DUNG_THU: readonly Diem[] = [{ x: 10, y: 10 }, { x: 95, y: 60 }]
+
+describe('viTriTrongTai — ba mệnh đề của AC-38.10 (T716)', () => {
+  it('(a) đích cách bóng ĐÚNG 25 m, và 25 m nằm trong dải 15–35 m', () => {
+    let soBo = 0
+    let lechLonNhat = 0
+    for (const bong of GRID_BONG) {
+      for (let k = 0; k < 8; k += 1) {
+        for (const hien of [...CHO_DUNG_THU, bong]) {
+          const r = viTriTrongTai(
+            bong,
+            duongChuyenQuaBong(bong, k),
+            HANG_THU_MAU,
+            hien,
+          )
+          const d = Math.hypot(r.trongTai.x - bong.x, r.trongTai.y - bong.y)
+          lechLonNhat = Math.max(lechLonNhat, Math.abs(d - KHOANG_TRONG_TAI))
+          soBo += 1
+        }
+      }
+    }
+    /*
+      ⚠️ Đây là chỗ mệnh đề (a) đúng **theo cấu trúc** chứ không đúng gần đúng:
+      mọi ứng viên đều sinh trên một vòng tròn bán kính `KHOANG_TRONG_TAI`, nên
+      nếu có ứng viên nào hợp lệ thì khoảng cách là 25 m **đúng tới float**.
+      Phép dự bị "lùi về tâm sân" sẽ làm phép kiểm này đỏ ngay — và đó là ý
+      muốn: nó nghĩa là không hướng nào dùng được, tức một ca chưa ai lường.
+    */
+    expect(lechLonNhat, 'lệch khỏi 25 m, lớn nhất').toBeLessThan(1e-9)
+    expect(KHOANG_TRONG_TAI).toBeGreaterThanOrEqual(15)
+    expect(KHOANG_TRONG_TAI).toBeLessThanOrEqual(35)
+    // ⚠️ CHỐNG RỖNG: lưới phải thật sự có mẫu, không thì ba dòng trên vô nghĩa.
+    expect(soBo, 'số bộ đã quét').toBeGreaterThan(8_000)
+  })
+
+  /*
+    ⚠️ **Chỗ đứng thứ tư của phép kiểm này là chỗ ĐỐI NGHỊCH, và không có nó thì
+    phép kiểm RỖNG.** Bản đầu chỉ thử ba chỗ đứng tuỳ ý, và khi tôi **bỏ hẳn phép
+    lọc lề** thì cả 53 phép kiểm vẫn xanh: ba chỗ ấy tình cờ không bao giờ làm ứng
+    viên gần nhất rơi vào nêm quanh đường chuyền.
+
+    Chỗ thứ tư đặt trọng tài **đúng trên đường chuyền kéo dài**, cách bóng đúng
+    25 m. Lúc ấy ứng viên gần anh ta nhất chính là ứng viên **nằm trên đường
+    chuyền** — nên nếu phép lọc không làm gì thì khoảng cách ra ~0 và phép kiểm đỏ.
+  */
+  it('(b) đích cách đường chuyền hơn lề 3 m, kể cả khi bóng sát biên', () => {
+    let soBo = 0
+    let soSatBien = 0
+    let ganNhat = Infinity
+    for (const bong of GRID_BONG) {
+      const satBien =
+        bong.x < 10 ||
+        bong.x > DAI_SAN - 10 ||
+        bong.y < 10 ||
+        bong.y > RONG_SAN - 10
+      for (let k = 0; k < 8; k += 1) {
+        const goc = (k * Math.PI) / 4
+        const trenDuongChuyen = {
+          x: bong.x + Math.cos(goc) * KHOANG_TRONG_TAI,
+          y: bong.y + Math.sin(goc) * KHOANG_TRONG_TAI,
+        }
+        for (const nua of CAC_NUA_DUONG_CHUYEN) {
+          const duong = duongChuyenQuaBong(bong, k, nua)
+          for (const hien of [...CHO_DUNG_THU, bong, trenDuongChuyen]) {
+            const r = viTriTrongTai(bong, duong, HANG_THU_MAU, hien)
+            ganNhat = Math.min(
+              ganNhat,
+              khoangToiDoan(r.trongTai, duong.tu, duong.den),
+            )
+            soBo += 1
+            if (satBien) soSatBien += 1
+          }
+        }
+      }
+    }
+    expect(ganNhat, 'khoảng cách tới đường chuyền, nhỏ nhất').toBeGreaterThan(
+      LE_NGOAI_DUONG_CHUYEN,
+    )
+    /*
+      ⚠️ CHỐNG RỖNG, và mẫu SÁT BIÊN là mẫu đáng kể nhất: bản đầu của hàm này
+      kẹp đích vào sân khi nó ra ngoài, và phép kẹp ấy kéo trọng tài về **sát
+      quả bóng** đúng ở những pha sát biên — 0,52 m ở chỗ tệ nhất. Nếu lưới chỉ
+      có bóng ở giữa sân thì cả lớp lỗi ấy không có một mẫu nào.
+    */
+    expect(soBo, 'số bộ đã quét').toBeGreaterThan(8_000)
+    expect(soSatBien, 'số bộ có bóng sát biên').toBeGreaterThan(1_000)
+  })
+
+  it('và đích luôn ở trong sân, cách mọi đường biên ít nhất lề của nó', () => {
+    for (const bong of GRID_BONG) {
+      for (let k = 0; k < 8; k += 1) {
+        const r = viTriTrongTai(
+          bong,
+          duongChuyenQuaBong(bong, k),
+          HANG_THU_MAU,
+          bong,
+        )
+        const { x, y } = r.trongTai
+        expect(trongSan(x, y), `bóng ${bong.x},${bong.y} hướng ${k}`).toBe(true)
+        expect(x).toBeGreaterThanOrEqual(LE_TRONG_SAN_TRONG_TAI)
+        expect(x).toBeLessThanOrEqual(DAI_SAN - LE_TRONG_SAN_TRONG_TAI)
+        expect(y).toBeGreaterThanOrEqual(LE_TRONG_SAN_TRONG_TAI)
+        expect(y).toBeLessThanOrEqual(RONG_SAN - LE_TRONG_SAN_TRONG_TAI)
+      }
+    }
+  })
+
+  /*
+    ⚠️⚠️ XƯƠNG SỐNG. Quả bóng nhích một chút thì đích cũng chỉ nhích — nó
+    KHÔNG được nhảy sang phía bên kia quả bóng.
+
+    Đây là phép kiểm duy nhất phân biệt được bản đúng với bản thứ hai, vốn chọn
+    "hướng xa đường chuyền nhất" và xanh ở mọi phép kiểm khác.
+
+    **Con số 13 m nêu thẳng, và đây là lý do nó không nhỏ hơn được.** Đích vẫn
+    nhảy một đoạn hữu hạn, vì **tập ứng viên hợp lệ** đổi khi bóng dịch:
+
+      - lưới hướng rời rạc: một bước dài
+        `2 · 25 · sin(π / 64)` = **2,45 m**;
+      - nêm bị loại quanh đường chuyền rộng `asin(3 / 25)` ≈ **6,9°** mỗi phía,
+        nên khi trọng tài đang đứng TRONG nêm ấy, ứng viên gần nhất ở rìa nêm —
+        và rìa nào gần hơn thì đổi theo chiều đường chuyền: **~6 m**;
+      - sát biên, phép lọc lề sân bỏ thêm ứng viên, nên "gần nhất" lùi ra xa.
+
+    Đo được **12,14 m**. Phép kiểm vẫn có răng: bản thứ hai nhảy **sang phía đối
+    diện quả bóng**, tức cả đường kính **50 m** — gấp gần 4 lần ngưỡng này.
+  */
+  it('TÍNH LIỀN: bóng dịch 1 m thì đích dịch không quá 13 m', () => {
+    const toiDa = 13
+    let soBo = 0
+    let nhayLonNhat = 0
+    for (const bong of GRID_BONG) {
+      for (let k = 0; k < 8; k += 1) {
+        const dau = viTriTrongTai(
+          bong,
+          duongChuyenQuaBong(bong, k),
+          HANG_THU_MAU,
+          bong,
+        )
+        for (let h = 0; h < 8; h += 1) {
+          const goc = (h * Math.PI) / 4
+          const bongSau = {
+            x: bong.x + Math.cos(goc),
+            y: bong.y + Math.sin(goc),
+          }
+          if (!trongSan(bongSau.x, bongSau.y)) continue
+          const sau = viTriTrongTai(
+            bongSau,
+            duongChuyenQuaBong(bongSau, k),
+            HANG_THU_MAU,
+            dau.trongTai,
+          )
+          nhayLonNhat = Math.max(
+            nhayLonNhat,
+            Math.hypot(
+              sau.trongTai.x - dau.trongTai.x,
+              sau.trongTai.y - dau.trongTai.y,
+            ),
+          )
+          soBo += 1
+        }
+      }
+    }
+    expect(nhayLonNhat, 'đích nhảy xa nhất khi bóng dịch 1 m').toBeLessThan(
+      toiDa,
+    )
+    /*
+      Và ngưỡng ấy phải NHỎ hơn đường kính vòng tròn, không thì nó không loại
+      nổi chính cái lỗi nó sinh ra để bắt.
+    */
+    expect(toiDa).toBeLessThan(KHOANG_TRONG_TAI)
+    expect(soBo, 'số bộ đã quét').toBeGreaterThan(8_000)
+  })
+
+  it('và hàm TẤT ĐỊNH: cùng đầu vào ra cùng một bộ ba, từng số', () => {
+    const bong = { x: 40, y: 20 }
+    const duong = duongChuyenQuaBong(bong, 3)
+    const hien = { x: 70, y: 50 }
+    expect(viTriTrongTai(bong, duong, HANG_THU_MAU, hien)).toEqual(
+      viTriTrongTai(bong, duong, HANG_THU_MAU, hien),
+    )
+  })
+
+  it('(c) hai trợ lý trên hai biên dọc, x NGANG HÀNG hậu vệ cuối cùng', () => {
+    const r = viTriTrongTai(
+      { x: 52, y: 34 },
+      null,
+      { nha: 20, khach: 85 },
+      { x: 52, y: 10 },
+    )
+    expect(r.troLy1.y).toBeCloseTo(LE_DUONG_BIEN_TRO_LY, 10)
+    expect(r.troLy2.y).toBeCloseTo(RONG_SAN - LE_DUONG_BIEN_TRO_LY, 10)
+    // Trong dải thì KHỚP ĐÚNG, không xê dịch một mét nào.
+    expect(r.troLy1.x).toBeCloseTo(20, 10)
+    expect(r.troLy2.x).toBeCloseTo(85, 10)
+  })
+
+  /*
+    Hậu vệ cuối cùng lùi vào sát đường biên ngang thì trợ lý **không** theo hết
+    — anh ta dừng ở lề `LE_DUONG_BIEN_TRO_LY`, nên lệch tối đa đúng bằng lề ấy.
+    Đó là một nửa con số mà mệnh đề (c) đòi nêu; nửa còn lại là độ trễ đuổi
+    theo, đo trên trận thật ở `tranLienTuc.test.ts`.
+  */
+  it('và khi hậu vệ cuối vào sát biên ngang, trợ lý lệch tối đa đúng bằng lề', () => {
+    const r = viTriTrongTai(
+      { x: 52, y: 34 },
+      null,
+      { nha: 0, khach: DAI_SAN },
+      { x: 52, y: 10 },
+    )
+    expect(r.troLy1.x).toBeCloseTo(LE_DUONG_BIEN_TRO_LY, 10)
+    expect(r.troLy2.x).toBeCloseTo(DAI_SAN - LE_DUONG_BIEN_TRO_LY, 10)
+  })
+
+  it('khoangToiDoan: đo tới ĐOẠN, không tới đường thẳng vô hạn', () => {
+    const tu = { x: 0, y: 0 }
+    const den = { x: 10, y: 0 }
+    // Chân vuông góc nằm TRONG đoạn.
+    expect(khoangToiDoan({ x: 5, y: 3 }, tu, den)).toBeCloseTo(3, 10)
+    // Ngoài đoạn về phía `tu` → đo tới chính `tu`, không tới đường thẳng.
+    expect(khoangToiDoan({ x: -4, y: 3 }, tu, den)).toBeCloseTo(5, 10)
+    // Ngoài đoạn về phía `den`.
+    expect(khoangToiDoan({ x: 14, y: 3 }, tu, den)).toBeCloseTo(5, 10)
+    // Đoạn suy biến thành một điểm — chỗ sinh NaN nếu chia cho độ dài 0.
+    expect(khoangToiDoan({ x: 3, y: 4 }, tu, tu)).toBeCloseTo(5, 10)
+  })
+
+  /*
+    Lề độ trễ của mệnh đề (d) phải NHỎ HƠN 25 m. Nếu nó ≥ 25 thì mệnh đề ấy
+    cho phép khoảng cách tới bóng bằng 0 — trọng tài đứng trên quả bóng — và nó
+    thôi canh bất cứ thứ gì.
+  */
+  it('và lề độ trễ của mệnh đề (d) nhỏ hơn chính 25 m', () => {
+    expect(LE_DO_TRE_TRONG_TAI).toBeLessThan(KHOANG_TRONG_TAI)
   })
 })

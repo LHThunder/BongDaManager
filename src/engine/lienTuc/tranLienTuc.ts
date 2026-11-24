@@ -1,8 +1,9 @@
-import { RONG_SAN, TAM_X, TAM_Y } from '../hinhHocSan'
+import { TAM_X, TAM_Y } from '../hinhHocSan'
 import {
   buocCoHoc,
   tachChen,
   TRAN_TOC_DO_TUYET_DOI,
+  viTriTrongTai,
   type Diem,
   type TrangThaiCoHoc,
 } from './coHoc'
@@ -210,10 +211,22 @@ function coHocXuatPhat(tran: TrangThaiTran): readonly TrangThaiCoHoc[] {
       ra.push(dung(cho.x, cho.y, ben === 'nha' ? 0 : 180))
     }
   }
-  // Trọng tài chính giữa sân; hai trợ lý trên hai đường biên dọc. T716 thay.
-  ra.push(dung(TAM_X, TAM_Y))
-  ra.push(dung(TAM_X, 0))
-  ra.push(dung(TAM_X, RONG_SAN))
+  /*
+    Ba điểm trọng tài bắt đầu ở ĐÚNG CHỖ của họ, không ở giữa sân (T716).
+
+    Hai trợ lý xuất phát ngang hàng thủ của đội mình phụ trách. Cho họ bắt đầu ở
+    giữa sân thì mệnh đề (c) của AC-38.10 vỡ suốt mấy chục giây đầu: họ chạy 9
+    m/s mà phải vượt gần 30 m, và đo được **lệch tới 14,6 m**.
+  */
+  const dauTran = viTriTrongTai(
+    { x: TAM_X, y: TAM_Y },
+    null,
+    hangThuCuoiCua(ra),
+    { x: TAM_X, y: TAM_Y },
+  )
+  ra.push(dung(dauTran.trongTai.x, dauTran.trongTai.y))
+  ra.push(dung(dauTran.troLy1.x, dauTran.troLy1.y))
+  ra.push(dung(dauTran.troLy2.x, dauTran.troLy2.y))
   // Quả bóng ở chấm giao bóng.
   ra.push(dung(TAM_X, TAM_Y))
   return ra
@@ -241,6 +254,46 @@ function dichBong(
   if (phaCon === 'lenBong') return tamVungMet(cac[0]!.vung, pha.doi)
   const i = Math.min(cac.length - 1, Math.floor(phan * cac.length))
   return tamVungMet(cac[i]!.vung, pha.doi)
+}
+
+/**
+ * Đoạn đường chuyền đang diễn, hoặc `null` khi bóng không đang được chuyền.
+ *
+ * Mệnh đề (b) của AC-38.10 nói trọng tài **không nằm trên đường chuyền**, nên
+ * phải biết đường ấy là đoạn nào. Chỉ pha con `chuoi` mới có đường chuyền:
+ * `lenBong` là lúc bóng mới lên, `ketCuc` và `bongChet` thì bóng đứng.
+ */
+function duongChuyenDangDien(
+  pha: KetCucPhaV6,
+  phaCon: TenPhaCon,
+  phan: number,
+): { tu: Diem; den: Diem } | null {
+  const cac = pha.kq.cacHanhDong
+  if (phaCon !== 'chuoi' || cac.length < 2) return null
+  const i = Math.min(cac.length - 1, Math.floor(phan * cac.length))
+  if (i === 0) return null
+  return {
+    tu: tamVungMet(cac[i - 1]!.vung, pha.doi),
+    den: tamVungMet(cac[i]!.vung, pha.doi),
+  }
+}
+
+/**
+ * `x` của **hậu vệ thứ hai từ dưới lên** của mỗi đội — mệnh đề (c) của AC-38.10.
+ *
+ * Thứ HAI chứ không phải thứ nhất, vì người sâu nhất là **thủ môn**: trợ lý
+ * biên bám hậu vệ cuối cùng **ngoài thủ môn**, đó là đường việt vị của bóng đá
+ * thật. Lấy người sâu nhất thì hai trợ lý đứng cạnh hai khung thành cả trận.
+ */
+function hangThuCuoiCua(
+  coHoc: readonly TrangThaiCoHoc[],
+): { nha: number; khach: number } {
+  const xNha = coHoc.slice(0, 11).map((t) => t.x).sort((a, b) => a - b)
+  const xKhach = coHoc.slice(11, 22).map((t) => t.x).sort((a, b) => b - a)
+  return {
+    nha: xNha[1] ?? xNha[0] ?? TAM_X,
+    khach: xKhach[1] ?? xKhach[0] ?? TAM_X,
+  }
 }
 /**
  * Ô của người đang giữ bóng trong một pha, theo bố cục 26 ô của `loMoc`.
@@ -372,9 +425,39 @@ export function buocPhutLienTuc(ttVao: TrangThaiLienTuc): MotPhutLienTuc {
     phan: number,
   ): readonly ThucTheTaiMoc[] {
     const dBong = dichBong(pha, phaCon, phan)
+    /*
+      ⚠️ Vòng 25 m quây quanh **CHỖ BÓNG ĐANG Ở**, không quanh chỗ bóng sắp tới.
+
+      Bản đầu truyền `dBong` — tức ĐÍCH của quả bóng — và mệnh đề (a) vỡ ở
+      **3.338/28.440 mốc**, chỗ gần nhất **0,00 m**. Lý do: khi quả bóng còn
+      cách đích 20 m thì trọng tài đã đứng ở vòng 25 m quanh ĐÍCH, nên khoảng
+      cách tới quả bóng THẬT tụt xuống còn 5 m. Quây quanh chỗ bóng đang ở thì
+      đích luôn cách bóng đúng 25 m, và sai lệch còn lại chỉ là **độ trễ đuổi
+      theo** — thứ bị chặn bởi trần tốc độ, không bị chặn bởi hình học.
+    */
+    const dichTo = viTriTrongTai(
+      coHoc[CHI_SO_BONG] ?? dBong,
+      duongChuyenDangDien(pha, phaCon, phan),
+      hangThuCuoiCua(coHoc),
+      coHoc[CHI_SO_TRONG_TAI] ?? dBong,
+    )
+    const dichCuaO: Readonly<Record<number, Diem>> = {
+      [CHI_SO_TRONG_TAI]: dichTo.trongTai,
+      [CHI_SO_TRO_LY_1]: dichTo.troLy1,
+      [CHI_SO_TRO_LY_2]: dichTo.troLy2,
+    }
     const sau: TrangThaiCoHoc[] = coHoc.map((tt, o) => {
       if (o === CHI_SO_BONG) {
         return buocCoHoc(tt, dBong, TRAN_TOC_DO_BONG, DT_MOC)
+      }
+      /*
+        Ba điểm trọng tài đi qua CHÍNH `buocCoHoc` như mọi người khác, nên
+        chúng không teleport và AC-38.2 đúng cho chúng y như cho cầu thủ —
+        đúng điều D133 chốt.
+      */
+      const dichTrongTai = dichCuaO[o]
+      if (dichTrongTai) {
+        return buocCoHoc(tt, dichTrongTai, TRAN_TOC_DO_TUYET_DOI, DT_MOC)
       }
       if (o >= SO_NGUOI_TREN_SAN) return tt
       const dich =

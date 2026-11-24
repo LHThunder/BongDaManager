@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **30 AC**) |
 | **Plan** | `./plan.md` (Status `Approved`, D117–D134, R51–R64) |
-| **Tiến độ** | 20/49 |
+| **Tiến độ** | 21/49 |
 | **Nền đo** | commit `5c652eb`, engine v6, **1.304 test xanh / 63 file test** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -868,7 +868,7 @@ chưa có trần tốc độ, chưa có đường cong. **Phải nói trước �
     nhỏ về phía bóng. Khối phòng ngự 30–40 m, hai tuyến cách 10–15 m, pressing và lùi khối
     là **US-40 của spec 009**; làm chúng ở đây là lấn phạm vi và sẽ phải gỡ.
 
-- [ ] **T716** — `viTriTrongTai`: ba điểm trọng tài **có vị trí**, không chỉ có ô (**AC-38.10**)
+- [x] **T716** — `viTriTrongTai`: ba điểm trọng tài **có vị trí**, không chỉ có ô (**AC-38.10**)
   - File: `src/engine/lienTuc/coHoc.ts`, `src/engine/lienTuc/coHoc.test.ts`,
     `src/engine/lienTuc/loMoc.ts` (đường ghi ba cột `REF`/`AR1`/`AR2`)
   - Xong khi: trên 20 mã, ở **mọi** mốc, **cả ba** mệnh đề của AC-38.10 đúng — (a) khoảng cách
@@ -890,6 +890,68 @@ chưa có trần tốc độ, chưa có đường cong. **Phải nói trước �
     ⚠️ **Hai mệnh đề (b) và (c) chưa từng có cơ chế nào trong repo.** Nếu lúc dựng hoá ra một
     trong hai **không dựng nổi** cùng với trần cơ học của AC-38.1/38.2, thì xử đúng mục 9 của
     spec: **dừng và hỏi người dùng, KHÔNG tự hạ ngưỡng** — đúng cách dải 15–25 m đã được xử.
+  - 🛑 **Mệnh đề (a) KHÔNG dựng nổi ở dạng tuyệt đối, và tôi dừng lại hỏi đúng như ghi chú
+    của task dặn.** Đo 20 mã / **113.460 mốc**: **749 mốc (0,660%)** ra ngoài dải 15–35 m,
+    dải thật là **[5,1; 40,3] m**. Nguyên nhân **không** phải đích đặt sai — trung vị khoảng
+    cách là **25,00 m**, đúng tâm dải — mà là **độ trễ đuổi theo**, và độ trễ ấy bị chặn dưới
+    bởi chính hai AC khác của spec: đổi từ *chạy về phía bóng 9 m/s* sang *chạy ra xa 9 m/s*
+    thì **AC-38.11** cho 90°/s nên mất **2 giây**, mà trong 2 giây ấy **AC-38.4** kẹp người
+    chạy lùi ở **4 m/s**. Bóng đi 18 m, trọng tài đi ≤ 8 m sai hướng → khe hở đổi **~16–20 m
+    trong MỘT lần pha bóng đổi chiều**, trong khi dải chỉ cho **10 m** dư mỗi phía. Số đo khớp
+    phép tính: lệch sâu nhất **19,87 m**, lệch xa nhất **15,3 m**.
+  - ✅ **Người dùng chốt 2026-11-24 (câu 25): TÁCH ĐÍCH VÀ ĐỘ TRỄ, giữ nguyên con số 15–35 m.**
+    AC-38.10 nay có **bốn** mệnh đề: (a) nói về **đích** và đúng **100% theo cấu trúc**;
+    (b) và (c) như cũ; **(d) mới** kẹp độ trễ ở **20 m**. Hai đường kia đã bị loại khi hỏi:
+    nới dải thành 5–41 m (41 m là 39% chiều dài sân, 5 m cho trọng tài đứng ngay trong pha
+    bóng — đúng thứ đã bị từ chối ở câu 22), và miễn ba điểm khỏi AC-38.4/38.11 (phá D133 mà
+    vẫn không chắc đạt).
+  - 🐞 **Ba bản của `viTriTrongTai`, và hai bản đầu đều xanh ở mọi phép kiểm mà vẫn sai.**
+    (1) *Một hướng vuông góc rồi kẹp vào sân* — phép kẹp kéo trọng tài về **sát quả bóng**
+    ở những pha sát biên: 376/5.640 mốc ngoài dải, chỗ gần nhất **0,52 m**. (2) *64 hướng,
+    chọn hướng xa đường chuyền nhất* — khoảng cách tới bóng nay đúng 25 m theo cấu trúc,
+    nhưng đích **nhảy sang phía đối diện quả bóng** mỗi lần đường chuyền đổi chiều và trọng
+    tài phải đi xuyên qua bóng: **5,17%** số mốc dưới 15 m. (3) *Chọn hướng **gần chỗ đang
+    đứng nhất*** — đích đi liền theo bóng, không đổi phía. Phép kiểm **TÍNH LIỀN** là thứ
+    duy nhất phân biệt được (2) với (3).
+  - 🐞 **Và một lỗi hình học thật: vòng 25 m phải quây quanh CHỖ BÓNG ĐANG Ở, không quanh
+    chỗ bóng sắp tới.** Bản nối đầu truyền `dBong` (đích của bóng); khi bóng còn cách đích
+    20 m thì trọng tài đã ở vòng quanh **đích**, nên khoảng cách tới bóng **thật** tụt còn
+    5 m — **3.338/28.440 mốc** dưới 15 m, nhỏ nhất **0,00 m**.
+  - ⚠️ **Hai trợ lý phải lùi vào trong 3 m, không đứng đúng trên đường biên.** `buocCoHoc`
+    xoay vector vận tốc ở cổng quay mà **giữ nguyên độ lớn**, nên một trợ lý đổi chiều có
+    thành phần vận tốc **vuông góc** với biên trong vài bước — và nó mang ô ấy **ra ngoài
+    sân**: **292 mốc** ở hai ô `AR1`/`AR2`. Cùng lý do ấy, đích trọng tài chính phải nằm
+    trong lề **4 m** (đo quét 2/3/4/5: lề 2 còn 23 mốc ra ngoài, lề 3 còn 6, lề 4 về **0**).
+    Cái giá: hậu vệ cuối vào sát biên ngang thì trợ lý lệch tối đa **3 m**.
+  - 🐞 **Phép kiểm mệnh đề (b) RỖNG hai lần, và lần hai mới tìm ra bằng đột biến.** Bỏ hẳn
+    phép lọc lề mà **53/53 phép kiểm vẫn xanh**. Lý do: `khoangToiDoan` đo tới **ĐOẠN**, nên
+    với đoạn chuyền ngắn (nửa 12 m) thì một ứng viên nằm trên chính đường chuyền mà cách bóng
+    25 m vẫn **vượt quá đầu đoạn 13 m** — hình học tự làm (b) đúng. Chữa bằng hai thứ: thêm
+    chỗ đứng **đối nghịch** (trọng tài đứng đúng trên đường chuyền kéo dài) và cho nửa đoạn
+    chạy cả **40 m** — đường chuyền thật dài tới 84 m. Sau đó đột biến mới giết được: 0 m so
+    với lề 3 m.
+  - 📏 **Kết quả cuối, 20 mã / 113.460 mốc:** (a) đích cách bóng đúng 25 m — lệch khỏi 25 m
+    **< 1e-9** trên **8.568 bộ** hình học, tức đúng tới float; (b) khoảng cách tới đường
+    chuyền nhỏ nhất **> 3 m** trên 17.136 bộ (có 2.000+ bộ bóng sát biên); (c) trợ lý lệch
+    trung vị **0,13 m**, p95 **4,28**, p99 **6,58**, lớn nhất **13,31 m** (nêu 14 m);
+    (d) độ trễ lớn nhất **19,87 m** (kẹp 20 m); gia tốc ba điểm **3,66 m/s²** dưới trần;
+    **0 mốc** có ô ra ngoài sân.
+  - ⚠️ **Con số 20 m chỉ dư 0,13 m, và nó đo trên mô hình bóng TẠM.** Quả bóng hiện bị kẹp
+    chung trần 9 m/s với người (`TRAN_TOC_DO_BONG = 25` nhưng `buocCoHoc` kẹp lại 9).
+    **T720** cho bóng vật lý thật, nên **T720 phải đo lại** con số này; phép kiểm mệnh đề (d)
+    là thứ sẽ bắt được.
+  - ✅ **Bảy phép đột biến, bảy phép kiểm đỏ**: chọn hướng xa đường chuyền nhất → TÍNH LIỀN
+    đỏ (12,1 m so với ngưỡng 13 m — bản sai nhảy cả **50 m**); bỏ lọc lề đường chuyền → (b)
+    đỏ; bỏ lề trong sân → 2 phép kiểm đỏ; trợ lý ra đúng biên → 1 rồi 2 phép kiểm đỏ; vòng
+    quây quanh đích của bóng → (d) đỏ; ba điểm bắt đầu ở giữa sân → (c) đỏ.
+  - ➕ **Phạm vi nới hai chỗ, nói rõ ở đây**: `tranLienTuc.ts` (task khai `coHoc.ts`,
+    `coHoc.test.ts`, `loMoc.ts`) nhận mối nối ba ô trọng tài và chỗ xuất phát của chúng —
+    T725 đã là chủ sở hữu của vòng phút, và điều kiện ra của T716 đòi **đo trên trận thật**
+    nên không nối thì không đo được. Và `loMoc.ts` **0 dòng sửa**: T704 đã cấp 26 ô và T725
+    đã làm đường ghi tổng quát, nên ba cột `REF`/`AR1`/`AR2` đi chung đường với 22 ô người.
+  - 📏 Toàn bộ: **75 file / 1.527 phép kiểm xanh** (thêm 11); năm điều kiện ra của task chạm
+    `src/engine/` đều đạt — ba file lưới **0 dòng sửa**, `PHIEN_BAN_ENGINE` vẫn **6**,
+    `DB_VERSION` vẫn **3**, `SCHEMA_VERSION` vẫn **5**, `MOC_V6` không một ký tự.
 
 **Xem được gì ngay sau Phase 54:** cầu thủ chạy, tăng tốc và **phanh** trong mức người thật làm
 được; không ai nhảy một đoạn; người rê bóng đi **vòng qua** đối thủ; thủ môn **tự** ở lại sân
