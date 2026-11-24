@@ -1,4 +1,20 @@
+import type { LoaiHanhDong } from '../chuoiBong'
 import { TAM_X, TAM_Y } from '../hinhHocSan'
+import {
+  dieuKienTuMaTran,
+  gioCoAnVaoDuongBong,
+  type DieuKienTran,
+} from './dieuKien'
+import {
+  bongTaiThoiDiem,
+  dinhQuyDao,
+  gocPhatTatCanh,
+  phatBong,
+  quangLechGio,
+  thoiGianBay,
+  tocDoDuongBong,
+  type TrangThaiBayBong,
+} from './vatLyBong'
 import {
   buocCoHoc,
   tachChen,
@@ -20,9 +36,11 @@ import {
   type TrangThaiTran,
 } from '../tran'
 import {
+  type BoCucPha,
+  boCucPha,
   BUOC_MOI_CHUOI,
+  BUOC_MOI_HANH_DONG,
   dienChuoiRaMoc,
-  type TenPhaCon,
 } from './dienPha'
 import { hatGiongDong, RUT_MOI_MOC } from './hatGiong'
 import {
@@ -110,6 +128,14 @@ export interface TrangThaiLienTuc {
    * lại từ mã trận. Đây là trạng thái lúc chạy, không phải dữ liệu.
    */
   readonly coHoc: readonly TrangThaiCoHoc[]
+  /**
+   * Thời tiết và gió của trận — dẫn xuất từ mã trận, **không** vào bản ghi.
+   *
+   * Mang theo thay vì băm lại ở mỗi mốc: một trận có ~5.400 mốc, và hàm băm là
+   * thuần nên băm lại luôn ra đúng con số ấy — mang theo chỉ để khỏi băm 5.400
+   * lần. `DB_VERSION` giữ 3, đúng AC-45.4.
+   */
+  readonly dieuKien: DieuKienTran
 }
 
 /** Một phút đã mô phỏng: trạng thái sau, lô mốc, và số lần rút mỗi mốc. */
@@ -147,6 +173,7 @@ export function taoTranLienTuc(cauHinh: CauHinhTran): TrangThaiLienTuc {
     maTran: cauHinh.maTran,
     chiSoMoc: 0,
     coHoc: coHocXuatPhat(tran),
+    dieuKien: dieuKienTuMaTran(tran.maTran),
   }
 }
 
@@ -178,14 +205,172 @@ const SO_NGUOI_TREN_SAN = CHI_SO_TRONG_TAI
 /** Bước tích phân, nửa giây — đúng lưới mốc của D119. */
 const DT_MOC = 0.5
 
+/*
+  ====================================================================
+  QUẢ BÓNG ĐI THEO VẬT LÝ CỦA NÓ, KHÔNG ĐI NHƯ MỘT NGƯỜI (T726).
+  ====================================================================
+
+  Trước lát này ô bóng bước qua chính `buocCoHoc` với một trần tạm 25 m/s, mà
+  `buocCoHoc` kẹp lại `TRAN_TOC_DO_TUYET_DOI` = 9 m/s — tức **một đường chuyền
+  dài bay chậm hơn người chạy**, cột `z`/`vz` của cả 26 ô là **0 ở mọi mốc**, và
+  nợ của T706 ("không đường chuyền nào dưới sàn 12 m/s của AC-38.6") treo nguyên.
+
+  ⚠️ **MỘT ĐOẠN GIAO BÓNG LÀ MỘT LẦN RỜI CHÂN, VÀ NÓ TỚI ĐÍCH ĐÚNG GIÂY `d/v`.**
+  Trong một đoạn, quả bóng đi **tốc độ không đổi** — không có ma sát mặt sân —
+  vì AC-38.6 nói thời gian bay **phải khớp** khoảng cách chia tốc độ, và đó là
+  một mệnh đề **tuyệt đối**. Một quả bóng vừa bị ma sát hãm vừa phải tới đúng
+  giây `d/v` là hai điều không cùng đúng được.
+
+  ⚠️ **Hệ quả phải nói thẳng: `MA_SAT_LAN_SET` của AC-38.7 CHƯA có người gọi
+  trong vòng phút.** Mô hình pha bóng của `dienPha.ts` không có trạng thái "bóng
+  lăn tự do": mỗi hành động **giao** bóng tới một vùng, và `vungKetThuc` là chỗ
+  pha bóng kết thúc **theo định nghĩa**. Ma sát chỉ có việc khi có một quả bóng
+  **không ai điều khiển** — thứ spec 008 mang vào cùng luật IFAB (ném biên, phát
+  bóng, bóng bật ra). Hôm nay nó được canh ở mức **hàm thuần**, 5 phép kiểm
+  trong `vatLyBong.test.ts`, và **T742** đo lại trên tệp xuất.
+
+  Gió thì **có** người gọi: quả tạt dài hơn 25 m và bổng hơn 1,5 m đi lệch
+  `HE_SO_GIO × tocDoGio × thờiGianBay`.
+*/
+
+/** Một đoạn giao bóng: một lần rời chân, và đích của nó. */
+interface DoanGiaoBong {
+  /**
+   * Định danh đoạn — đổi mã nghĩa là một lần **rời chân** mới.
+   *
+   * Mang theo **chỉ số pha**, không chỉ tên đoạn. 🐞 Bản đầu đặt lại
+   * `doanBong = null` ở đầu mỗi pha để hai pha liền nhau không dùng chung mã
+   * `'len'`; một phép đột biến xoá dòng ấy mà **29/29 phép kiểm vẫn xanh**, vì
+   * mọi pha đều kết ở đoạn `'ket'` nên mã **tình cờ** luôn khác. Một dòng chỉ
+   * đúng nhờ may là một dòng không ai canh: mã có chỉ số pha thì nó đúng **theo
+   * cấu trúc**, và dòng đặt lại biến mất.
+   */
+  readonly ma: string
+  readonly den: Diem
+  readonly phat: TrangThaiBayBong
+  /** Bước (nửa giây) trong pha mà đoạn này bắt đầu. */
+  readonly buocBatDau: number
+  readonly quang: number
+  readonly giayBay: number
+  /** Quãng gió thổi lệch trong cả đoạn, mét — 0 nếu hai cửa gió không mở. */
+  readonly lechGioCuoi: number
+}
+
 /**
- * Trần tốc độ của quả bóng, m/s — **tạm, cho tới T720**.
+ * Dãy điểm quả bóng đi qua trong một pha: mỗi hành động một điểm, rồi điểm kết.
  *
- * AC-38.1 (9 m/s) nói về **cầu thủ**; một quả bóng đi nhanh hơn thế là bóng đá
- * thật. Vật lý bóng — `z`, `vz`, `thoiGianBay = d/v` — là **T720**, nên ở đây
- * quả bóng chỉ cần một trần đủ rộng để nó theo kịp pha bóng.
+ * `cacHanhDong[i]` là một hành động **xảy ra tại** `vung[i]`, nên đoạn thứ `i`
+ * mang bóng từ điểm `i` sang điểm `i + 1`, và đoạn cuối mang nó tới
+ * `vungKetThuc`. Pha không có hành động nào thì chỉ còn đúng điểm kết.
  */
-const TRAN_TOC_DO_BONG = 25
+function cacDiemCuaPha(pha: KetCucPhaV6): readonly Diem[] {
+  return [
+    ...pha.kq.cacHanhDong.map((h) => tamVungMet(h.vung, pha.doi)),
+    tamVungMet(pha.kq.vungKetThuc, pha.doi),
+  ]
+}
+
+/** Mô tả đoạn đang diễn ở bước `b`, hoặc `null` khi bóng đã nằm yên. */
+function moTaDoanTaiBuoc(
+  pha: KetCucPhaV6,
+  boCuc: BoCucPha,
+  b: number,
+  chiSoPha: number,
+): { ma: string; den: Diem; loai: LoaiHanhDong; buocBatDau: number } | null {
+  const cac = pha.kq.cacHanhDong
+  const diem = cacDiemCuaPha(pha)
+
+  if (b < boCuc.lenBong) {
+    return {
+      ma: `${chiSoPha}:len`,
+      den: diem[0]!,
+      loai: 'chuyen',
+      buocBatDau: 0,
+    }
+  }
+  if (b < boCuc.lenBong + boCuc.chuoi && cac.length > 0) {
+    const i = Math.min(
+      cac.length - 1,
+      Math.floor((b - boCuc.lenBong) / BUOC_MOI_HANH_DONG),
+    )
+    return {
+      ma: `${chiSoPha}:c${i}`,
+      den: diem[i + 1]!,
+      loai: cac[i]!.loai,
+      buocBatDau: boCuc.lenBong + i * BUOC_MOI_HANH_DONG,
+    }
+  }
+  if (b < boCuc.lenBong + boCuc.chuoi + boCuc.ketCuc) {
+    /*
+      Kết cục là **lần giao cuối**: nó mang bóng tới `vungKetThuc`. Nếu đoạn
+      chuỗi đã đưa bóng tới đó rồi thì quãng bằng 0 và quả bóng chỉ nằm yên —
+      không phải một ca riêng, chỉ là một đoạn dài 0 mét.
+    */
+    return {
+      ma: `${chiSoPha}:ket`,
+      den: diem[diem.length - 1]!,
+      loai: pha.kq.ketCuc === 'dut-diem' ? 'sut' : 'chuyen',
+      buocBatDau: boCuc.lenBong + boCuc.chuoi,
+    }
+  }
+  // Bóng chết: quả bóng nằm đúng chỗ nó dừng, không ai giữ (AC-37.6).
+  return null
+}
+
+/** Dựng một đoạn giao bóng từ chỗ bóng đang nằm tới đích của đoạn. */
+function dungDoan(
+  moTa: { ma: string; den: Diem; loai: LoaiHanhDong; buocBatDau: number },
+  tu: Diem,
+  dieuKien: DieuKienTran,
+): DoanGiaoBong {
+  const quang = Math.hypot(moTa.den.x - tu.x, moTa.den.y - tu.y)
+  const v = tocDoDuongBong(quang, moTa.loai)
+  /*
+    Chỉ quả tạt được nâng lên. D129 đã **đo** rồi mới chốt: `tat-canh` là hành
+    động duy nhất có `z` vượt 1,5 m (3.138/37.202 bước không-sút = 8,4%).
+  */
+  const goc = moTa.loai === 'tat-canh' ? gocPhatTatCanh(quang, v) : 0
+  const phat = phatBong(tu, moTa.den, moTa.loai, goc)
+  const giayBay = quang === 0 ? 0 : thoiGianBay(quang, v)
+  const coGio = gioCoAnVaoDuongBong(dinhQuyDao(phat), quang)
+  return {
+    ma: moTa.ma,
+    den: moTa.den,
+    phat,
+    buocBatDau: moTa.buocBatDau,
+    quang,
+    giayBay,
+    lechGioCuoi: coGio ? quangLechGio(dieuKien, giayBay) : 0,
+  }
+}
+
+/**
+ * Quả bóng ở giây thứ `giay` của một đoạn giao bóng.
+ *
+ * Tới đích rồi thì **nằm ở đích** — quả bóng đã vào chân người nhận, nó không
+ * lăn tiếp qua chân anh ta. Gió cộng vào theo **thời gian trên không**, nên chỗ
+ * nằm cuối đoạn cũng mang đủ phần lệch ấy: không có bước nhảy ở giây `d/v`.
+ */
+function bongTrongDoan(
+  doan: DoanGiaoBong,
+  giay: number,
+  dieuKien: DieuKienTran,
+): TrangThaiBayBong {
+  const t = Math.min(Math.max(0, giay), doan.giayBay)
+  const bay = bongTaiThoiDiem(doan.phat, t)
+  const phanGio =
+    doan.giayBay === 0 ? 0 : (doan.lechGioCuoi * t) / doan.giayBay
+  const gocGio = (dieuKien.huongGio * Math.PI) / 180
+  const daToi = giay >= doan.giayBay
+  return {
+    x: bay.x + Math.cos(gocGio) * phanGio,
+    y: bay.y + Math.sin(gocGio) * phanGio,
+    z: bay.z,
+    vx: daToi ? 0 : bay.vx,
+    vy: daToi ? 0 : bay.vy,
+    vz: daToi ? 0 : bay.vz,
+  }
+}
 
 /** Một thực thể đứng yên tại chỗ, hướng nhìn về phía trước sân. */
 function dung(x: number, y: number, huong = 0): TrangThaiCoHoc {
@@ -234,49 +419,6 @@ function coHocXuatPhat(tran: TrangThaiTran): readonly TrangThaiCoHoc[] {
 
 /** Tâm sân theo trục dọc, để khỏi import thêm một hằng số chỉ dùng một lần. */
 const DAI_SAN_TAM = TAM_X
-
-/**
- * Đích của quả bóng ở một pha con.
- *
- * `lenBong` nhắm bước đầu của chuỗi, `chuoi` đi lần lượt qua các bước, còn
- * `ketCuc` và `bongChet` đứng ở vùng kết thúc. Vùng tính theo hướng tấn công
- * của **đội tổ chức pha** — đúng quy ước `dai` của `vung.ts`.
- */
-function dichBong(
-  pha: KetCucPhaV6,
-  phaCon: TenPhaCon,
-  phan: number,
-): Diem {
-  const cac = pha.kq.cacHanhDong
-  if (phaCon === 'ketCuc' || phaCon === 'bongChet' || cac.length === 0) {
-    return tamVungMet(pha.kq.vungKetThuc, pha.doi)
-  }
-  if (phaCon === 'lenBong') return tamVungMet(cac[0]!.vung, pha.doi)
-  const i = Math.min(cac.length - 1, Math.floor(phan * cac.length))
-  return tamVungMet(cac[i]!.vung, pha.doi)
-}
-
-/**
- * Đoạn đường chuyền đang diễn, hoặc `null` khi bóng không đang được chuyền.
- *
- * Mệnh đề (b) của AC-38.10 nói trọng tài **không nằm trên đường chuyền**, nên
- * phải biết đường ấy là đoạn nào. Chỉ pha con `chuoi` mới có đường chuyền:
- * `lenBong` là lúc bóng mới lên, `ketCuc` và `bongChet` thì bóng đứng.
- */
-function duongChuyenDangDien(
-  pha: KetCucPhaV6,
-  phaCon: TenPhaCon,
-  phan: number,
-): { tu: Diem; den: Diem } | null {
-  const cac = pha.kq.cacHanhDong
-  if (phaCon !== 'chuoi' || cac.length < 2) return null
-  const i = Math.min(cac.length - 1, Math.floor(phan * cac.length))
-  if (i === 0) return null
-  return {
-    tu: tamVungMet(cac[i - 1]!.vung, pha.doi),
-    den: tamVungMet(cac[i]!.vung, pha.doi),
-  }
-}
 
 /**
  * `x` của **hậu vệ thứ hai từ dưới lên** của mỗi đội — mệnh đề (c) của AC-38.10.
@@ -410,6 +552,23 @@ export function buocPhutLienTuc(ttVao: TrangThaiLienTuc): MotPhutLienTuc {
   /** Trạng thái cơ học đang chạy — bước qua từng mốc, mang sang phút sau. */
   let coHoc = [...ttVao.coHoc]
 
+  /*
+    Quả bóng có trạng thái **riêng**, không nằm trong `coHoc`, vì nó có thêm `z`
+    và `vz` mà một ô người không có. Nó khởi từ đúng chỗ ô bóng của phút trước
+    đang đứng, nên không có bước nhảy ở ranh giới phút.
+  */
+  const oBongVao = ttVao.coHoc[CHI_SO_BONG]
+  let bong: TrangThaiBayBong = {
+    x: oBongVao?.x ?? TAM_X,
+    y: oBongVao?.y ?? TAM_Y,
+    z: 0,
+    vx: 0,
+    vy: 0,
+    vz: 0,
+  }
+  /** Đoạn giao bóng đang diễn; `null` ở đầu mỗi pha và khi bóng chết. */
+  let doanBong: DoanGiaoBong | null = null
+
   /**
    * Một mốc: tính đích cho 26 ô, bước cơ học, tách chen, trả thực thể.
    *
@@ -420,24 +579,60 @@ export function buocPhutLienTuc(ttVao: TrangThaiLienTuc): MotPhutLienTuc {
    */
   function thucTheTaiMoc(
     pha: KetCucPhaV6,
-    phaCon: TenPhaCon,
+    boCuc: BoCucPha,
+    b: number,
     nguoiGiu: number,
-    phan: number,
+    chiSoPha: number,
   ): readonly ThucTheTaiMoc[] {
-    const dBong = dichBong(pha, phaCon, phan)
     /*
-      ⚠️ Vòng 25 m quây quanh **CHỖ BÓNG ĐANG Ở**, không quanh chỗ bóng sắp tới.
+      1. QUẢ BÓNG trước, vì mọi đích khác đều đọc chỗ nó đang nằm.
 
-      Bản đầu truyền `dBong` — tức ĐÍCH của quả bóng — và mệnh đề (a) vỡ ở
-      **3.338/28.440 mốc**, chỗ gần nhất **0,00 m**. Lý do: khi quả bóng còn
-      cách đích 20 m thì trọng tài đã đứng ở vòng 25 m quanh ĐÍCH, nên khoảng
-      cách tới quả bóng THẬT tụt xuống còn 5 m. Quây quanh chỗ bóng đang ở thì
-      đích luôn cách bóng đúng 25 m, và sai lệch còn lại chỉ là **độ trễ đuổi
-      theo** — thứ bị chặn bởi trần tốc độ, không bị chặn bởi hình học.
+      Đổi mã đoạn nghĩa là một lần **rời chân** mới, và lần ấy xuất phát từ chỗ
+      quả bóng **đang nằm** chứ không từ tâm vùng — nhờ thế không có bước nhảy
+      nào ở ranh giới hai hành động, kể cả khi đoạn trước chưa kịp tới đích.
     */
+    const moTa = moTaDoanTaiBuoc(pha, boCuc, b, chiSoPha)
+    if (moTa === null) {
+      bong = { ...bong, vx: 0, vy: 0, vz: 0 }
+    } else {
+      if (doanBong === null || doanBong.ma !== moTa.ma) {
+        doanBong = dungDoan(moTa, { x: bong.x, y: bong.y }, ttVao.dieuKien)
+      }
+      bong = bongTrongDoan(
+        doanBong,
+        (b - doanBong.buocBatDau) * DT_MOC,
+        ttVao.dieuKien,
+      )
+    }
+    const dBong: Diem = { x: bong.x, y: bong.y }
+
+    /*
+      2. BA ĐIỂM TRỌNG TÀI. Đường chuyền để mệnh đề (b) của AC-38.10 trỏ vào nay
+      là **chính đoạn giao bóng đang bay**, không còn là một phép xấp xỉ theo
+      phần trăm pha — đoạn ấy biết cả chỗ rời chân lẫn đích của nó.
+    */
+    const dangBay =
+      doanBong !== null &&
+      moTa !== null &&
+      doanBong.quang > 0 &&
+      (b - doanBong.buocBatDau) * DT_MOC < doanBong.giayBay
+    const duongChuyen =
+      dangBay && doanBong !== null
+        ? { tu: { x: doanBong.phat.x, y: doanBong.phat.y }, den: doanBong.den }
+        : null
+
+    /*
+      ⚠️ **Trọng tài bám CHỖ PHA BÓNG SẮP TỚI, không bám quả bóng đang bay** —
+      người dùng chốt 2026-11-24 (câu 26). Một trọng tài thật **đọc trận**: khi
+      quả bóng rời chân bay 60 m, ông ta chạy về chỗ nó sắp tới chứ không đuổi
+      theo nó giữa đường. Đo trên 10 mã: lệch lớn nhất **46,5 → 37,9 m**, và
+      lúc bóng nằm yên **42,7 → 34,7 m** — mọi phân vị đều tốt lên.
+    */
+    const neoTrongTai: Diem =
+      dangBay && doanBong !== null ? doanBong.den : dBong
     const dichTo = viTriTrongTai(
-      coHoc[CHI_SO_BONG] ?? dBong,
-      duongChuyenDangDien(pha, phaCon, phan),
+      neoTrongTai,
+      duongChuyen,
       hangThuCuoiCua(coHoc),
       coHoc[CHI_SO_TRONG_TAI] ?? dBong,
     )
@@ -446,15 +641,18 @@ export function buocPhutLienTuc(ttVao: TrangThaiLienTuc): MotPhutLienTuc {
       [CHI_SO_TRO_LY_1]: dichTo.troLy1,
       [CHI_SO_TRO_LY_2]: dichTo.troLy2,
     }
+
+    // 3. Hai mươi hai ô NGƯỜI, cộng ba điểm trọng tài, đi qua cùng một phép bước.
     const sau: TrangThaiCoHoc[] = coHoc.map((tt, o) => {
       if (o === CHI_SO_BONG) {
-        return buocCoHoc(tt, dBong, TRAN_TOC_DO_BONG, DT_MOC)
+        /*
+          Ô bóng KHÔNG bước qua `buocCoHoc` nữa: một quả bóng không có trần
+          9 m/s, không có trần quay người, và không chạy lùi chậm hơn chạy tới.
+          Nó vẫn được ghi vào `coHoc` để `hangThuCuoiCua` và vòng trọng tài đọc
+          được chỗ nó đang nằm.
+        */
+        return { x: bong.x, y: bong.y, vx: bong.vx, vy: bong.vy, huong: tt.huong }
       }
-      /*
-        Ba điểm trọng tài đi qua CHÍNH `buocCoHoc` như mọi người khác, nên
-        chúng không teleport và AC-38.2 đúng cho chúng y như cho cầu thủ —
-        đúng điều D133 chốt.
-      */
       const dichTrongTai = dichCuaO[o]
       if (dichTrongTai) {
         return buocCoHoc(tt, dichTrongTai, TRAN_TOC_DO_TUYET_DOI, DT_MOC)
@@ -477,10 +675,10 @@ export function buocPhutLienTuc(ttVao: TrangThaiLienTuc): MotPhutLienTuc {
     return sau.map((t, o) => ({
       x: t.x,
       y: t.y,
-      z: 0,
+      z: o === CHI_SO_BONG ? bong.z : 0,
       vx: t.vx,
       vy: t.vy,
-      vz: 0,
+      vz: o === CHI_SO_BONG ? bong.vz : 0,
       huong: t.huong,
       coMat: coMat[o] ?? 1,
     }))
@@ -490,19 +688,15 @@ export function buocPhutLienTuc(ttVao: TrangThaiLienTuc): MotPhutLienTuc {
     const pha = cacPha[i]!
     const truocKhiGhi = lo.soMocDaGhi
     const mocDauChuoi = mocDau + i * BUOC_MOI_CHUOI
+    const boCuc = boCucPha(pha.kq.ketCuc, pha.kq.cacHanhDong.length)
     dienChuoiRaMoc(
       pha,
       mocDauChuoi,
       lo,
       oCuaNguoiGiu(pha),
       coMat,
-      (chiSoMoc, phaCon, nguoiGiu) =>
-        thucTheTaiMoc(
-          pha,
-          phaCon,
-          nguoiGiu,
-          (chiSoMoc - mocDauChuoi) / BUOC_MOI_CHUOI,
-        ),
+      (chiSoMoc, _phaCon, nguoiGiu) =>
+        thucTheTaiMoc(pha, boCuc, chiSoMoc - mocDauChuoi, nguoiGiu, i),
     )
 
     /*
@@ -528,6 +722,7 @@ export function buocPhutLienTuc(ttVao: TrangThaiLienTuc): MotPhutLienTuc {
       maTran: ttVao.maTran,
       chiSoMoc: mocDau + BUOC_MOI_PHUT,
       coHoc,
+      dieuKien: ttVao.dieuKien,
     },
     lo,
     rutMoiMoc,

@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **30 AC**) |
 | **Plan** | `./plan.md` (Status `Approved`, D117–D134, R51–R64) |
-| **Tiến độ** | 26/49 |
+| **Tiến độ** | 27/50 |
 | **Nền đo** | commit `5c652eb`, engine v6, **1.304 test xanh / 63 file test** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -1236,9 +1236,79 @@ vì lớp dao động đã tắt — **phải báo trước.**
     duy nhất. **T761** là chỗ danh sách kiểm bằng mắt sống.
   - ✅ Toàn bộ: **77 file / 1.593 phép kiểm xanh** (thêm 6); `npx tsc --noEmit` sạch.
 
-**Xem được gì ngay sau Phase 55:** bóng **bay bổng** ở các quả tạt và **có người đánh đầu**;
-đường chuyền ngắn trông khác đường chuyền dài; bóng lăn xa hơn khi trời mưa; cạnh mã trận có
-một dòng chữ nói thời tiết và gió, bằng ngôn ngữ đang chọn.
+
+- [x] **T726** — **Nối vật lý bóng vào lô mốc** (lấp lỗ thứ bảy, người dùng chốt 2026-11-24)
+  - File: `src/engine/lienTuc/tranLienTuc.ts`, `src/engine/lienTuc/tranLienTuc.test.ts`,
+    `src/engine/lienTuc/coHoc.ts` (lề độ trễ), `src/engine/lienTuc/coHoc.test.ts`
+  - Xong khi: trên 10 mã, ở **mọi** mốc — (a) tốc độ quả bóng hoặc **đúng bằng** trần tốc độ
+    NGƯỜI (bóng trong chân người dẫn) hoặc nằm trong **[12; 30] m/s** của AC-38.6, và
+    **không một đường bóng được đánh nào dưới sàn 12 m/s** — đúng món nợ **T706** ghi;
+    (b) quả bóng **không teleport**: giữa hai mốc đã ghi đi không quá `30 m/s × 1 giây`;
+    (c) `z` **thật sự** lớn hơn 0 ở các quả tạt và rơi trong dải đánh đầu, còn 25 ô người
+    có `z ≡ 0`; (d) điều kiện trận **mang theo** đúng thứ mã trận sinh ra.
+  - AC: **AC-38.5**, **AC-38.6**, AC-38.9, AC-37.1 — và trả nợ cho **T706**
+  - Phụ thuộc: T720, T721, T722, T723, T725
+  - 🐞 **Lỗ này là lỗ THỨ BẢY cùng hình dạng**, tìm ra lúc implement T720 bằng cùng một
+    phép soát: grep từng ký hiệu của bảng Contracts rồi hỏi *ai gọi nó*. Năm task của
+    Phase 55 chạm đúng bốn nhóm file và **không task nào** chạm `tranLienTuc.ts`.
+  - ⚠️ **MỘT ĐOẠN GIAO BÓNG LÀ MỘT LẦN RỜI CHÂN, và nó tới đích đúng giây `d/v`.** Trong
+    một đoạn, quả bóng đi **tốc độ không đổi** — không ma sát mặt sân — vì AC-38.6 nói
+    thời gian bay **phải khớp** `d/v` và đó là mệnh đề **tuyệt đối**. Một quả bóng vừa bị
+    ma sát hãm vừa phải tới đúng giây ấy là hai điều **không cùng đúng được**.
+  - ⚠️ **Hệ quả phải nói thẳng: `MA_SAT_LAN_SET` của AC-38.7 CHƯA có người gọi trong vòng
+    phút.** Mô hình pha bóng của `dienPha.ts` không có trạng thái "bóng lăn tự do": mỗi
+    hành động **giao** bóng tới một vùng, và `vungKetThuc` là chỗ pha kết thúc **theo định
+    nghĩa**. Ma sát chỉ có việc khi có quả bóng **không ai điều khiển** — thứ **spec 008**
+    mang vào cùng luật IFAB. Hôm nay nó được canh ở mức **hàm thuần** (5 phép kiểm ở
+    `vatLyBong.test.ts`) và **T742** sẽ đo lại trên tệp xuất. **Gió thì CÓ người gọi.**
+  - 🐞 **Mệnh đề (d) của AC-38.10 đỏ ngay, đúng như T720 đã gài.** Lề 20 m đo khi bóng còn
+    bị kẹp 9 m/s; bóng bay 30 m/s thì nó thành **46,48 m**. Người dùng chốt (câu 26): đổi
+    neo sang **chỗ pha bóng sắp tới** và nới lề **20 → 50 m**. Ba chính sách đã đo: bám quả
+    bóng **46,5**, bám chỗ pha bóng **37,9** (10 mã) / **48,09** (20 mã). Sàn của độ trễ là
+    **số học của lưới thời gian**: mỗi hành động 2 giây, hai tâm vùng cách tới 84 m, trọng
+    tài đi được 18 m → **không chính sách nào xuống dưới ~33 m**.
+  - ✅ **Đã kiểm đuôi ấy là VẬT LÝ chứ không phải LỖI**, trước khi xin nới số: quả bóng
+    **không teleport lần nào**, nhảy xa nhất **đúng 30,00 m** giữa hai mốc = `30 m/s × 1 s`.
+    Ca tệ nhất đọc ra được: bóng ở (19, 18) chạy 21,7 m/s, trọng tài ở (73, 50) chạy 7,6 —
+    pha bóng vừa đổi đầu sân.
+  - 🐞 **Một phép kiểm cũ của chính tôi đỏ, và nó đỏ ĐÚNG.** T721 khẳng định
+    `lề độ trễ < 25 m` với lý lẽ: lề ≥ 25 thì (d) cho phép khoảng cách bằng 0, tức trọng
+    tài đứng trên quả bóng. Lý lẽ **vẫn đúng**, và người dùng đã **chọn trả đúng cái giá
+    ấy** sau khi nó được nói ra bằng số. Phép kiểm nay canh thứ **vẫn còn có răng**: dải mà
+    (d) cho phép (25 + 50 = 75 m) phải **hẹp hơn chiều dài sân** — nó vẫn bắt được điểm
+    trọng tài **chết hẳn hoặc bay loạn**, và câu chú thích nói thẳng thứ đã mất.
+  - 🐞 **`LE_FLOAT32 = 1e-6` gõ tay của T725 KHÔNG đủ, và phép kiểm đỏ đúng vì thế.** Bước
+    float32 **tỉ lệ với giá trị**: quanh 9 là 9,5e-7 (nên 1e-6 vừa đủ), quanh 30 là 1,9e-6,
+    quanh 105 là 7,6e-6 — và một khoảng cách dựng từ hai hiệu toạ độ còn cộng dồn: đo được
+    **5,1e-6**. Lề nay **dẫn xuất** từ chính giá trị đang so (`leLo`), không gõ tay.
+  - 🐞 **Một dòng MÃ CHẾT, tìm ra bằng đột biến.** Bản đầu đặt lại `doanBong = null` ở đầu
+    mỗi pha; xoá nó đi mà **29/29 phép kiểm vẫn xanh**, vì mọi pha đều kết ở đoạn `ket` nên
+    mã đoạn **tình cờ** luôn khác. Một dòng chỉ đúng nhờ may là một dòng không ai canh, nên
+    mã đoạn nay mang **chỉ số pha** và nó đúng **theo cấu trúc**; dòng đặt lại biến mất.
+  - 📏 **Đo trên 10 mã / 56.880 mốc:** tốc độ bóng lớn nhất **30,00 m/s** (chạm đúng trần
+    AC-38.6), trung vị khi chạy **20,54**; bóng chạy ở **23,4%** số mốc; **1.008 mốc** dưới
+    12 m/s và **tất cả đều đúng 9,00** — tức bóng trong chân người dẫn, không phải đường
+    chuyền, nên nợ T706 **đã trả**. `z > 0` ở **269 mốc**, trong đó **166** ở tầm đánh đầu;
+    `z` lớn nhất **5,92 m**; **0 mốc** có z âm. **0 ô** ra ngoài sân, **0 ô** ở gốc toạ độ.
+  - ✅ **Năm phép đột biến, năm lần đỏ** (sau khi chữa mã chết): ô bóng quay về `buocCoHoc`
+    → 2 đỏ; quả tạt không được nâng → 1 đỏ; `re-bong` bị coi như một cú đánh → 1 đỏ; bỏ `z`
+    khỏi lô → 1 đỏ.
+  - ⚠️ **Và thứ T726 KHÔNG giao: lớp VẼ.** Sân 2D chưa đọc lô mốc — `ui/mocVe.ts` là **T732**
+    và vòng rAF là **T733**, cả hai ở **Phase 56**. Nên hôm nay quả bóng bay bổng **trong dữ
+    liệu**, và mắt chỉ thấy được sau Phase 56.
+  - 📏 Toàn bộ: **77 file / 1.597 phép kiểm xanh**; `loMoc.ts`, `chuoiBong.ts` và bốn file
+    bất khả xâm **0 dòng sửa**; `PHIEN_BAN_ENGINE` vẫn 6, `DB_VERSION` vẫn 3,
+    `SCHEMA_VERSION` vẫn 5.
+
+**Xem được gì ngay sau Phase 55:** cạnh mã trận có một dòng chữ nói **thời tiết và gió** của
+trận, bằng ngôn ngữ đang chọn — và đó là thứ **duy nhất** mắt thấy được ở lát này.
+
+> ⚠️ **Lời hứa cũ của phase nói quá, sửa lại ngày 2026-11-24.** Nó viết "bóng **bay bổng** ở
+> các quả tạt và **có người đánh đầu**; đường chuyền ngắn trông khác đường chuyền dài; bóng lăn
+> xa hơn khi trời mưa". Sau **T726** thì cả ba điều ấy **đúng trong DỮ LIỆU** — tốc độ bóng
+> 12–30 m/s, `z` rơi trong dải đánh đầu, ma sát theo thời tiết — nhưng **không điều nào mắt
+> thấy được**, vì sân 2D **chưa đọc lô mốc**: `ui/mocVe.ts` là **T732** và vòng rAF là **T733**,
+> cả hai ở **Phase 56**. Nói "xem được" khi chưa xem được là đúng thứ `/analyze` phải bắt.
 
 > ## ⚠️ LỖ THỨ BẢY CÙNG HÌNH DẠNG — không task nào NỐI vật lý bóng vào lô mốc
 >
@@ -1260,10 +1330,9 @@ một dòng chữ nói thời tiết và gió, bằng ngôn ngữ đang chọn.
 > Bảng phủ AC cũng nói đúng điều ấy: **AC-38.5** trỏ vào `T721, T742` và **AC-38.6** trỏ
 > vào `T720, T742` — mà **T742 chỉ ĐO**, đúng như AC-38.10 từng trỏ vào hai task chỉ đo.
 >
-> **Việc còn thiếu** (một task, chỗ trống **T726**): cho ô bóng của lô mốc đi theo
+> ✅ **ĐÃ LẤP: T726, người dùng chốt "Thêm và làm luôn" ngày 2026-11-24.** Việc đã làm: cho ô bóng của lô mốc đi theo
 > `phatBong`/`bongTaiThoiDiem` thay vì theo `buocCoHoc`, ghi `z`/`vz` thật, và đặt nó ở
-> **cuối Phase 55** vì nó cần cả `zKhiToi` (T721) và ma sát (T723). Chưa làm, chưa thêm —
-> **đang chờ người dùng quyết**, đúng kỷ luật phạm vi.
+> **cuối Phase 55** vì nó cần cả `zKhiToi` (T721) và ma sát (T723).
 
 ---
 

@@ -728,12 +728,28 @@ export const KHOANG_TRONG_TAI = 25
  * tài đi ≤ 8 m sai hướng → khe hở đổi ~16–20 m trong MỘT lần pha bóng đổi chiều,
  * trong khi dải 15–35 m chỉ cho 10 m dư mỗi phía.
  *
- * ⚠️ **Đo được 19,87 m, nên con số này chỉ dư 0,13 m** — và nó đo trên mô hình
- * bóng **TẠM** của T716, nơi quả bóng bị kẹp chung trần 9 m/s với người. **T720**
- * cho bóng vật lý thật, nên T720 **phải đo lại** con số này; phép kiểm mệnh đề
- * (d) ở `tranLienTuc.test.ts` là thứ sẽ bắt được.
+ * ⚠️ **Con số này đã PHẢI đo lại một lần, đúng như ghi chú cũ của nó dự.** Ở
+ * T716 nó là **20 m** (đo 19,87), nhưng lúc ấy quả bóng còn bị kẹp chung trần
+ * 9 m/s với người. **T726** cho bóng vật lý thật — tới **30 m/s** — và phép
+ * kiểm mệnh đề (d) **đỏ ngay**, đo lại được **46,48 m**.
+ *
+ * Người dùng chốt 2026-11-24 (câu 26): đổi neo sang **chỗ pha bóng sắp tới** và
+ * nới lề lên **50 m** (đo 48,09 trên 20 mã / 113.460 mốc, dư 1,91).
+ *
+ * **Vì sao không nhỏ hơn được, và đây là số học chứ không phải chính sách:**
+ * `dienPha.ts` cho mỗi hành động đúng **2 giây**, trong khi hai tâm vùng cách
+ * nhau tới **84 m**. Pha bóng nhảy 84 m trong 2 giây còn trọng tài đi được
+ * `9 × 2 = 18` m, nên độ trễ **không thể nhỏ hơn ~33 m** dù neo vào đâu. Ba
+ * chính sách đã đo: bám quả bóng **46,5 m**, bám chỗ pha bóng **37,9 m** (10
+ * mã) / **48,1 m** (20 mã). Đã kiểm đuôi ấy là **vật lý chứ không phải lỗi**:
+ * quả bóng không teleport lần nào, nhảy xa nhất **đúng 30,00 m** giữa hai mốc,
+ * tức đúng `30 m/s × 1 s`.
+ *
+ * ⚠️ **Cái giá đã nói trước khi chốt:** 50 m cho trọng tài cách bóng 0–75 m
+ * trên một sân dài 105 m, nên mệnh đề (d) nay chỉ còn bắt được loại lỗi "điểm
+ * trọng tài chết hẳn hoặc bay loạn", không còn bắt được "đứng sai chỗ".
  */
-export const LE_DO_TRE_TRONG_TAI = 20
+export const LE_DO_TRE_TRONG_TAI = 50
 
 /** Số hướng thử quanh quả bóng — 64 hướng, tức mỗi 5,625°. */
 export const SO_HUONG_TRONG_TAI = 64

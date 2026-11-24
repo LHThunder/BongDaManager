@@ -1225,11 +1225,25 @@ describe('viTriTrongTai — ba mệnh đề của AC-38.10 (T716)', () => {
   })
 
   /*
-    Lề độ trễ của mệnh đề (d) phải NHỎ HƠN 25 m. Nếu nó ≥ 25 thì mệnh đề ấy
-    cho phép khoảng cách tới bóng bằng 0 — trọng tài đứng trên quả bóng — và nó
-    thôi canh bất cứ thứ gì.
+    🐞 **Phép kiểm này từng đòi `lề < 25 m`, và nó đã ĐỎ ở T726 — đúng lúc nó
+    phải đỏ.** Lý lẽ cũ: lề ≥ 25 thì mệnh đề (d) cho phép khoảng cách tới bóng
+    bằng 0, tức trọng tài đứng trên quả bóng, và nó thôi canh bất cứ thứ gì.
+
+    Lý lẽ ấy vẫn **đúng**, và người dùng đã **chọn trả đúng cái giá ấy** ngày
+    2026-11-24 (câu 26) sau khi nó được nói ra bằng số: lề 50 m cho trọng tài
+    cách bóng **0–75 m**. Không chính sách nào giữ được một lề nhỏ hơn, vì sàn
+    của độ trễ là **số học của lưới thời gian** — mỗi hành động 2 giây, hai tâm
+    vùng cách tới 84 m, trọng tài đi được 18 m.
+
+    Nên phép kiểm nay canh thứ **vẫn còn đúng và vẫn còn có răng**: dải mà (d)
+    cho phép phải **hẹp hơn chiều dài sân**. Một điểm trọng tài chết hẳn hoặc
+    bay loạn sẽ vượt nó; một điểm đứng hơi sai chỗ thì không — và câu trên nói
+    thẳng rằng đó là thứ đã mất, chứ không giấu nó đi.
   */
-  it('và lề độ trễ của mệnh đề (d) nhỏ hơn chính 25 m', () => {
-    expect(LE_DO_TRE_TRONG_TAI).toBeLessThan(KHOANG_TRONG_TAI)
+  it('dải mà mệnh đề (d) cho phép vẫn HẸP HƠN chiều dài sân', () => {
+    expect(KHOANG_TRONG_TAI + LE_DO_TRE_TRONG_TAI).toBeLessThan(DAI_SAN)
+    // Và lề là một số dương hữu hạn, không phải một cánh cửa mở toang.
+    expect(LE_DO_TRE_TRONG_TAI).toBeGreaterThan(0)
+    expect(Number.isFinite(LE_DO_TRE_TRONG_TAI)).toBe(true)
   })
 })

@@ -191,7 +191,7 @@ hơn mức một cầu thủ thật làm được**, để **không còn cảm g
       nằm trên đường chuyền** — cách đoạn thẳng người giữ bóng → người nhận hơn một lề nêu
       bằng số; **(c)** mỗi trợ lý **ngang hàng hậu vệ cuối cùng** của nửa sân mình phụ trách,
       sai số nêu bằng số; **(d)** khoảng cách **THẬT** từ trọng tài chính tới bóng lệch khỏi
-      khoảng cách anh ta nhắm tới (**25 m**, đúng tâm dải) **không quá 20 m**. Sân 2D PHẢI
+      khoảng cách anh ta nhắm tới (**25 m**, đúng tâm dải) **không quá 50 m**. Sân 2D PHẢI
       **không vẽ** ba điểm này ở spec 007.
 
   > **Dải nới từ 15–25 m lên 15–35 m, người dùng chốt 2026-11-23.** Dải cũ **bất khả thi về
@@ -245,6 +245,33 @@ hơn mức một cầu thủ thật làm được**, để **không còn cảm g
   > TẠM của T716** — quả bóng hiện bị kẹp chung trần 9 m/s. **T720** cho bóng vật lý thật
   > (bay nhanh hơn người), nên nó **phải đo lại con số này**, và phép kiểm của mệnh đề (d) sẽ
   > là thứ bắt được.
+  >
+  > ---
+  >
+  > **Và nó đã phải đo lại, đúng ở T726, ngày 2026-11-24 (câu 26).** Khi quả bóng được nối
+  > vật lý thật vào lô mốc — bay tới **30 m/s** thay vì bị kẹp 9 — phép kiểm mệnh đề (d) **đỏ
+  > ngay**, đo lại được **46,48 m**. Người dùng chốt hai thay đổi:
+  >
+  > 1. **Trọng tài bám CHỖ PHA BÓNG SẮP TỚI, không bám quả bóng đang bay.** Một trọng tài
+  >    thật **đọc trận**: bóng rời chân bay 60 m thì ông ta chạy về chỗ nó sắp tới chứ không
+  >    đuổi theo giữa đường. Đo trên 10 mã, mọi phân vị đều tốt lên: lệch lớn nhất **46,5 →
+  >    37,9 m**, lúc bóng nằm yên **42,7 → 34,7 m**.
+  > 2. **Lề của (d) nới từ 20 m lên 50 m** — đo **48,09 m** trên **20 mã / 113.460 mốc**, dư
+  >    1,91 m.
+  >
+  > **Vì sao không nhỏ hơn được — số học, không phải chính sách:** `dienPha.ts` cho mỗi hành
+  > động đúng **2 giây**, trong khi hai tâm vùng cách nhau tới **84 m**. Pha bóng nhảy 84 m
+  > trong 2 giây còn trọng tài đi được `9 × 2 = 18` m, nên độ trễ **không thể nhỏ hơn ~33 m**
+  > dù neo vào đâu. Và đuôi ấy là **vật lý chứ không phải lỗi**: quả bóng không teleport lần
+  > nào, nhảy xa nhất **đúng 30,00 m** giữa hai mốc, tức đúng `30 m/s × 1 s`.
+  >
+  > Hai đường còn lại đã bị loại khi hỏi: **bỏ hẳn mệnh đề (d)** (mất đúng thứ vừa thêm hôm
+  > qua), và **sửa lưới thời gian của `dienPha.ts`** (đổi `BUOC_MOI_HANH_DONG` là đổi bố cục
+  > thời gian của **mọi** pha bóng, và trận sẽ thấy chậm hẳn).
+  >
+  > ⚠️ **Cái giá đã nói trước khi chốt:** 50 m cho trọng tài cách bóng 0–75 m trên một sân dài
+  > 105 m, nên (d) nay chỉ còn bắt được loại lỗi "điểm trọng tài chết hẳn hoặc bay loạn",
+  > không còn bắt được "đứng sai chỗ".
 - [ ] AC-38.11 — KHI một cầu thủ di chuyển THÌ mỗi mốc PHẢI có **hướng người** (0–360°), và
       hướng ấy PHẢI khớp với hướng di chuyển trừ khi anh ta đang chạy lùi hoặc chạy ngang.
 
@@ -777,6 +804,8 @@ một câu sửa số của AC-38.10, bốn câu còn lại chốt mà **không*
 | 24 | **Chữ "tua" ở mục 4 bước 3 nghĩa là gì** (không AC nào định nghĩa nó) | **Tua TỚI thôi** — đổi mức tốc độ và *Chạy hết trận*. **Không** tua ngược, **không** thanh thời gian | **AC-45.10 mới** + mục 4 bước 3 viết lại. Cái giá: xem lại một pha vừa trôi qua thì phải chạy lại cả trận |
 
 | 25 | **AC-38.10 vẫn không dựng nổi, lần này ở vị trí THẬT** (đo T716: 749/113.460 mốc ngoài dải 15–35 m; dải thật [5,1; 40,3] m) | **Tách thành ĐÍCH và ĐỘ TRỄ**, hai mệnh đề **tuyệt đối**, và **giữ nguyên con số 15–35 m** — không nới dải lần thứ hai | **AC-38.10 viết lại thành bốn mệnh đề**: (a) **đích** cách bóng 15–35 m — đúng 100% theo cấu trúc; (b) và (c) như cũ; **(d) mới** — vị trí thật lệch khỏi đích không quá **20 m**. ⚠️ 20 m chỉ dư **0,13 m** so với phép đo, nên **T720 phải đo lại** khi bóng có vật lý thật |
+
+| 26 | **Mệnh đề (d) vừa thêm hôm qua đã vỡ ngay khi bóng có vật lý thật** (đo T726: 46,48 m so với lề 20 m) | **Đổi neo sang chỗ pha bóng sắp tới, và nới lề lên 50 m** — giữ phép kiểm tuyệt đối, không bỏ mệnh đề | **AC-38.10 (d) sửa số** 20 → 50. Lý do không nhỏ hơn được là **số học của lưới thời gian**: mỗi hành động 2 giây, hai tâm vùng cách tới 84 m, trọng tài đi được 18 m — sàn ~33 m dù neo vào đâu. ⚠️ Cái giá: (d) nay chỉ bắt được "điểm trọng tài chết hẳn hoặc bay loạn" |
 
 **Tổng AC sau lượt này: 30** (US-37: 8, US-38: 11, US-45: 11). `plan.md` mục 6 phải phủ 30/30.
 

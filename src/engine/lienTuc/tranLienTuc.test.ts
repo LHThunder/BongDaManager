@@ -11,7 +11,14 @@ import {
 import { hatGiongDong, RUT_MOI_MOC } from './hatGiong'
 import { docMoc } from './loMoc'
 import { BUOC_MOI_CHUOI } from './dienPha'
-import { RONG_SAN, trongSan } from '../hinhHocSan'
+import { DAI_SAN, RONG_SAN, trongSan } from '../hinhHocSan'
+import { dieuKienTuMaTran } from './dieuKien'
+import {
+  TOC_DO_CHUYEN_DAI_CAO,
+  TOC_DO_CHUYEN_NGAN_THAP,
+  Z_DANH_DAU_CAO,
+  Z_DANH_DAU_THAP,
+} from './vatLyBong'
 import {
   GIA_TOC_TOI_DA,
   KHOANG_TRONG_TAI,
@@ -600,5 +607,174 @@ describe('AC-38.10 trên trận thật — ba điểm trọng tài (T716)', () =
       LE_DUONG_BIEN_TRO_LY,
     )
     expect(soMoc, 'số mốc đã đọc').toBeGreaterThan(15_000)
+  })
+})
+
+/*
+  ====================================================================
+  QUẢ BÓNG TRONG LÔ MỐC ĐI THEO VẬT LÝ CỦA NÓ (T726, AC-38.5 + AC-38.6).
+  ====================================================================
+
+  Trước lát này ô bóng bước qua `buocCoHoc` và bị kẹp **9 m/s**, còn cột `z`/`vz`
+  là **0 ở mọi mốc**. Khối này canh bốn điều mà chỉ thấy được khi trận chạy:
+
+    - tốc độ quả bóng nằm trong dải của **AC-38.6**, và **không đường chuyền nào
+      dưới sàn 12 m/s** — đúng món nợ mà **T706** ghi là điều kiện ra của T720;
+    - `z` **thật sự** lớn hơn 0 ở các quả tạt, và rơi trong dải đánh đầu;
+    - quả bóng **không teleport**: giữa hai mốc đã ghi nó đi không quá
+      `TOC_DO_CHUYEN_DAI_CAO × 1 giây`;
+    - và điều kiện trận **mang theo** đúng thứ mã trận sinh ra.
+*/
+/**
+ * Lề so sánh **trên lô mốc**, quanh giá trị `v` — `soUlp` bước float32.
+ *
+ * 🐞 **Hằng số `LE_FLOAT32 = 1e-6` gõ tay của T725 KHÔNG đủ ở đây, và phép kiểm
+ * đã đỏ đúng vì thế.** Bước float32 không phải một con số cố định mà **tỉ lệ
+ * với giá trị**: quanh 9 nó là 9,5e-7 (nên 1e-6 vừa đủ), nhưng quanh 30 nó là
+ * 1,9e-6 và quanh 105 là 7,6e-6. Một khoảng cách dựng từ hai hiệu toạ độ còn
+ * cộng dồn vài bước nữa — đo được **5,1e-6** ở phép so quãng nhảy.
+ *
+ * Nên lề ở đây **dẫn xuất** từ chính giá trị đang so, không gõ tay. Nó vẫn chặt
+ * tới mức vô hại: một vi phạm thật của những mệnh đề này tính bằng **mét**, còn
+ * lề này cỡ **một phần trăm milimét**.
+ */
+function leLo(v: number, soUlp = 4): number {
+  return Math.abs(v) * 2 ** -23 * soUlp
+}
+
+describe('quả bóng đi theo vật lý của nó (T726)', () => {
+  it('10 mã: tốc độ bóng trong dải AC-38.6, và không pha nào dưới sàn 12 m/s', () => {
+    let soMoc = 0
+    let soMocBongChay = 0
+    let soMocReBong = 0
+    let vMax = 0
+    const duoiSan: number[] = []
+
+    for (const ma of MA_TRAN_CO_DINH) {
+      let lt = taoTranLienTuc({ ...cauHinhMau(ma), cheDoMoPhong: 'lien-tuc' })
+      for (let p = 0; p < tongPhutTran(lt.tran) + 2 && !lt.tran.ketThuc; p += 1) {
+        const phut = buocPhutLienTuc(lt)
+        for (let m = 0; m < MOC_MOI_PHUT; m += 1) {
+          const moc = docMoc(phut.lo, m)
+          if (!moc) continue
+          soMoc += 1
+          const b = moc.cacThucThe[CHI_SO_BONG]!
+          const v = Math.hypot(b.vx, b.vy)
+          vMax = Math.max(vMax, v)
+          if (v <= 0.01) continue
+          soMocBongChay += 1
+          /*
+            Hai lớp tốc độ, và chỉ hai: quả bóng **trong chân người dẫn** đi
+            đúng tốc độ NGƯỜI, còn quả bóng **được đánh đi** nằm trong dải của
+            AC-38.6. Một con số nằm giữa hai lớp ấy là một lỗi.
+          */
+          if (Math.abs(v - TRAN_TOC_DO_TUYET_DOI) < leLo(TRAN_TOC_DO_TUYET_DOI)) {
+            soMocReBong += 1
+            continue
+          }
+          if (v < TOC_DO_CHUYEN_NGAN_THAP - leLo(TOC_DO_CHUYEN_NGAN_THAP)) {
+            duoiSan.push(v)
+          }
+          expect(v, `mốc ${m}`).toBeLessThanOrEqual(
+            TOC_DO_CHUYEN_DAI_CAO + leLo(TOC_DO_CHUYEN_DAI_CAO),
+          )
+        }
+        lt = phut.tt
+      }
+    }
+
+    // ⚠️ Món nợ của T706, trả ở đây: không một đường bóng ĐƯỢC ĐÁNH nào dưới sàn.
+    expect(duoiSan, 'các tốc độ dưới sàn 12 m/s').toEqual([])
+    // Và trần của AC-38.6 thật sự được chạm tới, không phải chỉ không bị vượt.
+    expect(vMax, 'tốc độ bóng lớn nhất').toBeCloseTo(TOC_DO_CHUYEN_DAI_CAO, 1)
+
+    /*
+      ⚠️ CHỐNG RỖNG ba lớp. Không có chúng thì một quả bóng **đứng im cả trận**
+      cũng xanh mọi mệnh đề trên — đúng trạng thái trước T726, nơi ô bóng mang
+      0 ở mọi mốc.
+    */
+    expect(soMoc, 'số mốc đã đọc').toBeGreaterThan(50_000)
+    expect(soMocBongChay, 'số mốc bóng đang chạy').toBeGreaterThan(5_000)
+    expect(soMocReBong, 'số mốc bóng trong chân người dẫn').toBeGreaterThan(100)
+  })
+
+  it('và quả bóng KHÔNG teleport: mỗi giây đi không quá 30 m', () => {
+    let nhayLonNhat = 0
+    let soBo = 0
+    for (const ma of MA_TRAN_CO_DINH.slice(0, 5)) {
+      let lt = taoTranLienTuc({ ...cauHinhMau(ma), cheDoMoPhong: 'lien-tuc' })
+      let truoc: { x: number; y: number } | null = null
+      for (let p = 0; p < 95 && !lt.tran.ketThuc; p += 1) {
+        const phut = buocPhutLienTuc(lt)
+        for (let m = 0; m < MOC_MOI_PHUT; m += 1) {
+          const moc = docMoc(phut.lo, m)
+          if (!moc) continue
+          const b = moc.cacThucThe[CHI_SO_BONG]!
+          if (truoc) {
+            nhayLonNhat = Math.max(
+              nhayLonNhat,
+              Math.hypot(b.x - truoc.x, b.y - truoc.y),
+            )
+            soBo += 1
+          }
+          truoc = { x: b.x, y: b.y }
+        }
+        lt = phut.tt
+      }
+    }
+    /*
+      Trần là `tốc độ lớn nhất × Δt`, và Δt giữa hai mốc ĐÃ GHI là **1 giây**
+      chứ không phải 0,5 — `laMocThuong` chỉ ghi 60 trong 120 bước mỗi phút.
+    */
+    expect(nhayLonNhat, 'bóng nhảy xa nhất giữa hai mốc, mét').toBeLessThanOrEqual(
+      TOC_DO_CHUYEN_DAI_CAO + leLo(DAI_SAN),
+    )
+    expect(soBo, 'số cặp mốc đã so').toBeGreaterThan(25_000)
+  })
+
+  it('quả tạt CÓ độ cao thật, và nó rơi trong dải đánh đầu', () => {
+    let soMocCoZ = 0
+    let soMocTrongDai = 0
+    let zLonNhat = 0
+    let soMocAm = 0
+    for (const ma of MA_TRAN_CO_DINH) {
+      let lt = taoTranLienTuc({ ...cauHinhMau(ma), cheDoMoPhong: 'lien-tuc' })
+      for (let p = 0; p < 95 && !lt.tran.ketThuc; p += 1) {
+        const phut = buocPhutLienTuc(lt)
+        for (let m = 0; m < MOC_MOI_PHUT; m += 1) {
+          const moc = docMoc(phut.lo, m)
+          if (!moc) continue
+          const z = moc.cacThucThe[CHI_SO_BONG]!.z
+          if (z < 0) soMocAm += 1
+          if (z > 0) soMocCoZ += 1
+          if (z >= Z_DANH_DAU_THAP && z <= Z_DANH_DAU_CAO) soMocTrongDai += 1
+          zLonNhat = Math.max(zLonNhat, z)
+          // Chỉ ô BÓNG có độ cao; 25 ô còn lại là người, và người ở trên mặt đất.
+          moc.cacThucThe.forEach((t, o) => {
+            if (o !== CHI_SO_BONG) expect(t.z, `ô ${o}`).toBe(0)
+          })
+        }
+        lt = phut.tt
+      }
+    }
+    expect(soMocAm, 'mốc có z âm').toBe(0)
+    /*
+      ⚠️ CHỐNG RỖNG, và ở đây nó là mệnh đề quan trọng nhất: `z ≥ 0` xanh y hệt
+      trên một lô mà mọi `z` đều bằng 0 — tức đúng trạng thái trước T726.
+    */
+    expect(soMocCoZ, 'số mốc quả bóng ở trên không').toBeGreaterThan(100)
+    expect(soMocTrongDai, 'số mốc bóng ở tầm đánh đầu').toBeGreaterThan(50)
+    // Và không quả tạt nào bay cao như một quả phát bóng của thủ môn.
+    expect(zLonNhat, 'độ cao lớn nhất, mét').toBeLessThan(10)
+  })
+
+  it('điều kiện trận mang theo đúng thứ mã trận sinh ra, và sống qua từng phút', () => {
+    const ma = MA_TRAN_CO_DINH[0]!
+    let lt = taoTranLienTuc({ ...cauHinhMau(ma), cheDoMoPhong: 'lien-tuc' })
+    expect(lt.dieuKien).toEqual(dieuKienTuMaTran(ma))
+    for (let p = 0; p < 5; p += 1) {
+      lt = buocPhutLienTuc(lt).tt
+      expect(lt.dieuKien, `phút ${p}`).toEqual(dieuKienTuMaTran(ma))
+    }
   })
 })
