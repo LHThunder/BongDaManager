@@ -20,7 +20,7 @@ import {
   Z_DANH_DAU_THAP,
 } from './vatLyBong'
 import {
-  GIA_TOC_TOI_DA,
+  GIAM_TOC_TOI_DA,
   KHOANG_TRONG_TAI,
   LE_DO_TRE_TRONG_TAI,
   LE_DUONG_BIEN_TRO_LY,
@@ -480,8 +480,19 @@ const HAI_MUOI_MA: readonly string[] = [
   ...MA_TRAN_CO_DINH.map((ma) => [...ma].reverse().join('')),
 ]
 
-/** Sai số của mệnh đề (c), nêu bằng số — đo được 13,31 m, nêu 14 m. */
-const LECH_TRO_LY_TOI_DA = 14
+/**
+ * Sai số của mệnh đề (c), nêu bằng số — AC-38.10 giao con số này cho chỗ dựng.
+ *
+ * 🐞 **Nêu lại ở T731: 14 → 22 m.** Con số 14 đo khi `thucTheTaiMoc` còn tích
+ * phân 0,5 giây cho mỗi mốc cách nhau 1 giây, tức khi **mọi người đi nửa tốc
+ * độ**. Chữa lỗi ấy thì hàng hậu vệ cũng chạy đủ tốc độ, nên **đích** của trợ
+ * lý dịch nhanh gấp đôi và anh ta trễ hơn: đo lại **21,00 m** trên 20 mã /
+ * 113.460 mốc, nêu 22.
+ *
+ * Trung vị vẫn là **0,04 m** và p95 là **4,65 m** — đuôi dài nằm ở những pha
+ * phản công, đúng chỗ một trợ lý thật cũng bị bỏ lại.
+ */
+const LECH_TRO_LY_TOI_DA = 22
 
 describe('AC-38.10 trên trận thật — ba điểm trọng tài (T716)', () => {
   const DT_GIUA_HAI_MOC = 1
@@ -553,12 +564,20 @@ describe('AC-38.10 trên trận thật — ba điểm trọng tài (T716)', () =
       LECH_TRO_LY_TOI_DA,
     )
     /*
-      Không teleport. Trần lấy **gia tốc tăng tốc** của chính lớp cơ học chứ
-      không gõ 6 tay: ba điểm trọng tài đi qua CHÍNH `buocCoHoc`, nên trần của
-      chúng là trần của mọi người.
+      Không teleport.
+
+      🐞 **Phép kiểm này từng so với `GIA_TOC_TOI_DA` (5,2) và nó SAI — nó lẫn
+      hai đại lượng mà AC-38.2 tách riêng.** AC ấy cho **tăng tốc 6 m/s²** và
+      **giảm tốc 8 m/s²**; `|Δv|` ở đây gộp cả hai, nên trần đúng của nó là trần
+      **giảm tốc** của mô hình. Phép kiểm cũ xanh chỉ vì `dt = 0,5` làm mỗi bước
+      nhỏ đi một nửa; chữa `dt` xong thì đo được đúng **7,200** — tức chạm đúng
+      `GIAM_TOC_TOI_DA`, và vẫn dưới 8 của AC-38.2.
+
+      Trần vẫn **dẫn xuất** từ lớp cơ học chứ không gõ 8 tay: ba điểm trọng tài
+      đi qua CHÍNH `buocCoHoc`, nên trần của chúng là trần của mọi người.
     */
     expect(giaTocLonNhat, 'gia tốc lớn nhất, m/s²').toBeLessThanOrEqual(
-      GIA_TOC_TOI_DA + 1e-6,
+      GIAM_TOC_TOI_DA + 1e-6,
     )
 
     /*

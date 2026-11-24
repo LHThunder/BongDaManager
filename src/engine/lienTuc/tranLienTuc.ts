@@ -569,6 +569,27 @@ export function buocPhutLienTuc(ttVao: TrangThaiLienTuc): MotPhutLienTuc {
   /** Đoạn giao bóng đang diễn; `null` ở đầu mỗi pha và khi bóng chết. */
   let doanBong: DoanGiaoBong | null = null
 
+  /*
+    ⚠️ **Chỉ số mốc ĐÃ GHI gần nhất, để biết một bước cơ học dài bao nhiêu giây.**
+
+    🐞 Đây là chỗ một lỗi thật sống từ T725 tới giờ. `thucTheTaiMoc` chỉ được gọi
+    ở những mốc **được ghi**, mà ở phần thường chúng cách nhau **1 giây** (120
+    bước tích phân mỗi phút nhưng chỉ 60 mốc được ghi) — trong khi phép bước lại
+    dùng cứng `DT_MOC = 0,5`. Hệ quả đo được trên 3 trận: quãng một người đi giữa
+    hai mốc chỉ bằng **0,478** lần `v × Δt`, tức **đúng một nửa**. Vận tốc ghi
+    trong lô nói 9 m/s còn vị trí thì đi 4,5.
+
+    Nó không vỡ một AC nào — trần tốc độ vẫn 9, trần gia tốc vẫn đạt — nên không
+    phép kiểm nào thấy. Nhưng **T731 làm nó lộ ra ngay**: cửa sổ dày gọi hàm này
+    ở **mọi** bước, nên người sẽ **chạy nhanh gấp đôi** ở đúng những pha quan
+    trọng. Và **T742** sẽ đo `Δquãng/Δt` **trên tệp xuất** rồi thấy nó bằng nửa
+    cột vận tốc.
+
+    Chữa bằng cách lấy `dt` từ **khoảng cách thật giữa hai mốc đã ghi**, nên nó
+    đúng cho cả phần thường lẫn cửa sổ dày mà không cần biết mình đang ở đâu.
+  */
+  let mocDaGhiTruoc: number | null = null
+
   /**
    * Một mốc: tính đích cho 26 ô, bước cơ học, tách chen, trả thực thể.
    *
@@ -583,7 +604,19 @@ export function buocPhutLienTuc(ttVao: TrangThaiLienTuc): MotPhutLienTuc {
     b: number,
     nguoiGiu: number,
     chiSoPha: number,
+    chiSoMoc: number,
   ): readonly ThucTheTaiMoc[] {
+    /*
+      Một bước cơ học dài đúng bằng khoảng cách tới mốc đã ghi **gần nhất**:
+      1 giây ở phần thường, 0,5 giây trong cửa sổ dày của T731. Mốc đầu tiên của
+      một phút không có mốc trước trong phút ấy, và nó cách mốc cuối của phút
+      trước đúng một nhịp thường.
+    */
+    const dt =
+      mocDaGhiTruoc === null
+        ? DT_MOC * 2
+        : (chiSoMoc - mocDaGhiTruoc) * DT_MOC
+    mocDaGhiTruoc = chiSoMoc
     /*
       1. QUẢ BÓNG trước, vì mọi đích khác đều đọc chỗ nó đang nằm.
 
@@ -655,14 +688,14 @@ export function buocPhutLienTuc(ttVao: TrangThaiLienTuc): MotPhutLienTuc {
       }
       const dichTrongTai = dichCuaO[o]
       if (dichTrongTai) {
-        return buocCoHoc(tt, dichTrongTai, TRAN_TOC_DO_TUYET_DOI, DT_MOC)
+        return buocCoHoc(tt, dichTrongTai, TRAN_TOC_DO_TUYET_DOI, dt)
       }
       if (o >= SO_NGUOI_TREN_SAN) return tt
       const dich =
         o === nguoiGiu
           ? dBong
           : dichNguoiKhongBong(choDung[o] ?? { x: TAM_X, y: TAM_Y }, dBong)
-      return buocCoHoc(tt, dich, TRAN_TOC_DO_TUYET_DOI, DT_MOC)
+      return buocCoHoc(tt, dich, TRAN_TOC_DO_TUYET_DOI, dt)
     })
 
     const daTach = tachChen(sau.slice(0, SO_NGUOI_TREN_SAN))
@@ -696,7 +729,7 @@ export function buocPhutLienTuc(ttVao: TrangThaiLienTuc): MotPhutLienTuc {
       oCuaNguoiGiu(pha),
       coMat,
       (chiSoMoc, _phaCon, nguoiGiu) =>
-        thucTheTaiMoc(pha, boCuc, chiSoMoc - mocDauChuoi, nguoiGiu, i),
+        thucTheTaiMoc(pha, boCuc, chiSoMoc - mocDauChuoi, nguoiGiu, i, chiSoMoc),
     )
 
     /*
