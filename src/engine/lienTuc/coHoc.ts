@@ -1,3 +1,4 @@
+import { DAI_SAN, type BenSan } from '../hinhHocSan'
 /*
   Cơ học của một cơ thể người (T710, quyết định D123 và D129).
 
@@ -610,4 +611,34 @@ export function tranhNguoi(
     x: dich.x + -uy * ben * BAN_KINH_TRANH,
     y: dich.y + ux * ben * BAN_KINH_TRANH,
   }
+}
+
+/**
+ * Một phần ba sân nhà của thủ môn, theo **mét** — AC-30.7 của spec 005.
+ *
+ * Dùng hằng số sân của `hinhHocSan.ts` (T703) chứ không viết lại 105 ở đây:
+ * viết lại là dựng nguồn sự thật thứ hai cho kích thước sân.
+ */
+export const MOT_PHAN_BA_SAN = DAI_SAN / 3
+
+/**
+ * Kẹp **ĐÍCH** của thủ môn vào một phần ba sân của anh ta (T714).
+ *
+ * ⚠️ Kẹp ĐÍCH, không kẹp vị trí. Hai thứ khác nhau, và chỗ khác nhau ấy là cả
+ * lý do hàm này nằm ở engine chứ không ở lớp vẽ:
+ *
+ * - Kẹp **vị trí** nghĩa là để thủ môn chạy ra giữa sân rồi **giật** anh ta về,
+ *   tức một bước dịch không qua phép kẹp gia tốc — vỡ AC-38.2, và trên hình thì
+ *   trông như teleport.
+ * - Kẹp **đích** nghĩa là anh ta **không bao giờ nhắm** ra khỏi dải, nên cơ học
+ *   tự lo phần còn lại và mọi trần vận tốc còn nguyên.
+ *
+ * Spec 006 từng kẹp ở lớp vẽ (T622) vì lúc ấy chưa có toạ độ mét; bộ kiểm chạy
+ * ở `environment: node` không nhìn tới lớp ấy, nên 1.291 phép kiểm xanh trong
+ * khi thủ môn chạy tới giữa sân. Ở đây thì phép kiểm với tới được.
+ */
+export function kepDichThuMon(dich: Dich, ben: BenSan): Dich {
+  const tu = ben === 'nha' ? 0 : DAI_SAN - MOT_PHAN_BA_SAN
+  const den = ben === 'nha' ? MOT_PHAN_BA_SAN : DAI_SAN
+  return { x: Math.min(Math.max(dich.x, tu), den), y: dich.y }
 }

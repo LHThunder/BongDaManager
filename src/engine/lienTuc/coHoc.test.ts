@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { taoRngTuHatGiong } from '../rng'
 import {
   BAN_KINH_TRANH,
+  kepDichThuMon,
+  MOT_PHAN_BA_SAN,
   buocCoHoc,
   chuanHoaGoc,
   GOC_QUAY_NGUOI,
@@ -596,5 +598,41 @@ describe('tranhNguoi — đi vòng, không đi xuyên (T713, AC-34.2)', () => {
       { x: 5, y: 1 },
     ])
     expect(Math.sign(moi.y)).toBe(-1)
+  })
+})
+
+/*
+  Kẹp ĐÍCH của thủ môn (T714, AC-30.7 của spec 005).
+
+  Kẹp ĐÍCH chứ không kẹp VỊ TRÍ, và chỗ khác nhau ấy là cả lý do hàm này nằm ở
+  engine: kẹp vị trí nghĩa là để thủ môn chạy ra giữa sân rồi GIẬT anh ta về —
+  một bước dịch không qua phép kẹp gia tốc, tức vỡ AC-38.2 và trên hình trông
+  như teleport.
+*/
+describe('kẹp đích thủ môn vào một phần ba sân nhà (T714)', () => {
+  it('đội nhà bị kẹp ở đầu sân, đội khách ở cuối sân', () => {
+    expect(kepDichThuMon({ x: 80, y: 34 }, 'nha').x).toBeCloseTo(MOT_PHAN_BA_SAN, 10)
+    expect(kepDichThuMon({ x: 10, y: 34 }, 'khach').x).toBeCloseTo(
+      105 - MOT_PHAN_BA_SAN,
+      10,
+    )
+  })
+
+  it('đích đã nằm trong dải thì KHÔNG bị đụng tới', () => {
+    expect(kepDichThuMon({ x: 12, y: 40 }, 'nha')).toEqual({ x: 12, y: 40 })
+    expect(kepDichThuMon({ x: 95, y: 20 }, 'khach')).toEqual({ x: 95, y: 20 })
+  })
+
+  it('và nó KHÔNG đụng trục y — thủ môn vẫn đi ngang được cả khung', () => {
+    expect(kepDichThuMon({ x: 80, y: 7 }, 'nha').y).toBe(7)
+    expect(kepDichThuMon({ x: 80, y: 61 }, 'nha').y).toBe(61)
+  })
+
+  /*
+    Ca chống số tự chế: một phần ba sân phải lấy từ hằng số sân của
+    `hinhHocSan.ts`, không phải một con số 35 gõ tay ở đâu đó.
+  */
+  it('một phần ba sân dẫn xuất từ chiều dài sân, không gõ tay', () => {
+    expect(MOT_PHAN_BA_SAN).toBeCloseTo(105 / 3, 10)
   })
 })

@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **30 AC**) |
 | **Plan** | `./plan.md` (Status `Approved`, D117–D134, R51–R64) |
-| **Tiến độ** | 17/48 |
+| **Tiến độ** | 18/48 |
 | **Nền đo** | commit `5c652eb`, engine v6, **1.304 test xanh / 63 file test** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -690,7 +690,7 @@ chưa có trần tốc độ, chưa có đường cong. **Phải nói trước �
     **chữ** của AC-15.2, chỉ cho chế độ liên tục" (R58, và người dùng chốt **giữ 2,6** ngày
     2026-11-23). T713 **để lại một chỗ mốc** cho T754 và **không sửa** hai con số ấy.
 
-- [ ] **T714** — Tách `ui/viTriVe.ts` thành hàm thuần export **trước**, rồi gắn các cổng,
+- [x] **T714** — Tách `ui/viTriVe.ts` thành hàm thuần export **trước**, rồi gắn các cổng,
   **cộng kiểu `AnhChupMet` + prop `anhChup?`** (nhận từ T709, 2026-11-23)
   - File: tạo `src/ui/viTriVe.ts`, `src/ui/viTriVe.test.ts`; sửa
     `src/ui/components/San2D.tsx` (`Props` += `anhChup?: AnhChupMet | null`),
@@ -705,6 +705,36 @@ chưa có trần tốc độ, chưa có đường cong. **Phải nói trước �
     `npx vitest run src/ui/san2D.test.ts src/ui/daoDong.test.ts src/ui/phaBong.test.ts src/ui/noiSuy.test.ts`
     xanh.
   - AC: AC-37.6, AC-45.9 (nền), AC-28.3 / AC-30.7 (giữ lại)
+  - ✅ **`AnhChupMet` nay CÓ CHỦ.** Kiểu được định nghĩa ở `src/ui/viTriVe.ts`, và nó mang
+    theo **bảng ô của từng cầu thủ** (`oCuaNguoi`) chứ không để lớp vẽ tự suy: bố cục 26 ô
+    là quy ước của **lô mốc**, và bắt lớp vẽ biết nó là buộc hai tầng phải sửa cùng lúc mỗi
+    khi bố cục đổi.
+  - ✅ **Phép tách giữ nguyên hành vi, chứng minh bằng 144 phép kiểm cũ.** Bốn file mà dòng
+    "Xong khi" gọi tên — `san2D`, `daoDong`, `phaBong`, `noiSuy` — xanh **144/144** sau khi
+    hàm trong của `San2D.tsx` chỉ còn việc **gom đầu vào** và uỷ phép hợp cho module thuần.
+    `src/ui/san2D.test.ts` **0 dòng sửa**.
+  - ⚠️ **"Gắn cổng" ở đây là một phép TRỪ, không phải phép cộng.** Bảy lớp sinh vị trí của
+    chế độ cổ điển đều **tắt** ở nhánh liên tục. Ba trong số đó — nội suy Hermite, hệ số
+    theo độ mệt, hệ số rơi-đứng-yên — **biến dạng thời gian** trên đường đi, nên nếu còn
+    chạy thì `(x′ − x)/dt` **không còn bằng** vận tốc engine nói, và AC-38.1 đo trên hình sẽ
+    lệch khỏi AC-38.1 đo trong engine. Hai con số ấy phải là **một**. Ca xương sống bơm vào
+    đủ cả — một vị trí nội suy khác hẳn, một vị trí bám bóng khác nữa, một dải thủ môn chật,
+    một lệch dao động khác không — rồi đòi kết quả **không mang dấu vết nào** của chúng.
+  - ⚠️ **Kẹp ĐÍCH thủ môn, không kẹp VỊ TRÍ** — và chỗ khác nhau ấy là cả lý do
+    `kepDichThuMon` nằm ở engine. Kẹp vị trí nghĩa là để thủ môn chạy ra giữa sân rồi **giật**
+    anh ta về: một bước dịch không qua phép kẹp gia tốc, tức **vỡ AC-38.2**, và trên hình
+    trông như teleport. Kẹp đích thì anh ta **không bao giờ nhắm** ra khỏi dải, cơ học lo nốt
+    phần còn lại. Spec 006 kẹp ở lớp vẽ (T622) vì lúc ấy chưa có toạ độ mét — và bộ kiểm
+    `node` không nhìn tới lớp ấy, nên **1.291 phép kiểm xanh trong khi thủ môn chạy tới giữa
+    sân**. Nay phép kiểm với tới được.
+  - ✅ **Ca "kẹp dải thủ môn SAU lớp bám bóng"** bơm một vị trí bám bóng **nằm ngoài** dải để
+    phân biệt hai thứ tự. Kẹp trước lớp bám bóng thì kẹp xong lại bị kéo đi, và một phép kiểm
+    đo đầu vào thay vì đầu ra sẽ **không thấy gì** — đúng lớp lỗi mà T622 đã trả giá.
+  - ✅ **`viTriVe.ts` KHÔNG import gì từ `San2D.tsx`**, đúng tiền lệ `quyDoiMet.ts` đặt ở
+    T703: nhận khung ảnh làm **tham số** thay vì đi lấy. Kéo một `.tsx` vào đây là kéo cả
+    React vào một module mà phép kiểm `node` phải gọi được trần trụi.
+  - 📏 Toàn bộ: **74 file / 1498 phép kiểm xanh** (trước T714 là 73/1483). `MOT_PHAN_BA_SAN`
+    dẫn xuất từ `DAI_SAN` của `hinhHocSan.ts` chứ không gõ tay số 35, và có ca canh điều đó.
   - Phụ thuộc: T711, T712, **T713** (cùng sửa `coHoc.ts` — kẹp **đích** thủ môn — nên hai task
     này **không** [P] được với nhau; cả Phase 54 là một chuỗi, mọi task ở đây hoặc chạm
     `coHoc.ts` hoặc đứng trên nó)

@@ -29,6 +29,10 @@ import {
   type Diem,
   type KhungKep,
 } from '../noiSuy'
+import {
+  viTriVe as hopViTriVe,
+  type AnhChupMet,
+} from '../viTriVe'
 import type { BoChuoi } from '../ngonNgu'
 
 /*
@@ -602,6 +606,22 @@ interface Props extends DuLieuVe {
   */
   /** Trận đang chạy hay đang tạm dừng — tạm dừng thì đóng băng cả sân (AC-28.5). */
   readonly dangChay: boolean
+  /**
+   * Khung hình của **chế độ liên tục**, toạ độ bằng mét — `null` hoặc thiếu
+   * nghĩa là chế độ cổ điển (quyết định D121, T714).
+   *
+   * Khác `null` **là** thẻ phân biệt hai chế độ. Cái giá của cách ấy đã có
+   * tên trong plan: kiểu **không** phát biểu được "chế độ liên tục bắt buộc
+   * có mốc" lúc biên dịch, nên có một cổng lúc chạy ở `viTriVe` — ô thiếu
+   * hoặc không có mặt thì rơi về đường cổ điển thay vì vẽ sai chỗ.
+   *
+   * Phương án bị loại: biến `Props` thành **union có thẻ phân biệt**. Chín
+   * trong mười prop cần ở **cả hai** chế độ, nên hai nhánh union phải liệt
+   * lại cùng chín trường; và `suKien` buộc phải ở lại phần dùng chung vì
+   * khối hiệu ứng bàn thắng đọc `suKien.loai === 'ban-thang'` — một nhánh
+   * liên tục không mang `suKien` sẽ **tắt AC-32.4 lặng lẽ**.
+   */
+  readonly anhChup?: AnhChupMet | null
 }
 
 /**
@@ -1139,7 +1159,7 @@ export interface ChuyenDiemDang {
 
 export function San2D(props: Props) {
   const { SAN_2D } = useChuoi()
-  const { nha, khach, suKien, msMoiPhut, dangChay } = props
+  const { nha, khach, suKien, msMoiPhut, dangChay, anhChup } = props
   const msChuyen = thoiGianChuyen(msMoiPhut)
 
   /*
@@ -1755,16 +1775,26 @@ export function San2D(props: Props) {
       ? aiGiuBong
       : nguoiGiuBongLucNay(bongDang.current, tiLeNhipVe())
 
+  /** Khung ảnh cho phép quy đổi mét → đơn vị viewBox (T703). */
+  const khungAnh = { rong: RONG, cao: CAO, le: BAN_KINH }
+
   function viTriVe(d: DiemCauThu): Diem {
-    if (giamChuyenDong) return { x: d.x, y: d.y }
+    /*
+      Thân hàm này chỉ còn việc **gom đầu vào**; phép hợp nằm ở
+      `src/ui/viTriVe.ts` (T714). Trước đó nó là một hàm bên trong, đóng kín
+      trên trạng thái component, nên không một phép kiểm nào gọi tới được —
+      và chính khoảng mù ấy từng để lọt lỗi "thủ môn chạy tới giữa sân" suốt
+      một lát cắt, với 1.291 phép kiểm xanh.
+    */
     const tt = dang.current.get(d.playerId)
-    const thuong = tt
+    const sauNoiSuy = tt
       ? viTriTaiThoiDiem(tt.tu, tt.den, troiQuaCua(tt), {
           huongVao: tt.huongVao,
           doMet: doMetTheoNguoi.get(d.playerId) ?? 0,
           gioiHan,
         })
-      : { x: d.x, y: d.y }
+      : null
+    const thuong = sauNoiSuy ?? { x: d.x, y: d.y }
 
     /*
       NGƯỜI ĐANG CÓ BÓNG ĐI THEO ĐƯỜNG CỦA BÓNG (D104, D105, T606).
@@ -1777,7 +1807,7 @@ export function San2D(props: Props) {
     const cacDoan = bongDang.current
     const cuaSo =
       msChuyen > 0 && cacDoan ? cuaSoGiuBong(cacDoan, d.playerId) : null
-    const theoBong =
+    const sauBamBong =
       cuaSo && cacDoan
         ? viTriNguoiGiuBong({
             cuaSo,
@@ -1786,7 +1816,7 @@ export function San2D(props: Props) {
             viTriThuong: thuong,
             moc: { x: d.x, y: d.y },
           })
-        : thuong
+        : null
 
     /*
       THỦ MÔN KHÔNG RỜI MỘT PHẦN BA SÂN CỦA MÌNH, KỂ CẢ KHI ĐANG CẦM BÓNG
@@ -1801,23 +1831,24 @@ export function San2D(props: Props) {
       Kẹp ở đây, không phải bỏ hẳn luật đi theo bóng: thủ môn có bóng trong chân
       thì vẫn nhúch nhích theo nó, chỉ là không bước qua vạch một phần ba sân.
     */
-    const goc = d.laThuMon
-      ? (() => {
-          const dai = daiThuMon(d.laDoiNha, khung)
-          return { x: kep(theoBong.x, dai.tu, dai.den), y: theoBong.y }
-        })()
-      : theoBong
-
     /*
-      Dao động cộng vào SAU CÙNG, và chỉ cộng cho người — không cho bóng:
-      một quả bóng nằm yên thì nằm yên. Vị trí tại mốc của lớp nội suy
-      không bị đụng tới, nên bất biến của nó còn nguyên (D89).
+      Thứ tự hợp — kẹp dải thủ môn SAU lớp bám bóng, dao động cộng SAU CÙNG —
+      nay sống ở `src/ui/viTriVe.ts`, nơi phép kiểm `node` gọi tới được.
     */
-    const lech = lechDaoDong(d.playerId, thoiDiemTran, bienDoDao)
-    return {
-      x: kep(goc.x + lech.x, gioiHan.xTu, gioiHan.xDen),
-      y: kep(goc.y + lech.y, gioiHan.yTu, gioiHan.yDen),
-    }
+    return hopViTriVe(
+      {
+        moc: { x: d.x, y: d.y },
+        sauNoiSuy,
+        sauBamBong,
+        daiThuMon: d.laThuMon ? daiThuMon(d.laDoiNha, khung) : null,
+        lechDao: lechDaoDong(d.playerId, thoiDiemTran, bienDoDao),
+      },
+      gioiHan,
+      giamChuyenDong,
+      anhChup ?? null,
+      d.playerId,
+      khungAnh,
+    )
   }
 
   return (
