@@ -43,6 +43,7 @@ import {
   dienChuoiRaMoc,
 } from './dienPha'
 import { hatGiongDong, RUT_MOI_MOC } from './hatGiong'
+import { cacPhaDay } from './mocChuoi'
 import {
   CHI_SO_BONG,
   CHI_SO_TRO_LY_1,
@@ -136,6 +137,18 @@ export interface TrangThaiLienTuc {
    * lần. `DB_VERSION` giữ 3, đúng AC-45.4.
    */
   readonly dieuKien: DieuKienTran
+  /**
+   * `chiSoMoc` của mốc ĐÃ GHI gần nhất, hoặc `null` ở mốc đầu trận.
+   *
+   * 🐞 **Phải sống qua ranh giới PHÚT, và đây là lý do.** Một bước cơ học dài
+   * bằng khoảng cách tới mốc đã ghi trước nó. Ở phần thường khoảng ấy là 1
+   * giây, trong cửa sổ dày của T731 là 0,5. Nếu phút trước **kết thúc bằng một
+   * cửa sổ dày** thì mốc đầu của phút sau cách nó đúng **0,5 giây** — mà một
+   * biến cục bộ trong `buocPhutLienTuc` lại khởi về `null` và đoán 1 giây. Phép
+   * đo bắt được ngay: gia tốc đọc ra **10,40 m/s²**, đúng gấp đôi
+   * `GIA_TOC_TOI_DA`, ở riêng những cặp mốc bắc qua ranh giới phút.
+   */
+  readonly mocDaGhiTruoc: number | null
 }
 
 /** Một phút đã mô phỏng: trạng thái sau, lô mốc, và số lần rút mỗi mốc. */
@@ -174,6 +187,7 @@ export function taoTranLienTuc(cauHinh: CauHinhTran): TrangThaiLienTuc {
     chiSoMoc: 0,
     coHoc: coHocXuatPhat(tran),
     dieuKien: dieuKienTuMaTran(tran.maTran),
+    mocDaGhiTruoc: null,
   }
 }
 
@@ -588,7 +602,7 @@ export function buocPhutLienTuc(ttVao: TrangThaiLienTuc): MotPhutLienTuc {
     Chữa bằng cách lấy `dt` từ **khoảng cách thật giữa hai mốc đã ghi**, nên nó
     đúng cho cả phần thường lẫn cửa sổ dày mà không cần biết mình đang ở đâu.
   */
-  let mocDaGhiTruoc: number | null = null
+  let mocDaGhiTruoc: number | null = ttVao.mocDaGhiTruoc
 
   /**
    * Một mốc: tính đích cho 26 ô, bước cơ học, tách chen, trả thực thể.
@@ -717,6 +731,20 @@ export function buocPhutLienTuc(ttVao: TrangThaiLienTuc): MotPhutLienTuc {
     }))
   }
 
+  /*
+    Phút này có thẻ đỏ không — đọc bằng **hiệu số** thống kê của cả hai bên.
+
+    `quanSatPha` được gọi TRƯỚC `congPhaVaoTran`, tức trước khi thẻ được rút,
+    nên không pha nào tự biết nó có kéo theo thẻ đỏ hay không. Hiệu số của cả
+    phút là thứ duy nhất đọc được ở tầng này; `cacPhaDay` quy nó cho các pha
+    `pham-loi`, và nói rõ đó là một phép xấp xỉ thừa chứ không thiếu.
+  */
+  const theDoTruoc =
+    ttVao.tran.ben.nha.thongKe.theDo + ttVao.tran.ben.khach.thongKe.theDo
+  const theDoSau =
+    tranSau.ben.nha.thongKe.theDo + tranSau.ben.khach.thongKe.theDo
+  const phaDay = cacPhaDay(cacPha, theDoSau > theDoTruoc)
+
   for (let i = 0; i < cacPha.length; i += 1) {
     const pha = cacPha[i]!
     const truocKhiGhi = lo.soMocDaGhi
@@ -730,6 +758,7 @@ export function buocPhutLienTuc(ttVao: TrangThaiLienTuc): MotPhutLienTuc {
       coMat,
       (chiSoMoc, _phaCon, nguoiGiu) =>
         thucTheTaiMoc(pha, boCuc, chiSoMoc - mocDauChuoi, nguoiGiu, i, chiSoMoc),
+      phaDay[i] ?? false,
     )
 
     /*
@@ -756,6 +785,7 @@ export function buocPhutLienTuc(ttVao: TrangThaiLienTuc): MotPhutLienTuc {
       chiSoMoc: mocDau + BUOC_MOI_PHUT,
       coHoc,
       dieuKien: ttVao.dieuKien,
+      mocDaGhiTruoc,
     },
     lo,
     rutMoiMoc,

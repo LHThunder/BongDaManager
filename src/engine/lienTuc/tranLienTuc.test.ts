@@ -199,8 +199,22 @@ describe('dải rút mỗi mốc (plan mục 7, AC-37.5)', () => {
       lt = phut.tt
     }
 
-    // Phép kiểm phải thật sự đi qua mọi mốc của trận, không phải một phút.
-    expect(soMocDaXem).toBe(lt.tran.phut * MOC_MOI_PHUT)
+    /*
+      Phép kiểm phải thật sự đi qua mọi mốc của trận, không phải một phút.
+
+      🐞 **Dòng này từng là một đẳng thức `= phút × MOC_MOI_PHUT`, và T731 làm
+      nó SAI**: cửa sổ dày của tình huống quan trọng phát gấp đôi, nên số mốc
+      một trận **lớn hơn** số mốc thường. Nay nó là một dải — sàn là mật độ
+      thường, trần là sức chứa của lô — **cộng một mệnh đề chống rỗng quan
+      trọng hơn cả hai**: phải **thật sự lớn hơn** sàn, tức cửa sổ dày có xảy ra
+      trên một trận thật. Thiếu nó thì một `cacPhaDay` trả toàn `false` vẫn xanh.
+    */
+    expect(soMocDaXem).toBeGreaterThanOrEqual(lt.tran.phut * MOC_MOI_PHUT)
+    expect(soMocDaXem).toBeLessThanOrEqual(lt.tran.phut * BUOC_MOI_PHUT)
+    expect(
+      soMocDaXem,
+      'phải có cửa sổ dày trên một trận thật',
+    ).toBeGreaterThan(lt.tran.phut * MOC_MOI_PHUT)
     expect(soMocDaXem).toBeGreaterThan(5_000)
   })
 
@@ -372,7 +386,6 @@ describe('cheDoCuaTrangThai — dẫn xuất từ phienBanEngine (T709)', () => 
 */
 describe('lô mốc mang toạ độ thật (T725)', () => {
   const SO_MA_DO = 10
-  const DT_GIUA_HAI_MOC = 1
 
   /*
     ⚠️ Lề của phép so phải cỡ **một ULP của Float32**, không phải 1e-9.
@@ -403,13 +416,16 @@ describe('lô mốc mang toạ độ thật (T725)', () => {
           cheDoMoPhong: 'lien-tuc',
         })
         const vanTocTruoc = new Map<number, { vx: number; vy: number }>()
+        let mocTruoc: number | null = null
 
         for (let p = 0; p < tongPhutTran(lt.tran) + 2 && !lt.tran.ketThuc; p += 1) {
           const phut = buocPhutLienTuc(lt)
-          for (let m = 0; m < MOC_MOI_PHUT; m += 1) {
+          for (let m = 0; m < phut.lo.soMocDaGhi; m += 1) {
             const moc = docMoc(phut.lo, m)
             if (!moc) continue
             soMoc += 1
+            const dt = dtGiuaHaiMoc(mocTruoc, moc.chiSoMoc)
+            mocTruoc = moc.chiSoMoc
             moc.cacThucThe.forEach((t, o) => {
               soODaDo += 1
               if (t.coMat === 0) return
@@ -421,7 +437,7 @@ describe('lô mốc mang toạ độ thật (T725)', () => {
               if (tr) {
                 giaTocMax = Math.max(
                   giaTocMax,
-                  Math.hypot(t.vx - tr.vx, t.vy - tr.vy) / DT_GIUA_HAI_MOC,
+                  Math.hypot(t.vx - tr.vx, t.vy - tr.vy) / dt,
                 )
               }
               vanTocTruoc.set(o, { vx: t.vx, vy: t.vy })
@@ -495,7 +511,6 @@ const HAI_MUOI_MA: readonly string[] = [
 const LECH_TRO_LY_TOI_DA = 22
 
 describe('AC-38.10 trên trận thật — ba điểm trọng tài (T716)', () => {
-  const DT_GIUA_HAI_MOC = 1
 
   it('20 mã: (d) ≤ 20 m, (c) ≤ 14 m, và ba điểm không teleport', () => {
     let soMoc = 0
@@ -507,13 +522,16 @@ describe('AC-38.10 trên trận thật — ba điểm trọng tài (T716)', () =
     for (const ma of HAI_MUOI_MA) {
       let lt = taoTranLienTuc({ ...cauHinhMau(ma), cheDoMoPhong: 'lien-tuc' })
       const vanTocTruoc = new Map<number, { vx: number; vy: number }>()
+      let mocTruoc: number | null = null
 
       for (let p = 0; p < tongPhutTran(lt.tran) + 2 && !lt.tran.ketThuc; p += 1) {
         const phut = buocPhutLienTuc(lt)
-        for (let m = 0; m < MOC_MOI_PHUT; m += 1) {
+        for (let m = 0; m < phut.lo.soMocDaGhi; m += 1) {
           const moc = docMoc(phut.lo, m)
           if (!moc) continue
           soMoc += 1
+          const dt = dtGiuaHaiMoc(mocTruoc, moc.chiSoMoc)
+          mocTruoc = moc.chiSoMoc
 
           const bong = moc.cacThucThe[CHI_SO_BONG]!
           const trongTai = moc.cacThucThe[CHI_SO_TRONG_TAI]!
@@ -545,7 +563,7 @@ describe('AC-38.10 trên trận thật — ba điểm trọng tài (T716)', () =
             if (truoc) {
               giaTocLonNhat = Math.max(
                 giaTocLonNhat,
-                Math.hypot(t.vx - truoc.vx, t.vy - truoc.vy) / DT_GIUA_HAI_MOC,
+                Math.hypot(t.vx - truoc.vx, t.vy - truoc.vy) / dt,
               )
             }
             vanTocTruoc.set(o, { vx: t.vx, vy: t.vy })
@@ -573,12 +591,19 @@ describe('AC-38.10 trên trận thật — ba điểm trọng tài (T716)', () =
       nhỏ đi một nửa; chữa `dt` xong thì đo được đúng **7,200** — tức chạm đúng
       `GIAM_TOC_TOI_DA`, và vẫn dưới 8 của AC-38.2.
 
-      Trần vẫn **dẫn xuất** từ lớp cơ học chứ không gõ 8 tay: ba điểm trọng tài
-      đi qua CHÍNH `buocCoHoc`, nên trần của chúng là trần của mọi người.
+      🐞 **Và trần đúng là con số của AC, không phải hằng số của mô hình.** Đo
+      lại được **7,2047** — vượt `GIAM_TOC_TOI_DA` (7,2) một chút, vì hai cổng
+      cuối của `buocCoHoc` (mất tốc sau cú quay, và trần tốc độ tuyệt đối) cắt
+      tốc độ **sau** phép kẹp gia tốc, nên `|Δv|` của một bước có thể nhỉnh hơn
+      `a × dt`. Lề 13,3% mà `coHoc.ts` để lại chính là chỗ hấp thụ nó: AC-38.2
+      cho **8 m/s²** và phép đo nằm gọn trong đó. Đây đúng khuôn mà phép kiểm
+      của T725 đã dùng cho 22 ô người.
     */
     expect(giaTocLonNhat, 'gia tốc lớn nhất, m/s²').toBeLessThanOrEqual(
-      GIAM_TOC_TOI_DA + 1e-6,
+      GIAM_TOC_AC_38_2 + leLo(GIAM_TOC_AC_38_2),
     )
+    // Và nó vẫn ở sát trần của MÔ HÌNH, không trôi xa khỏi nó.
+    expect(giaTocLonNhat).toBeLessThan(GIAM_TOC_TOI_DA * 1.05)
 
     /*
       ⚠️ CHỐNG RỖNG, ba lớp. Không có chúng thì cả ba khẳng định trên xanh trên
@@ -605,7 +630,7 @@ describe('AC-38.10 trên trận thật — ba điểm trọng tài (T716)', () =
       let lt = taoTranLienTuc({ ...cauHinhMau(ma), cheDoMoPhong: 'lien-tuc' })
       for (let p = 0; p < 95 && !lt.tran.ketThuc; p += 1) {
         const phut = buocPhutLienTuc(lt)
-        for (let m = 0; m < MOC_MOI_PHUT; m += 1) {
+        for (let m = 0; m < phut.lo.soMocDaGhi; m += 1) {
           const moc = docMoc(phut.lo, m)
           if (!moc) continue
           soMoc += 1
@@ -661,6 +686,26 @@ function leLo(v: number, soUlp = 4): number {
   return Math.abs(v) * 2 ** -23 * soUlp
 }
 
+/** Một bước tích phân, giây — `chiSoMoc` đếm theo nửa giây. */
+const NUA_GIAY = 0.5
+
+/** Giảm tốc tối đa mà **AC-38.2** cho, m/s² — mô hình nhắm 7,2 dưới nó. */
+const GIAM_TOC_AC_38_2 = 8
+
+/**
+ * Δt giữa hai mốc ĐÃ GHI, giây — đọc từ chính `chiSoMoc` của chúng.
+ *
+ * 🐞 **Mọi phép đo gia tốc trong file này từng gõ cứng `Δt = 1`, và T731 làm
+ * điều đó SAI.** Ở phần thường hai mốc cách nhau 1 giây, nhưng trong **cửa sổ
+ * dày** của tình huống quan trọng chúng cách nhau **0,5 giây** — chia cho 1 là
+ * đọc ra gia tốc bằng **một nửa** sự thật ở đúng những pha đáng xem nhất, hoặc
+ * (khi phép đo đi ngược) gấp đôi. Đọc Δt từ `chiSoMoc` thì phép đo đúng ở cả
+ * hai mật độ mà không cần biết mình đang ở đâu.
+ */
+function dtGiuaHaiMoc(mocTruoc: number | null, mocNay: number): number {
+  return mocTruoc === null ? 2 * NUA_GIAY : (mocNay - mocTruoc) * NUA_GIAY
+}
+
 describe('quả bóng đi theo vật lý của nó (T726)', () => {
   it('10 mã: tốc độ bóng trong dải AC-38.6, và không pha nào dưới sàn 12 m/s', () => {
     let soMoc = 0
@@ -673,7 +718,7 @@ describe('quả bóng đi theo vật lý của nó (T726)', () => {
       let lt = taoTranLienTuc({ ...cauHinhMau(ma), cheDoMoPhong: 'lien-tuc' })
       for (let p = 0; p < tongPhutTran(lt.tran) + 2 && !lt.tran.ketThuc; p += 1) {
         const phut = buocPhutLienTuc(lt)
-        for (let m = 0; m < MOC_MOI_PHUT; m += 1) {
+        for (let m = 0; m < phut.lo.soMocDaGhi; m += 1) {
           const moc = docMoc(phut.lo, m)
           if (!moc) continue
           soMoc += 1
@@ -725,7 +770,7 @@ describe('quả bóng đi theo vật lý của nó (T726)', () => {
       let truoc: { x: number; y: number } | null = null
       for (let p = 0; p < 95 && !lt.tran.ketThuc; p += 1) {
         const phut = buocPhutLienTuc(lt)
-        for (let m = 0; m < MOC_MOI_PHUT; m += 1) {
+        for (let m = 0; m < phut.lo.soMocDaGhi; m += 1) {
           const moc = docMoc(phut.lo, m)
           if (!moc) continue
           const b = moc.cacThucThe[CHI_SO_BONG]!
@@ -760,7 +805,7 @@ describe('quả bóng đi theo vật lý của nó (T726)', () => {
       let lt = taoTranLienTuc({ ...cauHinhMau(ma), cheDoMoPhong: 'lien-tuc' })
       for (let p = 0; p < 95 && !lt.tran.ketThuc; p += 1) {
         const phut = buocPhutLienTuc(lt)
-        for (let m = 0; m < MOC_MOI_PHUT; m += 1) {
+        for (let m = 0; m < phut.lo.soMocDaGhi; m += 1) {
           const moc = docMoc(phut.lo, m)
           if (!moc) continue
           const z = moc.cacThucThe[CHI_SO_BONG]!.z

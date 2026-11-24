@@ -1,7 +1,8 @@
 import type { KetCucChuoi } from '../chuoiBong'
 import type { KetCucPhaV6 } from '../tran'
 import { ghiMoc, KHONG_AI_GIU, type LoMoc, type ThucTheTaiMoc } from './loMoc'
-import { laMocThuong, SO_THUC_THE } from './moc'
+import { laMocDuocPhat } from './mocChuoi'
+import { SO_THUC_THE } from './moc'
 
 /*
   Lấp 20 giây của một pha bóng (T706 của spec 007, quyết định D126).
@@ -162,6 +163,7 @@ export function dienChuoiRaMoc(
   chiSoNguoiGiu: number,
   coMatCuaO: readonly number[],
   thucTheCuaMoc?: ThucTheCuaMoc,
+  day = false,
 ): BoCucPha {
   if (coMatCuaO.length !== SO_THUC_THE) {
     throw new Error(
@@ -174,7 +176,7 @@ export function dienChuoiRaMoc(
 
   for (let b = 0; b < BUOC_MOI_CHUOI; b += 1) {
     const chiSoMoc = chiSoMocDau + b
-    if (!laMocThuong(chiSoMoc)) continue
+    if (!laMocDuocPhat(chiSoMoc, day)) continue
 
     const phaCon = phaConCuaBuoc(boCuc, b)
     const nguoiGiu = phaCon === 'bongChet' ? KHONG_AI_GIU : chiSoNguoiGiu

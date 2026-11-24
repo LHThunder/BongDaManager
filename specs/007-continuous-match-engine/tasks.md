@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **30 AC**) |
 | **Plan** | `./plan.md` (Status `Approved`, D117–D134, R51–R64) |
-| **Tiến độ** | 29/50 |
+| **Tiến độ** | 30/50 |
 | **Nền đo** | commit `5c652eb`, engine v6, **1.304 test xanh / 63 file test** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -1373,7 +1373,7 @@ trận, bằng ngôn ngữ đang chọn — và đó là thứ **duy nhất** m�
     `lienTuc/` → 1 đỏ.
   - 📏 **+8 phép kiểm.** (Con số toàn bộ ghi ở T732: lúc chạy suite thì cả hai module [P] của lát này đã có mặt.)
 
-- [ ] **T731** — Làm dày cả cửa sổ chuỗi lên 0,5 giây; bảng bóng chết ở **đúng một chỗ**
+- [x] **T731** — Làm dày cả cửa sổ chuỗi lên 0,5 giây; bảng bóng chết ở **đúng một chỗ**
   - File: tạo `src/engine/lienTuc/mocChuoi.ts`, `src/engine/lienTuc/mocChuoi.test.ts`; sửa
     `src/engine/lienTuc/moc.ts`, `src/engine/lienTuc/dienPha.ts`
   - Xong khi: trong `tinh_huong[]`, `Δt` giữa hai khung liền nhau **luôn = 0,5**; **không lỗ**;
@@ -1391,6 +1391,55 @@ trận, bằng ngôn ngữ đang chọn — và đó là thứ **duy nhất** m�
   - Ghi chú: bốn con số bóng chết ở lại `plan.md` mục 3.1, **không thành AC** (người dùng chốt
     câu 1 ngày 2026-11-23). Phép kiểm chỉ khẳng định **tính nhất quán** — tổng thời lượng mỗi
     phút khớp 60 giây — **không** khẳng định giá trị.
+  - 🐞 **Điều kiện TIÊN QUYẾT của task này là một lỗi thật, và nó đã sống từ T725: mọi
+    người trên sân đi ĐÚNG NỬA tốc độ mà lô mốc ghi.** `thucTheTaiMoc` chỉ được gọi ở
+    những mốc **được ghi** (cách nhau 1 giây ở phần thường) nhưng lại bước với `DT_MOC =
+    0,5`. Đo trên 3 trận: quãng một người đi giữa hai mốc bằng **0,478** lần `v × Δt`. Nó
+    không vỡ một AC nào nên không phép kiểm nào thấy — và **T731 làm nó lộ ra ngay**, vì
+    cửa sổ dày gọi hàm ấy ở **mọi** bước, nên người sẽ **chạy nhanh gấp đôi** ở đúng những
+    pha quan trọng. Chữa bằng cách lấy `dt` từ **khoảng cách thật giữa hai mốc đã ghi**.
+    Đo lại: tỉ số quãng/(v·dt) **trung vị đúng 1,000**. Commit riêng, trước lát này.
+  - 🐞 **Và phép chữa ấy đẻ ra một lỗi thứ hai, bắt được cũng bằng phép đo:** `mocDaGhiTruoc`
+    ban đầu là biến cục bộ của `buocPhutLienTuc`, nên ở **ranh giới phút** nó khởi về `null`
+    và đoán 1 giây — trong khi nếu phút trước **kết thúc bằng cửa sổ dày** thì khoảng thật
+    là 0,5. Gia tốc đọc ra **10,40 m/s²**, đúng gấp đôi `GIA_TOC_TOI_DA`, ở riêng những cặp
+    mốc bắc qua ranh giới. Nay nó là một trường của `TrangThaiLienTuc`, sống qua phút như
+    `coHoc`.
+  - 🐞 **Ba phép kiểm cũ gõ cứng `Δt = 1` và T731 làm chúng SAI.** Chúng nay đọc Δt từ chính
+    `chiSoMoc` của hai mốc (`dtGiuaHaiMoc`), nên đúng ở cả hai mật độ. Và chúng từng chỉ đọc
+    **60 mốc đầu** của mỗi phút (`m < MOC_MOI_PHUT`) — với cửa sổ dày thì đó là **cắt cụt**
+    phút, và phép đo quãng bóng đọc ra một cú "teleport" **86 m** hoàn toàn giả. Nay chúng
+    đọc hết `lo.soMocDaGhi`.
+  - 🐞 **Và một trần sai nữa, lộ ra cùng lúc:** phép kiểm gia tốc ba điểm trọng tài so với
+    `GIAM_TOC_TOI_DA` (7,2) nhưng đo được **7,2047**. Không phải lỗi mô hình: hai cổng cuối
+    của `buocCoHoc` (mất tốc sau cú quay, trần tốc độ tuyệt đối) cắt tốc độ **sau** phép kẹp
+    gia tốc. Trần đúng là con số của **AC-38.2: 8 m/s²** — đúng lề 13,3% mà `coHoc.ts` để
+    lại, và đúng khuôn phép kiểm của T725.
+  - ⚠️ **Thẻ đỏ quy cho pha PHẠM LỖI của phút ấy, và đó là phép xấp xỉ có chủ ý.**
+    `quanSatPha` được gọi **trước** `congPhaVaoTran`, tức trước khi thẻ được rút, nên không
+    pha nào tự biết. Thứ đọc được ở tầng phút là **hiệu số thẻ đỏ**. Quy cho mọi pha
+    `pham-loi` là phép xấp xỉ **thừa chứ không thiếu**: giá của nó là vài chục mốc, giá của
+    phép ngược lại là **mất đúng tình huống** mà AC-37.4 sinh ra để giữ. Hai đột biến canh
+    cả hai nửa: bỏ quy thẻ → đỏ, và cho thẻ **lan** sang mọi pha → cũng đỏ.
+  - ✅ **Cái neo thứ hai của AC-37.4 đúng THEO CẤU TRÚC**: mọi pha làm dày được đều có
+    `bongChet > 0`, vì `coBan`/`coHoiRoRang`/`biCuu` đều đòi `ketCuc === 'dut-diem'`
+    (`tran.ts:1543`) còn thẻ đỏ chỉ quy cho `pham-loi` — và cả hai kết cục ấy có bảng bóng
+    chết khác 0. Phép kiểm khẳng định bước cuối của cửa sổ nằm trong pha con `bongChet`.
+  - 🐞 **Một VÒNG NHẬP, và nó không báo lỗi gì.** `MOC_MOI_CHUOI_DAY` ban đầu lấy
+    `BUOC_MOI_CHUOI` từ `dienPha.ts`, mà `dienPha.ts` lại nhập `laMocDuocPhat` từ
+    `mocChuoi.ts` → hằng số thành **`undefined` lúc nạp module**, không một lỗi nào. Nay nó
+    định nghĩa từ `MOC_MOI_CHUOI` và **đẳng thức với `BUOC_MOI_CHUOI` là một phép kiểm**.
+  - 📏 **Đo trên 10 mã / 948 phút:** **12,0%** số phút có cửa sổ dày; tổng mốc tăng **4,4%**
+    (59.380 so với 56.880), tức **~5.938 mốc một trận**; phút nhiều mốc nhất **100** mốc —
+    chưa bao giờ chạm sức chứa 120 của lô. Phép kiểm canh: chỉ hai khoảng 1 hoặc 2 bước
+    (tức 0,5 hoặc 1 giây), **không lỗ**, không trùng, không lùi.
+  - ✅ **Chống rỗng là mệnh đề quan trọng nhất ở đây**: cửa sổ dày phải **thật sự xảy ra**
+    trên trận thật (> 50 phút, > 1.000 cặp mốc 0,5 giây). Thiếu nó thì một `cacPhaDay` trả
+    toàn `false` vẫn xanh mọi dòng còn lại. Phép kiểm đếm mốc của T704 cũng được sửa thành
+    một **dải** kèm mệnh đề "phải lớn hơn sàn" vì đúng lý do ấy.
+  - ✅ **Bốn phép đột biến, bốn lần đỏ**; `taiLap.test.ts` và `MOC_V6` xanh **0 dòng sửa** —
+    làm dày là quyết định **chỉ ở đầu ra**, nó không dịch một hạt giống nào (AC-37.5).
+  - 📏 Toàn bộ: **80 file / 1.623 phép kiểm xanh**.
 
 - [x] **T732** [P] — `ui/mocVe.ts`: một phép chia, không nhánh theo tên mức tốc độ
   - File: tạo `src/ui/mocVe.ts`, `src/ui/mocVe.test.ts`
