@@ -376,11 +376,18 @@ export const GOC_NGANG_TOI_DA = 120
  * Trần tốc độ quay **của thân người**, độ mỗi giây.
  *
  * Khác hẳn `TOC_QUAY_NHANH` — cái ấy là trần quay của **vector vận tốc** ở băng
- * nhanh. Thân người quay nhanh hơn quỹ đạo chạy nhiều, và chính khoảng chênh ấy
- * sinh ra những mốc "chạy lùi" và "chạy ngang" thật: khi vận tốc đổi chiều gấp ở
- * tốc độ thấp (băng chậm quay tự do), hướng mặt **không theo kịp**.
+ * nhanh. Chính khoảng chênh giữa hai trần là thứ sinh ra những mốc "chạy lùi" và
+ * "chạy ngang" thật: khi vận tốc đổi chiều gấp ở tốc độ thấp (băng chậm quay tự
+ * do), hướng mặt **không theo kịp**.
+ *
+ * ⚠️ **120 → 90 ngày 2026-11-24, và con số này quyết định một AC có mẫu hay
+ * không.** Ở 120°/giây thì một bước 0,5 giây quay được 60°, nên sau một cú lật
+ * vận tốc 180° độ lệch còn **đúng 120°** — tức ngưỡng "chạy ngang", và **không
+ * mốc nào** bao giờ thành "chạy lùi". Trần lùi 4 m/s của AC-38.4 khi ấy xanh vì
+ * **rỗng**. Ở 90°/giây thì một bước quay 45°, độ lệch còn 135° > 120° và mốc ấy
+ * là "chạy lùi" thật. Một cú xoay người 180° mất 2 giây — đúng tầm người thật.
  */
-export const GOC_QUAY_NGUOI = 120
+export const GOC_QUAY_NGUOI = 90
 
 /**
  * Dưới tốc độ này thì coi như đứng yên, và hướng mặt **giữ nguyên mốc trước**.
@@ -429,6 +436,27 @@ export function tranTheoKieu(kieu: KieuDiChuyen, tranCuaNguoi: number): number {
 }
 
 /**
+ * Độ lệch tối đa cho phép giữa hướng mặt và hướng đi, theo **tốc độ**.
+ *
+ * ⚠️ Đây là một **ràng buộc của việc chạy**, không phải một cú quay tự nguyện,
+ * nên nó KHÁC `GOC_QUAY_NGUOI` và được phép vượt trần quay ấy. Lý lẽ: một người
+ * thật **không sải 9 m/s trong khi mặt quay ngang** — thân người bị chính cú
+ * chạy kéo về phía trước. Trần quay nói "xoay người nhanh nhất được bao nhiêu";
+ * hàm này nói "ở tốc độ ấy thì mặt KHÔNG THỂ lệch hơn bấy nhiêu".
+ *
+ * Ba mức khớp đúng ba trần của AC-38.4, nên không mốc nào vượt được:
+ *
+ *     |v| > 5 m/s  →  lệch ≤ 60°   →  luôn là "chạy tới"
+ *     |v| > 4 m/s  →  lệch ≤ 120°  →  cùng lắm "chạy ngang" (trần 5)
+ *     |v| ≤ 4 m/s  →  tự do        →  cùng lắm "chạy lùi" (trần 4)
+ */
+export function lechToiDaTheoTocDo(toc: number): number {
+  if (toc > TOC_DO_NGANG_TOI_DA) return GOC_TIEN_TOI_DA
+  if (toc > TOC_DO_LUI_TOI_DA) return GOC_NGANG_TOI_DA
+  return 180
+}
+
+/**
  * Hướng mặt ở mốc sau: quay về phía đang đi, nhưng không quá trần quay.
  *
  * Đứng yên thì **giữ nguyên** hướng cũ — xem `NGUONG_DUNG_YEN` để biết vì sao
@@ -449,7 +477,27 @@ export function huongNguoiMocSau(
   const toiDa = GOC_QUAY_NGUOI * dt
   if (lech > toiDa) lech = toiDa
   if (lech < -toiDa) lech = -toiDa
-  return chuanHoaGoc(cu + lech)
+
+  /*
+    ⚠️ ĐỘ LỆCH CÒN LẠI BỊ KẸP THEO TỐC ĐỘ — và đây là chỗ làm AC-38.4 đúng
+    **bằng cấu trúc** thay vì đúng gần đúng.
+
+    Một người thật **không sải 9 m/s trong khi mặt quay ngang**. Bản đầu cho
+    hướng mặt lệch tự do, nên một mốc chạy 5,544 m/s vẫn bị phân loại là "chạy
+    ngang" và vỡ trần 5 m/s — phép kiểm 40.000 mốc quỹ đạo của T715 bắt đúng
+    con số ấy. Kẹp lệch theo tốc độ thì:
+
+      |v| > 5 m/s  →  lệch ≤ 60°   →  luôn là "chạy tới"
+      |v| > 4 m/s  →  lệch ≤ 120°  →  cùng lắm là "chạy ngang" (trần 5)
+      |v| ≤ 4 m/s  →  tự do        →  cùng lắm là "chạy lùi" (trần 4)
+
+    Ba dòng ấy khớp đúng ba trần của AC-38.4, nên không một mốc nào vượt được.
+  */
+  const lechToiDa = lechToiDaTheoTocDo(Math.hypot(vx, vy))
+  const sau = chuanHoaGoc(cu + lech)
+  const conLech = ((dich - sau + 540) % 360) - 180
+  if (Math.abs(conLech) <= lechToiDa) return sau
+  return chuanHoaGoc(dich - Math.sign(conLech) * lechToiDa)
 }
 
 /*

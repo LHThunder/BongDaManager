@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **30 AC**) |
 | **Plan** | `./plan.md` (Status `Approved`, D117–D134, R51–R64) |
-| **Tiến độ** | 18/48 |
+| **Tiến độ** | 19/48 |
 | **Nền đo** | commit `5c652eb`, engine v6, **1.304 test xanh / 63 file test** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -753,11 +753,46 @@ chưa có trần tốc độ, chưa có đường cong. **Phải nói trước �
     - `src/hooks/` có **7 file và 0 file `.test.ts`**. Mọi đoạn nối dây đi qua đó sẽ **XANH
       nếu sai** (R52).
 
-- [ ] **T715** — Test tính chất trên 100.000 bộ đầu vào đối nghịch
+- [x] **T715** — Test tính chất trên 100.000 bộ đầu vào đối nghịch
   - File: `src/engine/lienTuc/coHoc.test.ts`
   - Xong khi: `npx vitest run src/engine/lienTuc/coHoc.test.ts` xanh và **không có một `it` nào
     quá 5.000 ms**.
   - AC: AC-38.1, AC-38.2, AC-38.3, AC-38.4
+  - 🐞 **Bẫy `testTimeout` có thật, và nó VƯỢT LẶNG LẼ chứ không đỏ.** Bản đầu gọi `expect`
+    **500.000 lần** trong một `it` và mất **6.043 ms** — vượt điều kiện ra "không `it` nào
+    quá 5.000 ms". Nhưng phép kiểm vẫn **xanh**: một `it` **đồng bộ** không bao giờ tự đỏ vì
+    timeout, bởi đồng hồ của vitest nằm trên chính luồng đang bị chặn. Ghi chú của task đoán
+    nó sẽ đỏ với "test timed out"; thực tế còn tệ hơn — nó **không báo gì cả**. Chữa bằng
+    cách **gom rồi `expect` một lần**: chậm nhất nay **553 ms**.
+  - 🐞 **AC-38.4 đỏ thật ở 5,544 m/s, và nó lộ ra một lỗ của mô hình.** Trên 40.000 mốc quỹ
+    đạo, một mốc bị phân loại "chạy ngang" ở **5,544 m/s**. Nguyên nhân: mô hình cho hướng
+    mặt lệch **tự do** so với hướng chạy, tức cho phép một người **sải 9 m/s trong khi mặt
+    quay ngang** — điều người thật không làm được. Chữa bằng `lechToiDaTheoTocDo`, kẹp độ
+    lệch theo tốc độ: `>5 m/s → ≤60°`, `>4 m/s → ≤120°`, `≤4 m/s → tự do`. Ba mức khớp đúng
+    ba trần của AC-38.4, nên nay **không mốc nào vượt được** — đúng **bằng cấu trúc**.
+  - ⚠️ **Và phép kẹp ấy CHỌI với trần quay thân người, nên hai thứ phải tách.**
+    `GOC_QUAY_NGUOI` là trần của cú quay **tự nguyện**; `lechToiDaTheoTocDo` là ràng buộc
+    **của việc chạy**. Khi một người tăng tốc trong lúc mặt còn lệch xa, ràng buộc thứ hai
+    **ghì mặt vượt** trần thứ nhất — đo được **84,3°** trong một bước 0,5 giây. Đó không
+    phải lỗi: đòi cả hai cùng lúc là đòi người ta vừa chạy nhanh vừa giữ mặt quay ngang,
+    tức chính thứ AC-38.4 cấm. Phép kiểm nay khẳng định ràng buộc chạy **luôn** đúng, trần
+    quay đúng ở những bước nó **không bị ghì**, và có **ca chống rỗng hai chiều** — cả số
+    bước bị ghì lẫn số bước không bị ghì đều phải > 0.
+  - 🐞 **`GOC_QUAY_NGUOI` 120 → 90, và con số này quyết định một AC có mẫu hay không.** Ở
+    120°/giây thì một bước 0,5 giây quay được 60°, nên sau một cú lật vận tốc 180° độ lệch
+    còn **đúng 120°** — ngưỡng "chạy ngang" — và **không mốc nào** bao giờ thành "chạy lùi".
+    Trần lùi 4 m/s khi ấy xanh vì **rỗng**, và hai ca chống rỗng đã bắt đúng điều đó
+    ("số mốc chạy lùi: expected 0 to be greater than 0"). Ở 90°/giây thì lệch còn 135° > 120°
+    và mốc ấy là "chạy lùi" thật; một cú xoay 180° mất 2 giây, đúng tầm người thật.
+  - ⚠️ **Phân loại theo hướng mặt CỦA CHÍNH MỐC ấy**, không phải mốc trước — AC-38.11 nói
+    "mỗi mốc PHẢI có hướng người", nên hướng của mốc là thứ AC-38.4 phải so. Đổi chỗ này là
+    đo một thứ khác với thứ engine kẹp.
+  - 📏 **Đo được trên 40.000 mốc quỹ đạo**, ba trần đều chạm đúng: tiến **32.308** mốc, lớn
+    nhất **9,0000** m/s; ngang **6.254** mốc, **5,0000**; lùi **1.438** mốc, **4,0000**.
+    Trên 100.000 bộ đối nghịch: không bộ nào ra `NaN`, hướng luôn trong [0; 360), và
+    `(x′ − x)/dt ≡ v′` lệch dưới **1e-10**. Bộ sinh **cố ý** đi tìm chỗ gãy — một phần năm
+    số bộ lấy giá trị ở biên đã biết (2,99 / 3,0 / 6,0 / 6,01 m/s; quãng 0, 1e-9, 3,6 m).
+    Toàn bộ: **74 file / 1507 phép kiểm xanh**; `it` chậm nhất **553 ms**.
   - Phụ thuộc: T713
   - Ghi chú — **bẫy: `vite.config.ts` KHÔNG đặt `testTimeout`** (đã kiểm: `grep -c` = 0), nên
     vitest dùng mặc định **5.000 ms** mỗi `it`. 100.000 bộ × nhiều tính chất trong **một** `it`

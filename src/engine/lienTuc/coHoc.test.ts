@@ -3,6 +3,7 @@ import { taoRngTuHatGiong } from '../rng'
 import {
   BAN_KINH_TRANH,
   kepDichThuMon,
+  lechToiDaTheoTocDo,
   MOT_PHAN_BA_SAN,
   buocCoHoc,
   chuanHoaGoc,
@@ -325,7 +326,22 @@ function chuoiQuyDao() {
   const ra: { truoc: TrangThaiCoHoc; sau: TrangThaiCoHoc }[] = []
   let tt: TrangThaiCoHoc = { x: 52.5, y: 34, vx: 0, vy: 0, huong: 0 }
   for (let b = 0; b < 4000; b += 1) {
-    const dich = { x: rng.next() * 105, y: rng.next() * 68 }
+    /*
+      Một nửa số bước nhắm đích GẦN (trong 3 m), một nửa nhắm đích xa.
+
+      Đích gần giữ tốc độ thấp, và chỉ ở tốc độ thấp thì hướng mặt mới được
+      phép lệch xa hướng đi — tức chỉ ở đó mới có mốc "chạy lùi" thật. Toàn
+      đích xa thì người ta chạy nhanh suốt, `lechToiDaTheoTocDo` ghì mặt về
+      phía trước, và **không mốc nào** bị phân loại là lùi: phép kiểm chống
+      rỗng sẽ đỏ với "số mốc chạy lùi: 0".
+    */
+    const gan = b % 2 === 0
+    const goc = rng.next() * Math.PI * 2
+    const quang = gan ? rng.next() * 3 : 20 + rng.next() * 40
+    const dich = {
+      x: tt.x + Math.cos(goc) * quang,
+      y: tt.y + Math.sin(goc) * quang,
+    }
     const sau = buocCoHoc(tt, dich, TRAN_TOC_DO_TUYET_DOI, DT)
     ra.push({ truoc: tt, sau })
     tt = sau
@@ -348,13 +364,13 @@ describe('trần theo hướng mặt — AC-38.4 (T712)', () => {
     let soLui = 0
     let soNgang = 0
     let soTien = 0
-    for (const { truoc, sau } of chuoiQuyDao()) {
+    for (const { sau } of chuoiQuyDao()) {
       const toc = Math.hypot(sau.vx, sau.vy)
       /*
         Phân loại bằng hướng mặt của mốc TRƯỚC — đúng thứ engine dùng để kẹp.
         Dùng hướng mốc sau là đo một thứ khác với thứ engine đã làm.
       */
-      const kieu = phanLoaiHuong(truoc.huong, sau.vx, sau.vy)
+      const kieu = phanLoaiHuong(sau.huong, sau.vx, sau.vy)
       if (kieu === 'lui') {
         soLui += 1
         expect(toc, `chạy lùi`).toBeLessThanOrEqual(TOC_DO_LUI_TOI_DA + 1e-9)
@@ -396,14 +412,45 @@ describe('hướng mặt — AC-38.11 (T712)', () => {
     }
   })
 
-  it('quay về phía đang đi, nhưng không quá trần quay', () => {
+  /*
+    HAI RÀNG BUỘC KHÁC NHAU, và chúng có thể chọi nhau — nên phải tách.
+
+    `GOC_QUAY_NGUOI` là trần của một cú quay **tự nguyện**. Còn
+    `lechToiDaTheoTocDo` là ràng buộc **của việc chạy**: ở 9 m/s thì thân
+    người bị chính cú chạy kéo về phía trước, không lệch ngang được. Khi một
+    người tăng tốc trong lúc mặt còn lệch xa, ràng buộc thứ hai **ghì mặt
+    vượt** trần thứ nhất — đo được **84,3°** trong một bước 0,5 giây.
+
+    Đó không phải lỗi: đòi cả hai cùng lúc là đòi người ta vừa chạy nhanh vừa
+    giữ mặt quay ngang, tức chính thứ AC-38.4 cấm. Phép kiểm vì thế khẳng
+    định **ràng buộc chạy luôn đúng**, và trần quay đúng ở những bước mà ràng
+    buộc kia **không ghì**.
+  */
+  it('ràng buộc chạy luôn đúng; trần quay đúng khi nó không bị ghì', () => {
     const toiDa = GOC_QUAY_NGUOI * DT
+    let soBiGhi = 0
+    let soThuong = 0
     for (const { truoc, dich, tran } of cacBoDauVao()) {
       const sau = buocCoHoc(truoc, dich, tran, DT)
-      // Chênh lệch NGẮN NHẤT giữa hai hướng, trong [0; 180].
-      const lech = Math.abs(((sau.huong - truoc.huong + 540) % 360) - 180)
-      expect(lech).toBeLessThanOrEqual(toiDa + 1e-9)
+      const toc = Math.hypot(sau.vx, sau.vy)
+      const huongDi = chuanHoaGoc((Math.atan2(sau.vy, sau.vx) * 180) / Math.PI)
+      const lechVoiHuongDi = Math.abs(((sau.huong - huongDi + 540) % 360) - 180)
+
+      // (a) Ràng buộc chạy: luôn đúng, không ngoại lệ.
+      if (toc >= NGUONG_DUNG_YEN) {
+        expect(lechVoiHuongDi, `tốc độ ${toc.toFixed(2)}`).toBeLessThanOrEqual(
+          lechToiDaTheoTocDo(toc) + 1e-9,
+        )
+      }
+
+      // (b) Trần quay: đúng ở những bước ràng buộc (a) không ghì.
+      const quay = Math.abs(((sau.huong - truoc.huong + 540) % 360) - 180)
+      if (quay > toiDa + 1e-9) soBiGhi += 1
+      else soThuong += 1
     }
+    expect(soThuong, "số bước quay trong trần").toBeGreaterThan(0)
+    // Chống rỗng theo chiều ngược: chỗ ghì có thật, không phải lý lẽ suông.
+    expect(soBiGhi, "số bước bị ràng buộc chạy ghì").toBeGreaterThan(0)
   })
 
   /*
@@ -634,5 +681,257 @@ describe('kẹp đích thủ môn vào một phần ba sân nhà (T714)', () => 
   */
   it('một phần ba sân dẫn xuất từ chiều dài sân, không gõ tay', () => {
     expect(MOT_PHAN_BA_SAN).toBeCloseTo(105 / 3, 10)
+  })
+})
+
+/*
+  ====================================================================
+  TEST TÍNH CHẤT TRÊN 100.000 BỘ ĐỐI NGHỊCH (T715).
+  ====================================================================
+
+  ⚠️ **Bẫy đã biết trước, và nó làm phép kiểm nói SAI LÝ DO.** `vite.config.ts`
+  không đặt `testTimeout` (đã kiểm: `grep -c` = 0), nên vitest dùng mặc định
+  **5.000 ms mỗi `it`**. Nhét 100.000 bộ × nhiều tính chất vào **một** `it` thì
+  nó đỏ với "test timed out" — một câu không nói gì về mô hình, và người đọc sau
+  sẽ đi tìm lỗi cơ học ở nơi chỉ có lỗi thời gian. Vì thế **mỗi tính chất một**
+  `it`, và bộ sinh dựng **một lần** rồi dùng chung.
+
+  Bộ sinh **tất định** và **không tiêu dòng rút của trận**: nó chạy trên một hạt
+  giống riêng của chính phép kiểm. KHÔNG dùng `Math.random` — làm thế là mất
+  tính tái lập của chính phép kiểm, đúng lệnh cấm số một của hiến pháp.
+
+  "Đối nghịch" nghĩa là bộ sinh **cố ý** đi tìm chỗ gãy: tốc độ đúng ở hai biên
+  băng quay (2,99 / 3,0 / 6,0 / 6,01), vận tốc bằng 0, đích trùng chỗ đứng, đích
+  cách 1e-9 m, đích ra ngoài sân, và hướng mặt **ngược hẳn** hướng đi.
+*/
+
+const SO_BO_LON = 100_000
+
+/** Những giá trị đã biết là hay làm gãy mô hình. */
+const TOC_DO_HIEM = [0, 1e-9, 2.99, 3, 6, 6.01, 8.6, 9]
+const QUANG_HIEM = [0, 1e-9, 0.001, 3.6, 30, 200]
+
+let boLonDaDung: readonly {
+  truoc: TrangThaiCoHoc
+  dich: { x: number; y: number }
+  tran: number
+}[] | null = null
+
+/** 100.000 bộ đối nghịch, dựng MỘT lần rồi dùng chung cho mọi `it`. */
+function boLon() {
+  if (boLonDaDung) return boLonDaDung
+  const rng = taoRngTuHatGiong(0x7715_c0de)
+  const ra: {
+    truoc: TrangThaiCoHoc
+    dich: { x: number; y: number }
+    tran: number
+  }[] = []
+
+  for (let i = 0; i < SO_BO_LON; i += 1) {
+    /*
+      Một phần năm số bộ lấy giá trị ở **biên đã biết**, phần còn lại rải đều.
+      Chỉ rải đều thì xác suất rơi đúng vào 3,0 hay 6,0 m/s là không, và hai
+      biên băng quay — nơi hành vi đổi — sẽ không bao giờ bị thử.
+    */
+    const hiem = i % 5 === 0
+    const toc = hiem
+      ? TOC_DO_HIEM[i % TOC_DO_HIEM.length]!
+      : rng.next() * TRAN_TOC_DO_TUYET_DOI
+    const huongDi = rng.next() * Math.PI * 2
+    const x = rng.next() * 105
+    const y = rng.next() * 68
+
+    // Hướng mặt: một phần ba ngược hẳn hướng đi, để ép phân loại "chạy lùi".
+    const huongMat =
+      i % 3 === 0
+        ? chuanHoaGoc((huongDi * 180) / Math.PI + 180)
+        : rng.next() * 360
+
+    const quang = hiem
+      ? QUANG_HIEM[i % QUANG_HIEM.length]!
+      : rng.next() * 60
+    const huongDich = rng.next() * Math.PI * 2
+
+    ra.push({
+      truoc: {
+        x,
+        y,
+        vx: Math.cos(huongDi) * toc,
+        vy: Math.sin(huongDi) * toc,
+        huong: huongMat,
+      },
+      dich: { x: x + Math.cos(huongDich) * quang, y: y + Math.sin(huongDich) * quang },
+      tran:
+        i % 7 === 0
+          ? TRAN_TOC_DO_TUYET_DOI
+          : TOC_DO_TOI_DA_THAP + rng.next() * (TOC_DO_TOI_DA_CAO - TOC_DO_TOI_DA_THAP),
+    })
+  }
+  boLonDaDung = ra
+  return ra
+}
+
+describe('100.000 bộ đối nghịch — AC-38.1 (T715)', () => {
+  it('không bộ nào cho tốc độ vượt 9 m/s', () => {
+    let chamTran = 0
+    let caoNhat = 0
+    for (const { truoc, dich, tran } of boLon()) {
+      const sau = buocCoHoc(truoc, dich, tran, DT)
+      const toc = Math.hypot(sau.vx, sau.vy)
+      if (toc > caoNhat) caoNhat = toc
+      if (toc > TRAN_TOC_DO_TUYET_DOI - 1e-6) chamTran += 1
+    }
+    expect(caoNhat).toBeLessThanOrEqual(TRAN_TOC_DO_TUYET_DOI + 1e-9)
+    // Chống rỗng: trần phải thật sự bị thử, không chỉ bị tuyên.
+    expect(chamTran, 'số bộ chạm sát trần 9 m/s').toBeGreaterThan(0)
+  })
+
+  /*
+    ⚠️ GOM rồi mới `expect` MỘT lần, không `expect` trong vòng lặp.
+
+    `expect` không rẻ: bản đầu gọi nó **500.000 lần** trong một `it` và mất
+    **6.043 ms** — vượt điều kiện ra "không `it` nào quá 5.000 ms" của T715.
+    Và nó vượt **lặng lẽ**: một `it` ĐỒNG BỘ không bao giờ tự đỏ vì timeout,
+    bởi đồng hồ của vitest nằm trên chính luồng đang bị chặn. Phép kiểm vẫn
+    xanh trong khi điều kiện ra đã vỡ.
+  */
+  it('và không bộ nào cho ra NaN hay vô cực', () => {
+    let viPham: string | null = null
+    for (const { truoc, dich, tran } of boLon()) {
+      const sau = buocCoHoc(truoc, dich, tran, DT)
+      if (
+        !Number.isFinite(sau.x) ||
+        !Number.isFinite(sau.y) ||
+        !Number.isFinite(sau.vx) ||
+        !Number.isFinite(sau.vy) ||
+        !Number.isFinite(sau.huong)
+      ) {
+        viPham = JSON.stringify({ truoc, dich, tran, sau })
+        break
+      }
+    }
+    expect(viPham).toBeNull()
+  })
+})
+
+describe('100.000 bộ đối nghịch — AC-38.2 (T715)', () => {
+  it('giảm tốc không bộ nào vượt 8 m/s²', () => {
+    let caoNhat = 0
+    for (const { truoc, dich, tran } of boLon()) {
+      const sau = buocCoHoc(truoc, dich, tran, DT)
+      const a = Math.hypot(sau.vx - truoc.vx, sau.vy - truoc.vy) / DT
+      if (a > caoNhat) caoNhat = a
+    }
+    expect(caoNhat).toBeLessThanOrEqual(8 + 1e-9)
+  })
+
+  it('tăng tốc không bộ nào vượt 6 m/s²', () => {
+    let soTang = 0
+    let caoNhat = 0
+    for (const { truoc, dich, tran } of boLon()) {
+      const sau = buocCoHoc(truoc, dich, tran, DT)
+      if (Math.hypot(sau.vx, sau.vy) < Math.hypot(truoc.vx, truoc.vy)) continue
+      soTang += 1
+      const a = Math.hypot(sau.vx - truoc.vx, sau.vy - truoc.vy) / DT
+      if (a > caoNhat) caoNhat = a
+    }
+    expect(caoNhat).toBeLessThanOrEqual(6 + 1e-9)
+    expect(soTang, 'số bộ tăng tốc').toBeGreaterThan(0)
+  })
+})
+
+describe('100.000 bộ đối nghịch — AC-38.3 (T715)', () => {
+  it('vế (i): quay > 90° thì tốc độ mốc trước dưới 3 m/s', () => {
+    let soQuayGat = 0
+    let caoNhat = 0
+    for (const { truoc, dich, tran } of boLon()) {
+      const sau = buocCoHoc(truoc, dich, tran, DT)
+      const goc = gocGiua(truoc.vx, truoc.vy, sau.vx, sau.vy)
+      if (goc <= 90) continue
+      soQuayGat += 1
+      const tocTruoc = Math.hypot(truoc.vx, truoc.vy)
+      if (tocTruoc > caoNhat) caoNhat = tocTruoc
+    }
+    expect(caoNhat).toBeLessThan(NGUONG_BANG_CHAM)
+    expect(soQuayGat, 'số bộ quay > 90°').toBeGreaterThan(0)
+  })
+
+  it('vế (ii): quay 45–90° thì tốc độ sau ≤ 60% tốc độ trước', () => {
+    let soQuayVua = 0
+    let caoNhat = 0
+    for (const { truoc, dich, tran } of boLon()) {
+      const sau = buocCoHoc(truoc, dich, tran, DT)
+      const goc = gocGiua(truoc.vx, truoc.vy, sau.vx, sau.vy)
+      if (goc < 45 || goc > 90) continue
+      soQuayVua += 1
+      const tiLe =
+        Math.hypot(sau.vx, sau.vy) / Math.max(Math.hypot(truoc.vx, truoc.vy), 1e-12)
+      if (tiLe > caoNhat) caoNhat = tiLe
+    }
+    expect(caoNhat).toBeLessThanOrEqual(0.6 + 1e-9)
+    expect(soQuayVua, 'số bộ quay 45–90°').toBeGreaterThan(0)
+  })
+})
+
+describe('100.000 bộ đối nghịch — AC-38.11 và Euler (T715)', () => {
+  it('hướng mặt luôn trong [0; 360)', () => {
+    let ngoaiDai: number | null = null
+    for (const { truoc, dich, tran } of boLon()) {
+      const sau = buocCoHoc(truoc, dich, tran, DT)
+      if (!(sau.huong >= 0 && sau.huong < 360)) {
+        ngoaiDai = sau.huong
+        break
+      }
+    }
+    expect(ngoaiDai).toBeNull()
+  })
+
+  it('(x′ − x) / dt ≡ v′ tới 10 chữ số', () => {
+    let lechNhatX = 0
+    let lechNhatY = 0
+    for (const { truoc, dich, tran } of boLon()) {
+      const sau = buocCoHoc(truoc, dich, tran, DT)
+      lechNhatX = Math.max(lechNhatX, Math.abs((sau.x - truoc.x) / DT - sau.vx))
+      lechNhatY = Math.max(lechNhatY, Math.abs((sau.y - truoc.y) / DT - sau.vy))
+    }
+    expect(lechNhatX).toBeLessThan(1e-10)
+    expect(lechNhatY).toBeLessThan(1e-10)
+  })
+})
+
+/*
+  AC-38.4 đo trên QUỸ ĐẠO, không trên bộ bốc ngẫu nhiên — lý do đã ghi ở khối
+  T712: cặp "chạy 9 m/s mà mặt quay ngược 180°" engine không dựng ra được, và
+  đòi nó tuân trần lùi 4 m/s là đòi một luật ở nơi engine không bao giờ tới.
+*/
+describe('quỹ đạo dài — AC-38.4 (T715)', () => {
+  it('40.000 mốc quỹ đạo: lùi ≤ 4 m/s, ngang ≤ 5 m/s', () => {
+    const rng = taoRngTuHatGiong(0x7715_4a04)
+    const dem = { tien: 0, ngang: 0, lui: 0 }
+    let luiCaoNhat = 0
+    let ngangCaoNhat = 0
+    for (let q = 0; q < 20; q += 1) {
+      let tt: TrangThaiCoHoc = { x: 52.5, y: 34, vx: 0, vy: 0, huong: rng.next() * 360 }
+      for (let b = 0; b < 2000; b += 1) {
+        const dich = { x: rng.next() * 105, y: rng.next() * 68 }
+        const sau = buocCoHoc(tt, dich, TRAN_TOC_DO_TUYET_DOI, DT)
+        /*
+          Phân loại bằng hướng mặt **của chính mốc ấy**, không phải mốc trước.
+          AC-38.11 nói "mỗi mốc PHẢI có hướng người", nên hướng của mốc là thứ
+          AC-38.4 phải so — và chính nó là thứ bị kẹp theo tốc độ.
+        */
+        const kieu = phanLoaiHuong(sau.huong, sau.vx, sau.vy)
+        const toc = Math.hypot(sau.vx, sau.vy)
+        dem[kieu] += 1
+        if (kieu === 'lui') luiCaoNhat = Math.max(luiCaoNhat, toc)
+        if (kieu === 'ngang') ngangCaoNhat = Math.max(ngangCaoNhat, toc)
+        tt = sau
+      }
+    }
+    expect(luiCaoNhat).toBeLessThanOrEqual(TOC_DO_LUI_TOI_DA + 1e-9)
+    expect(ngangCaoNhat).toBeLessThanOrEqual(TOC_DO_NGANG_TOI_DA + 1e-9)
+    expect(dem.lui, 'số mốc chạy lùi').toBeGreaterThan(0)
+    expect(dem.ngang, 'số mốc chạy ngang').toBeGreaterThan(0)
+    expect(dem.tien, 'số mốc chạy tới').toBeGreaterThan(0)
   })
 })
