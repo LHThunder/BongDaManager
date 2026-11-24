@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { taoRngTuHatGiong } from '../rng'
 import {
+  BAN_KINH_TRANH,
   buocCoHoc,
   chuanHoaGoc,
   GOC_QUAY_NGUOI,
@@ -18,6 +19,9 @@ import {
   TOC_DO_TOI_DA_THAP,
   TRAN_TOC_DO_TUYET_DOI,
   tocDoToiDa,
+  tachChen,
+  tranhNguoi,
+  type Diem,
   type TrangThaiCoHoc,
 } from './coHoc'
 
@@ -437,5 +441,160 @@ describe('hướng mặt — AC-38.11 (T712)', () => {
     expect(chuanHoaGoc(-90)).toBe(270)
     expect(chuanHoaGoc(725)).toBe(5)
     expect(chuanHoaGoc(-725)).toBe(355)
+  })
+})
+
+/*
+  Đi vòng qua người và tách người chồng nhau (T713).
+
+  Đây là chỗ trả món nợ **AC-34.2 của spec 006** — mệnh đề "đi vòng qua đối thủ"
+  mà Phase 50 bị bỏ nên chưa ai làm.
+
+  Vị trí của một trận liên tục thật **chưa nối xong** (lô mốc hôm nay còn mang
+  toạ độ 0, xem T704), nên "20 mã trận" ở đây là **20 hạt giống tất định** sinh
+  ra cảnh trên sân. Khi T714 nối xong vị trí thật, phép kiểm trên một trận thật
+  là việc của T754.
+*/
+
+const SO_MA = 20
+const SO_THUC_THE_TREN_SAN = 26
+
+/** Khoảng cách nhỏ nhất giữa hai điểm bất kỳ trong một cảnh. */
+function khoangGanNhat(cac: readonly Diem[]): number {
+  let nho = Infinity
+  for (let i = 0; i < cac.length; i += 1) {
+    for (let j = i + 1; j < cac.length; j += 1) {
+      nho = Math.min(nho, Math.hypot(cac[i]!.x - cac[j]!.x, cac[i]!.y - cac[j]!.y))
+    }
+  }
+  return nho
+}
+
+/**
+ * Một cảnh CHẬT: 26 thực thể dồn vào một vùng 25 × 20 m.
+ *
+ * Dồn chật là cố ý — rải đều trên cả sân 105 × 68 thì hầu như không có cặp nào
+ * chen nhau, và phép kiểm sẽ xanh vì **không có gì để tách**.
+ */
+function canhChat(hatGiong: number): readonly Diem[] {
+  const rng = taoRngTuHatGiong(hatGiong)
+  return Array.from({ length: SO_THUC_THE_TREN_SAN }, () => ({
+    x: 40 + rng.next() * 25,
+    y: 24 + rng.next() * 20,
+  }))
+}
+
+describe('tachChen — không ai đứng chồng ai (T713, AC-34.2)', () => {
+  it('sau khi tách, mọi cặp cách nhau ít nhất 2,0 m trên 20 mã', () => {
+    let soCanhVonChen = 0
+    for (let ma = 0; ma < SO_MA; ma += 1) {
+      const truoc = canhChat(0x7713_0000 + ma)
+      if (khoangGanNhat(truoc) < BAN_KINH_TRANH) soCanhVonChen += 1
+
+      const sau = tachChen(truoc)
+      expect(sau).toHaveLength(truoc.length)
+      expect(
+        khoangGanNhat(sau),
+        `mã ${ma}: gần nhất sau khi tách`,
+      ).toBeGreaterThanOrEqual(BAN_KINH_TRANH - 1e-9)
+    }
+    /*
+      ⚠️ CHỐNG RỖNG. Nếu cảnh nào cũng vốn đã rộng rãi thì `tachChen` chưa bao
+      giờ phải làm gì, và phép kiểm trên xanh mà không chứng minh điều gì.
+    */
+    expect(soCanhVonChen, 'số cảnh vốn CÓ người chen nhau').toBe(SO_MA)
+  })
+
+  /*
+    ⚠️ Hai thực thể TRÙNG KHÍT — chỗ một phép tách ngây thơ chia cho không.
+
+    Vector nối hai điểm cách nhau đúng 0 **không có hướng**, nên không có chiều
+    nào để đẩy. Một bản cài ẩu sẽ cho ra `NaN` và mọi phép so sánh sau đó đều
+    "qua" — vì `NaN >= 2` là false nhưng `NaN` lọt qua mọi phép lọc viết lỏng.
+  */
+  it('hai người TRÙNG KHÍT vẫn tách được, và không ra NaN', () => {
+    const sau = tachChen([
+      { x: 50, y: 34 },
+      { x: 50, y: 34 },
+      { x: 50, y: 34 },
+    ])
+    for (const d of sau) {
+      expect(Number.isFinite(d.x)).toBe(true)
+      expect(Number.isFinite(d.y)).toBe(true)
+    }
+    expect(khoangGanNhat(sau)).toBeGreaterThanOrEqual(BAN_KINH_TRANH - 1e-9)
+  })
+
+  it('và phép tách TẤT ĐỊNH — chạy hai lần ra đúng cùng một kết quả (P1)', () => {
+    const canh = canhChat(0x7713_00ff)
+    expect(tachChen(canh)).toEqual(tachChen(canh))
+    // Kể cả ở ca trùng khít, nơi hướng đẩy do chỉ số quyết.
+    const trung = [
+      { x: 10, y: 10 },
+      { x: 10, y: 10 },
+    ]
+    expect(tachChen(trung)).toEqual(tachChen(trung))
+  })
+
+  it('KHÔNG sửa mảng đầu vào', () => {
+    const canh = [
+      { x: 10, y: 10 },
+      { x: 10.5, y: 10 },
+    ]
+    tachChen(canh)
+    expect(canh[0]).toEqual({ x: 10, y: 10 })
+    expect(canh[1]).toEqual({ x: 10.5, y: 10 })
+  })
+})
+
+describe('tranhNguoi — đi vòng, không đi xuyên (T713, AC-34.2)', () => {
+  it('người cản ĐÚNG trên đường thì đích dời sang một bên', () => {
+    const tu = { x: 0, y: 0 }
+    const dich = { x: 20, y: 0 }
+    const canTranh = [{ x: 10, y: 0 }]
+
+    const moi = tranhNguoi(tu, dich, canTranh)
+    expect(moi).not.toEqual(dich)
+    // Dời đúng một bán kính tránh, và dời VUÔNG GÓC với đường đi.
+    expect(Math.hypot(moi.x - dich.x, moi.y - dich.y)).toBeCloseTo(BAN_KINH_TRANH, 10)
+    expect(moi.x).toBeCloseTo(dich.x, 10)
+  })
+
+  /*
+    Ca chống "bẻ đường vô cớ": đường đang thông thì KHÔNG được đụng vào đích.
+    Một bản cài luôn dời đích vẫn xanh ở ca trên, nhưng nó làm mọi người đi
+    đường vòng suốt trận.
+  */
+  it('không ai cản thì trả về ĐÚNG đích cũ', () => {
+    const tu = { x: 0, y: 0 }
+    const dich = { x: 20, y: 0 }
+    // Người đứng xa đường đi.
+    expect(tranhNguoi(tu, dich, [{ x: 10, y: 9 }])).toEqual(dich)
+    // Người đứng SAU lưng.
+    expect(tranhNguoi(tu, dich, [{ x: -5, y: 0 }])).toEqual(dich)
+    // Người đứng QUÁ đích.
+    expect(tranhNguoi(tu, dich, [{ x: 25, y: 0 }])).toEqual(dich)
+    // Không có ai.
+    expect(tranhNguoi(tu, dich, [])).toEqual(dich)
+  })
+
+  it('dời sang phía ĐỐI DIỆN người cản', () => {
+    const tu = { x: 0, y: 0 }
+    const dich = { x: 20, y: 0 }
+    const lechTrai = tranhNguoi(tu, dich, [{ x: 10, y: 1 }])
+    const lechPhai = tranhNguoi(tu, dich, [{ x: 10, y: -1 }])
+    expect(Math.sign(lechTrai.y)).toBe(-1)
+    expect(Math.sign(lechPhai.y)).toBe(1)
+  })
+
+  it('chọn người cản GẦN NHẤT khi có nhiều người trên đường', () => {
+    const tu = { x: 0, y: 0 }
+    const dich = { x: 30, y: 0 }
+    // Người gần lệch sang +y, người xa lệch sang −y: phải tránh theo người GẦN.
+    const moi = tranhNguoi(tu, dich, [
+      { x: 20, y: -1 },
+      { x: 5, y: 1 },
+    ])
+    expect(Math.sign(moi.y)).toBe(-1)
   })
 })

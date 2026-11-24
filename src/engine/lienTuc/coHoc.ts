@@ -450,3 +450,164 @@ export function huongNguoiMocSau(
   if (lech < -toiDa) lech = -toiDa
   return chuanHoaGoc(cu + lech)
 }
+
+/*
+  ====================================================================
+  ĐI VÒNG QUA NGƯỜI, VÀ TÁCH HAI NGƯỜI CHỒNG NHAU (T713).
+  ====================================================================
+
+  Đây là chỗ **trả món nợ AC-34.2 của spec 006** — mệnh đề "người rê bóng phải
+  ĐI VÒNG qua điểm của đối thủ nằm trên đường đi, không đi xuyên qua". Spec 006
+  đóng mà chưa làm: Phase 50 bị bỏ ngày 2026-11-19 vì lát ấy dựng việc đi vòng
+  bằng cách **lách điểm ở tầng giao diện**, trong khi engine liên tục có toạ độ
+  mét nên nó là **hệ quả tự nhiên của cơ học**, không phải một mẹo vẽ.
+
+  Hai hàm, hai việc khác nhau, và cần cả hai:
+
+  - `tranhNguoi` sửa **ý định**: dời đích sang một bên để đường đi vòng qua người
+    cản. Nó là thứ làm chuyển động **trông có chủ ý**.
+  - `tachChen` sửa **kết quả**: đẩy rời hai ai đã ở quá gần nhau. Nó là lưới cuối,
+    vì hai người cùng nhắm một quả bóng vẫn dồn vào một chỗ dù cả hai đều đang
+    tránh nhau.
+
+  ⚠️ **Hai tầng đụng nhau ở đây, và T713 KHÔNG tự xử.** 2,0 m ở engine bằng
+  **1,73 đơn vị** khung sân 11, trong khi `san2D.test.ts` đòi `≥ 1,46 bán kính`
+  (**3,80 đơn vị**) và một sàn **4 đơn vị tuyệt đối**. Hai người tranh chấp cách
+  nhau 2,0 m **không đạt cả hai ngưỡng** ấy. Plan đã biết (R58) và chọn đường
+  "phát biểu lại bất biến theo **chữ** của AC-15.2, chỉ cho chế độ liên tục", và
+  người dùng chốt **giữ bán kính 2,6** ngày 2026-11-23. T713 để lại chỗ mốc cho
+  **T754** và **không sửa** hai con số ấy.
+*/
+
+/**
+ * Khoảng cách tối thiểu giữa hai thực thể trên sân, **mét**.
+ *
+ * Hai người thật không đứng chồng lên nhau; 2,0 m là bề ngang hai thân người
+ * cộng một khoảng thở. Đây cũng là bán kính mà `tranhNguoi` dùng để quyết một
+ * người có **cản đường** hay không.
+ */
+export const BAN_KINH_TRANH = 2.0
+
+/** Số vòng đẩy tối đa của `tachChen`. */
+const SO_VONG_TACH = 24
+
+/**
+ * Lề đẩy thêm, mét — **1 mm**.
+ *
+ * ⚠️ Không có nó thì phép tách hội tụ **từ DƯỚI** và không bao giờ chạm ngưỡng:
+ * đẩy cặp này ra đúng 2,0 m rồi cặp bên cạnh xô lại một chút, nên vòng sau còn
+ * 1,9999992779 — đo được trên cảnh 26 thực thể dồn trong 25 × 20 m. Đẩy quá
+ * ngưỡng một lề nhỏ làm trạng thái cuối nằm **hẳn** bên trên, và 1 mm thì không
+ * ai nhìn thấy trên sân.
+ */
+const LE_TACH = 0.001
+
+/** Một điểm trên sân, đủ cho hai hàm dưới đây. */
+export interface Diem {
+  readonly x: number
+  readonly y: number
+}
+
+/**
+ * Hướng đẩy khi hai thực thể **trùng khít**.
+ *
+ * ⚠️ Đây là chỗ một phép tách ngây thơ chia cho không. Khi hai điểm cách nhau
+ * đúng 0, vector nối chúng **không có hướng**, nên không có chiều nào để đẩy.
+ * Lấy hướng theo **chỉ số** của hai thực thể cho ba thứ cùng lúc: luôn có một
+ * hướng, hai người khác nhau ra hai hướng khác nhau, và nó **tất định** — chạy
+ * lại cùng một bộ ra cùng một kết quả, đúng điều P1 đòi.
+ */
+function huongGoTrung(chiSo: number): Diem {
+  const goc = ((chiSo * 137.508) % 360) / DO_MOI_RADIAN
+  return { x: Math.cos(goc), y: Math.sin(goc) }
+}
+
+/**
+ * Đẩy rời mọi cặp thực thể đang ở gần nhau hơn `BAN_KINH_TRANH`.
+ *
+ * Mỗi vòng đẩy **cả hai** phía, mỗi phía một nửa khoảng thiếu, nên không ai bị
+ * thiên vị và tổng động lượng của phép sửa bằng không. Lặp tối đa `SO_VONG_TACH`
+ * vòng vì đẩy cặp này ra có thể làm cặp khác chạm nhau.
+ *
+ * Trả về **mảng mới**; đầu vào không bị sửa.
+ */
+export function tachChen(cac: readonly Diem[]): readonly Diem[] {
+  const x = cac.map((d) => d.x)
+  const y = cac.map((d) => d.y)
+
+  for (let vong = 0; vong < SO_VONG_TACH; vong += 1) {
+    let conChen = false
+    for (let i = 0; i < cac.length; i += 1) {
+      for (let j = i + 1; j < cac.length; j += 1) {
+        const dx = x[j]! - x[i]!
+        const dy = y[j]! - y[i]!
+        const d = Math.hypot(dx, dy)
+        if (d >= BAN_KINH_TRANH) continue
+        conChen = true
+
+        // Trùng khít thì không có hướng để đẩy — lấy hướng theo chỉ số.
+        const huong =
+          d === 0
+            ? huongGoTrung(i * 31 + j)
+            : { x: dx / d, y: dy / d }
+        const nua = (BAN_KINH_TRANH + LE_TACH - d) / 2
+        x[i] = x[i]! - huong.x * nua
+        y[i] = y[i]! - huong.y * nua
+        x[j] = x[j]! + huong.x * nua
+        y[j] = y[j]! + huong.y * nua
+      }
+    }
+    if (!conChen) break
+  }
+
+  return cac.map((_, i) => ({ x: x[i]!, y: y[i]! }))
+}
+
+/**
+ * Đích đã dời để đường đi **vòng qua** người cản, thay vì xuyên qua anh ta.
+ *
+ * Chọn người cản **gần nhất** nằm giữa ta và đích, có khoảng cách vuông góc tới
+ * đường đi nhỏ hơn `BAN_KINH_TRANH`. Dời đích sang bên **đối diện** với anh ta,
+ * một đoạn đúng bằng bán kính tránh.
+ *
+ * Không ai cản thì trả về **chính cái đích cũ** — hàm này không được tự ý bẻ
+ * đường khi đường đang thông.
+ */
+export function tranhNguoi(
+  tu: Diem,
+  dich: Diem,
+  canTranh: readonly Diem[],
+): Diem {
+  const dx = dich.x - tu.x
+  const dy = dich.y - tu.y
+  const dai = Math.hypot(dx, dy)
+  if (dai === 0) return dich
+
+  const ux = dx / dai
+  const uy = dy / dai
+
+  let gan: { t: number; lech: number } | null = null
+  for (const ai of canTranh) {
+    const rx = ai.x - tu.x
+    const ry = ai.y - tu.y
+    // Chiếu lên đường đi: `t` là quãng dọc đường, `lech` là khoảng vuông góc.
+    const t = rx * ux + ry * uy
+    if (t <= 0 || t >= dai) continue
+    const lech = rx * -uy + ry * ux
+    if (Math.abs(lech) >= BAN_KINH_TRANH) continue
+    if (!gan || t < gan.t) gan = { t, lech }
+  }
+
+  if (!gan) return dich
+
+  /*
+    Dời sang phía ĐỐI DIỆN người cản. `lech === 0` là trường hợp anh ta đứng
+    đúng trên đường — lúc ấy hai bên đều được, nên chọn một bên cố định để phép
+    tính vẫn tất định (P1).
+  */
+  const ben = gan.lech > 0 ? -1 : 1
+  return {
+    x: dich.x + -uy * ben * BAN_KINH_TRANH,
+    y: dich.y + ux * ben * BAN_KINH_TRANH,
+  }
+}

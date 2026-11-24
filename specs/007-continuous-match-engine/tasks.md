@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **30 AC**) |
 | **Plan** | `./plan.md` (Status `Approved`, D117–D134, R51–R64) |
-| **Tiến độ** | 16/48 |
+| **Tiến độ** | 17/48 |
 | **Nền đo** | commit `5c652eb`, engine v6, **1.304 test xanh / 63 file test** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -650,11 +650,38 @@ chưa có trần tốc độ, chưa có đường cong. **Phải nói trước �
     bốn chỗ khởi tạo phải sửa — kiểu làm việc kiểm lỗi thay người.
   - Phụ thuộc: T711
 
-- [ ] **T713** — `tranhNguoi` + `tachChen`, bán kính tránh **2,0 m** (trả AC-34.2 của spec 006)
+- [x] **T713** — `tranhNguoi` + `tachChen`, bán kính tránh **2,0 m** (trả AC-34.2 của spec 006)
   - File: `src/engine/lienTuc/coHoc.ts`, `src/engine/lienTuc/coHoc.test.ts`
   - Xong khi: không hai thực thể nào ở khoảng cách < 2,0 m tại bất kỳ mốc nào trong 20 mã;
     `npx vitest run src/ui/san2D.test.ts` xanh **với 0 dòng sửa**.
   - AC: AC-34.2 (nợ của spec 006), và là đầu vào của AC-15.2 ở chế độ liên tục
+  - 🐞 **Phép tách hội tụ TỪ DƯỚI nên không bao giờ chạm ngưỡng — đo được.** Bản đầu đẩy
+    mỗi cặp ra đúng `2,0 m` rồi dừng; nhưng đẩy cặp này xong thì cặp bên cạnh xô lại một
+    chút, nên trạng thái cuối còn **1,9999992779 m** trên cảnh 26 thực thể dồn trong
+    25 × 20 m, và **1,9999542 m** ở ca ba người trùng khít. Chữa bằng hai thứ: đẩy quá
+    ngưỡng một lề **1 mm** để trạng thái cuối nằm **hẳn** bên trên, và nâng số vòng từ 8
+    lên **24**. 1 mm thì không ai nhìn thấy trên sân.
+  - ⚠️ **Hai thực thể TRÙNG KHÍT là chỗ một phép tách ngây thơ chia cho không.** Vector nối
+    hai điểm cách nhau đúng 0 **không có hướng**, nên không có chiều nào để đẩy — và một bản
+    cài ẩu cho ra `NaN`, thứ lọt qua mọi phép lọc viết lỏng. `huongGoTrung` lấy hướng theo
+    **chỉ số** của hai thực thể: luôn có một hướng, hai người khác nhau ra hai hướng khác
+    nhau, và nó **tất định** — đúng điều P1 đòi. Có ca riêng cho cả ba điều ấy, cộng một ca
+    khẳng định mọi toạ độ ra là `Number.isFinite`.
+  - ✅ **Ca chống "bẻ đường vô cớ".** `tranhNguoi` phải trả về **đúng cái đích cũ** khi đường
+    đang thông — một bản cài luôn dời đích vẫn xanh ở ca "có người cản", nhưng nó làm mọi
+    người đi đường vòng suốt trận. Bốn ca: người đứng xa đường, người đứng **sau lưng**,
+    người đứng **quá đích**, và danh sách rỗng.
+  - ⚠️ **"20 mã trận" ở đây là 20 HẠT GIỐNG, không phải 20 trận thật** — và ghi rõ vì sao:
+    lô mốc hôm nay còn mang toạ độ **0** (T704 đã ghi), nên chưa có vị trí thật để đo. Cảnh
+    thử **cố ý dồn chật** 26 thực thể vào 25 × 20 m; rải đều trên sân 105 × 68 thì hầu như
+    không cặp nào chen nhau và phép kiểm sẽ xanh vì **không có gì để tách**. Có ca chống rỗng
+    đòi **cả 20/20** cảnh đều vốn có người chen nhau. Phép kiểm trên một trận thật là T754.
+  - ⚠️ **Hai tầng đụng nhau, T713 KHÔNG tự xử** — đúng như ghi chú của task dặn. 2,0 m bằng
+    **1,73 đơn vị** khung sân 11, trong khi `san2D.test.ts:874` đòi ≥ 1,46 bán kính
+    (**3,80 đơn vị**) và `:1003` đòi sàn **4 đơn vị**. Hai người tranh chấp cách nhau 2,0 m
+    không đạt cả hai. Chỗ mốc để lại cho **T754**; hai con số ấy **0 dòng sửa**.
+  - 📏 Toàn bộ: **73 file / 1483 phép kiểm xanh**; `src/ui/san2D.test.ts` và ba file tuyên 0
+    dòng sửa đều **0 dòng**.
   - Phụ thuộc: T711
   - Ghi chú — **đây là chỗ hai tầng đụng nhau, đã tính:** 2,0 m ở engine = **1,73 đơn vị**
     khung sân 11, trong khi `san2D.test.ts:874` đòi `≥ 1,46 bán kính` (= **3,80 đơn vị** ở
