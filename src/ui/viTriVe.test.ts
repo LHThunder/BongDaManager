@@ -182,3 +182,103 @@ describe('chế độ cổ điển: thứ tự hợp các lớp (T714)', () => {
     expect(ra.y).toBe(GIOI_HAN.yDen)
   })
 })
+
+/*
+  ====================================================================
+  GIẢM CHUYỂN ĐỘNG Ở CHẾ ĐỘ LIÊN TỤC (T737, AC-45.9).
+  ====================================================================
+
+  AC-45.9 nói: đồng hồ **mốc** vẫn chạy, chỉ **nội suy** và **dao động** tắt.
+  Ở lớp vẽ, điều đó có một hệ quả kiểm được: toạ độ trả về phải **trùng khít**
+  một mốc engine đã phát, **không bao giờ** là một giá trị nằm giữa hai mốc.
+
+  ⚠️ **T734 đổi hành vi, T737 chứng minh hành vi** — hai điều kiện ra khác nhau
+  của hai task khác nhau, và task này là cái lưới duy nhất ở tầng hàm thuần cho
+  một thay đổi mà `src/ui/components` không có một phép kiểm nào canh (R52).
+*/
+describe('giảm chuyển động: vẫn trùng khít mốc (T737, AC-45.9)', () => {
+  /** 100 bộ đầu vào: 10 chỗ của mốc × 10 kiểu nhiễu của lớp cổ điển. */
+  const CAC_MOC = Array.from({ length: 10 }, (_, i) => ({
+    x: 5 + i * 10,
+    y: 4 + i * 6,
+  }))
+  const CAC_NHIEU = Array.from({ length: 10 }, (_, i) => ({
+    sauNoiSuy: { x: 50 + i, y: 30 - i },
+    sauBamBong: { x: 11 * i, y: 6 * i },
+    lechDao: { x: (i % 3) - 1, y: 1 - (i % 3) },
+  }))
+
+  it('100 bộ: với giảm chuyển động BẬT, toạ độ vẫn là đúng mốc ấy', () => {
+    let soBo = 0
+    for (const m of CAC_MOC) {
+      const anh: AnhChupMet = {
+        thucThe: [thucThe(m.x, m.y)],
+        oCuaNguoi: new Map([['a', 0]]),
+        nguoiGiuBong: 0,
+      }
+      for (const nhieu of CAC_NHIEU) {
+        const lop: LopViTri = {
+          moc: { x: 0, y: 0 },
+          sauNoiSuy: nhieu.sauNoiSuy,
+          sauBamBong: nhieu.sauBamBong,
+          daiThuMon: null,
+          lechDao: nhieu.lechDao,
+        }
+        const ra = viTriVe(lop, GIOI_HAN, true, anh, 'a', KHUNG)
+        expect(ra, `mốc ${m.x},${m.y}`).toEqual(toaDoTuMet(KHUNG, m.x, m.y))
+        soBo += 1
+      }
+    }
+    // ⚠️ CHỐNG RỖNG: điều kiện ra của task đòi đúng 100 bộ.
+    expect(soBo, 'số bộ đã quét').toBe(100)
+  })
+
+  /*
+    ⚠️ **Mệnh đề "không bao giờ nằm GIỮA hai mốc".** Phép kiểm trên một mình
+    chưa nói được điều đó: một hàm nội suy với hệ số 0 cũng trả đúng mốc đầu.
+    Ca này đưa **hai** mốc liền nhau và đòi kết quả là **một trong hai**, không
+    phải một điểm ở giữa — kể cả khi mọi lớp cổ điển đều trỏ vào điểm giữa ấy.
+  */
+  it('và KHÔNG BAO GIỜ là một điểm nằm giữa hai mốc', () => {
+    const truoc = { x: 20, y: 20 }
+    const sau = { x: 60, y: 44 }
+    const giua = { x: (truoc.x + sau.x) / 2, y: (truoc.y + sau.y) / 2 }
+    const diemGiua = toaDoTuMet(KHUNG, giua.x, giua.y)
+
+    for (const m of [truoc, sau]) {
+      const anh: AnhChupMet = {
+        thucThe: [thucThe(m.x, m.y)],
+        oCuaNguoi: new Map([['a', 0]]),
+        nguoiGiuBong: 0,
+      }
+      // Mọi lớp cổ điển đều trỏ vào ĐIỂM GIỮA — cái bẫy của ca này.
+      const lop: LopViTri = {
+        moc: diemGiua,
+        sauNoiSuy: diemGiua,
+        sauBamBong: diemGiua,
+        daiThuMon: null,
+        lechDao: { x: 0, y: 0 },
+      }
+      for (const giam of [true, false]) {
+        const ra = viTriVe(lop, GIOI_HAN, giam, anh, 'a', KHUNG)
+        expect(ra, `mốc ${m.x} giảm=${giam}`).toEqual(
+          toaDoTuMet(KHUNG, m.x, m.y),
+        )
+        expect(ra, `mốc ${m.x} giảm=${giam}`).not.toEqual(diemGiua)
+      }
+    }
+  })
+
+  /*
+    Và bật hay tắt giảm chuyển động **không đổi một số nào** ở chế độ liên tục:
+    đường liên tục không có lớp nội suy để tắt, nên nó đúng **theo cấu trúc**.
+  */
+  it('bật hay tắt giảm chuyển động cho CÙNG một toạ độ', () => {
+    const anh = anhChupMau()
+    for (const id of ['a', 'b']) {
+      expect(viTriVe(LOP_DAY_DU, GIOI_HAN, true, anh, id, KHUNG)).toEqual(
+        viTriVe(LOP_DAY_DU, GIOI_HAN, false, anh, id, KHUNG),
+      )
+    }
+  })
+})

@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **30 AC**) |
 | **Plan** | `./plan.md` (Status `Approved`, D117–D134, R51–R64) |
-| **Tiến độ** | 31/50 |
+| **Tiến độ** | 33/50 |
 | **Nền đo** | commit `5c652eb`, engine v6, **1.304 test xanh / 63 file test** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -1544,7 +1544,7 @@ trận, bằng ngôn ngữ đang chọn — và đó là thứ **duy nhất** m�
     dòng mới nằm **trong** component, không ở mức module.
   - 📏 Toàn bộ: **80 file / 1.629 phép kiểm xanh**.
 
-- [ ] **T734** — Giảm chuyển động (**AC-45.9**), phần **nối dây**
+- [x] **T734** — Giảm chuyển động (**AC-45.9**), phần **nối dây**
   - File: `src/ui/components/San2D.tsx` (cổng ở dòng 1449, chỗ cộng 1472-1476, dep 1483)
   - Xong khi: cổng đồng hồ **mốc** chỉ gồm `dangChay` + chế độ và **không** nhận
     `giamChuyenDong`; `dongHoDao` chỉ cộng khi `!giamChuyenDong`; và `npx vitest run` toàn bộ
@@ -1555,6 +1555,22 @@ trận, bằng ngôn ngữ đang chọn — và đó là thứ **duy nhất** m�
     **rỗng**, và `vite.config.ts` chỉ `include: ['src/**/*.test.ts']` với `environment: 'node'`
     → **0 test component** trong repo. Món bù duy nhất là **T737** (hàm thuần) và **T761** (kiểm
     bằng mắt). Đây đúng là R52, và nó phải được nói ra khi tick.
+  - ⚠️ **Ghi chú của task đúng từng chữ, và tôi chứng minh nó bằng một phép đột biến thay vì
+    tin lời:** cho `dongHoDao` cộng lại kể cả khi giảm chuyển động — **88/88 phép kiểm vẫn
+    xanh**. Không một phép kiểm tự động nào canh lát này. Đó đúng là **R52**, và món bù duy
+    nhất là **T737** (hàm thuần) cộng **T761** (kiểm bằng mắt).
+  - ✅ **Hai đồng hồ, hai việc — đúng điều D132 tách ra.** Đồng hồ **mốc** đẩy trận đi theo
+    giây (mô phỏng); đồng hồ **dao động** làm các điểm rung nhẹ (thẩm mỹ). Người bật giảm
+    chuyển động tắt cái thứ hai, **không** tắt cái thứ nhất: AC-31.1 nói "không nội suy,
+    không dao động", nó **không** nói "ít chuyển động hơn", và một trận đứng im không phải
+    một trận.
+  - ⚠️ **Chế độ CỔ ĐIỂN giữ nguyên hành vi cũ**: ở đó vòng rAF **chỉ** làm việc thẩm mỹ, nên
+    giảm chuyển động vẫn tắt cả vòng. Nếu không tách hai nhánh thì người bật giảm chuyển
+    động ở chế độ cũ sẽ đốt 60 khung hình một giây cho một thứ đã bị tắt.
+  - ➕ **Lệch nhẹ so với D132, nêu chứ không im:** D132 đặt đồng hồ **mốc** ở `useMatch.ts`,
+    còn ở đây nó là chính vòng rAF của `San2D` (quyết định của T733). Tinh thần giữ nguyên —
+    cổng của đồng hồ mốc **không** nhận `giamChuyenDong` — và lý do D132 loại phương án "tắt
+    cả vòng" vẫn đứng: tắt thì **không còn ai gọi vẽ lại**, trận chạy mà sân đóng băng.
 
 - [ ] **T735** — Phép kiểm AC-38.8 ở lớp vẽ, ngưỡng **quy từ** `TOC_QUAY_NHANH`
   - File: `src/ui/viTriVe.test.ts` (+1 describe)
@@ -1580,7 +1596,7 @@ trận, bằng ngôn ngữ đang chọn — và đó là thứ **duy nhất** m�
     "khung sân theo quân số (AC-15.6)" đo trực tiếp chúng; `daoDong.test.ts` và `phaBong.test.ts`
     cũng đứng trên cùng khung toạ độ. D121 đã **loại** phương án đổi `CAO` vì đúng lý do này.
 
-- [ ] **T737** — Phép kiểm của **AC-45.9**: +1 describe thuần, **sau T734**
+- [x] **T737** — Phép kiểm của **AC-45.9**: +1 describe thuần, **sau T734**
   - File: `src/ui/viTriVe.test.ts`
   - Xong khi: với `giamChuyenDong = true`, toạ độ trả về **trùng khít** một mốc đã phát trên
     **100 bộ** đầu vào, và **không bao giờ** là một giá trị nằm giữa hai mốc.
@@ -1589,6 +1605,16 @@ trận, bằng ngôn ngữ đang chọn — và đó là thứ **duy nhất** m�
   - Ghi chú: để describe này gọi được từ `environment: node`, hàm của `viTriVe.ts` phải nhận
     `giamChuyenDong` làm **tham số** — không đọc hook. Điều kiện "Xong khi" của T737 khác T734:
     **T734 đổi hành vi, T737 chứng minh hành vi.**
+  - ✅ **100 bộ đúng như điều kiện ra đòi**: 10 chỗ của mốc × 10 kiểu nhiễu của lớp cổ điển.
+    Với `giamChuyenDong = true`, toạ độ trả về **trùng khít** mốc ấy — không mang một dấu vết
+    nào của `sauNoiSuy`, `sauBamBong` hay `lechDao`.
+  - ⚠️ **Mệnh đề "không bao giờ nằm GIỮA hai mốc" cần một ca RIÊNG.** Phép kiểm 100 bộ một
+    mình chưa nói được điều đó: một hàm nội suy với hệ số 0 cũng trả đúng mốc đầu. Ca riêng
+    đưa **hai** mốc liền nhau và bắt **mọi** lớp cổ điển trỏ vào đúng **điểm giữa** — rồi đòi
+    kết quả là một trong hai mốc, không phải điểm giữa ấy.
+  - ✅ **Hai phép đột biến, hai lần đỏ**: cho giảm chuyển động rơi về đường cổ điển → 3 đỏ;
+    cho đường liên tục lệch nửa mét khỏi mốc → 5 đỏ.
+  - 📏 **80 file / 1.633 phép kiểm xanh** (thêm 4).
 
 - [ ] **T738** [P] — Phép kiểm **phủ định** của **AC-45.10**: không có tua ngược
   - File: tạo `src/engine/lienTuc/tuaToi.test.ts`

@@ -1599,8 +1599,24 @@ export function San2D(props: Props) {
       có được phát ra cũng không ai đọc. Ở chế độ liên tục, đồng hồ **mốc** mới
       là thứ vẽ ra chuyển động, và nó cần chạy ở cả năm mức.
     */
-    if (!dangChay || giamChuyenDong) return
-    if (!lienTuc && msChuyen <= 0) return
+    /*
+      ⚠️ **Cổng của đồng hồ MỐC không nhận `giamChuyenDong` (T734, AC-45.9).**
+
+      Hai đồng hồ, hai việc khác nhau, và D132 tách chúng ra đúng vì chuyện này:
+
+        - đồng hồ **mốc** đẩy trận đi theo giây — nó là **mô phỏng**;
+        - đồng hồ **dao động** làm các điểm rung nhẹ — nó là **thẩm mỹ**.
+
+      Người bật giảm chuyển động tắt cái thứ hai, **không** tắt cái thứ nhất.
+      AC-31.1 nói "không nội suy, không dao động"; nó **không** nói "ít chuyển
+      động hơn", và một trận đứng im không phải là một trận.
+
+      Ở chế độ **cổ điển** thì giảm chuyển động vẫn tắt cả vòng, y như trước:
+      ở đó vòng này **chỉ** làm việc thẩm mỹ, nên để nó chạy là đốt khung hình
+      cho một thứ đã bị tắt.
+    */
+    if (!dangChay) return
+    if (!lienTuc && (msChuyen <= 0 || giamChuyenDong)) return
 
     let yeuCau = 0
     let truoc = performance.now()
@@ -1623,7 +1639,8 @@ export function San2D(props: Props) {
         trúc** (AC-28.5) — vòng tắt thì không ai cộng nữa, không cần thêm một nhánh nào.
       */
       const bayGio = performance.now()
-      if (msMoiPhut > 0) {
+      // Đồng hồ DAO ĐỘNG là thứ thẩm mỹ, nên nó đứng khi người dùng xin ít chuyển động.
+      if (msMoiPhut > 0 && !giamChuyenDong) {
         // Chặn một khung dài bất thường — tab bị ẩn rồi hiện lại — thành một cú nhảy.
         const troi = Math.min(bayGio - truoc, msMoiPhut)
         dongHoDao.current += troi / msMoiPhut
