@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **30 AC**) |
 | **Plan** | `./plan.md` (Status `Approved`, D117–D134, R51–R64) |
-| **Tiến độ** | 22/49 |
+| **Tiến độ** | 23/49 |
 | **Nền đo** | commit `5c652eb`, engine v6, **1.304 test xanh / 63 file test** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -1039,7 +1039,7 @@ vì lớp dao động đã tắt — **phải báo trước.**
     Kết luận: `'danh_dau'` **phải** là giá trị của `trang_thai` trong tệp xuất, **không** phải
     một `LoaiHanhDong` mới — vì nếu làm sai, **không lưới nào bắt được**.
 
-- [ ] **T722** [P] — `lienTuc/dieuKien.ts`: thời tiết và gió là hàm băm **thuần**, 0 lần rút
+- [x] **T722** [P] — `lienTuc/dieuKien.ts`: thời tiết và gió là hàm băm **thuần**, 0 lần rút
   - File: tạo `src/engine/lienTuc/dieuKien.ts`, `src/engine/lienTuc/dieuKien.test.ts`
   - Xong khi: cùng mã trận → cùng thời tiết và gió, trên 20.000 mã; **và** `taoTran` vẫn tiêu
     **đúng 3** lần rút trước khi cất hạt giống — chứng minh bằng `taiLap.test.ts` và `MOC_V6`
@@ -1050,6 +1050,44 @@ vì lớp dao động đã tắt — **phải báo trước.**
     sao riêng** của hằng số xmur3 (`2246822507`) ở `src/ui/daoDong.ts:97`. Dùng lại
     `hatGiongTuMaTran`; đừng sinh bản thứ ba. Nếu refactor nó để tham số hoá hằng tròn thì
     `rng.test.ts:38-41` đỏ (vector cố định) — đó là **lưới đúng**, không phải chướng ngại.
+  - ✅ **"0 lần rút" được CHỮ KÝ bảo vệ, không phải được chú thích bảo vệ.**
+    `dieuKienTuMaTran(maTran: string)` không nhận `Rng`, nên nó **không thể** rút một lần
+    nào — đúng cách D130 định. Cộng thêm một phép kiểm quét chính mã nguồn tìm `taoRng`,
+    `.next(`, `Math.random` và `Rng`, kèm **ca ngược** chứng minh nó đỏ được.
+  - ✅ **Không có hàm băm thứ ba.** Repo đã có hai (`hatGiongTuMaTran` ở `rng.ts`, và một
+    **bản sao hằng số xmur3** ở `ui/daoDong.ts`). Module này **gọi lại** `hatGiongTuMaTran`,
+    và một phép kiểm grep bốn hằng số xmur3 trong chính nó để chắc không ai chép bản thứ ba.
+    `TRON_DIEU_KIEN = 0x9e3779b9` chỉ **tách lớp**, không băm — và một phép kiểm canh nó
+    **khác** `BUOC_HAT_GIONG` của mulberry32, đúng điều D130 đòi.
+  - ⚠️ **Phép kiểm quan trọng nhất của task này là phép CHỐNG RỖNG.** Một hàm trả `kho` cho
+    **mọi** mã trận sẽ xanh cả hai mệnh đề đầu của điều kiện ra: nó tất định, và `kho` nằm
+    trong dải. Nên phải đòi cả **năm** kiểu thật sự xuất hiện, đòi **thứ tự tần suất** khớp
+    bảng trọng số, và đòi tần suất đo được **gần** trọng số trong lề 3 điểm phần trăm. Đã
+    đột biến đúng ca ấy: `thoiTiet: 'kho'` cứng → 2 phép kiểm đỏ.
+  - ⚠️ **Ba đại lượng phải lấy từ BA LỚP BĂM khác nhau.** Dùng chung một lớp thì thời tiết
+    **kéo theo** hướng gió: mọi trận mưa to có gió cùng một phía, và người xem thấy điều đó
+    trước khi phép kiểm nào thấy. Phép kiểm canh nó: mỗi kiểu thời tiết phải có đủ **bốn**
+    phía gió. Đột biến dùng chung lớp → đỏ.
+  - ➕ **Một con số của task này, không của plan: PHÂN PHỐI thời tiết.** D130 chốt **bảng ma
+    sát** nhưng để phân phối mở. Chia đều năm kiểu thì **một phần năm** số trận là mưa to —
+    nhiều hơn hẳn một mùa giải thật. Trọng số chốt: khô 40%, ẩm 25%, nóng 15%, mưa 15%,
+    **mưa to 5%**. Đo trên 20.000 mã: 40,06 | 24,75 | 15,40 | 14,87 | **4,92%**.
+  - 📏 **Đo trên 20.000 mã, và 20.000 mã ấy RIÊNG BIỆT** (đã đếm: 20.000/20.000, nên "20.000
+    mã" của điều kiện ra không rỗng): cùng mã luôn ra cùng điều kiện; gió rải đều bốn phía
+    (25,01 | 24,80 | 25,17 | 25,02%); gió trung bình **3,97 m/s** trên dải [0; 8].
+  - ✅ **Hai mệnh đề của AC-38.7 viết thành cấu trúc**: ba kiểu sân khô nằm trong dải **1–2
+    m/s²** (1,85 | 1,60 | 1,30), hai kiểu mưa nằm **dưới 1** (0,95 | 0,75). Và **chiều** của
+    bảng — sân ướt thì bóng đi **xa hơn**, chiều người dùng chốt 2026-11-23 — có phép kiểm
+    đơn điệu riêng, nên nếu một ngày ai "sửa lại cho đúng trực giác" thì nó đỏ.
+  - ✅ **Hai cửa của gió tách thành `gioCoAnVaoDuongBong`**, không viết `if` rải trong thân
+    hàm — vì **T723** phải chứng minh mệnh đề **chống mã chết** (gió 0 so với 7,75 m/s trên
+    đường sệt ra vị trí giống hệt), và một điều kiện nằm rải thì phép kiểm ấy không có gì để
+    trỏ vào. Phép kiểm canh cả bốn tổ hợp bổng/sệt × dài/ngắn, và canh **đúng ngưỡng** chứ
+    không gần ngưỡng: đột biến `&&` → `||` và `>` → `>=` đều cho 2 phép kiểm đỏ.
+  - ✅ **Sáu phép đột biến, sáu lần đỏ.** Và điều kiện ra thứ hai đạt **mà không phải đếm**
+    (lệnh cấm số 2): `taiLap.test.ts`, `MOC_V6` và `rng.test.ts` còn xanh với **0 dòng sửa**,
+    nên `taoTran` vẫn tiêu đúng 3 lần rút.
+  - 📏 Toàn bộ: **77 file / 1.563 phép kiểm xanh** (thêm 16).
 
 - [ ] **T723** — Ma sát lăn sệt + gió **chỉ** ăn vào bóng bổng dài
   - File: `src/engine/lienTuc/vatLyBong.ts`, `src/engine/lienTuc/vatLyBong.test.ts`
