@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **30 AC**) |
 | **Plan** | `./plan.md` (Status `Approved`, D117–D134, R51–R64) |
-| **Tiến độ** | 21/49 |
+| **Tiến độ** | 22/49 |
 | **Nền đo** | commit `5c652eb`, engine v6, **1.304 test xanh / 63 file test** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -962,7 +962,7 @@ vì lớp dao động đã tắt — **phải báo trước.**
 
 ## Phase 55 — Bóng có độ cao, và điều kiện trận
 
-- [ ] **T720** [P] — `lienTuc/vatLyBong.ts`: `z`/`vz`, `tocDoDuongBong`, `thoiGianBay = d/v`
+- [x] **T720** [P] — `lienTuc/vatLyBong.ts`: `z`/`vz`, `tocDoDuongBong`, `thoiGianBay = d/v`
   - File: tạo `src/engine/lienTuc/vatLyBong.ts`, `src/engine/lienTuc/vatLyBong.test.ts`
   - Xong khi: chuyền ngắn trong **12–20** m/s, chuyền dài và sút trong **20–30** m/s, và
     `|thoiGianBay − d/v| < 1e-9` trên 1.000 bộ.
@@ -970,6 +970,50 @@ vì lớp dao động đã tắt — **phải báo trước.**
   - Phụ thuộc: T704
   - Ghi chú: **không đổi stride** — `plan.md` mục 0 đã đặt `z` và `vz` vào tám ô
     (`x, y, z, vx, vy, vz, huong, coMat`) từ Phase 53, nên T720 không chạm `loMoc.ts`.
+  - 🐞 **Một lỗi thật, và nó vỡ ngay mốc đầu tiên: đường chuyền SỆT tụt xuống DƯỚI mặt sân.**
+    Bản đầu để công thức parabol chạy tự do, nên với góc phát 0 thì `z = −0,049 m` ở giây
+    0,1 — trọng lực kéo một quả bóng đang lăn xuyên qua mặt đất. AC-38.5 đòi `chuyen` và
+    `re-bong` có **`z ≡ 0`**, nên mặt đất phải là một **sàn**. Chữa bằng `giayChamDat` giải
+    từ `z(t) = 0`: đường sệt ra đúng `0`, tức `z ≡ 0` đúng **theo cấu trúc** chứ không nhờ
+    một phép so sánh nào. Và phép kẹp ấy **không phá tính nửa nhóm** — đã kiểm cả ca bước
+    dài **băng qua** đúng lúc chạm đất.
+  - ⚠️ **Mệnh đề "`|thoiGianBay − d/v| < 1e-9`" của điều kiện ra, đọc nguyên văn, là RỖNG:**
+    `thoiGianBay` **được định nghĩa bằng** `d / v`, nên so nó với `d / v` là so một thứ với
+    chính nó. Tôi để lại một dòng ấy cho đủ chữ của task, nhưng phép kiểm **có răng** hỏi
+    câu mà AC hỏi: *quả bóng phát với tốc độ ấy có TỚI ĐÍCH đúng vào giây thứ `d/v` không*
+    — **1.296 bộ**, lệch lớn nhất **< 1e-9**.
+  - ✅ **Quyết định 1: `tocDoDuongBong` là tốc độ NGANG, không phải tốc độ dọc theo quỹ đạo.**
+    Nhờ thế `thoiGianBay = d/v` đúng với **mọi** góc phát. Phương án bị loại (lấy `v` làm
+    tốc độ dọc quỹ đạo) biến mệnh đề thứ hai của AC-38.6 từ **tuyệt đối** thành **gần đúng**
+    ở mọi quả tạt — thời gian bay thành `d / (v·cos góc)` — mà không đổi lấy thứ gì.
+  - ✅ **Quyết định 2: quỹ đạo là CÔNG THỨC ĐÓNG, không tích phân từng bước.** Hai lý do:
+    `loMoc.ts` đã dặn engine **không đọc lại vận tốc từ lô** vì lô là `Float32Array`, nên
+    tích phân từng bước qua 11.400 bước một trận là đúng thứ nó cảnh báo; và `zKhiToi` của
+    **T721** phải **giải** góc phát bằng đại số, không dò bằng vòng lặp. Phép kiểm canh
+    quyết định này là **TÍNH NỬA NHÓM**: đi một bước `t1+t2` ra đúng kết quả của hai bước
+    `t1` rồi `t2` — thứ mà Euler, kể cả Euler "dùng vận tốc mới" của `buocCoHoc`, **không**
+    có.
+  - ✅ **`re-bong` KHÔNG phải quả bóng được đánh đi**, nên dải 12–30 m/s của AC-38.6 không
+    nói về nó. Nó trả lại `TRAN_TOC_DO_TUYET_DOI` của `coHoc.ts` — **không gõ số 9 lần thứ
+    hai** — và một phép kiểm canh nó nằm **dưới** đáy dải, để phép kiểm dải không bao giờ
+    đo lẫn quả bóng trong chân người dẫn.
+  - 📏 **Hai dải LIỀN nhau ở đúng ngưỡng 25 m** (đỉnh dải ngắn **bằng** đáy dải dài, cùng
+    20 m/s), nên một đường 24,9 m và một đường 25,1 m không chênh một bước nhảy — bước nhảy
+    ấy sẽ hiện lên sân 2D thành quả bóng đột ngột tăng tốc giữa pha, đúng lớp lỗi "như kiểu
+    teleport" người dùng đã bắt bằng mắt ở spec 005.
+  - ✅ **Năm phép đột biến, năm lần đỏ**: phân tích tốc độ dọc quỹ đạo (cos) → 2 đỏ; bỏ sàn
+    mặt đất → 4 đỏ; tích phân Euler cho `z` → 4 đỏ; đỉnh dải ngắn vượt 20 → 2 đỏ; cú sút rơi
+    vào dải ngắn khi gần → 2 đỏ.
+  - ✅ **`loMoc.ts` 0 dòng sửa** — `plan.md` mục 0 đã đặt `z`/`vz` vào tám ô từ Phase 53.
+    Và `vatLyBong.ts` **không rút một lần nào**: một phép kiểm quét chính mã nguồn tìm `rng`,
+    `Math.random` và `hatGiong`, kèm **ca ngược** chứng minh nó đỏ được.
+  - ⚠️ **Nợ của T706 vẫn chưa trả, và nó KHÔNG phải nợ của T720.** T706 ghi "không đường
+    chuyền nào dưới sàn 12 m/s của AC-38.6" là điều kiện ra của T720. Sàn 12 m/s nay **có**
+    — `tocDoDuongBong` không trả gì dưới 12 cho một quả bóng được đánh đi — nhưng câu ấy nói
+    về **đường chuyền trong lô mốc**, và lô mốc vẫn cho bóng đi 9 m/s vì chưa ai gọi module
+    này. Xem khối ⚠️ ở cuối Phase 55.
+  - 📏 Toàn bộ: **76 file / 1.547 phép kiểm xanh** (thêm 20); năm điều kiện ra của task chạm
+    `src/engine/` đều đạt.
 
 - [ ] **T721** — `zKhiToi` cho `tat-canh` rơi trong [1,5; 2,8] và **chính hàm ấy** phát `trang_thai: 'danh_dau'`
   - File: `src/engine/lienTuc/vatLyBong.ts`, `src/engine/lienTuc/vatLyBong.test.ts`
@@ -1036,6 +1080,31 @@ vì lớp dao động đã tắt — **phải báo trước.**
 **Xem được gì ngay sau Phase 55:** bóng **bay bổng** ở các quả tạt và **có người đánh đầu**;
 đường chuyền ngắn trông khác đường chuyền dài; bóng lăn xa hơn khi trời mưa; cạnh mã trận có
 một dòng chữ nói thời tiết và gió, bằng ngôn ngữ đang chọn.
+
+> ## ⚠️ LỖ THỨ BẢY CÙNG HÌNH DẠNG — không task nào NỐI vật lý bóng vào lô mốc
+>
+> Tìm ra lúc implement **T720**, ngày 2026-11-24. Cùng một hình dạng với lỗ mà **T725**
+> đã lấp, và tìm ra bằng **cùng một phép soát**: grep từng ký hiệu của bảng Contracts
+> trong `tasks.md`, rồi hỏi *ai gọi nó*.
+>
+> **Năm task của Phase 55 chạm đúng bốn nhóm file**: `vatLyBong.ts` (T720, T721, T723),
+> `dieuKien.ts` (T722), hai file ngôn ngữ và `TrangTran.tsx` (T724). **Không task nào**
+> chạm `tranLienTuc.ts` hay `dienPha.ts`. Hệ quả đo được:
+>
+> - ô 25 của lô mốc vẫn bước qua `buocCoHoc` với trần tạm `TRAN_TOC_DO_BONG = 25`, mà
+>   `buocCoHoc` kẹp lại **9 m/s** — đo T716 đọc tốc độ bóng lớn nhất **đúng 9,00 m/s**;
+> - cột `z` và `vz` của **cả 26 ô** vẫn là **0 ở mọi mốc**;
+> - nên **lời hứa "Xem được gì ngay sau Phase 55"** — *bóng bay bổng ở các quả tạt và có
+>   người đánh đầu* — **không** do năm task này giao được;
+> - và nợ của **T706** ("không đường chuyền nào dưới sàn 12 m/s") vẫn treo.
+>
+> Bảng phủ AC cũng nói đúng điều ấy: **AC-38.5** trỏ vào `T721, T742` và **AC-38.6** trỏ
+> vào `T720, T742` — mà **T742 chỉ ĐO**, đúng như AC-38.10 từng trỏ vào hai task chỉ đo.
+>
+> **Việc còn thiếu** (một task, chỗ trống **T726**): cho ô bóng của lô mốc đi theo
+> `phatBong`/`bongTaiThoiDiem` thay vì theo `buocCoHoc`, ghi `z`/`vz` thật, và đặt nó ở
+> **cuối Phase 55** vì nó cần cả `zKhiToi` (T721) và ma sát (T723). Chưa làm, chưa thêm —
+> **đang chờ người dùng quyết**, đúng kỷ luật phạm vi.
 
 ---
 
