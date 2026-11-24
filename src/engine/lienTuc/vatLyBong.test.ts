@@ -2,11 +2,17 @@ import { describe, expect, it } from 'vitest'
 import type { LoaiHanhDong } from '../chuoiBong'
 import { DAI_SAN, RONG_SAN } from '../hinhHocSan'
 import { TRAN_TOC_DO_TUYET_DOI } from './coHoc'
-import { NGUONG_Z_GIO } from './dieuKien'
+import {
+  CAC_THOI_TIET,
+  HE_SO_GIO,
+  MA_SAT_LAN_SET,
+  NGUONG_QUANG_GIO,
+  NGUONG_Z_GIO,
+  type DieuKienTran,
+} from './dieuKien'
 import {
   bongTaiThoiDiem,
   G_TRONG_TRUONG,
-  giayChamDat,
   NGUONG_CHUYEN_DAI,
   phatBong,
   QUANG_CHUYEN_DAI_NHAT,
@@ -24,6 +30,12 @@ import {
   Z_DANH_DAU_CAO,
   Z_DANH_DAU_THAP,
   Z_TAT_CANH_NHAM,
+  bongTrongDieuKien,
+  dinhQuyDao,
+  giayChamDat,
+  giayLanDung,
+  quangLanSet,
+  quangLechGio,
 } from './vatLyBong'
 
 /*
@@ -550,5 +562,262 @@ describe('zKhiToi — quả tạt rơi trong dải đánh đầu (T721, AC-38.5)
     const r = zKhiToi(0, 'tat-canh')
     expect(Number.isNaN(r.z)).toBe(false)
     expect(r.trangThai).toBe(null)
+  })
+})
+
+/*
+  ====================================================================
+  MA SÁT LĂN SỆT VÀ GIÓ (T723, AC-38.7 + AC-38.9).
+  ====================================================================
+
+  ⚠️ **Hai phép kiểm xương sống của khối này là một CẶP, và chúng chỉ có nghĩa
+  khi đi cùng nhau** — đúng mệnh đề "chống mã chết" mà `tasks.md` T723 đòi:
+
+    1. gió 0 so với gió 7,75 m/s trên một đường **sệt** phải ra vị trí **giống
+       hệt từng số** — tức cửa gió **thật sự đóng**;
+    2. cùng hai mức gió ấy trên một đường **bổng và dài** phải ra vị trí **khác
+       nhau** — tức đoạn mã gió **không phải mã chết**.
+
+  Chỉ có (1) thì một hàm bỏ hẳn gió cũng xanh. Chỉ có (2) thì một hàm thổi gió
+  vào **mọi** đường bóng cũng xanh. Phải cả hai.
+*/
+
+function dieuKienThu(
+  thoiTiet: DieuKienTran['thoiTiet'],
+  tocDoGio: number,
+  huongGio = 45,
+): DieuKienTran {
+  return { thoiTiet, tocDoGio, huongGio }
+}
+
+const GIO_THU = 7.75
+
+describe('ma sát lăn sệt (T723, AC-38.7)', () => {
+  /*
+    Điều kiện ra của task: **đơn điệu nghiêm ngặt** trên năm giá trị. Phép kiểm
+    này đo nó trên **hành vi** (quãng bóng lăn được), không chỉ trên bảng số —
+    một bảng đúng mà `quangLanSet` chia nhầm thì vẫn phải đỏ.
+  */
+  it('cùng một lực đẩy: càng ướt bóng lăn càng XA, đơn điệu nghiêm ngặt', () => {
+    const v = 20
+    const quang = CAC_THOI_TIET.map((tt) => quangLanSet(v, tt))
+    for (let i = 1; i < quang.length; i += 1) {
+      expect(
+        quang[i]!,
+        `${CAC_THOI_TIET[i]} phải xa hơn ${CAC_THOI_TIET[i - 1]}`,
+      ).toBeGreaterThan(quang[i - 1]!)
+    }
+    // Và chênh lệch không phải chuyện nhỏ: mưa to cho hơn gấp đôi trời nóng.
+    expect(quang[4]! / quang[0]!).toBeGreaterThan(2)
+  })
+
+  it('quãng lăn đúng v²/(2a), và khớp vị trí tích ra lúc dừng', () => {
+    for (const tt of CAC_THOI_TIET) {
+      const v = 18
+      expect(quangLanSet(v, tt), tt).toBeCloseTo(
+        (v * v) / (2 * MA_SAT_LAN_SET[tt]),
+        9,
+      )
+      /*
+        Đối chiếu hai đường: công thức `v²/(2a)` so với vị trí mà
+        `bongTrongDieuKien` tích ra ở đúng giây dừng. Một đường chuyền sệt chạm
+        đất ngay giây 0, nên cả đường bóng của nó là pha lăn.
+      */
+      const phat = phatBong({ x: 5, y: 34 }, { x: 25, y: 34 }, 'chuyen')
+      const vDau = Math.hypot(phat.vx, phat.vy)
+      const tDung = giayLanDung(vDau, tt)
+      const diem = bongTrongDieuKien(phat, tDung, dieuKienThu(tt, 0), 20)
+      expect(diem.x - phat.x, tt).toBeCloseTo(quangLanSet(vDau, tt), 9)
+    }
+  })
+
+  /*
+    Chữ của AC-38.7: sân **khô** chậm dần **1–2 m/s²**. Phép kiểm này đo gia tốc
+    **thật** từ hai mốc vận tốc liền nhau, không đọc bảng.
+  */
+  it('gia tốc chậm dần ĐO ĐƯỢC khớp bảng, và sân khô nằm trong 1–2 m/s²', () => {
+    for (const tt of CAC_THOI_TIET) {
+      const phat = phatBong({ x: 5, y: 34 }, { x: 60, y: 34 }, 'chuyen')
+      const t1 = 0.4
+      const t2 = 0.9
+      const v1 = bongTrongDieuKien(phat, t1, dieuKienThu(tt, 0), 55)
+      const v2 = bongTrongDieuKien(phat, t2, dieuKienThu(tt, 0), 55)
+      const a =
+        (Math.hypot(v1.vx, v1.vy) - Math.hypot(v2.vx, v2.vy)) / (t2 - t1)
+      expect(a, tt).toBeCloseTo(MA_SAT_LAN_SET[tt], 9)
+    }
+    for (const tt of ['nong', 'kho', 'am'] as const) {
+      expect(MA_SAT_LAN_SET[tt], tt).toBeGreaterThanOrEqual(1)
+      expect(MA_SAT_LAN_SET[tt], tt).toBeLessThanOrEqual(2)
+    }
+  })
+
+  it('và quả bóng DỪNG rồi thì nằm im, không lăn ngược', () => {
+    const phat = phatBong({ x: 5, y: 34 }, { x: 30, y: 34 }, 'chuyen')
+    const vDau = Math.hypot(phat.vx, phat.vy)
+    const tDung = giayLanDung(vDau, 'kho')
+    const luc = bongTrongDieuKien(phat, tDung, dieuKienThu('kho', 0), 25)
+    for (const t of [tDung + 0.1, tDung + 1, tDung + 10]) {
+      const sau = bongTrongDieuKien(phat, t, dieuKienThu('kho', 0), 25)
+      expect(sau.x, `giây ${t.toFixed(2)}`).toBeCloseTo(luc.x, 9)
+      expect(sau.y, `giây ${t.toFixed(2)}`).toBeCloseTo(luc.y, 9)
+      expect(Math.hypot(sau.vx, sau.vy), `giây ${t.toFixed(2)}`).toBeCloseTo(
+        0,
+        9,
+      )
+    }
+  })
+
+  /*
+    ⚠️ **Ma sát của MẶT SÂN không được ăn vào pha BAY — và phép kiểm này là thứ
+    duy nhất bắt được.** Tôi đã đột biến đúng chỗ ấy (`t - tDat` → `t`, tức cho
+    ma sát tính từ giây 0) và **43/43 phép kiểm vẫn xanh**: đường chuyền sệt có
+    `tDat = 0` nên không đổi gì, còn hai phép kiểm gió thì so gió-0 với gió-7,75
+    **trên cùng một ma sát**, nên đột biến triệt tiêu ở cả hai vế.
+
+    Hệ quả nếu để nguyên: mọi quả tạt **rơi ngắn** hơn đích, và AC-38.6 ("thời
+    gian bay khớp khoảng cách chia tốc độ") vỡ ở đúng những pha bổng. Phép kiểm
+    này đòi quả tạt tới **đúng đích**, trong **cả năm** kiểu thời tiết.
+  */
+  it('quả tạt tới ĐÚNG đích trong cả năm kiểu thời tiết — không khí không có cỏ', () => {
+    const quang = 40
+    const tu = { x: 5, y: 34 }
+    const den = { x: 5 + quang, y: 34 }
+    const v = tocDoDuongBong(quang, 'tat-canh')
+    const phat = phatBong(tu, den, 'tat-canh', gocPhatTatCanh(quang, v))
+    const T = thoiGianBay(quang, v)
+    for (const tt of CAC_THOI_TIET) {
+      const toi = bongTrongDieuKien(phat, T, dieuKienThu(tt, 0), quang)
+      expect(Math.hypot(toi.x - den.x, toi.y - den.y), tt).toBeLessThan(1e-9)
+    }
+  })
+
+  it('và pha lăn không bao giờ rời mặt đất', () => {
+    const phat = phatBong({ x: 5, y: 34 }, { x: 40, y: 34 }, 'chuyen')
+    for (let t = 0; t <= 8; t += 0.1) {
+      expect(
+        bongTrongDieuKien(phat, t, dieuKienThu('mua', 0), 35).z,
+        `giây ${t.toFixed(1)}`,
+      ).toBe(0)
+    }
+  })
+})
+
+describe('gió CHỈ ăn vào bóng bổng dài (T723, AC-38.9)', () => {
+  /*
+    ⚠️⚠️ **Mệnh đề CHỐNG MÃ CHẾT, nửa thứ nhất.** Đường sệt: gió 0 và gió 7,75
+    m/s phải ra vị trí **giống hệt từng số**.
+  */
+  it('đường SỆT: gió 0 và gió 7,75 m/s ra vị trí GIỐNG HỆT từng số', () => {
+    const phat = phatBong({ x: 5, y: 34 }, { x: 60, y: 34 }, 'chuyen')
+    let soMoc = 0
+    for (let t = 0; t <= 5; t += 0.1) {
+      const khongGio = bongTrongDieuKien(phat, t, dieuKienThu('kho', 0), 55)
+      const coGio = bongTrongDieuKien(phat, t, dieuKienThu('kho', GIO_THU), 55)
+      expect(coGio, `giây ${t.toFixed(1)}`).toEqual(khongGio)
+      soMoc += 1
+    }
+    expect(soMoc, 'số mốc đã so').toBeGreaterThan(40)
+  })
+
+  /*
+    ⚠️⚠️ **Nửa thứ hai, và không có nó thì nửa trên vô nghĩa:** trên một đường
+    **bổng và dài**, hai mức gió ấy phải ra vị trí **khác nhau**. Thiếu mệnh đề
+    này thì một hàm bỏ hẳn gió cũng xanh.
+  */
+  it('đường BỔNG DÀI: gió 7,75 m/s thổi lệch một quãng ĐO ĐƯỢC', () => {
+    const quang = 40
+    const tu = { x: 5, y: 34 }
+    const den = { x: 5 + quang, y: 34 }
+    const v = tocDoDuongBong(quang, 'tat-canh')
+    const phat = phatBong(tu, den, 'tat-canh', gocPhatTatCanh(quang, v))
+    const T = thoiGianBay(quang, v)
+
+    const khongGio = bongTrongDieuKien(phat, T, dieuKienThu('kho', 0), quang)
+    const coGio = bongTrongDieuKien(phat, T, dieuKienThu('kho', GIO_THU), quang)
+    const lech = Math.hypot(coGio.x - khongGio.x, coGio.y - khongGio.y)
+
+    expect(lech, 'quãng lệch, mét').toBeGreaterThan(0)
+    // Và đúng bằng công thức: hệ số × tốc độ gió × thời gian trên không.
+    expect(lech).toBeCloseTo(quangLechGio(dieuKienThu('kho', GIO_THU), T), 9)
+    expect(lech).toBeCloseTo(HE_SO_GIO * GIO_THU * T, 9)
+    /*
+      Con số thật, để biết nó có đáng kể trên hình hay không: một quả tạt 40 m
+      trong gió 7,75 m/s lệch hơn **nửa mét**. Thấy được, mà không méo pha bóng.
+    */
+    expect(lech).toBeGreaterThan(0.5)
+    expect(lech).toBeLessThan(2)
+  })
+
+  /*
+    Cửa thứ hai: quả bóng **bổng mà NGẮN** cũng không bị gió. Đây là chỗ phân
+    biệt "gió ăn vào bóng bổng" với "gió ăn vào bóng bổng **dài**" — chữ của
+    AC-38.9.
+  */
+  it('đường BỔNG NGẮN (dưới 25 m): gió không đổi được một số nào', () => {
+    const quang = NGUONG_QUANG_GIO - 1
+    const tu = { x: 5, y: 34 }
+    const den = { x: 5 + quang, y: 34 }
+    const v = tocDoDuongBong(quang, 'tat-canh')
+    const phat = phatBong(tu, den, 'tat-canh', gocPhatTatCanh(quang, v))
+    for (let t = 0; t <= 2; t += 0.1) {
+      expect(
+        bongTrongDieuKien(phat, t, dieuKienThu('kho', GIO_THU), quang),
+        `giây ${t.toFixed(1)}`,
+      ).toEqual(bongTrongDieuKien(phat, t, dieuKienThu('kho', 0), quang))
+    }
+    // Và chắc rằng nó THẬT SỰ bổng — không thì phép kiểm trên xanh vì lý do khác.
+    expect(dinhQuyDao(phat)).toBeGreaterThan(NGUONG_Z_GIO)
+  })
+
+  it('đỉnh quỹ đạo: quả tạt vượt ngưỡng gió, đường sệt thì không', () => {
+    const quang = 40
+    const v = tocDoDuongBong(quang, 'tat-canh')
+    const tat = phatBong(
+      { x: 5, y: 34 },
+      { x: 45, y: 34 },
+      'tat-canh',
+      gocPhatTatCanh(quang, v),
+    )
+    expect(dinhQuyDao(tat)).toBeGreaterThan(NGUONG_Z_GIO)
+    expect(dinhQuyDao(phatBong({ x: 5, y: 34 }, { x: 45, y: 34 }, 'chuyen'))).toBe(
+      0,
+    )
+  })
+
+  it('gió lặng thì không lệch, dù đường bóng bổng và dài', () => {
+    expect(quangLechGio(dieuKienThu('kho', 0), 2)).toBe(0)
+  })
+
+  /*
+    Và hướng gió phải **dùng tới**: hai trận cùng tốc độ gió mà khác hướng thì
+    quả tạt lệch về hai phía khác nhau. Không có mệnh đề này thì `huongGio` của
+    `dieuKien.ts` là một trường không ai đọc.
+  */
+  it('và HƯỚNG gió dùng tới: hai hướng cho hai chỗ rơi khác nhau', () => {
+    const quang = 40
+    const v = tocDoDuongBong(quang, 'tat-canh')
+    const phat = phatBong(
+      { x: 5, y: 34 },
+      { x: 45, y: 34 },
+      'tat-canh',
+      gocPhatTatCanh(quang, v),
+    )
+    const T = thoiGianBay(quang, v)
+    const bac = bongTrongDieuKien(phat, T, dieuKienThu('kho', GIO_THU, 90), quang)
+    const nam = bongTrongDieuKien(
+      phat,
+      T,
+      dieuKienThu('kho', GIO_THU, 270),
+      quang,
+    )
+    expect(Math.abs(bac.y - nam.y), 'lệch giữa hai hướng gió').toBeGreaterThan(1)
+  })
+
+  it('và THỜI TIẾT cũng dùng tới ở pha lăn: hai trận khác nhau, hai chỗ dừng', () => {
+    const phat = phatBong({ x: 5, y: 34 }, { x: 60, y: 34 }, 'chuyen')
+    const nong = bongTrongDieuKien(phat, 4, dieuKienThu('nong', 0), 55)
+    const muaTo = bongTrongDieuKien(phat, 4, dieuKienThu('mua-to', 0), 55)
+    expect(muaTo.x - nong.x, 'mưa to lăn xa hơn, mét').toBeGreaterThan(5)
   })
 })

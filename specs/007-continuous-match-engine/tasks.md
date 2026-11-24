@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **30 AC**) |
 | **Plan** | `./plan.md` (Status `Approved`, D117–D134, R51–R64) |
-| **Tiến độ** | 24/49 |
+| **Tiến độ** | 25/49 |
 | **Nền đo** | commit `5c652eb`, engine v6, **1.304 test xanh / 63 file test** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -1137,7 +1137,7 @@ vì lớp dao động đã tắt — **phải báo trước.**
     nên `taoTran` vẫn tiêu đúng 3 lần rút.
   - 📏 Toàn bộ: **77 file / 1.563 phép kiểm xanh** (thêm 16).
 
-- [ ] **T723** — Ma sát lăn sệt + gió **chỉ** ăn vào bóng bổng dài
+- [x] **T723** — Ma sát lăn sệt + gió **chỉ** ăn vào bóng bổng dài
   - File: `src/engine/lienTuc/vatLyBong.ts`, `src/engine/lienTuc/vatLyBong.test.ts`
   - Xong khi: phép kiểm **đơn điệu nghiêm ngặt** trên năm giá trị `MA_SAT_LAN_SET` (nóng 1,85 |
     khô 1,60 | ẩm 1,30 | mưa 0,95 | mưa-to 0,75 — **sân ướt thì bóng đi XA hơn**, chiều người
@@ -1147,6 +1147,46 @@ vì lớp dao động đã tắt — **phải báo trước.**
   - Phụ thuộc: T720, T722
   - Ghi chú: `MA_SAT_LAN_SET` và `HE_SO_GIO` **import từ `dieuKien.ts`**, vì T742 sẽ đọc
     **chính** hai hằng số ấy để đo quãng bóng lăn — đặt sai chỗ là buộc T742 đọc từ hai nguồn.
+  - 🐞 **Một lỗ thật trong bộ phép kiểm, tìm ra bằng ĐỘT BIẾN chứ không bằng đọc lại.** Tôi
+    đột biến `t - tDat` thành `t` — tức cho **ma sát mặt sân ăn cả vào pha BAY** — và
+    **43/43 phép kiểm vẫn xanh**. Lý do nó lọt: đường chuyền sệt có `tDat = 0` nên không đổi
+    gì, còn hai phép kiểm gió thì so gió-0 với gió-7,75 **trên cùng một ma sát**, nên đột
+    biến **triệt tiêu ở cả hai vế**. Hệ quả nếu để nguyên: mọi quả tạt **rơi ngắn** hơn đích
+    — đo được **thiếu 37,5 m** trên một quả tạt 40 m — và AC-38.6 vỡ ở đúng những pha bổng.
+    Chữa bằng một phép kiểm mới: quả tạt phải tới **đúng đích** trong **cả năm** kiểu thời
+    tiết. Nay đột biến ấy đỏ.
+  - ⚠️ **Mệnh đề "chống mã chết" của task phải là một CẶP, không phải một phép kiểm.**
+    (1) gió 0 so với gió 7,75 m/s trên đường **sệt** ra vị trí **giống hệt từng số** — cửa
+    gió thật sự đóng; (2) cùng hai mức ấy trên đường **bổng dài** ra vị trí **khác nhau** —
+    đoạn mã gió không phải mã chết. Chỉ (1) thì một hàm **bỏ hẳn gió** cũng xanh; chỉ (2) thì
+    một hàm **thổi gió vào mọi đường bóng** cũng xanh. Đã đột biến cả hai chiều, mỗi chiều
+    đỏ đúng phần của nó.
+  - ✅ **Và cửa thứ hai cũng có phép kiểm riêng**: quả bóng **bổng mà NGẮN** (dưới 25 m) cũng
+    không bị gió — chữ của AC-38.9 là "bóng bổng **dài**". Phép kiểm ấy kèm một mệnh đề chống
+    rỗng: `dinhQuyDao` của đường bóng ấy phải **thật sự** vượt ngưỡng 1,5 m, không thì nó
+    xanh vì lý do khác.
+  - ✅ **Hai thứ ăn vào HAI PHA khác nhau, và đó là cả nội dung của lát này**: ma sát ăn vào
+    pha **lăn** (trước khi chạm đất thì mặt sân không chạm vào bóng), gió ăn vào pha **bay**
+    (sau khi chạm đất, gió không đẩy nổi quả bóng đang lăn trên cỏ).
+  - 📏 **Điều kiện ra thứ nhất đo trên HÀNH VI, không trên bảng số**: cùng một lực đẩy 20 m/s,
+    quãng lăn **đơn điệu nghiêm ngặt** qua năm kiểu thời tiết, và mưa to cho hơn **gấp đôi**
+    trời nóng. Gia tốc chậm dần **đo từ hai mốc vận tốc** khớp bảng tới 1e-9, và ba kiểu sân
+    khô nằm trong dải **1–2 m/s²** của AC-38.7. Đột biến "mọi thời tiết dùng chung ma sát
+    khô" → **3 phép kiểm đỏ**.
+  - 📏 **Con số của gió, để biết nó có đáng kể trên hình**: một quả tạt 40 m trong gió 7,75
+    m/s lệch **hơn nửa mét** (dưới 2 m) — thấy được mà không méo pha bóng.
+  - ✅ **`huongGio` và `thoiTiet` đều có phép kiểm chứng minh chúng ĐƯỢC ĐỌC**: hai hướng gió
+    cho hai chỗ rơi lệch nhau hơn 1 m; hai kiểu thời tiết cho hai chỗ dừng lệch nhau hơn 5 m.
+    Không có chúng thì `huongGio` của `dieuKien.ts` là một trường không ai đọc.
+  - ✅ **`MA_SAT_LAN_SET` và `HE_SO_GIO` NHẬP từ `dieuKien.ts`**, không khai lại — T742 sẽ đọc
+    chính hai hằng số ấy. `vatLyBong.ts` → `dieuKien.ts` là một chiều, không vòng:
+    `dieuKien.ts` chỉ nhập từ `../rng`, và `boundaries.test.ts` còn xanh.
+  - ⚠️ **`bongTrongDieuKien` KHÔNG có tính nửa nhóm, khác `bongTaiThoiDiem`** — phải gọi với
+    trạng thái **lúc rời chân** và thời điểm **tuyệt đối**, vì pha lăn phụ thuộc *thời gian kể
+    từ lúc chạm đất* mà một trạng thái giữa đường không mang theo con số ấy. Đã ghi ⚠️ vào
+    đầu hàm.
+  - ✅ **Sáu phép đột biến, sáu lần đỏ** (sau khi lấp lỗ ở trên). Toàn bộ: **77 file / 1.588
+    phép kiểm xanh**.
 
 - [ ] **T724** [P] — Nhãn thời tiết song ngữ nhồi vào khối `TRAN_DAU`, hiện cạnh mã trận
   - File: `src/ui/ngonNgu/vi.ts` (khối `TRAN_DAU_VI`), `src/ui/ngonNgu/en.ts`

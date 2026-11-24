@@ -1,5 +1,11 @@
 import type { LoaiHanhDong } from '../chuoiBong'
 import { TRAN_TOC_DO_TUYET_DOI, type Diem } from './coHoc'
+import {
+  gioCoAnVaoDuongBong,
+  HE_SO_GIO,
+  MA_SAT_LAN_SET,
+  type DieuKienTran,
+} from './dieuKien'
 
 /*
   ====================================================================
@@ -330,4 +336,118 @@ export function zKhiToi(quangMet: number, loai: LoaiHanhDong): DoCaoKhiToi {
   const z = zTaiNoiToi(quangMet, v, gocPhatTatCanh(quangMet, v))
   // Nhãn sinh TỪ phép kiểm dải, nên nó không thể nói sai về `z`.
   return { z, trangThai: laTamDanhDau(z) ? 'danh_dau' : null }
+}
+
+/*
+  ====================================================================
+  MA SÁT LĂN SỆT, VÀ GIÓ CHỈ ĂN VÀO BÓNG BỔNG DÀI (T723, AC-38.7 + AC-38.9).
+  ====================================================================
+
+  Hai thứ của lát này ăn vào **hai pha khác nhau** của một đường bóng, và đó là
+  cả nội dung của nó:
+
+    - **Ma sát** ăn vào pha **lăn**, tức sau khi quả bóng chạm đất. Trước khi
+      chạm đất thì mặt sân không chạm vào bóng, nên ma sát sân không có việc gì.
+    - **Gió** ăn vào pha **bay**, và chỉ với quả bóng **bổng và dài** — hai cửa
+      của `gioCoAnVaoDuongBong`. Một đường chuyền sệt 8 m thì gió không đổi được
+      gì, đúng chữ AC-38.9 ("quỹ đạo bóng **bổng dài**").
+
+  Hai hằng số `MA_SAT_LAN_SET` và `HE_SO_GIO` **nhập từ `dieuKien.ts`**, không
+  khai lại ở đây: **T742** sẽ đọc chính hai hằng số ấy để đo quãng bóng lăn, và
+  một hằng số có hai nguồn là hai con số rồi sẽ trôi khỏi nhau mà không ai thấy.
+
+  ⚠️ **`bongTrongDieuKien` KHÔNG có tính nửa nhóm, khác `bongTaiThoiDiem`** —
+  phải gọi nó với trạng thái **lúc rời chân** và thời điểm **tuyệt đối**. Pha lăn
+  phụ thuộc *thời gian kể từ lúc chạm đất*, mà một trạng thái giữa đường không
+  mang theo con số ấy. Nối hai lần gọi là tính sai pha lăn.
+*/
+
+/**
+ * Đỉnh quỹ đạo của một đường bóng, mét — dùng để mở **cửa độ cao** của gió.
+ *
+ * Quả bóng đi lên rồi xuống, nên đỉnh ở `t = vz/g`; quả bóng sệt (hoặc đang đi
+ * xuống ngay từ lúc rời chân) có đỉnh **bằng chính `z` lúc rời chân**.
+ */
+export function dinhQuyDao(phat: TrangThaiBayBong): number {
+  if (phat.vz <= 0) return phat.z
+  return bongTaiThoiDiem(phat, phat.vz / G_TRONG_TRUONG).z
+}
+
+/**
+ * Quãng quả bóng **lăn** được trước khi dừng, mét — `v² / (2a)`.
+ *
+ * Đây là chỗ AC-38.7 thành một con số đo được: cùng một lực đẩy, sân **ướt** cho
+ * quãng **dài hơn** vì `MA_SAT_LAN_SET` của nó **nhỏ hơn**.
+ */
+export function quangLanSet(
+  tocDoDau: number,
+  thoiTiet: DieuKienTran['thoiTiet'],
+): number {
+  const a = MA_SAT_LAN_SET[thoiTiet]
+  return (tocDoDau * tocDoDau) / (2 * a)
+}
+
+/** Giây mà quả bóng lăn **dừng hẳn**, kể từ lúc chạm đất. */
+export function giayLanDung(
+  tocDoDau: number,
+  thoiTiet: DieuKienTran['thoiTiet'],
+): number {
+  return tocDoDau / MA_SAT_LAN_SET[thoiTiet]
+}
+
+/**
+ * Quãng gió thổi lệch một đường bóng, mét — `HE_SO_GIO × tocDoGio × thờiGianBay`.
+ *
+ * Chỉ tính **thời gian trên không**: sau khi chạm đất, quả bóng lăn trên cỏ và
+ * gió không đẩy nổi nó đi ngang.
+ */
+export function quangLechGio(
+  dieuKien: DieuKienTran,
+  giayTrenKhong: number,
+): number {
+  return HE_SO_GIO * dieuKien.tocDoGio * giayTrenKhong
+}
+
+/**
+ * Trạng thái quả bóng ở giây thứ `t`, **có** ma sát lăn và **có** gió.
+ *
+ * `quangNgang` là quãng ngang của cả đường bóng — một trong hai cửa gió. Nó là
+ * tham số chứ không dẫn xuất từ `phat`, vì `phat` chỉ biết tốc độ và hướng, còn
+ * "đường bóng này dài bao nhiêu" là ý định của pha bóng.
+ */
+export function bongTrongDieuKien(
+  phat: TrangThaiBayBong,
+  t: number,
+  dieuKien: DieuKienTran,
+  quangNgang: number,
+): TrangThaiBayBong {
+  const tDat = giayChamDat(phat)
+  const giayTrenKhong = Math.min(t, tDat)
+  const khiBay = bongTaiThoiDiem(phat, giayTrenKhong)
+
+  // 1. Pha LĂN: sau khi chạm đất, ma sát của mặt sân mới có việc.
+  const tocDoDat = Math.hypot(khiBay.vx, khiBay.vy)
+  const a = MA_SAT_LAN_SET[dieuKien.thoiTiet]
+  const tLan = Math.min(
+    Math.max(0, t - tDat),
+    tocDoDat === 0 ? 0 : giayLanDung(tocDoDat, dieuKien.thoiTiet),
+  )
+  const quangLan = tocDoDat * tLan - (a * tLan * tLan) / 2
+  const tocDoCon = tocDoDat - a * tLan
+  const huongX = tocDoDat === 0 ? 0 : khiBay.vx / tocDoDat
+  const huongY = tocDoDat === 0 ? 0 : khiBay.vy / tocDoDat
+
+  // 2. Gió: chỉ quả bóng bổng VÀ dài, và chỉ trong lúc nó còn trên không.
+  const coGio = gioCoAnVaoDuongBong(dinhQuyDao(phat), quangNgang)
+  const lech = coGio ? quangLechGio(dieuKien, giayTrenKhong) : 0
+  const gocGio = (dieuKien.huongGio * Math.PI) / 180
+
+  return {
+    x: khiBay.x + huongX * quangLan + Math.cos(gocGio) * lech,
+    y: khiBay.y + huongY * quangLan + Math.sin(gocGio) * lech,
+    z: khiBay.z,
+    vx: t > tDat ? huongX * tocDoCon : khiBay.vx,
+    vy: t > tDat ? huongY * tocDoCon : khiBay.vy,
+    vz: khiBay.vz,
+  }
 }
