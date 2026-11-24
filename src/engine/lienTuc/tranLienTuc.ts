@@ -1,14 +1,28 @@
+import { RONG_SAN, TAM_X, TAM_Y } from '../hinhHocSan'
+import {
+  buocCoHoc,
+  tachChen,
+  TRAN_TOC_DO_TUYET_DOI,
+  type Diem,
+  type TrangThaiCoHoc,
+} from './coHoc'
+import { choDungMet, dichNguoiKhongBong, tamVungMet } from './viTriMet'
 import {
   buocTiep,
   type CauHinhTran,
   CHE_DO_MAC_DINH,
   type CheDoMoPhong,
+  doiHinhTrenSan,
   type KetCucPhaV6,
   taoTran,
   tongPhutTran,
   type TrangThaiTran,
 } from '../tran'
-import { BUOC_MOI_CHUOI, dienChuoiRaMoc } from './dienPha'
+import {
+  BUOC_MOI_CHUOI,
+  dienChuoiRaMoc,
+  type TenPhaCon,
+} from './dienPha'
 import { hatGiongDong, RUT_MOI_MOC } from './hatGiong'
 import {
   CHI_SO_BONG,
@@ -83,6 +97,18 @@ export interface TrangThaiLienTuc {
   readonly maTran: string
   /** Số nửa giây đã trôi từ tiếng còi khai cuộc. */
   readonly chiSoMoc: number
+  /**
+   * Trạng thái cơ học của **26 thực thể**, mang qua từng phút (T725).
+   *
+   * Phải sống ở đây chứ không dựng lại mỗi phút: một người đang chạy 7 m/s ở
+   * giây cuối của phút 10 vẫn đang chạy 7 m/s ở giây đầu của phút 11. Dựng lại
+   * từ 0 mỗi phút là cho cả sân **đứng khựng rồi lao đi** 90 lần một trận, và
+   * phép kẹp gia tốc của AC-38.2 sẽ vỡ ở đúng ranh giới phút.
+   *
+   * KHÔNG vào bản ghi trận: AC-45.4 nói rõ vị trí **không được lưu**, nó sinh
+   * lại từ mã trận. Đây là trạng thái lúc chạy, không phải dữ liệu.
+   */
+  readonly coHoc: readonly TrangThaiCoHoc[]
 }
 
 /** Một phút đã mô phỏng: trạng thái sau, lô mốc, và số lần rút mỗi mốc. */
@@ -119,9 +145,103 @@ export function taoTranLienTuc(cauHinh: CauHinhTran): TrangThaiLienTuc {
     },
     maTran: cauHinh.maTran,
     chiSoMoc: 0,
+    coHoc: coHocXuatPhat(tran),
   }
 }
 
+
+/*
+  ====================================================================
+  NỐI CƠ HỌC VÀO VÒNG PHÚT (T725).
+  ====================================================================
+
+  Trước lát này, `dienChuoiRaMoc` ghi vào lô bằng `thucTheRong` — 26 ô mang
+  `x = y = 0` ở **mọi** mốc. Cả lớp cơ học của Phase 54 (`coHoc.ts`) không có
+  một người gọi nào: `grep -rn "buocCoHoc" src/` ngoài chính file nó và test
+  của nó ra **rỗng**. Ba thứ đứng trên chỗ nối này — điều kiện ra của **T716**,
+  vòng rAF của **T733**, và phép đo của **T742**.
+
+  ⚠️ **Mô hình đích ở đây là TỐI THIỂU có chủ ý** — xem khối chú thích đầu
+  `viTriMet.ts`. Hình khối đội hình là **US-40 của spec 009**.
+*/
+
+/**
+ * Số ô NGƯỜI trong lô: 22, tức 11 mỗi bên.
+ *
+ * Dẫn xuất từ chỉ số ô trọng tài chứ không gõ tay 22: bố cục 26 ô là quy ước
+ * của `moc.ts`, và viết lại một con số của nó ở đây là dựng nguồn sự thật thứ
+ * hai — đúng thứ sẽ lệch ở lần sửa bố cục sau.
+ */
+const SO_NGUOI_TREN_SAN = CHI_SO_TRONG_TAI
+
+/** Bước tích phân, nửa giây — đúng lưới mốc của D119. */
+const DT_MOC = 0.5
+
+/**
+ * Trần tốc độ của quả bóng, m/s — **tạm, cho tới T720**.
+ *
+ * AC-38.1 (9 m/s) nói về **cầu thủ**; một quả bóng đi nhanh hơn thế là bóng đá
+ * thật. Vật lý bóng — `z`, `vz`, `thoiGianBay = d/v` — là **T720**, nên ở đây
+ * quả bóng chỉ cần một trần đủ rộng để nó theo kịp pha bóng.
+ */
+const TRAN_TOC_DO_BONG = 25
+
+/** Một thực thể đứng yên tại chỗ, hướng nhìn về phía trước sân. */
+function dung(x: number, y: number, huong = 0): TrangThaiCoHoc {
+  return { x, y, vx: 0, vy: 0, huong }
+}
+
+/**
+ * Chỗ đứng xuất phát của 26 thực thể, theo sơ đồ hai đội.
+ *
+ * Ô 0–10 đội nhà, 11–21 đội khách, 22–24 trọng tài, 25 quả bóng — đúng bố cục
+ * mà `moc.ts` đặt. Ô của người đã rời sân vẫn có chỗ đứng; `coMat` mới là thứ
+ * nói họ có trên sân hay không.
+ */
+function coHocXuatPhat(tran: TrangThaiTran): readonly TrangThaiCoHoc[] {
+  const ra: TrangThaiCoHoc[] = []
+  for (const ben of ['nha', 'khach'] as const) {
+    const doiHinh = doiHinhTrenSan(tran.ben[ben])
+    for (let o = 0; o < 11; o += 1) {
+      const v = doiHinh[o]
+      const cho = v
+        ? choDungMet(v.viTriO, ben)
+        : { x: ben === 'nha' ? 1 : DAI_SAN_TAM * 2 - 1, y: TAM_Y }
+      ra.push(dung(cho.x, cho.y, ben === 'nha' ? 0 : 180))
+    }
+  }
+  // Trọng tài chính giữa sân; hai trợ lý trên hai đường biên dọc. T716 thay.
+  ra.push(dung(TAM_X, TAM_Y))
+  ra.push(dung(TAM_X, 0))
+  ra.push(dung(TAM_X, RONG_SAN))
+  // Quả bóng ở chấm giao bóng.
+  ra.push(dung(TAM_X, TAM_Y))
+  return ra
+}
+
+/** Tâm sân theo trục dọc, để khỏi import thêm một hằng số chỉ dùng một lần. */
+const DAI_SAN_TAM = TAM_X
+
+/**
+ * Đích của quả bóng ở một pha con.
+ *
+ * `lenBong` nhắm bước đầu của chuỗi, `chuoi` đi lần lượt qua các bước, còn
+ * `ketCuc` và `bongChet` đứng ở vùng kết thúc. Vùng tính theo hướng tấn công
+ * của **đội tổ chức pha** — đúng quy ước `dai` của `vung.ts`.
+ */
+function dichBong(
+  pha: KetCucPhaV6,
+  phaCon: TenPhaCon,
+  phan: number,
+): Diem {
+  const cac = pha.kq.cacHanhDong
+  if (phaCon === 'ketCuc' || phaCon === 'bongChet' || cac.length === 0) {
+    return tamVungMet(pha.kq.vungKetThuc, pha.doi)
+  }
+  if (phaCon === 'lenBong') return tamVungMet(cac[0]!.vung, pha.doi)
+  const i = Math.min(cac.length - 1, Math.floor(phan * cac.length))
+  return tamVungMet(cac[i]!.vung, pha.doi)
+}
 /**
  * Ô của người đang giữ bóng trong một pha, theo bố cục 26 ô của `loMoc`.
  *
@@ -216,10 +336,91 @@ export function buocPhutLienTuc(ttVao: TrangThaiLienTuc): MotPhutLienTuc {
   const mocDau = ttVao.chiSoMoc
   const coMat = cacThucTheCuaMoc(tranSau).map((t) => t.coMat)
 
+  /*
+    Chỗ đứng theo sơ đồ của 22 ô người, tính MỘT lần cho cả phút.
+
+    Lấy từ đội hình **sau** khi phút ấy chạy xong: một người bị thẻ đỏ giữa
+    phút không còn trong danh sách, và ô của anh ta rơi về chỗ đứng cũ — đúng,
+    vì `coMat` mới là thứ nói anh ta còn trên sân hay không.
+  */
+  const choDung: Diem[] = []
+  for (const ben of ['nha', 'khach'] as const) {
+    const doiHinh = doiHinhTrenSan(tranSau.ben[ben])
+    for (let o = 0; o < 11; o += 1) {
+      const v = doiHinh[o]
+      choDung.push(
+        v ? choDungMet(v.viTriO, ben) : { x: TAM_X, y: TAM_Y },
+      )
+    }
+  }
+
+  /** Trạng thái cơ học đang chạy — bước qua từng mốc, mang sang phút sau. */
+  let coHoc = [...ttVao.coHoc]
+
+  /**
+   * Một mốc: tính đích cho 26 ô, bước cơ học, tách chen, trả thực thể.
+   *
+   * Thứ tự ba việc là có nghĩa. `tachChen` chạy **sau** phép bước, vì nó sửa
+   * chỗ đứng chứ không sửa ý định — đặt nó trước thì phép bước lại dồn người
+   * vào nhau ngay trong cùng một mốc. Và nó chỉ chạy trên **ô người**: đẩy quả
+   * bóng ra xa chân người là xoá đúng thứ AC-37.6 nói.
+   */
+  function thucTheTaiMoc(
+    pha: KetCucPhaV6,
+    phaCon: TenPhaCon,
+    nguoiGiu: number,
+    phan: number,
+  ): readonly ThucTheTaiMoc[] {
+    const dBong = dichBong(pha, phaCon, phan)
+    const sau: TrangThaiCoHoc[] = coHoc.map((tt, o) => {
+      if (o === CHI_SO_BONG) {
+        return buocCoHoc(tt, dBong, TRAN_TOC_DO_BONG, DT_MOC)
+      }
+      if (o >= SO_NGUOI_TREN_SAN) return tt
+      const dich =
+        o === nguoiGiu
+          ? dBong
+          : dichNguoiKhongBong(choDung[o] ?? { x: TAM_X, y: TAM_Y }, dBong)
+      return buocCoHoc(tt, dich, TRAN_TOC_DO_TUYET_DOI, DT_MOC)
+    })
+
+    const daTach = tachChen(sau.slice(0, SO_NGUOI_TREN_SAN))
+    for (let o = 0; o < SO_NGUOI_TREN_SAN; o += 1) {
+      const d = daTach[o]!
+      sau[o] = { ...sau[o]!, x: d.x, y: d.y }
+    }
+
+    coHoc = sau
+    return sau.map((t, o) => ({
+      x: t.x,
+      y: t.y,
+      z: 0,
+      vx: t.vx,
+      vy: t.vy,
+      vz: 0,
+      huong: t.huong,
+      coMat: coMat[o] ?? 1,
+    }))
+  }
+
   for (let i = 0; i < cacPha.length; i += 1) {
     const pha = cacPha[i]!
     const truocKhiGhi = lo.soMocDaGhi
-    dienChuoiRaMoc(pha, mocDau + i * BUOC_MOI_CHUOI, lo, oCuaNguoiGiu(pha), coMat)
+    const mocDauChuoi = mocDau + i * BUOC_MOI_CHUOI
+    dienChuoiRaMoc(
+      pha,
+      mocDauChuoi,
+      lo,
+      oCuaNguoiGiu(pha),
+      coMat,
+      (chiSoMoc, phaCon, nguoiGiu) =>
+        thucTheTaiMoc(
+          pha,
+          phaCon,
+          nguoiGiu,
+          (chiSoMoc - mocDauChuoi) / BUOC_MOI_CHUOI,
+        ),
+    )
 
     /*
       Số lần rút dòng cơ học mà mỗi mốc vừa ghi đã tiêu. Hôm nay là 0 — chuyển
@@ -243,6 +444,7 @@ export function buocPhutLienTuc(ttVao: TrangThaiLienTuc): MotPhutLienTuc {
       tran: tranSau,
       maTran: ttVao.maTran,
       chiSoMoc: mocDau + BUOC_MOI_PHUT,
+      coHoc,
     },
     lo,
     rutMoiMoc,

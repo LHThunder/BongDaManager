@@ -11,7 +11,14 @@ import {
 import { hatGiongDong, RUT_MOI_MOC } from './hatGiong'
 import { docMoc } from './loMoc'
 import { BUOC_MOI_CHUOI } from './dienPha'
-import { BUOC_MOI_PHUT, MOC_MOI_PHUT, SO_THUC_THE } from './moc'
+import { trongSan } from '../hinhHocSan'
+import { TRAN_TOC_DO_TUYET_DOI } from './coHoc'
+import {
+  BUOC_MOI_PHUT,
+  CHI_SO_TRONG_TAI,
+  MOC_MOI_PHUT,
+  SO_THUC_THE,
+} from './moc'
 import {
   buocPhutLienTuc,
   chayHetTranLienTuc,
@@ -334,4 +341,100 @@ describe('cheDoCuaTrangThai — dẫn xuất từ phienBanEngine (T709)', () => 
     })
     expect(cheDoCuaTrangThai(tt)).toBe('co-dien')
   })
+})
+
+/*
+  Lô mốc mang toạ độ THẬT (T725).
+
+  Trước lát này mọi ô mang `x = y = 0` ở mọi mốc, và cả lớp cơ học của Phase 54
+  không có một người gọi nào. Bốn khẳng định dưới đây là điều kiện ra của T725.
+
+  ⚠️ **Δt giữa hai mốc ĐÃ GHI là 1 giây, không phải 0,5.** Vòng tích phân chạy
+  120 bước mỗi phút nhưng `laMocThuong` chỉ ghi 60 — mốc lẻ của tình huống quan
+  trọng là T731. Chia cho 0,5 là đọc ra gia tốc **gấp đôi** sự thật; suýt nữa
+  tôi báo 7,33 m/s² trong khi con số thật là 3,66.
+*/
+describe('lô mốc mang toạ độ thật (T725)', () => {
+  const SO_MA_DO = 10
+  const DT_GIUA_HAI_MOC = 1
+
+  /*
+    ⚠️ Lề của phép so phải cỡ **một ULP của Float32**, không phải 1e-9.
+
+    `oLieu` của lô mốc là `Float32Array`, và khoảng cách giữa hai số float32
+    liền nhau quanh 9 là **7,63e-7**. Engine kẹp tốc độ đúng 9 trong float64,
+    nhưng ghi ra rồi đọc lại thì nó thành **9,000000508** — đo được. Dùng lề
+    1e-9 ở đây là đỏ vì **chỗ lưu**, không vì mô hình sai.
+
+    Đây cũng là lý do `loMoc.ts` dặn engine **không bao giờ đọc lại vận tốc từ
+    lô**: trạng thái cơ học sống trong float64 ở `TrangThaiLienTuc`, lô chỉ là
+    đầu ra. Đọc lại là tích luỹ sai số float32 qua 11.400 bước một trận.
+  */
+  const LE_FLOAT32 = 1e-6
+
+  it('10 mã trận: không ô nào ở gốc, không ai ra ngoài sân, không ai vượt trần',
+    () => {
+      let oCoMatMaOGoc = 0
+      let oNgoaiSan = 0
+      let tocMax = 0
+      let giaTocMax = 0
+      let soMoc = 0
+      let soODaDo = 0
+
+      for (const ma of MA_TRAN_CO_DINH) {
+        let lt = taoTranLienTuc({
+          ...cauHinhMau(ma),
+          cheDoMoPhong: 'lien-tuc',
+        })
+        const vanTocTruoc = new Map<number, { vx: number; vy: number }>()
+
+        for (let p = 0; p < tongPhutTran(lt.tran) + 2 && !lt.tran.ketThuc; p += 1) {
+          const phut = buocPhutLienTuc(lt)
+          for (let m = 0; m < MOC_MOI_PHUT; m += 1) {
+            const moc = docMoc(phut.lo, m)
+            if (!moc) continue
+            soMoc += 1
+            moc.cacThucThe.forEach((t, o) => {
+              soODaDo += 1
+              if (t.coMat === 0) return
+              if (t.x === 0 && t.y === 0) oCoMatMaOGoc += 1
+              if (!trongSan(t.x, t.y)) oNgoaiSan += 1
+              if (o >= CHI_SO_TRONG_TAI) return
+              tocMax = Math.max(tocMax, Math.hypot(t.vx, t.vy))
+              const tr = vanTocTruoc.get(o)
+              if (tr) {
+                giaTocMax = Math.max(
+                  giaTocMax,
+                  Math.hypot(t.vx - tr.vx, t.vy - tr.vy) / DT_GIUA_HAI_MOC,
+                )
+              }
+              vanTocTruoc.set(o, { vx: t.vx, vy: t.vy })
+            })
+          }
+          lt = phut.tt
+        }
+      }
+
+      // (a) Không ô nào CÓ MẶT mà còn nằm ở gốc toạ độ.
+      expect(oCoMatMaOGoc, 'ô có mặt mà x = y = 0').toBe(0)
+      // (b) Mọi ô có mặt đều ở trong sân.
+      expect(oNgoaiSan, 'ô có mặt mà ra ngoài sân').toBe(0)
+      // (c) và (d) — trần của AC-38.1 và AC-38.2, chỉ cho ô NGƯỜI.
+      expect(tocMax, 'tốc độ lớn nhất của người').toBeLessThanOrEqual(
+        TRAN_TOC_DO_TUYET_DOI + LE_FLOAT32,
+      )
+      expect(giaTocMax, 'gia tốc lớn nhất của người').toBeLessThanOrEqual(
+        8 + LE_FLOAT32,
+      )
+
+      /*
+        ⚠️ CHỐNG RỖNG, và ở task này nó là khẳng định quan trọng nhất: nếu lô
+        trống thì cả ba khẳng định trên xanh mà không chứng minh gì — đúng trạng
+        thái trước T725, nơi mọi ô mang 0 và không ai gọi lớp cơ học.
+      */
+      expect(soMoc, 'số mốc đã đọc').toBeGreaterThan(SO_MA_DO * 5_000)
+      expect(soODaDo, 'số ô đã đo').toBeGreaterThan(SO_MA_DO * 100_000)
+      expect(tocMax, 'phải có người thật sự chạy').toBeGreaterThan(5)
+    },
+  )
 })

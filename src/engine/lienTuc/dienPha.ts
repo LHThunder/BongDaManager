@@ -141,12 +141,27 @@ function thucTheRong(coMat: number): ThucTheTaiMoc {
  * `(pha, chiSoMocDau, lo, chiSoNguoiGiu)`: `boiCanh` đã nằm trong `pha`, và
  * `rng` chưa có việc gì làm khi chưa có chuyển động — nó vào khi Phase 54 tới.
  */
+/**
+ * Nguồn thực thể cho một mốc — **mối hàn của T725**.
+ *
+ * Không khai thì lô mang thực thể rỗng, đúng hành vi của T706. Khai thì vòng
+ * phút tự bước cơ học và trả về 26 ô có toạ độ thật. Tách ra thành tham số chứ
+ * không nhồi cơ học vào đây: file này sở hữu **bố cục thời gian** của một pha,
+ * còn cơ học là của `coHoc.ts` — gộp hai thứ là buộc chúng sửa cùng nhau mãi.
+ */
+export type ThucTheCuaMoc = (
+  chiSoMoc: number,
+  phaCon: TenPhaCon,
+  nguoiGiu: number,
+) => readonly ThucTheTaiMoc[]
+
 export function dienChuoiRaMoc(
   pha: KetCucPhaV6,
   chiSoMocDau: number,
   lo: LoMoc,
   chiSoNguoiGiu: number,
   coMatCuaO: readonly number[],
+  thucTheCuaMoc?: ThucTheCuaMoc,
 ): BoCucPha {
   if (coMatCuaO.length !== SO_THUC_THE) {
     throw new Error(
@@ -163,7 +178,12 @@ export function dienChuoiRaMoc(
 
     const phaCon = phaConCuaBuoc(boCuc, b)
     const nguoiGiu = phaCon === 'bongChet' ? KHONG_AI_GIU : chiSoNguoiGiu
-    ghiMoc(lo, chiSoMoc, nguoiGiu, cacThucThe)
+    ghiMoc(
+      lo,
+      chiSoMoc,
+      nguoiGiu,
+      thucTheCuaMoc ? thucTheCuaMoc(chiSoMoc, phaCon, nguoiGiu) : cacThucThe,
+    )
   }
 
   return boCuc

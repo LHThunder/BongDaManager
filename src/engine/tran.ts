@@ -483,7 +483,7 @@ export function taoUngVien(
 // Đội hình đang trên sân
 // ---------------------------------------------------------------------------
 
-interface ViTriTrenSan {
+export interface ViTriTrenSan {
   readonly playerId: string
   readonly hoSo: HoSoCauThu
   readonly viTriO: PositionId
@@ -495,7 +495,7 @@ interface ViTriTrenSan {
  * đó là nơi AC-6.6 đặt vai trò — và lọc theo `trenSan`, vì thẻ đỏ gỡ người ra
  * khỏi sân mà không đụng tới bộ chiến thuật.
  */
-function doiHinhTrenSan(ben: BenTran): readonly ViTriTrenSan[] {
+export function doiHinhTrenSan(ben: BenTran): readonly ViTriTrenSan[] {
   const soDo = laySoDo(ben.chienThuatHienTai.formationId)
   const viTriTheoSlot = new Map(soDo.oVien.map((o) => [o.slotId, o.viTri]))
   const hoSoTheoId = new Map(ben.cacCauThu.map((c) => [c.id, c]))

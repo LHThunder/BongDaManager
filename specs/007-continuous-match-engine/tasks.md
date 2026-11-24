@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **30 AC**) |
 | **Plan** | `./plan.md` (Status `Approved`, D117–D134, R51–R64) |
-| **Tiến độ** | 19/48 |
+| **Tiến độ** | 20/49 |
 | **Nền đo** | commit `5c652eb`, engine v6, **1.304 test xanh / 63 file test** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -801,6 +801,72 @@ chưa có trần tốc độ, chưa có đường cong. **Phải nói trước �
     bộ sinh riêng **trong chính file test** (file test được `boundaries.test.ts` miễn ở
     `laFileTest`, `:55-57`) — nhưng **không** dùng `Math.random`, vì thế là mất tính tái lập
     của chính phép kiểm (lệnh cấm số 1).
+
+- [x] **T725** — **Nối `buocCoHoc` vào vòng phút**: lô mốc mang toạ độ THẬT
+  - File: tạo `src/engine/lienTuc/viTriMet.ts`, `src/engine/lienTuc/viTriMet.test.ts`; sửa
+    `src/engine/lienTuc/tranLienTuc.ts` (trạng thái cơ học của 26 thực thể),
+    `src/engine/lienTuc/dienPha.ts` (mối hàn nhận thực thể thay vì dựng thực thể rỗng),
+    `src/engine/lienTuc/tranLienTuc.test.ts`
+  - Xong khi: trên 10 mã trận, ở **mọi** mốc của một trận thật — (a) **không** ô nào còn
+    mang `x = y = 0` trừ ô vắng mặt; (b) mọi toạ độ nằm **trong sân** theo `trongSan`;
+    (c) `|Δv|/Δt` của **mọi ô NGƯỜI (0–21)** không vượt trần AC-38.2; (d) tốc độ của họ
+    không vượt AC-38.1 — ⚠️ **không áp cho quả bóng**, vì AC-38.1 và AC-38.2 nói về *cầu
+    thủ*, và một quả bóng đi nhanh hơn 9 m/s là bóng đá thật (vật lý bóng là **T720**);
+    (e) `taiLap.test.ts` và `MOC_V6` còn xanh — nối chuyển động là quyết định
+    **chỉ ở đầu ra**, nó **không dịch một hạt giống nào** (AC-37.5).
+  - AC: AC-37.1, AC-38.1, AC-38.2, AC-38.11 — và là **điều kiện vào** của T716, T733, T742
+  - 📏 **Đo trên một trận thật, và cả bốn điều kiện ra đều đạt**: 5.640 mốc, 146.640 ô, cả
+    trận chạy trong **209 ms**. Ô có mặt mà còn ở gốc toạ độ: **0**. Ô có mặt mà ra ngoài
+    sân: **0**. Tốc độ lớn nhất của người: **9,0000** m/s — chạm đúng trần AC-38.1. Gia tốc
+    lớn nhất: **3,66** m/s², dưới trần 6 của AC-38.2.
+  - 🐞 **Suýt báo sai gia tốc gấp đôi.** Phép đo đầu chia `Δv` cho **0,5** và ra 7,33 m/s².
+    Sai: vòng tích phân chạy **120 bước** mỗi phút nhưng `laMocThuong` chỉ ghi **60**, nên
+    hai mốc ĐÃ GHI cách nhau **1 giây**, không phải 0,5. Con số thật là **3,66**.
+  - 🐞 **Và một lỗi thật nữa, lần này ở chỗ LƯU chứ không ở mô hình.** Phép kiểm đỏ với
+    `9,000000508 > 9 + 1e-9`. Nguyên nhân: `oLieu` của lô là **`Float32Array`**, và khoảng
+    cách giữa hai số float32 liền nhau quanh 9 là **7,63e-7** — độ vượt đo được nằm **trong
+    một ULP**. Engine kẹp đúng 9 trong float64; ghi ra rồi đọc lại mới thành 9,0000005. Lề
+    của mọi phép so **trên lô** vì thế phải cỡ float32, và **T742 sẽ gặp đúng chỗ này**.
+    Đây cũng là lý do `loMoc.ts` dặn engine **không bao giờ đọc lại vận tốc từ lô**: trạng
+    thái cơ học sống trong float64 ở `TrangThaiLienTuc`, lô chỉ là đầu ra. Đọc lại là tích
+    luỹ sai số float32 qua 11.400 bước một trận.
+  - ⚠️ **Trạng thái cơ học phải sống qua ranh giới PHÚT.** Một người đang chạy 7 m/s ở giây
+    cuối của phút 10 vẫn đang chạy 7 m/s ở giây đầu của phút 11. Dựng lại từ 0 mỗi phút là
+    cho cả sân **đứng khựng rồi lao đi** 90 lần một trận, và phép kẹp gia tốc vỡ ở đúng ranh
+    giới phút. Vì thế `TrangThaiLienTuc` nhận thêm trường `coHoc` — **không** vào bản ghi
+    trận, vì AC-45.4 nói vị trí không được lưu mà sinh lại từ mã trận.
+  - ✅ **Mối hàn đặt ở `dienPha.ts` chứ không nhồi cơ học vào đó.** `dienChuoiRaMoc` nhận một
+    tham số **tuỳ chọn** `thucTheCuaMoc`; không khai thì hành vi T706 giữ nguyên từng con số.
+    File ấy sở hữu **bố cục thời gian** của một pha, cơ học là của `coHoc.ts` — gộp hai thứ
+    là buộc chúng sửa cùng nhau mãi.
+  - ⚠️ **`tachChen` chạy SAU phép bước, và chỉ trên 22 ô người.** Trước thì phép bước lại dồn
+    người vào nhau ngay trong cùng mốc. Và đẩy quả bóng ra xa chân người là xoá đúng thứ
+    AC-37.6 nói.
+  - ✅ **`taiLap.test.ts` và `MOC_V6` còn xanh, 0 dòng sửa** — nối chuyển động là quyết định
+    **chỉ ở đầu ra**, nó không dịch một hạt giống nào (AC-37.5). `rutMoiMoc` vẫn là 0 ở mọi
+    mốc vì `buocCoHoc` **không rút** lần nào, nên phép kiểm dải rút của T704 giữ nguyên ý
+    nghĩa.
+  - ➕ **Phạm vi nới một ký hiệu**: `doiHinhTrenSan` và `ViTriTrenSan` của `tran.ts` được
+    thêm `export` — không một dòng nào bị viết lại, đúng tiền lệ T701 đã đặt khi bóc bốn ký
+    hiệu cho mối hàn thứ nhất.
+  - 📏 Toàn bộ: **75 file / 1516 phép kiểm xanh**; bốn file tuyên 0 dòng sửa đều **0 dòng**.
+  - Phụ thuộc: T711, T712, T713, T714, T706
+  - ⚠️ **Task này lấp LỖ THỨ SÁU cùng loại, tìm ra ngày 2026-11-24.** Plan hứa ở chú thích
+    `dienPha.ts:135` rằng "toạ độ chưa có — cơ học chuyển động là **Phase 54**", nhưng cả
+    sáu task của Phase 54 (**T710 → T716**) chỉ **dựng** `coHoc.ts`; không task nào **gọi**
+    nó từ vòng phút. Đã đo: `grep -rn "buocCoHoc" src/` ngoài chính file nó và test của nó
+    ra **rỗng** — cả lớp cơ học của bốn lát liền **không có người gọi**. Và
+    `dienChuoiRaMoc` ghi vào lô bằng `thucTheRong`, trả `{x:0, y:0, …}` cho cả 26 ô ở mọi
+    mốc.
+  - ⚠️ **Ba thứ đứng trên lỗ này**, nên nó phải làm TRƯỚC cả ba: điều kiện ra của **T716**
+    (ba mệnh đề AC-38.10 cần vị trí bóng và hậu vệ cuối); **T733** (nối vòng rAF — sẽ vẽ 22
+    người chồng lên góc sân); **T742** (`doCoHoc` đo mười AC — sẽ đo một trận đứng yên).
+  - 📐 **Mô hình đích là TỐI THIỂU có chủ ý, và ranh giới với spec 009 phải ghi rõ.** Spec
+    007 không có AC nào đòi hình khối đội hình: AC-38.x đều là trần cơ học, AC-37.6 là ai
+    giữ bóng. Vì thế đích ở đây chỉ gồm ba thứ — bóng tới tâm vùng của pha con đang diễn,
+    người giữ bóng tới chỗ bóng, những người khác tới **chỗ đứng theo sơ đồ** dịch một phần
+    nhỏ về phía bóng. Khối phòng ngự 30–40 m, hai tuyến cách 10–15 m, pressing và lùi khối
+    là **US-40 của spec 009**; làm chúng ở đây là lấn phạm vi và sẽ phải gỡ.
 
 - [ ] **T716** — `viTriTrongTai`: ba điểm trọng tài **có vị trí**, không chỉ có ô (**AC-38.10**)
   - File: `src/engine/lienTuc/coHoc.ts`, `src/engine/lienTuc/coHoc.test.ts`,
