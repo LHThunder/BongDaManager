@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **30 AC**) |
 | **Plan** | `./plan.md` (Status `Approved`, D117–D134, R51–R64) |
-| **Tiến độ** | 35/50 |
+| **Tiến độ** | 36/50 |
 | **Nền đo** | commit `5c652eb`, engine v6, **1.304 test xanh / 63 file test** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -1607,7 +1607,7 @@ trận, bằng ngôn ngữ đang chọn — và đó là thứ **duy nhất** m�
     D121**: hai trục phải co cùng hệ số, và một góc 45° trong mét vẫn là 45° trên hình. Đột
     biến cho trục `y` co lệch 1,2 lần → đỏ.
 
-- [ ] **T736** — Vẽ lại vạch sân ở **nhánh liên tục**
+- [x] **T736** — Vẽ lại vạch sân ở **nhánh liên tục**
   - File: `src/ui/components/San2D.tsx`
   - Xong khi: vòng cấm, vòng tròn giữa, chấm phạt đền và khung thành vẽ đúng mét ở nhánh liên
     tục; `npx vitest run src/ui/san2D.test.ts src/ui/daoDong.test.ts src/ui/phaBong.test.ts`
@@ -1618,6 +1618,39 @@ trận, bằng ngôn ngữ đang chọn — và đó là thứ **duy nhất** m�
     `CAO` (61), `KHUNG_SAN` (80) hay `khungSan` (90) — `san2D.test.ts` import cả bốn và describe
     "khung sân theo quân số (AC-15.6)" đo trực tiếp chúng; `daoDong.test.ts` và `phaBong.test.ts`
     cũng đứng trên cùng khung toạ độ. D121 đã **loại** phương án đổi `CAO` vì đúng lý do này.
+  - ⚠️ **Ghi chú của task nói task này "không đỏ nếu chỉ sửa JSX" — nên việc đầu tiên là làm
+    cho câu ấy thôi đúng.** Hình học được bóc thành `vachSanMet`, một **hàm thuần export
+    được**, và bảy phép kiểm **quy ngược** toạ độ vẽ về mét rồi so với chính hằng số của
+    `hinhHocSan.ts`. Không một con số nào chép tay. (Phạm vi nới một file: `san2D.test.ts`
+    nhận thêm một describe — đổi lại là lát này có lưới thay vì không có.)
+  - 📏 **Ba con số của món nợ, đo chứ không đoán.** Nhánh phút vẽ bằng **tỉ lệ ước**: vòng
+    tròn giữa `cao/8` = **7,6 đơn vị** trong khi 9,15 m là **8,7**; vòng cấm sâu
+    `rộng×0,12` = **12** trong khi 16,5 m là **15,7**; vòng cấm cao `cao×0,4375` = **26,7**
+    trong khi 40,32 m là **38,4** — lệch **30%**.
+  - ✅ **Nhánh phút ở lại, thành nợ CÓ TÊN trong `plan.md` (bảng AC, hàng AC-37.2), không
+    sửa im.** Lý do để nguyên: khung của chế độ phút **co theo quân số** (AC-15.6), và sân 5
+    người **không có** kích thước mét nào để quy đổi — `hinhHocSan.ts` chỉ nói về sân 11.
+    Sửa nhánh ấy là phải **phát minh** kích thước cho sáu quân số, việc mà không AC nào đòi.
+    Chế độ liên tục thì **luôn 11 người** (T707 khoá) nên nó có đúng một sân thật để quy đổi.
+  - ➕ **Một hằng số của riêng lớp vẽ: `SAU_KHUNG_THANH_VE = 2` m.** `hinhHocSan.ts` không có
+    nó vì engine không cần biết khung thành sâu bao nhiêu — bóng vào lưới là một **kết cục**,
+    không phải một va chạm. Có một phép kiểm canh nó **lọt trong lề ảnh**: khung dựng NGOÀI
+    đường biên ngang, nên lề hẹp hơn độ sâu là hai cái khung bị xén — và **SVG chỉ việc xén,
+    không báo gì**. Đột biến nâng nó lên 4 m → đỏ.
+  - ✅ **Bốn phép đột biến, bốn lần đỏ**: vòng cấm dùng tỉ lệ ước như nhánh phút → 2 đỏ;
+    khung thành dựng **trong** sân → 1 đỏ; chấm phạt đền tính bằng **đơn vị** thay vì mét →
+    2 đỏ; lề ảnh hẹp hơn độ sâu khung thành → 1 đỏ.
+  - 📏 **Đã xem thật trên trình duyệt**: nhóm vạch sân ở nhánh liên tục có **5 hình chữ nhật**
+    (biên sân + 2 vòng cấm + 2 khung thành), **4 vòng tròn** (vòng giữa + chấm giữa + 2 chấm
+    phạt đền) và **1 vạch giữa** — nhánh phút chỉ có 3 + 1 + 1. `data-nguon` đọc **`moc`** ở
+    cả 12 mẫu liên tiếp.
+  - 🐞 **Và một thứ đọc sai suýt làm tôi báo hỏng:** ngay sau khi đổi mức tốc độ,
+    `data-nguon` đọc ra `phut` một nhịp. Không phải lỗi — `msMoiPhut` nằm trong mảng phụ
+    thuộc của effect, nên đổi mức **dựng lại vòng rAF**, và có đúng một lần vẽ trước khung
+    đầu tiên của vòng mới. Đo 12 mẫu liên tiếp thì nó `moc` cả 12.
+  - 📏 Toàn bộ: **81 file / 1.650 phép kiểm xanh**; `san2D.test.ts`, `daoDong.test.ts`,
+    `phaBong.test.ts` đều xanh, và ba bất biến của `san2D.test.ts` (không chồng khít, thủ
+    môn trong một phần ba sân, tám hàng xen kẽ) còn nguyên.
 
 - [x] **T737** — Phép kiểm của **AC-45.9**: +1 describe thuần, **sau T734**
   - File: `src/ui/viTriVe.test.ts`

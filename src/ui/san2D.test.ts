@@ -37,8 +37,20 @@ import {
   toaDo,
   VONG_GIU_BONG_THEM,
   vungTrenSan,
+  SAU_KHUNG_THANH_VE,
+  vachSanMet,
   type DiemCauThu,
 } from './components/San2D'
+import {
+  BAN_KINH_VONG_GIUA,
+  CHAM_PHAT_DEN,
+  DAI_SAN,
+  RONG_KHUNG_THANH,
+  RONG_SAN,
+  RONG_VONG_CAM,
+  SAU_VONG_CAM,
+} from '../engine/hinhHocSan'
+import { metTuDonVi, type KhungAnh } from './quyDoiMet'
 import {
   doMetTuTheLuc,
   QUANG_CHUAN,
@@ -1920,5 +1932,105 @@ describe('thủ môn KHÔNG mở pha bóng khi dòng không nêu tên anh ta (T6
     const dungYenHan = (100 * quang.filter((q) => q === 0).length) / quang.length
     expect(dungYenHan, 'tỉ lệ cửa sổ mà thủ môn đứng yên hoàn toàn').toBeGreaterThan(40)
     expect(satChan, 'tỉ lệ bóng sát chân thủ môn khi anh ta cầm bóng').toBeGreaterThan(85)
+  })
+})
+
+/*
+  ====================================================================
+  VẠCH SÂN ĐÚNG MÉT Ở NHÁNH LIÊN TỤC (T736, AC-37.2).
+  ====================================================================
+
+  ⚠️ **Ghi chú của task nói task này "không đỏ nếu chỉ sửa JSX" — nên khối này
+  tồn tại để câu ấy thôi đúng.** Hình học được bóc ra thành `vachSanMet`, một
+  hàm thuần, và mọi khẳng định dưới đây **quy ngược** toạ độ vẽ về mét rồi so
+  với chính hằng số của `hinhHocSan.ts`. Không một con số nào được chép tay.
+*/
+describe('vachSanMet — vạch sân quy từ mét (T736)', () => {
+  const KHUNG_VE: KhungAnh = { rong: RONG, cao: CAO, le: 2.6 }
+  const v = vachSanMet(KHUNG_VE)
+  const veSangMet = (donVi: number) => metTuDonVi(KHUNG_VE, donVi)
+
+  it('vòng cấm sâu đúng 16,5 m và cao đúng 40,32 m', () => {
+    for (const [i, o] of v.vongCam.entries()) {
+      expect(veSangMet(o.rong), `vòng cấm ${i} sâu`).toBeCloseTo(
+        SAU_VONG_CAM,
+        9,
+      )
+      expect(veSangMet(o.cao), `vòng cấm ${i} cao`).toBeCloseTo(
+        RONG_VONG_CAM,
+        9,
+      )
+    }
+    expect(v.vongCam).toHaveLength(2)
+  })
+
+  it('vòng tròn giữa đúng bán kính 9,15 m', () => {
+    expect(veSangMet(v.banKinhVongGiua)).toBeCloseTo(BAN_KINH_VONG_GIUA, 9)
+  })
+
+  it('hai chấm phạt đền cách đường biên ngang đúng 11 m', () => {
+    const bienTrai = v.bien.x
+    const bienPhai = v.bien.x + v.bien.rong
+    expect(veSangMet(v.chamPhatDen[0]!.x - bienTrai)).toBeCloseTo(
+      CHAM_PHAT_DEN,
+      9,
+    )
+    expect(veSangMet(bienPhai - v.chamPhatDen[1]!.x)).toBeCloseTo(
+      CHAM_PHAT_DEN,
+      9,
+    )
+    // Và cả hai nằm đúng trên tim sân.
+    for (const c of v.chamPhatDen) {
+      expect(c.y).toBeCloseTo(v.tamSan.y, 9)
+    }
+  })
+
+  it('khung thành rộng đúng 7,32 m và dựng NGOÀI đường biên ngang', () => {
+    expect(v.khungThanh).toHaveLength(2)
+    for (const [i, o] of v.khungThanh.entries()) {
+      expect(veSangMet(o.cao), `khung ${i} rộng`).toBeCloseTo(
+        RONG_KHUNG_THANH,
+        9,
+      )
+    }
+    // Khung bên trái nằm hoàn toàn bên trái đường biên; bên phải thì ngược lại.
+    expect(v.khungThanh[0]!.x + v.khungThanh[0]!.rong).toBeCloseTo(v.bien.x, 9)
+    expect(v.khungThanh[1]!.x).toBeCloseTo(v.bien.x + v.bien.rong, 9)
+  })
+
+  it('mặt sân đúng 105 × 68 m, và vạch giữa chia đôi nó', () => {
+    expect(veSangMet(v.bien.rong)).toBeCloseTo(DAI_SAN, 9)
+    expect(veSangMet(v.bien.cao)).toBeCloseTo(RONG_SAN, 9)
+    expect(v.vachGiua.x).toBeCloseTo(v.bien.x + v.bien.rong / 2, 9)
+    expect(v.tamSan.x).toBeCloseTo(v.vachGiua.x, 9)
+  })
+
+  /*
+    ⚠️ Khung thành dựng NGOÀI sân nên nó ăn vào lề ảnh. Nếu lề hẹp hơn độ sâu
+    khung thì hai cái khung bị cắt mất — và không gì đỏ, vì SVG chỉ việc xén.
+  */
+  it('và không vạch nào bị cắt khỏi khung ảnh', () => {
+    const cacHinh = [v.bien, ...v.vongCam, ...v.khungThanh]
+    for (const [i, o] of cacHinh.entries()) {
+      expect(o.x, `hình ${i} mép trái`).toBeGreaterThanOrEqual(0)
+      expect(o.y, `hình ${i} mép trên`).toBeGreaterThanOrEqual(0)
+      expect(o.x + o.rong, `hình ${i} mép phải`).toBeLessThanOrEqual(RONG)
+      expect(o.y + o.cao, `hình ${i} mép dưới`).toBeLessThanOrEqual(CAO)
+    }
+    expect(veSangMet(KHUNG_VE.le), 'lề ảnh, mét').toBeGreaterThanOrEqual(
+      SAU_KHUNG_THANH_VE,
+    )
+  })
+
+  it('và hai nửa sân ĐỐI XỨNG qua vạch giữa', () => {
+    const giua = v.vachGiua.x
+    expect(giua - v.vongCam[0]!.x).toBeCloseTo(
+      v.vongCam[1]!.x + v.vongCam[1]!.rong - giua,
+      9,
+    )
+    expect(giua - v.chamPhatDen[0]!.x).toBeCloseTo(
+      v.chamPhatDen[1]!.x - giua,
+      9,
+    )
   })
 })

@@ -1,5 +1,18 @@
 import { useEffect, useMemo, useReducer, useRef, useState } from 'react'
+import {
+  BAN_KINH_VONG_GIUA,
+  CHAM_PHAT_DEN,
+  DAI_SAN,
+  RONG_SAN,
+  RONG_VONG_CAM,
+  SAU_VONG_CAM,
+  TAM_X,
+  TAM_Y,
+  Y_COT_GAN,
+  Y_COT_XA,
+} from '../../engine/hinhHocSan'
 import type { LoMoc } from '../../engine/lienTuc/loMoc'
+import { metSangDonVi, toaDoTuMet, type KhungAnh } from '../quyDoiMet'
 import { anhChupTuLo, mocVeTaiThoiDiem } from '../mocVe'
 import { mauChuTuongPhan } from '../../domain/colors'
 import { laySoDo, soNguoiCuaSoDo } from '../../domain/formations'
@@ -83,6 +96,109 @@ export interface KhungSan {
   105×68): co đúng thật thì sân 5 bé tới mức mười cái điểm chen nhau không
   đọc nổi số áo, mà AC-15.1 lại đếm điểm.
 */
+/**
+ * Độ sâu khung thành khi VẼ, mét — con số của lớp vẽ, không của engine.
+ *
+ * `hinhHocSan.ts` không có nó vì engine không cần biết khung thành sâu bao
+ * nhiêu: bóng vào lưới là một kết cục, không phải một va chạm. Ở đây nó chỉ để
+ * người xem thấy hai cái khung, và 2 m lọt gọn trong lề `BAN_KINH` của ảnh.
+ */
+export const SAU_KHUNG_THANH_VE = 2
+
+/** Một hình chữ nhật trong toạ độ vẽ. */
+export interface HinhChuNhat {
+  readonly x: number
+  readonly y: number
+  readonly rong: number
+  readonly cao: number
+}
+
+/** Toàn bộ vạch sân của **chế độ liên tục**, đã quy ra toạ độ vẽ. */
+export interface VachSan {
+  readonly bien: HinhChuNhat
+  readonly vachGiua: { readonly x: number; readonly y1: number; readonly y2: number }
+  readonly tamSan: { readonly x: number; readonly y: number }
+  readonly banKinhVongGiua: number
+  readonly vongCam: readonly HinhChuNhat[]
+  readonly chamPhatDen: readonly { readonly x: number; readonly y: number }[]
+  readonly khungThanh: readonly HinhChuNhat[]
+}
+
+/*
+  ====================================================================
+  VẠCH SÂN ĐÚNG MÉT (T736, AC-37.2).
+  ====================================================================
+
+  ⚠️ **Nhánh theo PHÚT vẽ vạch sân bằng TỈ LỆ ƯỚC, và nó ở lại — thành một món
+  nợ CÓ TÊN, không sửa im.** Ba con số của nó lệch thật:
+
+    - vòng tròn giữa `cao / 8` → **7,6 đơn vị**, trong khi 9,15 m là **8,7**;
+    - vòng cấm sâu `rộng × 0,12` → **12 đơn vị**, trong khi 16,5 m là **15,7**;
+    - vòng cấm cao `cao × 0,4375` → **26,7 đơn vị**, trong khi 40,32 m là
+      **38,4** — lệch **30%**.
+
+  Lý do để nguyên: khung của chế độ phút **co theo quân số** (AC-15.6), và sân
+  5 người không có một kích thước mét nào để quy đổi — `hinhHocSan.ts` chỉ nói
+  về sân 11. Sửa nhánh ấy là phải phát minh ra kích thước cho sáu quân số, việc
+  mà không AC nào đòi. Nợ này được ghi vào `plan.md` mục 9.
+
+  Chế độ liên tục thì **luôn 11 người** (T707 khoá), nên nó có đúng một sân thật
+  để quy đổi — và từ đây nó vẽ đúng mét.
+*/
+export function vachSanMet(khung: KhungAnh): VachSan {
+  const met = (m: number) => metSangDonVi(khung, m)
+  const goc = toaDoTuMet(khung, 0, RONG_SAN)
+  const tam = toaDoTuMet(khung, TAM_X, TAM_Y)
+  const nuaVongCam = RONG_VONG_CAM / 2
+
+  /** Vòng cấm ở đầu sân có goal line tại `xBien`. */
+  const vongCamTai = (xBien: number, vaoSan: 1 | -1): HinhChuNhat => {
+    const tren = toaDoTuMet(
+      khung,
+      vaoSan === 1 ? xBien : xBien - SAU_VONG_CAM,
+      TAM_Y + nuaVongCam,
+    )
+    return {
+      x: tren.x,
+      y: tren.y,
+      rong: met(SAU_VONG_CAM),
+      cao: met(RONG_VONG_CAM),
+    }
+  }
+
+  /** Khung thành dựng NGOÀI đường biên ngang, đúng như sân thật. */
+  const khungThanhTai = (xBien: number, raNgoai: 1 | -1): HinhChuNhat => {
+    const tren = toaDoTuMet(
+      khung,
+      raNgoai === 1 ? xBien : xBien - SAU_KHUNG_THANH_VE,
+      Y_COT_XA,
+    )
+    return {
+      x: tren.x,
+      y: tren.y,
+      rong: met(SAU_KHUNG_THANH_VE),
+      cao: met(Y_COT_XA - Y_COT_GAN),
+    }
+  }
+
+  return {
+    bien: { x: goc.x, y: goc.y, rong: met(DAI_SAN), cao: met(RONG_SAN) },
+    vachGiua: {
+      x: tam.x,
+      y1: toaDoTuMet(khung, TAM_X, RONG_SAN).y,
+      y2: toaDoTuMet(khung, TAM_X, 0).y,
+    },
+    tamSan: tam,
+    banKinhVongGiua: met(BAN_KINH_VONG_GIUA),
+    vongCam: [vongCamTai(0, 1), vongCamTai(DAI_SAN, -1)],
+    chamPhatDen: [
+      toaDoTuMet(khung, CHAM_PHAT_DEN, TAM_Y),
+      toaDoTuMet(khung, DAI_SAN - CHAM_PHAT_DEN, TAM_Y),
+    ],
+    khungThanh: [khungThanhTai(0, -1), khungThanhTai(DAI_SAN, 1)],
+  }
+}
+
 export const KHUNG_SAN: Readonly<Record<number, KhungSan>> = {
   11: { rong: 100, cao: 64 },
   10: { rong: 96, cao: 62 },
@@ -1985,33 +2101,94 @@ export function San2D(props: Props) {
         />
 
         {/* Vạch sân: chỉ những vạch giúp định hướng, không vẽ cho đẹp. */}
-        <g
-          fill="none"
-          stroke="rgba(255,255,255,0.45)"
-          strokeWidth={0.4 * tiLe}
-          aria-hidden="true"
-        >
-          <rect
-            x={leX + 2}
-            y={leY + 2}
-            width={khung.rong - 4}
-            height={khung.cao - 4}
-          />
-          <line x1={giuaX} y1={leY + 2} x2={giuaX} y2={leY + khung.cao - 2} />
-          <circle cx={giuaX} cy={giuaY} r={sauVongTron} />
-          <rect
-            x={leX + 2}
-            y={giuaY - caoVongCam / 2}
-            width={sauVongCam}
-            height={caoVongCam}
-          />
-          <rect
-            x={leX + khung.rong - 2 - sauVongCam}
-            y={giuaY - caoVongCam / 2}
-            width={sauVongCam}
-            height={caoVongCam}
-          />
-        </g>
+        {lienTuc ? (
+          <g
+            fill="none"
+            stroke="rgba(255,255,255,0.45)"
+            strokeWidth={0.4 * tiLe}
+            aria-hidden="true"
+          >
+            {(() => {
+              const v = vachSanMet(khungAnh)
+              return (
+                <>
+                  <rect
+                    x={v.bien.x}
+                    y={v.bien.y}
+                    width={v.bien.rong}
+                    height={v.bien.cao}
+                  />
+                  <line
+                    x1={v.vachGiua.x}
+                    y1={v.vachGiua.y1}
+                    x2={v.vachGiua.x}
+                    y2={v.vachGiua.y2}
+                  />
+                  <circle
+                    cx={v.tamSan.x}
+                    cy={v.tamSan.y}
+                    r={v.banKinhVongGiua}
+                  />
+                  {v.vongCam.map((o, i) => (
+                    <rect
+                      key={`cam${i}`}
+                      x={o.x}
+                      y={o.y}
+                      width={o.rong}
+                      height={o.cao}
+                    />
+                  ))}
+                  {v.khungThanh.map((o, i) => (
+                    <rect
+                      key={`gon${i}`}
+                      x={o.x}
+                      y={o.y}
+                      width={o.rong}
+                      height={o.cao}
+                    />
+                  ))}
+                  {[v.tamSan, ...v.chamPhatDen].map((d, i) => (
+                    <circle
+                      key={`cham${i}`}
+                      cx={d.x}
+                      cy={d.y}
+                      r={0.3 * tiLe}
+                      fill="rgba(255,255,255,0.45)"
+                    />
+                  ))}
+                </>
+              )
+            })()}
+          </g>
+        ) : (
+          <g
+            fill="none"
+            stroke="rgba(255,255,255,0.45)"
+            strokeWidth={0.4 * tiLe}
+            aria-hidden="true"
+          >
+            <rect
+              x={leX + 2}
+              y={leY + 2}
+              width={khung.rong - 4}
+              height={khung.cao - 4}
+            />
+            <line x1={giuaX} y1={leY + 2} x2={giuaX} y2={leY + khung.cao - 2} />
+            <circle cx={giuaX} cy={giuaY} r={sauVongTron} />
+            <rect
+              x={leX + 2}
+              y={giuaY - caoVongCam / 2}
+              width={sauVongCam}
+              height={caoVongCam}
+            />
+            <rect
+              x={leX + khung.rong - 2 - sauVongCam}
+              y={giuaY - caoVongCam / 2}
+              width={sauVongCam}
+              height={caoVongCam}
+            />
+          </g>
+        )}
 
         {/*
           ĐƯỜNG KẺ VÀNG ĐÃ BỎ (T524).
