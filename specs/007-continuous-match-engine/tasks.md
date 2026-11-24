@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **30 AC**) |
 | **Plan** | `./plan.md` (Status `Approved`, D117–D134, R51–R64) |
-| **Tiến độ** | 27/50 |
+| **Tiến độ** | 28/50 |
 | **Nền đo** | commit `5c652eb`, engine v6, **1.304 test xanh / 63 file test** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -1338,7 +1338,7 @@ trận, bằng ngôn ngữ đang chọn — và đó là thứ **duy nhất** m�
 
 ## Phase 56 — Mốc dày ở tình huống quan trọng, và lớp phát ở cả **năm** mức tốc độ
 
-- [ ] **T730** [P] — `lienTuc/tinhHuong.ts`: `laTinhHuongQuanTrong` đúng bốn toán hạng
+- [x] **T730** [P] — `lienTuc/tinhHuong.ts`: `laTinhHuongQuanTrong` đúng bốn toán hạng
   - File: tạo `src/engine/lienTuc/tinhHuong.ts`, `src/engine/lienTuc/tinhHuong.test.ts`
   - Xong khi: **16 tổ hợp** (4 toán hạng × bật/tắt) cho đúng kết quả; và
     `grep -rl "xG" src/engine/lienTuc/` → **rỗng** — xG thuộc spec 010 (AC-37.8).
@@ -1349,6 +1349,29 @@ trận, bằng ngôn ngữ đang chọn — và đó là thứ **duy nhất** m�
   - Phụ thuộc: T701
   - Ghi chú: nguồn là kết quả **tại chỗ sinh** từ `quyetKetCucChuoi`, **không** phải
     `tt.ungVien`. `plan.md` mục 7 **bỏ sót** hàng cho file này — đã thêm vào plan hôm nay.
+  - ✅ **Ba trong bốn toán hạng đã CÓ SẴN trong dữ liệu**: `coBan`, `coHoiRoRang`, `biCuu`
+    là ba trường `quyetKetCucChuoi` **đã tính**. Nên lớp liên tục không rút thêm một lần
+    ngẫu nhiên nào, không đoán, và hai chế độ **không thể lệch nhau** ở chỗ "cái gì là quan
+    trọng" — đúng thứ AC-45.3 đo.
+  - ⚠️ **Toán hạng thứ tư, thẻ đỏ, KHÔNG nằm trong `KetCucPhaV6`** — thẻ được rút **sau**
+    pha bóng, trong đường phạm lỗi của `tran.ts` (`tran.ts:1023`). Nên nó vào bằng **tham
+    số**, không moi ra từ `pha`: moi ra là đoán. Một phép kiểm riêng canh nó đổi được độc
+    lập với ba toán hạng kia.
+  - ✅ **16 tổ hợp SINH từ `CAC_DAU_HIEU`, không gõ tay 16 dòng.** Gõ tay thì thêm một toán
+    hạng thứ năm sẽ **không** làm phép kiểm đỏ — mà nó phải đỏ. Cộng một mệnh đề nữa mà
+    bảng 16 dòng không nói được: **mỗi toán hạng đứng một mình đã đủ** — không có nó thì
+    một hàm đòi **hai** toán hạng cùng bật vẫn xanh ở 11/16 tổ hợp. Đã đột biến đúng ca ấy
+    (`(a||b) && (c||d)`): **2 phép kiểm đỏ**.
+  - ✅ **Phép kiểm chống xG viết thành PHÉP KIỂM, không thành lệnh `grep`** — và đó chính là
+    chỗ ghi chú của task cảnh báo: `grep -c "xG"` thiếu `-r` trên một thư mục thì grep in
+    `0` ra stdout và lỗi ra stderr, nên điều kiện "= 0" **luôn thoả dù sai**. Thành phép
+    kiểm thì cái bẫy ấy biến mất, nó quét **cả thư mục** (trừ file test, vì file test buộc
+    phải chứa ký hiệu ấy để nói về nó), và nó còn sống sau khi người chạy lệnh đi mất. Kèm
+    **chống rỗng** (phải quét được hơn 8 file) và **ca ngược**.
+  - ✅ **Bốn phép đột biến, bốn lần đỏ**: bỏ toán hạng thẻ đỏ → 2 đỏ; đổi `hoặc` thành `và`
+    → 2 đỏ; `dauHieuCuaPha` đọc nhầm trường → 1 đỏ; nhét ký hiệu bị cấm vào một file
+    `lienTuc/` → 1 đỏ.
+  - 📏 **77 file / 1.605 phép kiểm xanh** (thêm 8).
 
 - [ ] **T731** — Làm dày cả cửa sổ chuỗi lên 0,5 giây; bảng bóng chết ở **đúng một chỗ**
   - File: tạo `src/engine/lienTuc/mocChuoi.ts`, `src/engine/lienTuc/mocChuoi.test.ts`; sửa
