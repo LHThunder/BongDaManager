@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **30 AC**) |
 | **Plan** | `./plan.md` (Status `Approved`, D117–D134, R51–R64) |
-| **Tiến độ** | 14/48 |
+| **Tiến độ** | 15/48 |
 | **Nền đo** | commit `5c652eb`, engine v6, **1.304 test xanh / 63 file test** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -568,7 +568,7 @@ chưa có trần tốc độ, chưa có đường cong. **Phải nói trước �
     `(chiSoTocDo: number | undefined)` đúng khuôn `heSoTheoChiSo` ở `theLuc.ts:40` — khuôn ấy
     **không kéo theo gì**.
 
-- [ ] **T711** — Kẹp vector gia tốc/giảm tốc + cổng quay ba băng + tích phân Euler
+- [x] **T711** — Kẹp vector gia tốc/giảm tốc + cổng quay ba băng + tích phân Euler
   - File: `src/engine/lienTuc/coHoc.ts`, `src/engine/lienTuc/coHoc.test.ts`
   - Xong khi: trên 1.000 bộ đầu vào, `|Δv| / Δt ≤ 6` khi tăng và `≤ 8` khi giảm ở **mọi** bước;
     một ca hội tụ (điểm xuất phát cách đích 30 m đến đích trong `≤ ⌈30/9⌉ + 1` giây); **và cả
@@ -584,6 +584,33 @@ chưa có trần tốc độ, chưa có đường cong. **Phải nói trước �
     cấm tự hạ ngưỡng. Trên 6,0 m/s vế (ii) **rỗng theo cấu trúc**: trần 30°/giây cho tối đa
     15° mỗi bước 0,5 giây, nên không có cú quay 45–90° nào ở băng ấy.
   - AC: AC-38.2, AC-38.3
+  - 🐞 **Ca chống tầm thường bắt được một lỗi THẬT, hai lần liên tiếp.** Ca "không vọt qua
+    đích rồi dao động" không nằm trong dòng "Xong khi" — tôi thêm vì một mô hình **chỉ có ga**
+    vẫn "tới đích" ở ca hội tụ rồi dao động quanh nó mãi. Nó đỏ ngay, và chỉ đúng chỗ:
+    - **Vòng một — 11 bước nằm quá đích.** Phanh viết bằng `sqrt(2·a·d)`, là công thức của
+      thời gian **liên tục**. Với `dt = 0,5` thì ở mọi khoảng cách **dưới 3,6 m**, một bước
+      `v · dt` vẫn dài hơn quãng còn lại.
+    - **Vòng hai — còn 3 bước.** Thêm vế `quang / dt` vẫn chưa đủ, vì `sqrt(2ad)` giả định
+      hãm được **tức thì**, trong khi kẹp giảm tốc chỉ cho bớt `7,2 × 0,5 = 3,6` m/s mỗi bước.
+      Một người đang 8,9 m/s cách đích 5,5 m sẽ còn 5,3 m/s ở bước sau và đi 2,65 m khi chỉ
+      còn 1,05 m.
+    - **Vòng ba — xanh.** Dùng **nghiệm rời rạc đúng**: `v = −a·dt + sqrt((a·dt)² + 2·a·d)`,
+      tức "đi một bước nữa rồi vẫn còn đủ quãng để dừng".
+  - ⚠️ **Hệ số 0,57 phải so với tốc độ TRƯỚC, không phải tốc độ vừa tính.** AC-38.3 vế (ii)
+    nói "tốc độ **sau** ≤ 60% tốc độ **trước**". Nhân 0,57 vào tốc độ vừa tăng thì một người
+    đang chạy 1 m/s tăng lên 3,6 rồi quay 60° sẽ còn **2,05** m/s — gấp ba tốc độ trước, và
+    vế (ii) vỡ **dù hệ số trông vẫn là 0,57**. Cài đúng: trần sau cú quay là
+    `0,57 × |v trước|`.
+  - ✅ **Hai ca CHỐNG RỖNG, và chúng đáng giá hơn cả hai ca chúng bảo vệ.** AC-38.3 nói về
+    những cú quay; nếu mô hình không bao giờ **sinh ra** một cú quay như thế thì cả hai vế
+    xanh mà không chứng minh gì. Đã đếm trên 4.000 bước: **680** cú quay > 90° và **824** cú
+    quay 45–90°. Băng chậm quay **tự do** chính là thứ làm vế (i) có mẫu — D123 đã nói trước,
+    và số đo xác nhận.
+  - 📏 **Đo được**: tốc độ lớn nhất trong 4.000 bước là **9,0000** m/s — chạm đúng
+    `TRAN_TOC_DO_TUYET_DOI`, tức phép kẹp thật sự hoạt động chứ không phải chưa bao giờ bị thử.
+    Tích phân Euler cho `(x′ − x)/dt ≡ v′` đúng tới **10 chữ số** trên 1.000 bộ. Gia tốc trên
+    1.000 bộ không bộ nào vượt 6, giảm tốc không bộ nào vượt 8. Toàn bộ: **73 file / 1468 phép
+    kiểm xanh**; `src/ui/san2D.test.ts` **0 ký tự sửa**; ba file tuyên 0 dòng vẫn 0 dòng.
   - Phụ thuộc: T710
   - Ghi chú: hằng số mét phải **import từ `hinhHocSan.ts`** (T703). Tự viết lại hằng số sân ở
     đây là sinh nguồn sự thật thứ hai. Và `lienTuc/khongChepModel.test.ts` (**T718** tạo) cấm mọi
