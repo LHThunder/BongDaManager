@@ -3,6 +3,7 @@ import { cauHinhMau, MA_TRAN_CO_DINH } from '../__fixtures__/doiMau'
 import {
   cauHinhDauLai,
   chayHetTran,
+  doiHinhTrenSan,
   dongSuKien,
   PHIEN_BAN_ENGINE,
   taoTran,
@@ -39,6 +40,7 @@ import {
   buocPhutLienTuc,
   chayHetTranLienTuc,
   cheDoCuaTrangThai,
+  oCuaNguoiTrenSan,
   PHIEN_BAN_ENGINE_LIEN_TUC,
   taoTranLienTuc,
 } from './tranLienTuc'
@@ -840,5 +842,59 @@ describe('quả bóng đi theo vật lý của nó (T726)', () => {
       lt = buocPhutLienTuc(lt).tt
       expect(lt.dieuKien, `phút ${p}`).toEqual(dieuKienTuMaTran(ma))
     }
+  })
+})
+
+/*
+  ====================================================================
+  Ô CỦA TỪNG NGƯỜI — một thứ tự, không phải hai (T733).
+  ====================================================================
+*/
+describe('oCuaNguoiTrenSan (T733)', () => {
+  it('ô 0–10 là đội nhà, 11–21 là đội khách, không trùng ô nào', () => {
+    const lt = taoTranLienTuc({
+      ...cauHinhMau(MA_TRAN_CO_DINH[0]!),
+      cheDoMoPhong: 'lien-tuc',
+    })
+    const o = oCuaNguoiTrenSan(lt.tran)
+    expect(o.size).toBe(22)
+    expect(new Set(o.values()).size, 'không hai người chung một ô').toBe(22)
+    for (const id of lt.tran.ben.nha.trenSan) {
+      expect(o.get(id), `nhà ${id}`).toBeLessThan(11)
+    }
+    for (const id of lt.tran.ben.khach.trenSan) {
+      expect(o.get(id), `khách ${id}`).toBeGreaterThanOrEqual(11)
+      expect(o.get(id), `khách ${id}`).toBeLessThan(22)
+    }
+  })
+
+  /*
+    ⚠️⚠️ **ĐẲNG THỨC GIỮA HAI THỨ TỰ, và nó đang đúng NHỜ MAY.**
+
+    `oCuaNguoiTrenSan` (và `coHocXuatPhat`, `choDung`) đánh số theo
+    `doiHinhTrenSan` — thứ tự ô viên của sơ đồ. `oCuaNguoiGiu` đánh số theo
+    `ben.trenSan` — thứ tự danh sách người trên sân. Hai thứ tự ấy **trùng 100%**
+    trên 948 lượt đã đo, nhưng **không một dòng nào ép chúng trùng**.
+
+    Lệch một chỗ thì người giữ bóng được vẽ ở ô của người khác, quả bóng dính
+    chân sai người, và **không gì đỏ**. Phép kiểm này là thứ duy nhất đứng giữa.
+  */
+  it('THỨ TỰ của doiHinhTrenSan khớp ben.trenSan, suốt một trận', () => {
+    let soBen = 0
+    for (const ma of MA_TRAN_CO_DINH.slice(0, 5)) {
+      let lt = taoTranLienTuc({ ...cauHinhMau(ma), cheDoMoPhong: 'lien-tuc' })
+      for (let p = 0; p < 95 && !lt.tran.ketThuc; p += 1) {
+        for (const ben of ['nha', 'khach'] as const) {
+          const theoDanhSach = lt.tran.ben[ben].trenSan
+          const theoSoDo = doiHinhTrenSan(lt.tran.ben[ben]).map(
+            (v) => v.playerId,
+          )
+          expect(theoSoDo, `${ma} phút ${p} ${ben}`).toEqual([...theoDanhSach])
+          soBen += 1
+        }
+        lt = buocPhutLienTuc(lt).tt
+      }
+    }
+    expect(soBen, 'số lượt đã đối chiếu').toBeGreaterThan(900)
   })
 })

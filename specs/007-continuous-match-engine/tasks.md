@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **30 AC**) |
 | **Plan** | `./plan.md` (Status `Approved`, D117–D134, R51–R64) |
-| **Tiến độ** | 30/50 |
+| **Tiến độ** | 31/50 |
 | **Nền đo** | commit `5c652eb`, engine v6, **1.304 test xanh / 63 file test** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -1481,7 +1481,7 @@ trận, bằng ngôn ngữ đang chọn — và đó là thứ **duy nhất** m�
     đỏ; trả hằng số → 4 đỏ; thêm một nhánh theo tên mức → 1 đỏ.
   - 📏 Toàn bộ: **79 file / 1.614 phép kiểm xanh** (T730 thêm 8, T732 thêm 9).
 
-- [ ] **T733** — Nới cổng của **đúng MỘT** vòng rAF, đặt lại mốc thời gian theo số lô
+- [x] **T733** — Nới cổng của **đúng MỘT** vòng rAF, đặt lại mốc thời gian theo số lô
   - File: `src/ui/components/San2D.tsx`
   - Xong khi: ở **cả năm** mức tốc độ, vòng rAF chạy > 0 khung (hôm nay mức nhanh nhất chạy
     **0 khung**); và `npx vitest run src/ui/noiSuy.test.ts src/ui/phaBong.test.ts src/ui/san2D.test.ts`
@@ -1494,6 +1494,55 @@ trận, bằng ngôn ngữ đang chọn — và đó là thứ **duy nhất** m�
     mới nào** chạm `window`, `matchMedia` hay `performance` sẽ làm **đỏ cả ba ngay lúc
     import**, không phải ở một phép kiểm nào. Và **không thêm effect thứ ba** — nới cổng của
     vòng đã có (R52).
+  - ⚠️ **Task này mang theo món T704 đã HOÃN CÓ TÊN, và nó lớn hơn dòng file của mình.**
+    Trước lát này **không chỗ nào ngoài test** gọi `buocPhutLienTuc`: `useMatch` tạo trận
+    bằng `taoTran` và bước bằng `buocTiep`, nên chọn "Liên tục" trong giao diện vẫn chạy
+    engine **cổ điển**. Phạm vi vì thế nới thêm ba file: `useMatch.ts` (chỗ T704 chỉ sang),
+    `TrangTran.tsx` (truyền lô xuống) và `mocVe.ts`/`tranLienTuc.ts` (hai hàm thuần, để
+    luật không nằm trong component).
+  - 🐞 **Và đây là phát hiện quan trọng nhất của cả lát: "các điểm có nhúc nhích" KHÔNG
+    chứng minh được gì.** Lần đo đầu trên trình duyệt cho 24/24 khung hình khác nhau, và
+    tôi suýt kết luận mối nối đã chạy. Nhưng **lớp dao động cũng chạy trong chính vòng rAF
+    ấy**, nên sân vẫn nhúc nhích y hệt kể cả khi lô mốc không bao giờ tới nơi. Chữa bằng
+    một thuộc tính **đọc được từ bên ngoài**: `data-nguon` trên thẻ `<svg>`, nhận `moc` hay
+    `phut`. Đo lại thì ở giây đầu nó là **`phut`** — đúng, vì lô đầu tiên chỉ có sau khi
+    phút đầu chạy xong — rồi chuyển sang **`moc`** và ở đó suốt. Không có dấu ấy tôi đã báo
+    một mối nối **chưa chạy** là đã chạy.
+  - 📏 **Đo thật trên trình duyệt, cả năm mức tốc độ:** `data-nguon = "moc"` ở **cả năm**;
+    **0 khung đứng yên**; **0 điểm** ra ngoài khung trên **920 mẫu**; 23 điểm được vẽ (22
+    cầu thủ + bóng, **không** vẽ ba trọng tài — đúng AC-38.10); không lỗi console mới; trận
+    chạy hết và báo cáo sau trận hiện đúng.
+  - ✅ **Cổng nới đúng MỘT chỗ**: `msChuyen <= 0` không còn tắt vòng ở chế độ liên tục.
+    `thoiGianChuyen` trả 0 ở mức nhanh nhất (spec 005 tắt nội suy ở đó), nên trước lát này
+    mức **Rất nhanh** chạy **0 khung** — lô có phát ra cũng không ai đọc.
+  - ✅ **Mốc thời gian đặt lại NGAY TRONG VÒNG theo `soLo`, không qua effect** — đúng cách
+    **R52** dặn. `loMoc` và `soLo` **không** nằm trong mảng phụ thuộc của effect: vòng đọc
+    chúng qua closure mỗi khung, nên một lô mới **không** dựng lại `requestAnimationFrame`.
+    Đưa chúng vào là huỷ rồi tạo lại vòng **mỗi phút**, đúng cái bẫy R52 gọi tên.
+  - ✅ **Trạng thái liên tục sống NGOÀI React, ở mức module** — cùng lý do mà
+    `batDauTranNgay` không phải hook: mỗi lần gọi `useMatch` là thêm một đồng hồ, nên một
+    `useRef` sẽ cho hai bản và trận đi **hai phút mỗi nhịp**. Và nó **không vào store**: lô
+    là hai mảng typed ~100 KB mỗi phút, nhét vào Zustand là bắt mọi thành phần đăng ký store
+    vẽ lại vì một thứ chỉ sân 2D đọc.
+  - ✅ **Một thứ tự ô, không phải hai.** `oCuaNguoiTrenSan` dùng **cùng** `doiHinhTrenSan` mà
+    `coHocXuatPhat` và `choDung` dùng, nên "ô số 7 ở đâu" và "ô số 7 là ai" là **một** quyết
+    định. Engine còn một thứ tự thứ hai (`oCuaNguoiGiu` đánh số theo `ben.trenSan`) — đo 948
+    lượt thì chúng **trùng 100%**, nhưng **không gì ép chúng trùng**, nên có một phép kiểm
+    giữ đẳng thức ấy. Lệch một chỗ là người giữ bóng được vẽ ở ô người khác và **không gì đỏ**.
+  - ⚠️ **Prop `anhChup` của T714 bị thay bằng `loMoc`/`soLo`/`oCuaNguoi`, nêu chứ không im.**
+    Không một nơi gọi nào truyền được `anhChup`: ảnh chụp đổi **mỗi khung hình**, mà đồng hồ
+    khung hình nằm trong chính `San2D`. Một component cha muốn dựng nó sẽ phải mở vòng rAF
+    **thứ hai** — đúng thứ điều kiện ra của task cấm. `loMoc !== null` nay là thẻ phân biệt
+    hai chế độ, đúng vai trò mà D121 giao.
+  - ⚠️ **Thứ lát này KHÔNG làm, nói thẳng:** lớp vẽ **không nội suy giữa hai mốc** — nó
+    *chốt* vào mốc gần nhất (`mocVeTaiThoiDiem` trả cả `phan`, nhưng vòng chỉ dùng `chiSo`).
+    Ở mức **Rất chậm** một mốc chiếm 66 ms, tức hình đổi **15 lần một giây**; ở **Thường** là
+    16,7 ms nên quả bóng 30 m/s băng qua sân trong **hai khung hình**. Đó là hệ quả của mô
+    hình, không phải lỗi của mối nối — và `phan` đã sẵn ở đó cho lát nào muốn nội suy.
+  - ✅ **Ba phép đột biến trên phần thuần, ba lần đỏ**; `noiSuy.test.ts`, `phaBong.test.ts`
+    và `san2D.test.ts` xanh với **0 dòng sửa** — bẫy nạp module của R52 tránh được vì mọi
+    dòng mới nằm **trong** component, không ở mức module.
+  - 📏 Toàn bộ: **80 file / 1.629 phép kiểm xanh**.
 
 - [ ] **T734** — Giảm chuyển động (**AC-45.9**), phần **nối dây**
   - File: `src/ui/components/San2D.tsx` (cổng ở dòng 1449, chỗ cộng 1472-1476, dep 1483)

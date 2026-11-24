@@ -1,7 +1,14 @@
 import { describe, expect, it } from 'vitest'
-import { MOC_MOI_PHUT } from '../engine/lienTuc/moc'
+import { cauHinhMau, MA_TRAN_CO_DINH } from '../engine/__fixtures__/doiMau'
+import { docMoc, KHONG_AI_GIU } from '../engine/lienTuc/loMoc'
+import { CHI_SO_BONG, MOC_MOI_PHUT, SO_THUC_THE } from '../engine/lienTuc/moc'
+import {
+  buocPhutLienTuc,
+  oCuaNguoiTrenSan,
+  taoTranLienTuc,
+} from '../engine/lienTuc/tranLienTuc'
 import { MS_MOI_PHUT } from '../hooks/useMatch'
-import { mocVeTaiThoiDiem } from './mocVe'
+import { anhChupTuLo, mocVeTaiThoiDiem } from './mocVe'
 
 /*
   Đồng hồ vẽ → chỉ số mốc (T732).
@@ -136,5 +143,74 @@ describe('mocVe.ts KHÔNG biết tên một mức tốc độ nào (T732)', () =
   it('và phép kiểm ấy ĐỎ ĐƯỢC', () => {
     const gia = `if (muc === '${CAC_MUC[0]![0]}') return 0`
     expect(gia.includes(CAC_MUC[0]![0])).toBe(true)
+  })
+})
+
+/*
+  ====================================================================
+  ẢNH CHỤP MỘT MỐC, DẠNG LỚP VẼ ĐỌC ĐƯỢC (T733).
+  ====================================================================
+*/
+describe('anhChupTuLo (T733)', () => {
+  function loThu() {
+    const lt = taoTranLienTuc({
+      ...cauHinhMau(MA_TRAN_CO_DINH[0]!),
+      cheDoMoPhong: 'lien-tuc',
+    })
+    const phut = buocPhutLienTuc(lt)
+    return { lo: phut.lo, o: oCuaNguoiTrenSan(phut.tt.tran) }
+  }
+
+  it('đọc đúng mốc được hỏi, và mang theo bảng ô', () => {
+    const { lo, o } = loThu()
+    const a = anhChupTuLo(lo, 0, o)
+    expect(a).not.toBeNull()
+    expect(a!.thucThe).toHaveLength(SO_THUC_THE)
+    expect(a!.oCuaNguoi).toBe(o)
+    // Hai mốc khác nhau cho hai ảnh khác nhau — không trả cùng một mốc mãi.
+    const b = anhChupTuLo(lo, lo.soMocDaGhi - 1, o)!
+    expect(b.thucThe[CHI_SO_BONG]).not.toEqual(a!.thucThe[CHI_SO_BONG])
+  })
+
+  /*
+    Người giữ bóng lấy **từ tiêu đề mốc**, không suy lại ở lớp vẽ: engine đã
+    quyết ai giữ bóng ở từng mốc (AC-37.6), và suy lại là dựng nguồn thứ hai
+    cho một câu trả lời đã có.
+  */
+  it('người giữ bóng lấy từ chính tiêu đề mốc', () => {
+    const { lo, o } = loThu()
+    let soMocCoNguoiGiu = 0
+    for (let i = 0; i < lo.soMocDaGhi; i += 1) {
+      const a = anhChupTuLo(lo, i, o)!
+      expect(a.nguoiGiuBong).toBe(docMoc(lo, i).nguoiGiu)
+      if (a.nguoiGiuBong !== KHONG_AI_GIU) soMocCoNguoiGiu += 1
+    }
+    // ⚠️ CHỐNG RỖNG: phải CÓ mốc có người giữ, không thì dòng trên vô nghĩa.
+    expect(soMocCoNguoiGiu, 'số mốc có người giữ bóng').toBeGreaterThan(0)
+  })
+
+  it('mốc ngoài lô trả null chứ không ném, và không trả mốc sai', () => {
+    const { lo, o } = loThu()
+    expect(anhChupTuLo(lo, -1, o)).toBeNull()
+    expect(anhChupTuLo(lo, lo.soMocDaGhi, o)).toBeNull()
+    expect(anhChupTuLo(lo, 1e9, o)).toBeNull()
+  })
+
+  /*
+    Nối hai mảnh của lát này: đồng hồ vẽ → chỉ số mốc → ảnh chụp. Đây là đường
+    mà vòng rAF đi mỗi khung, và nó phải ra một ảnh ở **mọi** thời điểm trong
+    phút, ở **mọi** mức tốc độ.
+  */
+  it('ĐƯỜNG ĐẦY ĐỦ: mọi thời điểm của phút, mọi mức, đều ra một ảnh', () => {
+    const { lo, o } = loThu()
+    let soBo = 0
+    for (const [ten, ms] of CAC_MUC) {
+      for (let i = 0; i <= 100; i += 1) {
+        const { chiSo } = mocVeTaiThoiDiem((ms * i) / 100, ms, lo.soMocDaGhi)
+        expect(anhChupTuLo(lo, chiSo, o), `${ten} ${i}%`).not.toBeNull()
+        soBo += 1
+      }
+    }
+    expect(soBo, 'số bộ đã quét').toBeGreaterThan(500)
   })
 })

@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useReducer, useRef, useState } from 'react'
+import type { LoMoc } from '../../engine/lienTuc/loMoc'
+import { anhChupTuLo, mocVeTaiThoiDiem } from '../mocVe'
 import { mauChuTuongPhan } from '../../domain/colors'
 import { laySoDo, soNguoiCuaSoDo } from '../../domain/formations'
 import type { PositionId } from '../../domain/types'
@@ -621,7 +623,19 @@ interface Props extends DuLieuVe {
    * khối hiệu ứng bàn thắng đọc `suKien.loai === 'ban-thang'` — một nhánh
    * liên tục không mang `suKien` sẽ **tắt AC-32.4 lặng lẽ**.
    */
-  readonly anhChup?: AnhChupMet | null
+  readonly loMoc?: LoMoc | null
+  /**
+   * Số thứ tự lô — đổi nghĩa là **một phút mới** đã phát xong.
+   *
+   * Vòng khung hình đặt lại mốc thời gian theo con số này, **ngay trong vòng**
+   * chứ không qua một `useEffect`. Đó là cách **R52** dặn: một effect có `soLo`
+   * trong mảng phụ thuộc sẽ chạy lại mỗi phút và dựng lại cả vòng, còn một
+   * effect **thiếu** nó thì đồng hồ mốc đứng vĩnh viễn ở 0 — mà màn hình vẫn
+   * có 22 điểm, nên không ai thấy.
+   */
+  readonly soLo?: number
+  /** Ô của từng người, từ `oCuaNguoiTrenSan` của engine. */
+  readonly oCuaNguoi?: ReadonlyMap<string, number> | null
 }
 
 /**
@@ -1159,7 +1173,25 @@ export interface ChuyenDiemDang {
 
 export function San2D(props: Props) {
   const { SAN_2D } = useChuoi()
-  const { nha, khach, suKien, msMoiPhut, dangChay, anhChup } = props
+  const {
+    nha,
+    khach,
+    suKien,
+    msMoiPhut,
+    dangChay,
+    loMoc,
+    soLo = 0,
+    oCuaNguoi,
+  } = props
+
+  /*
+    ⚠️ **`loMoc` khác `null` LÀ thẻ phân biệt hai chế độ** — đúng vai trò mà
+    T714 giao cho `anhChup`. Prop `anhChup` cũ bị thay vì không một nơi gọi nào
+    truyền được nó: ảnh chụp đổi **mỗi khung hình**, mà đồng hồ khung hình nằm
+    trong chính thành phần này. Một component cha muốn dựng nó sẽ phải mở vòng
+    rAF **thứ hai**, đúng thứ điều kiện ra của T733 cấm.
+  */
+  const lienTuc = loMoc !== null && loMoc !== undefined
   const msChuyen = thoiGianChuyen(msMoiPhut)
 
   /*
@@ -1296,6 +1328,17 @@ export function San2D(props: Props) {
     bongTaiMoc ?? bongMocCuoi.current ?? { x: RONG / 2, y: CAO / 2 }
   const batDau = useRef(0)
   const [, veLai] = useReducer((n: number) => n + 1, 0)
+
+  /*
+    Ảnh chụp của khung hình đang vẽ. Nó đổi mỗi khung nên nó là `ref`, không
+    phải `state`: một `setState` mỗi khung là 60 lần dựng lại cây React một
+    giây, trong khi `veLai` của vòng đã có làm đúng việc ấy một lần.
+  */
+  const anhChupRef = useRef<AnhChupMet | null>(null)
+  /** Mốc thời gian lúc lô hiện tại bắt đầu được phát, theo `performance.now`. */
+  const moMocRef = useRef(0)
+  /** Số lô mà `moMocRef` đang nói về — đổi thì đặt lại mốc. */
+  const soLoRef = useRef(-1)
 
   /*
     Khoá của một bộ mốc: chỉ khi toạ độ ĐÍCH đổi mới bắt đầu một cú di
@@ -1549,7 +1592,15 @@ export function San2D(props: Props) {
     băng ở đúng khung cuối (AC-28.5, và AC-10.4 của spec 001 vẫn đúng).
   */
   useEffect(() => {
-    if (!dangChay || giamChuyenDong || msChuyen <= 0) return
+    /*
+      ⚠️ **Cổng nới đúng một chỗ: `msChuyen <= 0` không còn tắt vòng ở chế độ
+      liên tục.** `thoiGianChuyen` trả 0 ở mức nhanh nhất (spec 005 tắt nội suy
+      ở đó), nên trước lát này mức **Rất nhanh** chạy **0 khung** — tức lô mốc
+      có được phát ra cũng không ai đọc. Ở chế độ liên tục, đồng hồ **mốc** mới
+      là thứ vẽ ra chuyển động, và nó cần chạy ở cả năm mức.
+    */
+    if (!dangChay || giamChuyenDong) return
+    if (!lienTuc && msChuyen <= 0) return
 
     let yeuCau = 0
     let truoc = performance.now()
@@ -1578,12 +1629,44 @@ export function San2D(props: Props) {
         dongHoDao.current += troi / msMoiPhut
       }
       truoc = bayGio
+
+      /*
+        ĐỒNG HỒ MỐC (T733). Đặt lại theo **số lô**, ngay trong vòng.
+
+        Một phút trận = một lô = `msMoiPhut` mili giây. `mocVeTaiThoiDiem` quy
+        hai thứ ấy thành một chỉ số mốc bằng **một phép chia**, và nó không biết
+        tên một mức tốc độ nào — nên mức thứ sáu không phải sửa gì ở đây.
+      */
+      if (lienTuc && loMoc) {
+        if (soLoRef.current !== soLo) {
+          soLoRef.current = soLo
+          moMocRef.current = bayGio
+        }
+        const { chiSo } = mocVeTaiThoiDiem(
+          bayGio - moMocRef.current,
+          msMoiPhut,
+          loMoc.soMocDaGhi,
+        )
+        anhChupRef.current = anhChupTuLo(
+          loMoc,
+          chiSo,
+          oCuaNguoi ?? new Map<string, number>(),
+        )
+      }
+
       veLai()
       yeuCau = requestAnimationFrame(buoc)
     }
     yeuCau = requestAnimationFrame(buoc)
     return () => cancelAnimationFrame(yeuCau)
-  }, [dangChay, giamChuyenDong, msChuyen, msMoiPhut])
+    /*
+      `loMoc` và `soLo` **không** nằm trong mảng phụ thuộc, và đó là cố ý: vòng
+      đọc chúng qua closure mỗi khung, nên một lô mới **không** dựng lại vòng.
+      Đưa chúng vào là huỷ rồi tạo lại `requestAnimationFrame` mỗi phút — đúng
+      cái bẫy mà R52 gọi tên.
+    */
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dangChay, giamChuyenDong, msChuyen, msMoiPhut, lienTuc])
 
   /**
    * Đồng hồ của lớp dao động, tính bằng **nhịp** (T620, D114).
@@ -1845,7 +1928,7 @@ export function San2D(props: Props) {
       },
       gioiHan,
       giamChuyenDong,
-      anhChup ?? null,
+      anhChupRef.current,
       d.playerId,
       khungAnh,
     )
@@ -1854,6 +1937,17 @@ export function San2D(props: Props) {
   return (
     <figure className="m-0">
       <svg
+        /*
+          Khung này được vẽ từ **nguồn nào**: `moc` nghĩa là từ lô mốc của
+          engine liên tục, `phut` nghĩa là từ đường nội suy theo phút.
+
+          Đây là thứ duy nhất **đọc được từ bên ngoài** nói rằng mối nối của
+          T733 còn sống. Cả tầng này không có một phép kiểm tự động nào (R52:
+          `find src -name "*.test.tsx"` ra rỗng), nên nếu lô ngừng tới nơi thì
+          sân vẫn có 22 điểm nhúc nhích nhờ lớp dao động — và không ai thấy.
+          **T761** kiểm bằng mắt đúng thuộc tính này.
+        */
+        data-nguon={anhChupRef.current ? 'moc' : 'phut'}
         viewBox={`0 0 ${RONG} ${CAO}`}
         className="w-full rounded-lg border border-vien-dam bg-nen-nhan"
         role="img"

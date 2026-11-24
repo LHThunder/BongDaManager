@@ -478,6 +478,32 @@ function thucTheRong(coMat: number): ThucTheTaiMoc {
 }
 
 /**
+ * Ô của từng người trên sân: 0–10 đội nhà, 11–21 đội khách.
+ *
+ * ⚠️ **Lấy thứ tự của `doiHinhTrenSan`, CÙNG hàm mà `coHocXuatPhat` và `choDung`
+ * dùng để đặt vị trí.** Nhờ thế "ô số 7 đứng ở đâu" và "ô số 7 là ai" là **một**
+ * quyết định, không phải hai thứ tình cờ khớp nhau.
+ *
+ * Engine còn một thứ tự thứ hai: `oCuaNguoiGiu` đánh số theo `ben.trenSan`. Đã
+ * đo 948 lượt trên 5 trận — hai thứ tự **trùng 100%** — nhưng **không gì ép
+ * chúng trùng**, nên `tranLienTuc.test.ts` giữ đẳng thức ấy bằng một phép kiểm.
+ * Lệch một chỗ là người giữ bóng được vẽ ở ô của người khác, và **không gì đỏ**.
+ */
+export function oCuaNguoiTrenSan(
+  tran: TrangThaiTran,
+): ReadonlyMap<string, number> {
+  const ra = new Map<string, number>()
+  const cacBen = ['nha', 'khach'] as const
+  for (let b = 0; b < cacBen.length; b += 1) {
+    const doiHinh = doiHinhTrenSan(tran.ben[cacBen[b]!])
+    for (let o = 0; o < Math.min(11, doiHinh.length); o += 1) {
+      ra.set(doiHinh[o]!.playerId, b * 11 + o)
+    }
+  }
+  return ra
+}
+
+/**
  * 26 thực thể của một mốc.
  *
  * Ô 0–10 là người trên sân của đội nhà, 11–21 của đội khách, 22–24 ba trọng

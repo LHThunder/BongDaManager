@@ -1,8 +1,15 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { LoiCauHinhTran, type LyDoKhongBatDau } from '../engine/batDau'
 import { chuanHoaLoiLuuTru } from '../services/errors'
 import { dungBaoCao } from '../engine/baoCao'
-import { cheDoCuaTrangThai } from '../engine/lienTuc/tranLienTuc'
+import type { LoMoc } from '../engine/lienTuc/loMoc'
+import {
+  buocPhutLienTuc,
+  cheDoCuaTrangThai,
+  oCuaNguoiTrenSan,
+  taoTranLienTuc,
+  type TrangThaiLienTuc,
+} from '../engine/lienTuc/tranLienTuc'
 import { taoMaTran } from '../engine/rng'
 import {
   apDungCanThiep,
@@ -200,6 +207,39 @@ function dungBanGhi(
   }
 }
 
+/*
+  ====================================================================
+  TRẬN LIÊN TỤC CHẠY Ở ĐÂY (T733, và nó là món T704 đã HOÃN CÓ TÊN).
+  ====================================================================
+
+  ⚠️ **Trạng thái liên tục sống NGOÀI React, ở mức module.** Cùng lý do mà
+  `batDauTranNgay` không phải hook: mỗi lần gọi `useMatch` là thêm một đồng hồ,
+  nên trạng thái phải là **một** cho cả ứng dụng chứ không một bản mỗi
+  component. Một `useRef` sẽ cho hai bản và trận sẽ đi **hai phút mỗi nhịp**.
+
+  ⚠️ **Và nó KHÔNG vào store.** Store giữ `TrangThaiTran` — 16 trường mà D119
+  đóng băng — còn `TrangThaiLienTuc` mang thêm cơ học, điều kiện và lô mốc.
+  Nhét lô (hai mảng typed, ~100 KB một phút) vào một store Zustand là bắt mọi
+  thành phần đăng ký store vẽ lại mỗi phút vì một thứ chỉ sân 2D đọc.
+
+  Mỗi phút, vòng đồng hồ gọi `buocPhutLienTuc` rồi đẩy **phần `tran`** vào
+  store, nên tường thuật, tỉ số và mọi thứ khác chạy y hệt chế độ cổ điển.
+*/
+interface ChayLienTuc {
+  readonly tt: TrangThaiLienTuc
+  /** Lô mốc của phút vừa chạy; `null` trước khi phút đầu tiên chạy xong. */
+  readonly lo: LoMoc | null
+  /** Tăng một đơn vị mỗi lô — lớp vẽ đặt lại mốc thời gian theo số này. */
+  readonly soLo: number
+}
+
+let chayLienTuc: ChayLienTuc | null = null
+
+/** Trạng thái liên tục hiện tại, hoặc `null` khi trận đang ở chế độ cổ điển. */
+export function lienTucHienTai(): ChayLienTuc | null {
+  return chayLienTuc
+}
+
 /**
  * Bắt đầu một trận, KHÔNG phải hook.
  *
@@ -214,7 +254,20 @@ export function batDauTranNgay(
   cauHinh: CauHinhTran,
 ): readonly LyDoKhongBatDau[] | null {
   try {
-    useAppStore.getState().datTran(taoTran(cauHinh))
+    /*
+      Chế độ liên tục dựng trạng thái bằng `taoTranLienTuc` — nó đặt hạt giống
+      về dòng riêng của engine liên tục (D136) và đóng dấu `PHIEN_BAN_ENGINE_
+      LIEN_TUC`. Dựng bằng `taoTran` rồi mới bọc là chạy **sai dòng rút** ngay
+      từ phút đầu.
+    */
+    if (cauHinh.cheDoMoPhong === 'lien-tuc') {
+      const lt = taoTranLienTuc(cauHinh)
+      chayLienTuc = { tt: lt, lo: null, soLo: 0 }
+      useAppStore.getState().datTran(lt.tran)
+    } else {
+      chayLienTuc = null
+      useAppStore.getState().datTran(taoTran(cauHinh))
+    }
     // Mỗi lần bắt đầu là một lần chạy mới, kể cả khi đấu lại cùng mã trận.
     useAppStore.getState().datIdLanChay(crypto.randomUUID())
     useAppStore.getState().datTranDangChay(true)
@@ -289,6 +342,12 @@ export function useMatch() {
   const roiTran = useCallback(() => {
     datDangChay(false)
     useAppStore.getState().datTran(null)
+    /*
+      Dọn trạng thái liên tục cùng lúc với trạng thái trận. Để nó lại thì trận
+      **sau** — nếu mở ở chế độ cổ điển — sẽ thấy `chayLienTuc` khác `null` và
+      bước bằng engine liên tục trên một trạng thái của trận cũ.
+    */
+    chayLienTuc = null
   }, [])
 
   /*
@@ -309,7 +368,23 @@ export function useMatch() {
         datDangChay(false)
         return
       }
-      const moi = buocTiep(hienTai)
+      /*
+        Hai chế độ, **một** vòng đồng hồ. Chế độ liên tục bước bằng
+        `buocPhutLienTuc` — thứ gọi lại chính `buocTiep` bên trong (D136) — nên
+        luật trận là một bản duy nhất, chỉ đầu ra là khác.
+      */
+      let moi: TrangThaiTran
+      if (chayLienTuc !== null) {
+        const b = buocPhutLienTuc(chayLienTuc.tt)
+        chayLienTuc = {
+          tt: b.tt,
+          lo: b.lo,
+          soLo: chayLienTuc.soLo + 1,
+        }
+        moi = b.tt.tran
+      } else {
+        moi = buocTiep(hienTai)
+      }
       useAppStore.getState().datTran(moi)
 
       /*
@@ -405,10 +480,32 @@ export function useMatch() {
     )
   }, [batDauTran])
 
+  /*
+    Bảng ô của từng người, tính lại khi đội hình đổi — thay người và thẻ đỏ đều
+    đổi `trenSan`, nên một bảng tính một lần lúc bắt đầu sẽ vẽ sai sau lượt thay
+    người đầu tiên.
+  */
+  const oCuaNguoi = useMemo(
+    () => (tran === null ? null : oCuaNguoiTrenSan(tran)),
+    [tran],
+  )
+
+  /*
+    Lô mốc đọc thẳng từ biến module, không qua state: nó đã được đặt **ngay
+    trước** `datTran` trong cùng một nhịp, và chính `datTran` là thứ làm React
+    vẽ lại. Thêm một `useState` cho nó là thêm một lần vẽ lại cho cùng một tin.
+  */
+  const lienTuc = chayLienTuc
+
   return {
     tran,
     dangChay,
     tocDo,
+    /** Lô mốc của phút vừa chạy — `null` ở chế độ cổ điển. */
+    loMoc: lienTuc?.lo ?? null,
+    /** Số thứ tự lô; lớp vẽ đặt lại mốc thời gian mỗi khi nó đổi. */
+    soLo: lienTuc?.soLo ?? 0,
+    oCuaNguoi,
     datTocDo,
     lyDoKhongBatDau,
     batDauTran,

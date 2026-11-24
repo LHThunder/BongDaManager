@@ -1,4 +1,6 @@
+import { docMoc, type LoMoc } from '../engine/lienTuc/loMoc'
 import { MOC_MOI_PHUT } from '../engine/lienTuc/moc'
+import type { AnhChupMet } from './viTriVe'
 
 /*
   ====================================================================
@@ -56,4 +58,29 @@ export function mocVeTaiThoiDiem(
   if (viTri >= soMoc) return { chiSo: soMoc - 1, phan: 0 }
   const chiSo = Math.floor(viTri)
   return { chiSo, phan: viTri - chiSo }
+}
+
+/**
+ * Ảnh chụp một mốc của lô, dạng mà lớp vẽ đọc được.
+ *
+ * Người giữ bóng lấy **từ chính tiêu đề mốc**, không suy lại ở lớp vẽ: engine
+ * đã quyết ai giữ bóng ở từng mốc (AC-37.6), và suy lại là dựng nguồn thứ hai
+ * cho một câu trả lời đã có.
+ *
+ * `oCuaNguoi` đến từ `oCuaNguoiTrenSan` của engine — **cùng** thứ tự mà
+ * `coHocXuatPhat` dùng để đặt vị trí, nên "ô số 7 ở đâu" và "ô số 7 là ai"
+ * không bao giờ là hai câu trả lời khác nhau.
+ */
+export function anhChupTuLo(
+  lo: LoMoc,
+  chiSo: number,
+  oCuaNguoi: ReadonlyMap<string, number>,
+): AnhChupMet | null {
+  if (chiSo < 0 || chiSo >= lo.soMocDaGhi) return null
+  const moc = docMoc(lo, chiSo)
+  return {
+    thucThe: moc.cacThucThe,
+    oCuaNguoi,
+    nguoiGiuBong: moc.nguoiGiu,
+  }
 }

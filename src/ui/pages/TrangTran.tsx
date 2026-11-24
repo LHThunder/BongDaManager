@@ -78,6 +78,9 @@ export function TrangTran({ onRoiTran }: Props) {
     tran,
     dangChay,
     tocDo,
+    loMoc,
+    soLo,
+    oCuaNguoi,
     datTocDo,
     tamDung,
     tiepTuc,
@@ -485,6 +488,9 @@ export function TrangTran({ onRoiTran }: Props) {
               suKien={suKienDangXem}
               msMoiPhut={MS_MOI_PHUT[tocDo]}
               dangChay={dangChay}
+              loMoc={loMoc}
+              soLo={soLo}
+              oCuaNguoi={oCuaNguoi}
               tenCauThu={(id) => tenTheoId.get(id) ?? id}
               soAo={(id) => soAoTheoId.get(id) ?? null}
               nhanViTri={(v) => NHAN_VI_TRI[v].ten}
