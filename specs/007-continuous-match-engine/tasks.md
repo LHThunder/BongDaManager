@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **30 AC**) |
 | **Plan** | `./plan.md` (Status `Approved`, D117–D134, R51–R64) |
-| **Tiến độ** | 13/48 |
+| **Tiến độ** | 14/48 |
 | **Nền đo** | commit `5c652eb`, engine v6, **1.304 test xanh / 63 file test** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -534,11 +534,34 @@ chưa có trần tốc độ, chưa có đường cong. **Phải nói trước �
 
 ## Phase 54 — Cơ học của một cơ thể người
 
-- [ ] **T710** — `tocDoToiDa` (**không** nhân thể lực)
+- [x] **T710** — `tocDoToiDa` (**không** nhân thể lực)
   - File: tạo `src/engine/lienTuc/coHoc.ts`, `src/engine/lienTuc/coHoc.test.ts`
   - Xong khi: `tocDoToiDa` trả trong `[0; 9]` m/s cho mọi chỉ số 1–20, và **không** có đường
     nào đọc thể lực — `grep -n "theLuc" src/engine/lienTuc/coHoc.ts` ra **rỗng**.
   - AC: AC-38.1
+  - ⚠️ **Điều kiện ra của chính task này suýt tự làm mình đỏ.** Nó đòi
+    `grep -n "theLuc" src/engine/lienTuc/coHoc.ts` ra **rỗng**, trong khi ghi chú ngay dưới lại
+    bảo viết hàm "đúng khuôn `heSoTheoChiSo` ở `theLuc.ts:40`" — nhắc tên file ấy trong một
+    dòng chú thích là đủ làm phép grep thấy. Đây đúng lớp lỗi mà **T718** đã gặp ("cấm nhắc
+    tên kể cả trong chú thích" trong khi chính file ấy phải chứa các tên để mà quét). Cách
+    giải: chú thích nói **"khuôn tham số này đã có tiền lệ trong repo"** và **"một hàm còn chưa
+    được export ở lớp sức mạnh"** — đủ chỉ đường cho người đọc mà không viết ra cái tên.
+  - ✅ **Viết điều kiện grep thành một PHÉP KIỂM, không để nó là lệnh chạy tay.** `coHoc.test.ts`
+    quét chính mã nguồn `coHoc.ts` qua `import.meta.glob('./coHoc.ts', { query: '?raw' })` và
+    bóc chú thích bằng `chiCode` — đúng khuôn `khongChepModel.test.ts` của T718 và `rng.test.ts`.
+    Cộng một **ca ngược** chứng minh nó đỏ được. Đã đột biến kiểm: thêm một dòng đọc sức bền
+    vào `coHoc.ts` → đúng ca ấy đỏ (1 failed / 8). Một lệnh grep chạy tay thì chết cùng lượt
+    làm việc; một phép kiểm thì còn sống.
+  - ✅ **Bốn ca chống tầm thường.** Mệnh đề "trong [0; 9]" một mình quá dễ thoả — một hàm trả
+    hằng 0 cũng xanh. Nên có thêm: hai đầu dải đúng **6,4** và **8,6**; tốc độ **tăng** theo
+    chỉ số ở cả 19 bước; chỉ số ngoài dải bị **kẹp** chứ không ngoại suy; và **sàn dải phải
+    nằm TRÊN 6 m/s** — vì nếu tụt xuống dưới thì những cầu thủ chậm nhất không bao giờ vào tập
+    mà **AC-38.8** đo, và AC ấy sẽ xanh vì **rỗng**. Đó chính là lý do D129 loại phương án nhân
+    tốc độ với sức bền (sàn tụt về 3,87 m/s).
+  - 📏 **Đo được**: `tocDoToiDa(undefined)` = **7,442105263157895**, khớp đúng con số 7,442 mà
+    D129 ghi. Lề dưới trần tuyệt đối là **4,44%** (9 − 8,6)/9. `TRAN_TOC_DO_TUYET_DOI = 9` là
+    chỗ **duy nhất** số 9 của AC-38.1 tồn tại trong mã nguồn. Toàn bộ: **73 file / 1460 phép
+    kiểm xanh** (trước T710 là 72/1452); ba file tuyên 0 dòng sửa vẫn 0 dòng; `boundaries` xanh.
   - Phụ thuộc: T703
   - Ghi chú: nếu `tocDoToiDa` nhận `HoSoCauThu` thì nó cần `giaTriChiSo`, mà hàm ấy ở
     `src/engine/sucManh.ts:66` **chưa export**. Đường rẻ hơn: đổi chữ ký thành
