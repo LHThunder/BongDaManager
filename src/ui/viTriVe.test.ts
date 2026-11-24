@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import type { ThucTheTaiMoc } from '../engine/lienTuc/loMoc'
+import { cauHinhMau, MA_TRAN_CO_DINH } from '../engine/__fixtures__/doiMau'
+import { TOC_QUAY_NHANH } from '../engine/lienTuc/coHoc'
+import { docMoc, type ThucTheTaiMoc } from '../engine/lienTuc/loMoc'
+import {
+  buocPhutLienTuc,
+  taoTranLienTuc,
+} from '../engine/lienTuc/tranLienTuc'
 import { metTuDonVi, toaDoTuMet, type KhungAnh } from './quyDoiMet'
 import {
   viTriVe,
@@ -282,3 +288,190 @@ describe('giảm chuyển động: vẫn trùng khít mốc (T737, AC-45.9)', ()
     }
   })
 })
+
+/*
+  ====================================================================
+  AC-38.8 ĐO Ở LỚP VẼ: pha chạy nhanh phải là ĐƯỜNG CONG (T735).
+  ====================================================================
+
+  ⚠️ **Đo trên toạ độ ĐÃ QUA `quyDoiMet`, không trên mét thô.** D121 chọn một
+  hệ số **đẳng hướng** chính vì chuyện này: nếu hai trục co khác nhau thì một
+  ngưỡng **góc** bị méo, và phép kiểm này sẽ đo một thứ không phải góc. Đo trên
+  mét thô thì lý lẽ của D121 thành vô nghĩa — nó chỉ còn là một lời khai.
+
+  ⚠️ **Ngưỡng QUY TỪ `TOC_QUAY_NHANH`, không chép số.** Nhưng nó có **hai**
+  thành phần, và thành phần thứ hai không được giấu:
+
+    1. `TOC_QUAY_NHANH × Δt` — trần quay của chính `buocCoHoc`;
+    2. một lề cho **`tachChen`**, thứ đẩy người ra khỏi nhau **SAU** phép bước
+       (T713). Một cú đẩy ngang tới `BAN_KINH_TRANH` = 2 m trên một bước dài
+       4,5 m (0,5 giây ở 9 m/s) là một góc **24°** — không phải người ấy quay,
+       mà là chỗ đứng của anh ta bị dịch.
+
+  Đo trên 3 trận, 2.317 mẫu có **cả hai** đoạn trên 6 m/s: trung vị **1,5°**,
+  p95 **30,0°**, lớn nhất **48,3°** (ở Δt = 1 giây) và **39,1°** (ở Δt = 0,5).
+*/
+describe('AC-38.8 ở lớp vẽ: đường chạy nhanh là đường cong (T735)', () => {
+  /**
+   * Lề cho `tachChen`, độ — nêu bằng số, đo được 24,1° ở chỗ tệ nhất.
+   *
+   * Lấy 30 để còn chỗ cho một đám đông đẩy nhiều vòng, nhưng **không** lấy lớn
+   * hơn `TOC_QUAY_NHANH × Δt` của mốc dày: lề mà nuốt cả trần thì phép kiểm
+   * thôi canh trần.
+   */
+  const GOC_LECH_TACH_CHEN = 30
+
+  const KHUNG_DO: KhungAnh = { rong: 100, cao: 64, le: 2.6 }
+  const NUA_GIAY = 0.5
+  const SAN_TOC_DO_AC_38_8 = 6
+
+  it('3 mã: góc đổi hướng không vượt trần quay cộng lề tách chen', () => {
+    const goc: number[] = []
+    let soMau = 0
+    let gocLonNhat = 0
+
+    for (const ma of MA_TRAN_CO_DINH.slice(0, 3)) {
+      let lt = taoTranLienTuc({ ...cauHinhMau(ma), cheDoMoPhong: 'lien-tuc' })
+      let truoc: MocDaDo | null = null
+      let truocNua: MocDaDo | null = null
+
+      for (let p = 0; p < 95 && !lt.tran.ketThuc; p += 1) {
+        const phut = buocPhutLienTuc(lt)
+        for (let i = 0; i < phut.lo.soMocDaGhi; i += 1) {
+          const m = docMoc(phut.lo, i)
+          const nay: MocDaDo = {
+            moc: m.chiSoMoc,
+            met: m.cacThucThe.slice(0, 22).map((t) => ({ x: t.x, y: t.y })),
+            ve: m.cacThucThe
+              .slice(0, 22)
+              .map((t) => toaDoTuMet(KHUNG_DO, t.x, t.y)),
+          }
+
+          if (truoc && truocNua) {
+            const dt1 = (truoc.moc - truocNua.moc) * NUA_GIAY
+            const dt2 = (nay.moc - truoc.moc) * NUA_GIAY
+            const tran = TOC_QUAY_NHANH * dt2 + GOC_LECH_TACH_CHEN
+
+            for (let o = 0; o < 22; o += 1) {
+              /*
+                Lọc theo tốc độ đo trên MÉT: AC-38.8 nói "trên 6 m/s", và 6 m/s
+                là một đại lượng của sân chứ không của khung vẽ.
+              */
+              const v1 = khoang(truocNua.met[o]!, truoc.met[o]!) / dt1
+              const v2 = khoang(truoc.met[o]!, nay.met[o]!) / dt2
+              if (v1 <= SAN_TOC_DO_AC_38_8 || v2 <= SAN_TOC_DO_AC_38_8) continue
+
+              const g = gocGiuaHaiDoan(
+                truocNua.ve[o]!,
+                truoc.ve[o]!,
+                nay.ve[o]!,
+              )
+              if (g === null) continue
+              goc.push(g)
+              gocLonNhat = Math.max(gocLonNhat, g)
+              soMau += 1
+              expect(g, `${ma} ô ${o}, Δt=${dt2}`).toBeLessThanOrEqual(tran)
+            }
+          }
+          truocNua = truoc
+          truoc = nay
+        }
+        lt = phut.tt
+      }
+    }
+
+    goc.sort((a, b) => a - b)
+    const trungVi = goc[Math.floor(goc.length / 2)]!
+
+    /*
+      ⚠️ **Mệnh đề thật sự của AC-38.8 là mệnh đề này, không phải cái trần.**
+      AC nói đường chạy phải là một **đường cong**; một đường gấp khúc có thể
+      nằm dưới trần mà vẫn gấp khúc. Trung vị nhỏ là thứ nói nó cong: đo được
+      **1,5°**.
+    */
+    expect(trungVi, 'góc đổi hướng, trung vị').toBeLessThan(5)
+    // ⚠️ CHỐNG RỖNG: phải CÓ pha chạy trên 6 m/s, không thì cả khối vô nghĩa.
+    expect(soMau, 'số mẫu có cả hai đoạn trên 6 m/s').toBeGreaterThan(1_000)
+    expect(gocLonNhat, 'phải CÓ cú đổi hướng thật').toBeGreaterThan(10)
+  })
+
+  /*
+    ⚠️ **Vì sao "đo trên toạ độ đã quy đổi" là một yêu cầu THẬT, chứ không phải
+    một câu chữ.** `toaDoTuMet` hôm nay dùng **một** hệ số cho cả hai trục, nên
+    nó giữ nguyên góc và phép đo trên mét thô ra **đúng cùng con số**. Nghĩa là
+    yêu cầu ấy không quan sát được từ kết quả — trừ khi có phép kiểm này.
+
+    Nó canh chính **lý lẽ của D121**: hai trục phải co **cùng** một hệ số. Ngày
+    nào ai đó cho `x` và `y` co khác nhau, mọi ngưỡng **góc** trong repo lập tức
+    đo một thứ không phải góc, và phép kiểm trần ở trên sẽ đỏ vì một lý do hoàn
+    toàn khác thứ nó định canh.
+  */
+  it('phép quy đổi mét ĐẲNG HƯỚNG, nên góc không bị méo', () => {
+    const goc = toaDoTuMet(KHUNG_DO, 10, 10)
+    const theoX = toaDoTuMet(KHUNG_DO, 20, 10)
+    const theoY = toaDoTuMet(KHUNG_DO, 10, 20)
+    const tiX = Math.abs(theoX.x - goc.x) / 10
+    const tiY = Math.abs(theoY.y - goc.y) / 10
+    expect(tiY, 'hệ số trục y phải bằng hệ số trục x').toBeCloseTo(tiX, 12)
+
+    // Và một góc 45° trong mét vẫn là 45° trên hình.
+    const cheo = toaDoTuMet(KHUNG_DO, 30, 20)
+    const g = gocGiuaHaiDoan(goc, theoX, cheo)
+    expect(g, 'góc 45° giữ nguyên qua phép quy đổi').toBeCloseTo(45, 9)
+  })
+
+  /*
+    🐞 **Ngưỡng quy từ hằng số thì MÙ với chính hằng số ấy — tìm ra bằng đột
+    biến, không bằng đọc lại.** Tôi nâng `TOC_QUAY_NHANH` từ 30 lên 90 và
+    **17/17 phép kiểm vẫn xanh**: ngưỡng của phép kiểm quy từ cùng con số, nên
+    nâng hằng số là nâng **cả hai vế**.
+
+    Điều kiện ra của task đòi "quy từ `TOC_QUAY_NHANH`, không chép số" — và nó
+    đúng, vì nó giữ engine với phép kiểm **không trôi khỏi nhau**. Nhưng một
+    mình nó không đủ: phải có thêm một chỗ **ghim** con số mà AC-38.8 nêu. Hai
+    mệnh đề làm hai việc khác nhau — một cái giữ hai bên khớp nhau, một cái giữ
+    chúng khớp **với spec**.
+
+    Đổi 30 ở đây là một quyết định về **spec**, nên nó phải đi qua một phép kiểm
+    đỏ chứ không trôi qua im lặng.
+  */
+  it('và con số ấy là con số AC-38.8 nêu, ghim lại', () => {
+    expect(TOC_QUAY_NHANH, 'ngưỡng quay nhanh của AC-38.8, độ/giây').toBe(30)
+  })
+
+  it('và lề tách chen không nuốt mất chính cái trần nó đứng cạnh', () => {
+    expect(GOC_LECH_TACH_CHEN).toBeLessThanOrEqual(TOC_QUAY_NHANH)
+    // Trần ở mốc dày (Δt = 0,5 giây) vẫn chặt hơn trần ở mốc thường.
+    expect(TOC_QUAY_NHANH * 0.5 + GOC_LECH_TACH_CHEN).toBeLessThan(
+      TOC_QUAY_NHANH * 1 + GOC_LECH_TACH_CHEN,
+    )
+  })
+})
+
+interface MocDaDo {
+  readonly moc: number
+  readonly met: readonly { x: number; y: number }[]
+  readonly ve: readonly { x: number; y: number }[]
+}
+
+function khoang(
+  a: { x: number; y: number },
+  b: { x: number; y: number },
+): number {
+  return Math.hypot(b.x - a.x, b.y - a.y)
+}
+
+/** Góc giữa hai đoạn liền nhau, độ; `null` khi một đoạn dài gần 0. */
+function gocGiuaHaiDoan(
+  a: { x: number; y: number },
+  b: { x: number; y: number },
+  c: { x: number; y: number },
+): number | null {
+  const u = { x: b.x - a.x, y: b.y - a.y }
+  const v = { x: c.x - b.x, y: c.y - b.y }
+  const lu = Math.hypot(u.x, u.y)
+  const lv = Math.hypot(v.x, v.y)
+  if (lu < 1e-9 || lv < 1e-9) return null
+  const cos = Math.min(1, Math.max(-1, (u.x * v.x + u.y * v.y) / (lu * lv)))
+  return (Math.acos(cos) * 180) / Math.PI
+}

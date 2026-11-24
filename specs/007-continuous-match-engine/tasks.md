@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **30 AC**) |
 | **Plan** | `./plan.md` (Status `Approved`, D117–D134, R51–R64) |
-| **Tiến độ** | 33/50 |
+| **Tiến độ** | 35/50 |
 | **Nền đo** | commit `5c652eb`, engine v6, **1.304 test xanh / 63 file test** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -1572,7 +1572,7 @@ trận, bằng ngôn ngữ đang chọn — và đó là thứ **duy nhất** m�
     cổng của đồng hồ mốc **không** nhận `giamChuyenDong` — và lý do D132 loại phương án "tắt
     cả vòng" vẫn đứng: tắt thì **không còn ai gọi vẽ lại**, trận chạy mà sân đóng băng.
 
-- [ ] **T735** — Phép kiểm AC-38.8 ở lớp vẽ, ngưỡng **quy từ** `TOC_QUAY_NHANH`
+- [x] **T735** — Phép kiểm AC-38.8 ở lớp vẽ, ngưỡng **quy từ** `TOC_QUAY_NHANH`
   - File: `src/ui/viTriVe.test.ts` (+1 describe)
   - Xong khi: với mọi pha chạy > 6 m/s, góc đổi hướng giữa hai mốc liền nhau không vượt ngưỡng
     **quy từ** `TOC_QUAY_NHANH` (import từ `coHoc.ts`, không chép số); và phép đo chạy **trên
@@ -1583,6 +1583,29 @@ trận, bằng ngôn ngữ đang chọn — và đó là thứ **duy nhất** m�
     `noiSuy.test.ts:2` đã import từ `'../engine/theLuc'`, và `boundaries.test.ts` chỉ cấm chiều
     **ngược lại**. Đo trên mét thô sẽ làm lý lẽ của D121 (hệ số đẳng hướng, để ngưỡng **góc**
     không bị méo) thành vô nghĩa.
+  - 🐞 **Ngưỡng quy từ một hằng số thì MÙ với chính hằng số ấy — tìm ra bằng đột biến.** Tôi
+    nâng `TOC_QUAY_NHANH` từ 30 lên 90 và **17/17 phép kiểm vẫn xanh**: ngưỡng của phép kiểm
+    quy từ cùng con số, nên nâng hằng số là nâng **cả hai vế**. Điều kiện ra của task đòi
+    "quy từ, không chép số" và nó **đúng** — nó giữ engine với phép kiểm không trôi khỏi
+    nhau — nhưng một mình nó không đủ. Thêm một chỗ **ghim** con số mà AC-38.8 nêu: hai mệnh
+    đề làm hai việc khác nhau, một cái giữ hai bên khớp nhau, một cái giữ chúng khớp **với
+    spec**. Nay đột biến ấy đỏ.
+  - ⚠️ **Ngưỡng có HAI thành phần, và thành phần thứ hai không được giấu.** Ngoài
+    `TOC_QUAY_NHANH × Δt` còn một lề cho **`tachChen`** — thứ đẩy người ra khỏi nhau **SAU**
+    phép bước (T713). Một cú đẩy ngang tới `BAN_KINH_TRANH` = 2 m trên một bước dài 4,5 m
+    (0,5 giây ở 9 m/s) là **24°**: không phải người ấy quay, mà là chỗ đứng của anh ta bị
+    dịch. Lề nêu **30°**, và một phép kiểm canh nó **không vượt** chính trần nó đứng cạnh —
+    lề mà nuốt cả trần thì phép kiểm thôi canh trần.
+  - 📏 **Đo 3 mã, 2.317 mẫu có CẢ HAI đoạn trên 6 m/s**: trung vị **1,5°**, p95 **30,0°**
+    (chạm đúng trần quay), lớn nhất **48,3°** ở Δt = 1 giây và **39,1°** ở Δt = 0,5.
+  - ⚠️ **Mệnh đề thật của AC-38.8 là TRUNG VỊ, không phải cái trần.** AC nói đường chạy phải
+    là một **đường cong**; một đường gấp khúc vẫn có thể nằm dưới trần mà vẫn gấp khúc.
+    Trung vị **1,5°** là thứ nói nó cong.
+  - 🐞 **Và "đo trên toạ độ đã quy đổi" hoá ra KHÔNG quan sát được từ kết quả:** `toaDoTuMet`
+    dùng **một** hệ số cho cả hai trục nên nó giữ nguyên góc, và đo trên mét thô ra **đúng
+    cùng con số**. Nên yêu cầu ấy được biến thành một phép kiểm **canh chính lý lẽ của
+    D121**: hai trục phải co cùng hệ số, và một góc 45° trong mét vẫn là 45° trên hình. Đột
+    biến cho trục `y` co lệch 1,2 lần → đỏ.
 
 - [ ] **T736** — Vẽ lại vạch sân ở **nhánh liên tục**
   - File: `src/ui/components/San2D.tsx`
@@ -1616,7 +1639,7 @@ trận, bằng ngôn ngữ đang chọn — và đó là thứ **duy nhất** m�
     cho đường liên tục lệch nửa mét khỏi mốc → 5 đỏ.
   - 📏 **80 file / 1.632 phép kiểm xanh** (thêm 3).
 
-- [ ] **T738** [P] — Phép kiểm **phủ định** của **AC-45.10**: không có tua ngược
+- [x] **T738** [P] — Phép kiểm **phủ định** của **AC-45.10**: không có tua ngược
   - File: tạo `src/engine/lienTuc/tuaToi.test.ts`
   - Xong khi: quét mã nguồn `lienTuc/**/*.ts` và `src/hooks/useMatch.ts`, **không một đường
     nào** đặt `chiSoMoc` **giảm**; và quét theo **ký hiệu** trong `src/ui/components/` +
@@ -1639,6 +1662,28 @@ trận, bằng ngôn ngữ đang chọn — và đó là thứ **duy nhất** m�
     `boundaries.test.ts:17` và `rng.test.ts:13`). `plan.md` mục 7 **bỏ sót** hàng cho file này
     — đã thêm hôm nay. Nếu file này **viết** chữ `requestAnimationFrame` trong mã (không phải
     chú thích) thì `boundaries.test.ts` đỏ — đọc lại `:162` trước khi import `../hooks`.
+  - ⚠️ **Một AC PHỦ ĐỊNH chỉ canh được bằng hai thứ, và phải CẢ HAI.** (1) **Hành vi**: chỉ
+    số mốc của một trận thật chỉ tăng — 10 mã, hơn 50.000 mốc, không mốc nào đứng lại hay
+    lùi. (2) **Mã nguồn**: không đường nào đặt nó giảm, và giao diện không mọc thêm thanh kéo
+    thời gian. Chỉ (1) thì một thanh thời gian **chưa ai kéo** vẫn xanh; chỉ (2) thì một lỗi
+    số học trong vòng phút vẫn xanh.
+  - ⚠️ **Quét theo PHÉP GÁN, không theo chuỗi `chiSoMoc -`.** Chuỗi ấy xuất hiện **hai lần**
+    trong `tranLienTuc.ts` một cách hoàn toàn chính đáng (`chiSoMoc - mocDaGhiTruoc` và
+    `chiSoMoc - mocDauChuoi` đều là **hiệu** dùng làm tham số). Cấm chuỗi ấy là cấm một cách
+    viết đúng, và rồi ai đó sẽ tắt phép kiểm.
+  - ✅ **Hai cảnh báo của task đều đúng, và tôi kiểm lại cả hai**: `grep` có thẻ mở
+    (`<input type="range"`) khớp **0 file** vì JSX format nhiều dòng; và quét theo từ tiếng
+    Anh chung trên cả `src/ui/` khớp hai chỗ không liên quan. Phép kiểm vì thế quét
+    `type="range"` trên `components` + `hooks`, đòi **đúng một** kết quả và **nêu tên** nó
+    (`ChonAnh.tsx` — slider phóng to của tính năng cắt ảnh). Nêu tên thì người thêm thanh thứ
+    hai **phải sửa phép kiểm**; nới thành "ít hơn hai" thì nó lọt im lặng.
+  - ✅ **Ba phép đột biến, ba lần đỏ**: thêm một `tuaVe` có `chiSoMoc--` vào `lienTuc/` → đỏ;
+    thêm thanh kéo thứ hai vào `BangDieuKhienTran.tsx` → đỏ; cho chỉ số mốc **lặp lại** thay
+    vì tăng → đỏ.
+  - ✅ **`boundaries.test.ts` xanh**: file này **đọc** mã nguồn của `hooks/` và `ui/` bằng
+    `import.meta.glob`, không **import** chúng — mẫu `(?:from|import)\s*\(?\s*[\'"]` của
+    phép canh biên không khớp `import.meta.glob(`, đã kiểm.
+  - 📏 **81 file / 1.643 phép kiểm xanh**.
 
 **Xem được gì ngay sau Phase 56:** ở bàn thắng, cơ hội rõ ràng, cứu thua và thẻ đỏ, chuyển động
 **dày lên gấp đôi**. Chạy trơn ở **cả năm** mức tốc độ. Người bật giảm chuyển động **vẫn thấy
