@@ -159,6 +159,37 @@ export function dieuKienTuMaTran(maTran: string): DieuKienTran {
   }
 }
 
+/** Chiều gió so với SÂN, không phải so với la bàn. */
+export type ChieuGio = 'doc' | 'ngang' | 'cheo'
+
+/** Nửa bề rộng của mỗi cung chiều gió, độ — 45° chia đôi. */
+export const NUA_CUNG_CHIEU_GIO = 22.5
+
+/**
+ * Xếp hướng gió vào ba chiều **so với sân**: dọc, ngang, hay chéo.
+ *
+ * ⚠️ **Không gọi nó là bắc/nam/đông/tây.** `huongGio` là một góc trong hệ toạ độ
+ * **của sân** (`x` dọc theo chiều dài, `y` theo chiều rộng), không phải một
+ * phương địa lý — sân này không có la bàn. Nói "gió bắc" là nói một điều mà dữ
+ * liệu không biết.
+ *
+ * Gấp về nửa vòng trước khi xếp, vì gió thổi theo `+x` và theo `−x` đều là **dọc
+ * sân**: chiều ở đây là một **phương**, không phải một **hướng**.
+ */
+export function chieuCuaGio(huongDo: number): ChieuGio {
+  const phuong = ((huongDo % 180) + 180) % 180
+  if (phuong < NUA_CUNG_CHIEU_GIO || phuong >= 180 - NUA_CUNG_CHIEU_GIO) {
+    return 'doc'
+  }
+  if (
+    phuong >= 90 - NUA_CUNG_CHIEU_GIO &&
+    phuong < 90 + NUA_CUNG_CHIEU_GIO
+  ) {
+    return 'ngang'
+  }
+  return 'cheo'
+}
+
 /**
  * Gió có ăn vào đường bóng này không — hai cửa của AC-38.9.
  *

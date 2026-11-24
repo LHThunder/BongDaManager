@@ -817,6 +817,21 @@ export const TRAN_DAU_EN: BanDich<typeof TRAN_DAU_VI> = {
   nhanTheVang: 'Yellow card',
   nhanTheDo: 'Red card',
   quayLai: 'Leave match',
+  nhanDieuKien: 'Conditions',
+  thoiTiet: {
+    nong: 'hot',
+    kho: 'dry pitch',
+    am: 'damp pitch',
+    mua: 'rain',
+    'mua-to': 'heavy rain',
+  },
+  gio: (tocDo: string, chieu: string) => `${tocDo} m/s wind ${chieu}`,
+  chieuGio: {
+    doc: 'along the pitch',
+    ngang: 'across the pitch',
+    cheo: 'at an angle',
+  },
+  gioLang: 'no wind',
 }
 
 export const THAY_NGUOI_EN: BanDich<typeof THAY_NGUOI_VI> = {

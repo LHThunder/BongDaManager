@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **30 AC**) |
 | **Plan** | `./plan.md` (Status `Approved`, D117–D134, R51–R64) |
-| **Tiến độ** | 25/49 |
+| **Tiến độ** | 26/49 |
 | **Nền đo** | commit `5c652eb`, engine v6, **1.304 test xanh / 63 file test** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -1185,10 +1185,10 @@ vì lớp dao động đã tắt — **phải báo trước.**
     trạng thái **lúc rời chân** và thời điểm **tuyệt đối**, vì pha lăn phụ thuộc *thời gian kể
     từ lúc chạm đất* mà một trạng thái giữa đường không mang theo con số ấy. Đã ghi ⚠️ vào
     đầu hàm.
-  - ✅ **Sáu phép đột biến, sáu lần đỏ** (sau khi lấp lỗ ở trên). Toàn bộ: **77 file / 1.588
+  - ✅ **Sáu phép đột biến, sáu lần đỏ** (sau khi lấp lỗ ở trên). Toàn bộ: **77 file / 1.587
     phép kiểm xanh**.
 
-- [ ] **T724** [P] — Nhãn thời tiết song ngữ nhồi vào khối `TRAN_DAU`, hiện cạnh mã trận
+- [x] **T724** [P] — Nhãn thời tiết song ngữ nhồi vào khối `TRAN_DAU`, hiện cạnh mã trận
   - File: `src/ui/ngonNgu/vi.ts` (khối `TRAN_DAU_VI`), `src/ui/ngonNgu/en.ts`
     (`TRAN_DAU_EN`), `src/ui/pages/TrangTran.tsx`
   - Xong khi: `npx vitest run src/ui/ngonNgu/ngonNgu.test.ts` xanh **với 0 dòng sửa ở file
@@ -1202,6 +1202,39 @@ vì lớp dao động đã tắt — **phải báo trước.**
     Việt (regex `DAU_TIENG_VIET`). **Nhồi vào khối có sẵn** nên **không** phải chạm bốn chỗ của
     `ngonNgu/index.ts` — đó là phần thưởng của việc không tạo khối mới. `TRAN_DAU_EN` khai
     `BanDich<typeof TRAN_DAU_VI>` nên thiếu một khoá là **lỗi `tsc`**, không phải lỗi test.
+  - 🐞 **Một lỗi THẬT mà 1.587 phép kiểm không thấy, và tôi thấy nó bằng MẮT** — đúng điểm
+    mù R52: `src/ui/pages` không có một phép kiểm nào (`environment: node`, không jsdom).
+    Nhãn in ra **"gió 4.0 m/s dọc sân"** — dấu **chấm** trong một câu tiếng Việt, vì
+    `toFixed(1)` luôn ra dấu chấm. Chữa bằng `DINH_DANG.maVung`, thứ repo đã có **sẵn cho
+    đúng lớp lỗi này**: chú thích của nó ở `ngonNgu/vi.ts` nói thẳng rằng đặt cứng một kiểu
+    định dạng là **trộn hai ngôn ngữ trên một màn hình**, đúng điều P8 cấm. Nay tiếng Việt
+    ra **4,0** và tiếng Anh ra **4.0**.
+  - 📏 **Đã mở trình duyệt xem thật, cả hai ngôn ngữ, trên một trận đang chạy** (mã
+    `K7M2R9XQ4B`, chế độ liên tục): *"Điều kiện: mưa, gió 4,0 m/s dọc sân"* và *"Conditions:
+    rain, 4.0 m/s wind along the pitch"*. **0 lỗi console**. Đây là lát duy nhất của Phase 55
+    có thứ **nhìn thấy được**, nên nó phải được nhìn.
+  - ➕ **Một ký hiệu nới ra ngoài danh sách file, nêu chứ không im**: `chieuCuaGio` +
+    `NUA_CUNG_CHIEU_GIO` đặt ở `dieuKien.ts` chứ không ở `TrangTran.tsx`. Quy tắc ±22,5° là
+    một **quy tắc thật** và nó thuộc về **hình học sân**, không thuộc về ngôn ngữ; để trong
+    một file `pages` là để một quy tắc **không ai canh**. Ở `dieuKien.ts` thì nó có 6 phép
+    kiểm, gồm phép kiểm **từng mép cung** và phép kiểm **tuần hoàn 180°**.
+  - ⚠️ **Không gọi gió là bắc/nam/đông/tây.** `huongGio` là một góc trong hệ toạ độ **của
+    sân**, không phải một phương địa lý — sân này không có la bàn. Nói "gió bắc" là nói một
+    điều mà dữ liệu **không biết**. Nên nhãn nói **dọc sân / ngang sân / chéo sân**, và chiều
+    là một **phương** chứ không phải một **hướng** (gió thổi theo `+x` và `−x` đều là dọc).
+  - 🐞 **Và một khẳng định của chính tôi bị phép đo bác lại.** Bản đầu của phép kiểm phân phối
+    đòi `chéo > dọc + ngang` với lý lẽ "cung chéo rộng gấp đôi". Lý lẽ **đúng** nhưng kết
+    luận **sai**: cung chéo rộng 90° trong nửa vòng 180°, tức đúng **một nửa**, nên `chéo`
+    xấp xỉ **bằng** `dọc + ngang`. Đo được **9.986 so với 10.014** — mệnh đề ấy là một lần
+    tung đồng xu. Nay nó đòi đúng thứ hình học nói: 50/25/25.
+  - ✅ **Nhồi vào khối `TRAN_DAU` đã có**, nên `ngonNgu.test.ts` tự phủ bốn khẳng định lên sáu
+    khoá mới (không lệch vi↔en, không rỗng, cùng kiểu, bản EN không còn dấu tiếng Việt) mà
+    **0 dòng sửa** ở file ấy — và không phải chạm bốn chỗ của `ngonNgu/index.ts`.
+  - ⚠️ **`motChuSoThapPhan` trong `TrangTran.tsx` KHÔNG có phép kiểm tự động**, và tôi nói
+    thẳng ra thay vì để trống: nó nằm trong một file `.tsx` ở `pages`, đúng chỗ R52 chỉ. Nó
+    được kiểm **bằng mắt, hai ngôn ngữ**, và con số nó in ra có `DINH_DANG.maVung` làm nguồn
+    duy nhất. **T761** là chỗ danh sách kiểm bằng mắt sống.
+  - ✅ Toàn bộ: **77 file / 1.593 phép kiểm xanh** (thêm 6); `npx tsc --noEmit` sạch.
 
 **Xem được gì ngay sau Phase 55:** bóng **bay bổng** ở các quả tạt và **có người đánh đầu**;
 đường chuyền ngắn trông khác đường chuyền dài; bóng lăn xa hơn khi trời mưa; cạnh mã trận có

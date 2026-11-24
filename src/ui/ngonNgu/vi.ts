@@ -872,6 +872,27 @@ export const TRAN_DAU_VI = {
   nhanTheVang: 'Thẻ vàng',
   nhanTheDo: 'Thẻ đỏ',
   quayLai: 'Rời trận',
+  /*
+    Điều kiện trận (T724, AC-38.9 + P8). Nhồi vào khối TRAN_DAU đã có thay vì
+    dựng khối mới: `ngonNgu.test.ts` dò đường dẫn khoá đệ quy nên bốn khẳng định
+    của nó tự phủ lên mấy khoá này, và không phải chạm bốn chỗ của
+    `ngonNgu/index.ts`.
+  */
+  nhanDieuKien: 'Điều kiện',
+  thoiTiet: {
+    nong: 'trời nóng',
+    kho: 'sân khô',
+    am: 'sân ẩm',
+    mua: 'mưa',
+    'mua-to': 'mưa to',
+  },
+  gio: (tocDo: string, chieu: string) => `gió ${tocDo} m/s ${chieu}`,
+  chieuGio: {
+    doc: 'dọc sân',
+    ngang: 'ngang sân',
+    cheo: 'chéo sân',
+  },
+  gioLang: 'lặng gió',
 } as const
 
 export const THAY_NGUOI_VI = {

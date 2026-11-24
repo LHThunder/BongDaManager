@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { BANG_CHU_MA_TRAN, DO_DAI_MA_TRAN } from '../rng'
 import {
   CAC_THOI_TIET,
+  chieuCuaGio,
+  NUA_CUNG_CHIEU_GIO,
   dieuKienTuMaTran,
   GIO_TOI_DA,
   gioCoAnVaoDuongBong,
@@ -202,6 +204,80 @@ describe('hai cửa của gió (T722, AC-38.9)', () => {
     expect(HE_SO_GIO).toBeLessThan(1)
     // Quãng lệch lớn nhất có thể: gió tối đa, đường bóng dài nhất ~5 giây.
     expect(HE_SO_GIO * GIO_TOI_DA * 5).toBeLessThan(5)
+  })
+})
+
+/*
+  Chiều gió so với SÂN (T724).
+
+  ➕ Một ký hiệu nới ra ngoài danh sách file của T724, nêu chứ không im: quy tắc
+  ±22,5° là một **quy tắc thật**, và `src/ui/pages` không có một phép kiểm nào
+  (`environment: 'node'`, không jsdom — đúng điểm mù R52). Để nó trong
+  `TrangTran.tsx` là để một quy tắc không ai canh; để ở đây thì nó có phép kiểm,
+  và nó cũng thuộc về **hình học sân** chứ không thuộc về ngôn ngữ.
+*/
+describe('chieuCuaGio — ba chiều so với SÂN (T724)', () => {
+  it('bốn phương chính xếp đúng: dọc, ngang, dọc, ngang', () => {
+    expect(chieuCuaGio(0)).toBe('doc')
+    expect(chieuCuaGio(90)).toBe('ngang')
+    expect(chieuCuaGio(180)).toBe('doc')
+    expect(chieuCuaGio(270)).toBe('ngang')
+  })
+
+  it('và bốn góc chéo đều là chéo', () => {
+    for (const g of [45, 135, 225, 315]) {
+      expect(chieuCuaGio(g), `${g}°`).toBe('cheo')
+    }
+  })
+
+  /*
+    Chiều là một **phương**, không phải một **hướng**: gió thổi theo `+x` và
+    theo `−x` đều là dọc sân. Nên hàm phải tuần hoàn 180°, không 360°.
+  */
+  it('tuần hoàn 180°: hướng và hướng ngược lại cùng một chiều', () => {
+    for (let g = 0; g < 360; g += 7) {
+      expect(chieuCuaGio(g), `${g}°`).toBe(chieuCuaGio(g + 180))
+    }
+  })
+
+  it('đúng tại từng MÉP cung, không chỉ ở giữa cung', () => {
+    expect(chieuCuaGio(NUA_CUNG_CHIEU_GIO - 1e-9)).toBe('doc')
+    expect(chieuCuaGio(NUA_CUNG_CHIEU_GIO)).toBe('cheo')
+    expect(chieuCuaGio(90 - NUA_CUNG_CHIEU_GIO - 1e-9)).toBe('cheo')
+    expect(chieuCuaGio(90 - NUA_CUNG_CHIEU_GIO)).toBe('ngang')
+    expect(chieuCuaGio(90 + NUA_CUNG_CHIEU_GIO - 1e-9)).toBe('ngang')
+    expect(chieuCuaGio(90 + NUA_CUNG_CHIEU_GIO)).toBe('cheo')
+  })
+
+  it('góc âm và góc vượt vòng cũng xếp được', () => {
+    expect(chieuCuaGio(-5)).toBe('doc')
+    expect(chieuCuaGio(-90)).toBe('ngang')
+    expect(chieuCuaGio(725)).toBe('doc')
+  })
+
+  /*
+    ⚠️ CHỐNG RỖNG: trên 20.000 mã trận thật, **cả ba** chiều phải xuất hiện —
+    không thì nhãn của T724 chỉ hiện một chữ suốt đời.
+
+    🐞 **Và đây là chỗ tôi viết sai một khẳng định rồi phép đo bác lại.** Bản
+    đầu đòi `chéo > dọc + ngang` với lý lẽ "cung chéo rộng gấp đôi". Lý lẽ ấy
+    **đúng** nhưng kết luận **sai**: cung chéo rộng 90° trong nửa vòng 180°, tức
+    đúng **một nửa**, nên `chéo` xấp xỉ **bằng** `dọc + ngang` chứ không lớn hơn.
+    Đo được **9.986 so với 10.014** — mệnh đề ấy là một lần tung đồng xu. Khẳng
+    định đúng là: chéo nhiều hơn **từng** chiều kia, và ba tỉ lệ ở gần 50/25/25.
+  */
+  it('cả BA chiều đều xuất hiện, và tỉ lệ khớp bề rộng cung 50/25/25', () => {
+    const dem = { doc: 0, ngang: 0, cheo: 0 }
+    for (let i = 0; i < SO_MA_THU; i += 1) {
+      dem[chieuCuaGio(dieuKienTuMaTran(maThu(i)).huongGio)] += 1
+    }
+    expect(dem.doc, 'số trận gió dọc').toBeGreaterThan(0)
+    expect(dem.ngang, 'số trận gió ngang').toBeGreaterThan(0)
+    expect(dem.cheo, 'số trận gió chéo').toBeGreaterThan(dem.doc)
+    expect(dem.cheo, 'số trận gió chéo').toBeGreaterThan(dem.ngang)
+    expect(dem.cheo / SO_MA_THU, 'tỉ lệ chéo').toBeCloseTo(0.5, 1)
+    expect(dem.doc / SO_MA_THU, 'tỉ lệ dọc').toBeCloseTo(0.25, 1)
+    expect(dem.ngang / SO_MA_THU, 'tỉ lệ ngang').toBeCloseTo(0.25, 1)
   })
 })
 

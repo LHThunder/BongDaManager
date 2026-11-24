@@ -1,6 +1,6 @@
 import { BieuTuong } from '../components/BieuTuong'
 import { useChuoi } from '../../hooks/useNgonNgu'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { dungBaoCao } from '../../engine/baoCao'
 import type { SuKien } from '../../engine/suKien'
 import {
@@ -10,6 +10,7 @@ import {
   phutHienThi,
   type NoiDungCanThiep,
 } from '../../engine/tran'
+import { chieuCuaGio, dieuKienTuMaTran } from '../../engine/lienTuc/dieuKien'
 import { MS_MOI_PHUT, useMatch } from '../../hooks/useMatch'
 import * as playerRepo from '../../services/playerRepo'
 import * as tuyChonRepo from '../../services/tuyChonRepo'
@@ -23,6 +24,31 @@ import { ChiThiDoi } from '../components/ChiThiDoi'
 import { DongTuongThuat } from '../components/DongTuongThuat'
 import { ThayNguoi } from '../components/ThayNguoi'
 
+
+/**
+ * Dưới mức này thì nhãn nói "lặng gió" thay vì đọc ra một con số, m/s.
+ *
+ * 0,5 m/s là ngưỡng mà người ta **không cảm thấy** gió; in "gió 0,2 m/s" là nói
+ * một con số đúng mà vô nghĩa.
+ */
+const NGUONG_GIO_LANG = 0.5
+
+/**
+ * Một chữ số thập phân, theo **mã vùng** của ngôn ngữ đang chọn.
+ *
+ * ⚠️ **`toFixed(1)` là sai ở đây, và tôi thấy nó bằng mắt chứ không bằng phép
+ * kiểm:** nhãn in ra "gió 4.0 m/s dọc sân" — dấu **chấm** trong một câu tiếng
+ * Việt. `DINH_DANG.maVung` đã có sẵn cho đúng lớp lỗi này, và chú thích của nó
+ * ở `ngonNgu/vi.ts` nói thẳng: đặt cứng một kiểu định dạng là **trộn hai ngôn
+ * ngữ trên một màn hình**, đúng điều P8 cấm. Tiếng Việt ra `4,0`; tiếng Anh ra
+ * `4.0`.
+ */
+function motChuSoThapPhan(so: number, maVung: string): string {
+  return so.toLocaleString(maVung, {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  })
+}
 
 interface Props {
   readonly onRoiTran: () => void
@@ -39,6 +65,7 @@ export function TrangTran({ onRoiTran }: Props) {
     NHAN_VI_TRI,
     CAN_THIEP_GIUA_TRAN,
     CHON_CAP_DAU,
+    DINH_DANG,
     CHUNG,
     SAN_2D,
     SO_SANH_TRAN,
@@ -61,6 +88,21 @@ export function TrangTran({ onRoiTran }: Props) {
     daLoaiTranCu,
     xoaBaoDaLoai,
   } = useMatch()
+
+  /*
+    Điều kiện trận dẫn xuất từ MÃ TRẬN, nên nó không cần một trạng thái nào và
+    không cần một lần đọc dữ liệu nào (quyết định D130). `useMemo` ở đây không
+    phải để tiết kiệm — hai lần băm là rẻ — mà để nhãn không dựng lại một chuỗi
+    mới ở **mỗi khung vẽ** trong lúc trận chạy 60 khung một giây.
+
+    `tran` còn `null` trước khi trận dựng xong, và `useMemo` phải chạy **không
+    điều kiện** như mọi hook, nên phép kiểm `null` nằm TRONG hàm chứ không bọc
+    quanh hook.
+  */
+  const dieuKien = useMemo(
+    () => (tran === null ? null : dieuKienTuMaTran(tran.maTran)),
+    [tran],
+  )
 
   const [loiCanThiep, datLoiCanThiep] = useState<string | null>(null)
   const [nguoiVaoGon, datNguoiVaoGon] = useState('')
@@ -315,6 +357,23 @@ export function TrangTran({ onRoiTran }: Props) {
         {CHON_CAP_DAU.nhanMaTran}:{' '}
         <code className="font-mono">{tran.maTran}</code>
       </p>
+
+      {/*
+        Điều kiện trận đứng cạnh MÃ TRẬN, không treo lên sân 2D (quyết định
+        D130): nó dẫn xuất từ mã trận nên nó thuộc về chỗ của mã trận, và
+        `San2D` đã gần 2.000 dòng.
+      */}
+      {dieuKien && (
+        <p className="text-center text-xs text-chu-phu">
+          {TRAN_DAU.nhanDieuKien}: {TRAN_DAU.thoiTiet[dieuKien.thoiTiet]},{' '}
+          {dieuKien.tocDoGio < NGUONG_GIO_LANG
+            ? TRAN_DAU.gioLang
+            : TRAN_DAU.gio(
+                motChuSoThapPhan(dieuKien.tocDoGio, DINH_DANG.maVung),
+                TRAN_DAU.chieuGio[chieuCuaGio(dieuKien.huongGio)],
+              )}
+        </p>
+      )}
 
       <div className="mt-4">
         <BangDieuKhienTran
