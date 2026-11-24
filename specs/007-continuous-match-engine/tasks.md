@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **30 AC**) |
 | **Plan** | `./plan.md` (Status `Approved`, D117–D134, R51–R64) |
-| **Tiến độ** | 28/50 |
+| **Tiến độ** | 29/50 |
 | **Nền đo** | commit `5c652eb`, engine v6, **1.304 test xanh / 63 file test** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -1371,7 +1371,7 @@ trận, bằng ngôn ngữ đang chọn — và đó là thứ **duy nhất** m�
   - ✅ **Bốn phép đột biến, bốn lần đỏ**: bỏ toán hạng thẻ đỏ → 2 đỏ; đổi `hoặc` thành `và`
     → 2 đỏ; `dauHieuCuaPha` đọc nhầm trường → 1 đỏ; nhét ký hiệu bị cấm vào một file
     `lienTuc/` → 1 đỏ.
-  - 📏 **77 file / 1.605 phép kiểm xanh** (thêm 8).
+  - 📏 **+8 phép kiểm.** (Con số toàn bộ ghi ở T732: lúc chạy suite thì cả hai module [P] của lát này đã có mặt.)
 
 - [ ] **T731** — Làm dày cả cửa sổ chuỗi lên 0,5 giây; bảng bóng chết ở **đúng một chỗ**
   - File: tạo `src/engine/lienTuc/mocChuoi.ts`, `src/engine/lienTuc/mocChuoi.test.ts`; sửa
@@ -1392,7 +1392,7 @@ trận, bằng ngôn ngữ đang chọn — và đó là thứ **duy nhất** m�
     câu 1 ngày 2026-11-23). Phép kiểm chỉ khẳng định **tính nhất quán** — tổng thời lượng mỗi
     phút khớp 60 giây — **không** khẳng định giá trị.
 
-- [ ] **T732** [P] — `ui/mocVe.ts`: một phép chia, không nhánh theo tên mức tốc độ
+- [x] **T732** [P] — `ui/mocVe.ts`: một phép chia, không nhánh theo tên mức tốc độ
   - File: tạo `src/ui/mocVe.ts`, `src/ui/mocVe.test.ts`
   - Xong khi: phép kiểm duyệt `Object.entries(MS_MOI_PHUT)` cho **cả năm** mức và không có một
     chuỗi tên mức nào trong `mocVe.ts` (`grep -n "rat-nhanh\|cham" src/ui/mocVe.ts` → rỗng).
@@ -1406,6 +1406,31 @@ trận, bằng ngôn ngữ đang chọn — và đó là thứ **duy nhất** m�
     `san2D.test.ts` ở 291 cộng `MS_MOI_PHUT.cham` ở 526/654/1514/1754). Còn `CAC_MUC_TOC_DO`
     chỉ có **một** nơi dùng (`BangDieuKhienTran.tsx`) và **không một test nào** duyệt nó — đổi
     nó thì **không gì đỏ**.
+  - ✅ **Ghi chú của task đoán đúng, và tôi xác nhận lại bằng tay:** T732 **không** thêm mức
+    tốc độ và **không** chạm `MS_MOI_PHUT` hay `CAC_MUC_TOC_DO`, nên nó **không mở rộng một
+    phép kiểm nào** — khác hẳn ca `MS_MOI_PHUT` của spec 005.
+  - ✅ **Mức tốc độ vào module này CHỈ dưới dạng một con số `msMoiPhut`.** Một nhánh `if`
+    theo **tên** mức trong lớp vẽ là chỗ mà mức thứ sáu sẽ **lặng lẽ** không được xử lý.
+    Phép kiểm quét chính mã nguồn và đòi **không tên mức nào trong bảng** xuất hiện — nó
+    quét **mọi** tên có trong `MS_MOI_PHUT`, kể cả tên của mức thêm sau, thứ một lệnh `grep`
+    gõ tay không làm được. Kèm `MucTocDo` và `MS_MOI_PHUT` cũng bị cấm: nhận một con số là
+    đủ.
+  - 🐞 **Phép kiểm ấy đỏ ngay lần chạy đầu — ở một CHÚ THÍCH.** Chú thích viết "mức nhanh
+    nhất là 20 ms", và chữ `nhanh` là tên một mức. Hai đường chữa, tôi làm **cả hai**: phép
+    kiểm **bóc chú thích** trước khi quét (đúng khuôn `chiCode` của `rng.test.ts` —
+    điều bị cấm là một **nhánh**, không phải một câu văn), **và** chú thích được viết lại
+    sao cho lệnh `grep` **nguyên văn** của task cũng ra rỗng. Đã chạy lại chính lệnh ấy.
+  - ⚠️ **`soMoc` là THAM SỐ, không đọc thẳng `MOC_MOI_PHUT`** — vì **T731** sắp làm dày cửa
+    sổ tình huống quan trọng lên gấp đôi. Lúc ấy một lô có **hai mật độ mốc**, và một hàm
+    đóng cứng số mốc sẽ sai ở đúng những pha đáng xem nhất. Có một phép kiểm riêng cho mật
+    độ 120 mốc.
+  - ✅ **Phép kiểm duyệt `Object.entries(MS_MOI_PHUT)` cho cả năm mức**, và ba mệnh đề của
+    nó bổ cho nhau: chỉ số **không ra ngoài lô**, **không lùi** khi đồng hồ tiến, và **nửa
+    phút là nửa lô**. Mệnh đề cuối là thứ nói rằng quy đổi là một phép **tỉ lệ** chứ không
+    phải một bảng tra — một hàm trả hằng số vẫn xanh hai mệnh đề đầu.
+  - ✅ **Bốn phép đột biến, bốn lần đỏ**: nhân `soMoc - 1` → 3 đỏ; bỏ phép kẹp ở đuôi lô → 4
+    đỏ; trả hằng số → 4 đỏ; thêm một nhánh theo tên mức → 1 đỏ.
+  - 📏 Toàn bộ: **79 file / 1.614 phép kiểm xanh** (T730 thêm 8, T732 thêm 9).
 
 - [ ] **T733** — Nới cổng của **đúng MỘT** vòng rAF, đặt lại mốc thời gian theo số lô
   - File: `src/ui/components/San2D.tsx`
