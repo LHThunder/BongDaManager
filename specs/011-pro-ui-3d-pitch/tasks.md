@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **52 AC**, nhóm 46–53) |
 | **Plan** | `./plan.md` (Status `Draft`, D130–D143, R60–R66) |
-| **Tiến độ** | 14/50 |
+| **Tiến độ** | 14/50 — Phase 62 dừng ở T777, xem khối ⛔ ở đó |
 | **Nền đo** | commit `5265d37`, engine v6, **84 file test / 1.733 phép kiểm xanh**, bộ kiểm chạy hết **152 giây** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -324,6 +324,31 @@
   - Xong khi: `npx vitest run src/ui/batBienSaBan.test.ts` xanh trên ít nhất 10 mã trận, **hoặc** đỏ kèm một câu hỏi đã gửi cho người dùng.
   - AC: AC-49.1, AC-49.2
   - Phụ thuộc: T774
+  - ⛔ **ĐÃ ĐI ĐÚNG NHÁNH THỨ HAI CỦA ĐIỀU KIỆN RA: đỏ, và đã hỏi người dùng.** `src/ui/batBienSaBan.test.ts`
+    đã tạo và **2 phép kiểm của AC-49.2 xanh**; nhưng **AC-49.1 bị CHẶN** bởi một lỗi của engine,
+    và Phase 62 dừng ở đây theo quyết định của người dùng ngày 2026-11-25.
+  - 🔴 **Phát hiện — thủ môn chạy qua vạch giữa sân.** Đo trên **10 mã trận × 45 phút × mọi mốc
+    = 56.640 lượt**: **2,06%** (1.168 lượt) ra khỏi một phần ba sân nhà, lệch xa nhất **31,72 m**
+    (thủ môn ở `x ≈ 66,7`), p50/p90/p99 = **1,91 / 8,09 / 24,06 m**. Nguyên nhân: engine kẹp
+    **ĐÍCH** chứ không kẹp **VỊ TRÍ** (`coHoc.test.ts:660`). Đây đúng là lỗi mà spec 005 sinh ra
+    AC-30.7 để chặn — `viTriVe.ts:11` ghi nó từng lọt suốt một lát cắt với 1.291 phép kiểm xanh.
+    → Đã mở **`T813` ở `specs/007-continuous-match-engine/tasks.md`**. `spec.md` của spec 007
+    **không bị đụng một dòng nào** (AC của spec 001–007 không được sửa ngược).
+  - ⚠️ **TÔI ĐÃ ĐƯA NGƯỜI DÙNG MỘT CON SỐ SAI, VÀ SỬA CÔNG KHAI.** Lần đo đầu chỉ lấy **3 mã
+    trận × 20 phút, mỗi mốc thứ 10** → 0,96% và lệch tối đa **2,01 m**. Người dùng chốt "ghi
+    thành nợ có tên" **trên con số ấy**. Mẫu đủ cho **31,72 m** — sai **15 lần**. Đã quay lại
+    nêu đúng số, và người dùng đổi quyết định sang "mở task ở spec 007". Bài học: một bất biến
+    đo trên **mẫu nhỏ, lấy thưa** thì cực trị gần như chắc chắn bị bỏ sót.
+  - 📝 **AC-49.2 đã được THU HẸP (D146).** Mệnh đề "tám hàng" của AC-30.8 sai ở **98,9%** số
+    mẫu ở engine liên tục: tiền đạo khách cắm ở `x ≈ 15`, sau lưng hậu vệ nhà (`x ≈ 37`) và qua
+    mặt thủ môn nhà (`x ≈ 19`). AC-30.8 vốn được spec 005 kiểm trên bố cục **cổ điển**
+    (`hinhSan`) — nguồn vị trí khác hẳn — nên đây không phải lỗi hồi quy của spec 011. AC-49.2
+    nay nói điều thật sự đúng và thật sự thuộc spec 011: hai lớp vẽ đứng trên **một** đường đọc.
+
+> ## ⛔ Phase 62 DỪNG Ở T777
+> T778 phụ thuộc T777, nên cả chuỗi T778 → T786 chưa bắt đầu. Người dùng chốt ngày 2026-11-25:
+> mở task ở spec 007 và **quyết sau** khi nào sửa. Phase 63–66 **không** phụ thuộc Phase 62,
+> nên chúng chạy được nếu muốn đi tiếp mà chưa động tới engine.
 
 - [ ] **T778** — Nhóm **hành vi**: tạm dừng thì đóng băng hẳn.
   - File: `src/ui/components/San3D.tsx`

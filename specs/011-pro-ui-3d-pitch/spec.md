@@ -255,12 +255,61 @@ hỏng điều gì**, để **không phải kiểm lại bằng mắt từ đầ
 > của **hình trên màn hình** (cần một định nghĩa mới cho góc nhìn chéo). Ba nhóm đứng trên ba
 > loại phép kiểm khác nhau, và đó là lý do cách chẻ này đáng giá hơn một câu "cả sáu".
 
-**Nhóm 1 — thuộc dữ liệu, đúng sẵn, chỉ cần khẳng định:**
+**Nhóm 1 — thuộc dữ liệu.**
 
-- [ ] AC-49.1 — KHI trận đang chạy ở góc nhìn 3D THÌ thủ môn PHẢI luôn nằm trong **một phần ba
-      sân của đội mình** (AC-30.7 đọc lại ở lớp mới).
-- [ ] AC-49.2 — KHI hai đội đứng theo sơ đồ ở góc nhìn 3D THÌ hàng phòng ngự của một đội PHẢI
-      đứng **giữa tiền đạo đối phương và khung thành của mình** (AC-30.8 đọc lại).
+> ⚠️ **Sửa ngày 2026-11-25, trong lúc `/implement` chạy T777.** Nhóm này được viết với giả
+> định *"đúng sẵn, chỉ cần khẳng định"*. Đo trên dữ liệu thật của engine liên tục thì **giả
+> định ấy sai**, và nó sai ở hai mức khác nhau. Người dùng đã được nêu đủ số đo và chốt hai
+> phương án dưới đây. **Không con số nào bị hạ lặng lẽ** — cả hai món nợ đều được gọi tên và
+> trả về đúng chủ của nó là **spec 007**.
+
+- [ ] ⛔ AC-49.1 — **ĐANG BỊ CHẶN bởi `T813` của spec 007.** KHI trận đang chạy ở góc nhìn 3D
+      THÌ thủ môn PHẢI luôn nằm trong **một phần ba sân của đội mình** (AC-30.7 đọc lại).
+      > 📍 **Hai lần đo, và lần đầu tôi đã đưa người dùng một con số sai — sửa công khai.**
+      > Lần một (3 mã trận × 20 phút, lấy mỗi mốc thứ 10): 0,96% và lệch tối đa 2,01 m. Trên số
+      > ấy, người dùng chốt "ghi thành nợ có tên". Lần hai, mẫu đủ (**10 mã trận × 45 phút ×
+      > mọi mốc = 56.640 lượt**):
+      >
+      > | | |
+      > |---|---|
+      > | Ra khỏi một phần ba sân | **1.168 lượt — 2,06%** |
+      > | Lệch xa nhất | **31,72 m** |
+      > | p50 / p90 / p99 | **1,91 / 8,09 / 24,06 m** |
+      >
+      > Lệch 31,72 m đặt thủ môn ở `x ≈ 66,7` — **qua vạch giữa sân**. p90 = 8,09 m nghĩa là
+      > một phần mười số lần vi phạm vượt 8 m, nên đây **không** phải vài ca biên.
+      >
+      > Nguyên nhân thuộc **engine spec 007**: nó kẹp **ĐÍCH** của thủ môn chứ không kẹp **VỊ
+      > TRÍ** (`coHoc.test.ts:660`). Đây đúng là lỗi mà spec 005 sinh ra AC-30.7 để chặn —
+      > `viTriVe.ts:11` ghi rằng lỗi *"thủ môn chạy tới giữa sân"* từng lọt suốt một lát cắt
+      > với 1.291 phép kiểm xanh, *"trong khi mắt người dùng bắt được ngay"*.
+      >
+      > Người dùng chốt trên số đo đúng ngày **2026-11-25**: **mở `T813` ở spec 007**, thay vì
+      > để spec 011 đặt ngưỡng 32 m rồi gọi đó là phép kiểm. Spec 011 **MUST NOT** thêm kẹp ở
+      > lớp vẽ: `viTriVeLienTuc` đã cố ý tắt đúng phép kẹp ấy. AC này **mở** cho tới khi T813
+      > xong.
+- [ ] AC-49.2 — KHI hai góc nhìn hiển thị **cùng một mốc** THÌ vị trí mà lớp 3D đọc ra PHẢI
+      bằng **từng số** với vị trí mà lớp 2D đọc ra, cho **mọi cầu thủ có mặt**.
+      > 📍 **AC này đã được THU HẸP ngày 2026-11-25.** Bản đầu đọc lại AC-30.8: *"hàng phòng
+      > ngự của một đội PHẢI đứng giữa tiền đạo đối phương và khung thành của mình"*. Đo thật
+      > thì mệnh đề ấy **sai ở 98,9%** số mẫu. Một mốc đại diện, tính bằng mét dọc sân:
+      >
+      > | | khách ST | nhà GK | nhà DEF | khách MID | nhà MID | khách DEF | nhà ST | khách GK |
+      > |---|---|---|---|---|---|---|---|---|
+      > | `x` | **15–17** | 19 | 35–39 | 36–37 | 59–62 | 59–60 | 78–82 | 80 |
+      >
+      > Tiền đạo khách **cắm ở x ≈ 15**, tức sau lưng cả hàng phòng ngự nhà *và* qua mặt thủ
+      > môn nhà. Thứ tự tám hàng mà AC-30.8 đòi không tồn tại ở đây.
+      >
+      > **Vì sao đây không phải lỗi hồi quy:** AC-30.8 được spec 005 kiểm trên **bố cục cổ
+      > điển** (`hinhSan`, "cả chín tổ hợp độ cao đội hình") — một nguồn vị trí **khác hẳn**.
+      > Engine liên tục của spec 007 đặt người bằng vật lý và chiến thuật, và **chưa bao giờ
+      > hứa** thứ tự tám hàng. Spec 011 chỉ **đọc**, nên nó không gây ra điều này và cũng không
+      > sửa được — P2 cấm nó đổi một con số trận nào.
+      >
+      > AC-49.2 vì thế nói điều **thật sự đúng và thật sự thuộc về spec 011**: hai lớp vẽ đứng
+      > trên **một** đường đọc duy nhất (**D145**), nên chúng không thể lệch nhau. Món nợ "tám
+      > hàng ở engine liên tục" được ghi tên và trả về **spec 007**.
 
 **Nhóm 2 — thuộc hành vi, phải làm lại ở lớp mới:**
 
