@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **52 AC**, nhóm 46–53) |
 | **Plan** | `./plan.md` (Status `Draft`, D130–D143, R60–R66) |
-| **Tiến độ** | 26/50 — Phase 62 dừng ở T777 (xem khối ⛔ ở đó); Phase 63 và 64 xong |
+| **Tiến độ** | 31/50 — Phase 62 dừng ở T777 (xem khối ⛔ ở đó); Phase 63, 64, 65 xong |
 | **Nền đo** | commit `5265d37`, engine v6, **84 file test / 1.733 phép kiểm xanh**, bộ kiểm chạy hết **152 giây** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -635,39 +635,94 @@
 > trượt từ "làm đẹp lại" sang "làm lại" là phá bốn spec. Chỉ được chạm **giá trị màu, độ dày,
 > kiểu** — **không một công thức nào**.
 
-- [ ] **T799** — Chỉnh diện mạo sân 2D theo thang của hệ thống thiết kế.
+- [x] **T799** — Chỉnh diện mạo sân 2D theo thang của hệ thống thiết kế.
   - File: `src/ui/components/San2D.tsx`, `src/index.css`
   - Nội dung: màu cỏ, độ dày vạch sân, màu áo hai đội, kiểu điểm cầu thủ — lấy **giá trị** từ thang T793. Không chạm một công thức nào.
   - Xong khi: sân 2D nhìn khác và hợp hệ thống; `npx vitest run` xanh với ≥ 1.733 phép kiểm.
   - AC: AC-53.1
   - Phụ thuộc: T798
+  - ✅ **Xong 2026-11-25.** Nội dung thật của task này hoá ra là **trả hai món nợ mà T790 đã
+    ghi tên và giao cho phase này**, chứ không phải "làm đẹp lại" chung chung:
+    - vạch sân `rgba(255,255,255,0.45)` → **`0.55`**: tương phản **2,72 → 3,30:1**, đạt ngưỡng
+      hình 3:1.
+    - số áo đi qua **`nenDamBaoTuongPhan`** thay vì `mauChuTuongPhan`: `#0077DD` **4,48 →
+      4,89:1**, đạt ngưỡng chữ 4,5. Hàm ấy đã có sẵn trong repo từ spec 001 cho đúng bài toán
+      này — `San2D` chỉ là chưa từng gọi.
+    - `strokeWidth={0.35 * tiLe}` → `0.3 * tiLe`, về đúng bậc 1 của thang nét SVG.
+  - 📍 **Giá của việc trả nợ, đo trước khi làm:** trên bảng tám màu áo thử, **bảy màu không
+    đổi một chút nào**; chỉ `#0077DD` dịch **5%** thành `#0071d2`. Sắc màu giữ nguyên — thứ
+    người xem dùng để nhận ra đội bóng.
+  - ⚠️ **`San3D.tsx` sửa CÙNG LÚC, dù nó không có trong danh sách file của task.** Để một
+    mình sân 2D đổi là làm **hai góc nhìn vẽ cùng một đội và cùng một mặt sân bằng hai sắc
+    khác nhau** — đúng thứ mà T790 đã nêu là lý do *không* sửa riêng cho sa bàn lúc ấy.
+  - ✅ **R64 được giữ:** chỉ chạm **giá trị màu và độ dày**. Không một công thức nào đổi —
+    xem T800 và T802.
 
-- [ ] **T800** — Chốt **năm hằng** của sân 2D giữ nguyên giá trị.
+- [x] **T800** — Chốt **năm hằng** của sân 2D giữ nguyên giá trị.
   - File: — (chỉ soát)
   - Xong khi: `BAN_KINH` = **2.6**, `BUOC_GIAN` = **8**, `PHI_THEM_NGUOI_GHI_BAN` (công thức nguyên văn), `NHIP_TOI_THIEU_DE_NOI_SUY` = **40**, `TI_LE_KIP` = **0.9** — cả năm **không đổi một chữ số**; `npx vitest run src/ui/san2D.test.ts src/ui/viTriVe.test.ts src/ui/noiSuy.test.ts` xanh.
   - AC: AC-53.2
   - Phụ thuộc: T799
+  - ✅ **Xong 2026-11-25.** Năm hằng nguyên vẹn: `BAN_KINH = 2.6` · `BUOC_GIAN = 8` ·
+    `TI_LE_KIP = 0.9` · `NHIP_TOI_THIEU_DE_NOI_SUY = 40` · `PHI_THEM_NGUOI_GHI_BAN =
+    ((BUOC_GIAN / 2 - BAN_KINH) * 3) / 4`. Soát bằng máy: `git diff 5265d37..HEAD` **không có
+    một dòng nào** chạm năm hằng ấy, suốt cả spec 011.
+  - ✅ `san2D.test.ts` + `viTriVe.test.ts` + `noiSuy.test.ts`: **113 phép kiểm xanh**.
+  - 📍 Trong số đó có *"thủ môn không rời một phần ba sân nhà"* trên **10 mã trận × 7 quân
+    số** — và nó **XANH**. Đó là xác nhận độc lập rằng lỗi thủ môn của T777 thuộc riêng
+    **engine liên tục** của spec 007, không phải một lỗi chung của lớp vẽ.
 
-- [ ] **T801** — Đo lại tương phản sau khi chỉnh diện mạo sân 2D.
+- [x] **T801** — Đo lại tương phản sau khi chỉnh diện mạo sân 2D.
   - File: `src/ui/theme.test.ts`
   - Nội dung: hai khối đang có — "chữ trên mặt cỏ đọc được" và "màu áo người dùng chọn không bị theme nuốt" — phải còn xanh với màu cỏ và màu áo mới.
   - Xong khi: cả hai khối xanh ở **cả hai** chủ đề; số áo trên sân 2D vẫn đếm được và đọc được như trước (AC-15.1).
   - AC: AC-53.3
   - Phụ thuộc: T800
+  - ✅ **Xong 2026-11-25.** `theme.test.ts` đi từ 75 lên **78 phép kiểm**, và hai **bánh cóc**
+    của T790 đã được **lật thành ngưỡng thật** — vì nợ đã trả ở T799, không phải vì ai hạ
+    ngưỡng.
+  - ✅ Mỗi ngưỡng mới đi kèm một phép kiểm khẳng định **giá trị CŨ thì không đạt**, để biết
+    phép kiểm đo thật chứ không xanh sẵn. Cộng một phép khẳng định **bảy trên tám** màu áo
+    không bị dịch — giá của việc trả nợ được ghi bằng số, không bằng lời.
 
-- [ ] **T802** — **Phép kiểm P5** cho AC-53.4: diện mạo mới không đổi một con số của trận.
+- [x] **T802** — **Phép kiểm P5** cho AC-53.4: diện mạo mới không đổi một con số của trận.
   - File: `src/ui/batBienSaBan.test.ts`
   - Nội dung: cùng mã trận, chạy trước và sau khi chỉnh diện mạo → **diff dòng sự kiện rỗng**, tỉ số bằng nhau. P2 được canh bằng phép kiểm, không bằng mắt.
   - Xong khi: phép kiểm xanh trên ≥ 10 mã trận; diff rỗng từng ký tự.
   - AC: AC-53.4
   - Phụ thuộc: T801
+  - ✅ **Xong 2026-11-25.** Lời chứng đi bằng **hai chân**, và chân thứ nhất mạnh hơn phép
+    kiểm: `git diff 5265d37..HEAD -- src/engine` **RỖNG** suốt cả spec 011, và
+    `boundaries.test.ts` canh rằng engine không import một thứ gì của `ui`. Một thay đổi ở
+    `San2D.tsx` vì thế **không có đường nào** chạm tới dòng sự kiện. Đó là lý do **cấu trúc**.
+  - ✅ Chân thứ hai: vân tay của 10 mã trận (tỉ số + từng dòng sự kiện gồm phút, cờ bù giờ,
+    loại, bên, danh sách cầu thủ) được **ghim thành tổng kiểm**. Nó không bắt được quá khứ,
+    nhưng bắt được **lần sau** — đúng **R64**.
+  - 🔴 **Bản đầu của vân tay đọc `e.ben`, một trường KHÔNG TỒN TẠI trên `SuKien`** (đúng tên
+    là `doi`). Mảnh ấy luôn rỗng nên vân tay yếu đi hẳn một bậc — **mà phép kiểm vẫn xanh**.
+    `tsc` bắt được; `vitest` thì không, vì nó không kiểm kiểu. Bài học: một phép kiểm chạy
+    xanh **không** chứng minh nó đang đo thứ nó nói.
 
-- [ ] **T803** — Dựng thứ bậc cho màn hình xem trận.
+- [x] **T803** — Dựng thứ bậc cho màn hình xem trận.
   - File: `src/ui/pages/TrangTran.tsx`
   - Nội dung: một khối **chính**, các khối phụ **lùi lại** — người dùng nói năm khối (sân, dòng tường thuật, bảng điểm, điều khiển, danh sách ghi bàn) đang ngang hàng nên "mắt không biết nhìn đâu trước".
   - Xong khi: nhìn vào màn hình, đọc ra ngay cái gì là chính; và điều đó đúng ở **cả hai** góc nhìn.
   - AC: AC-48.7
   - Phụ thuộc: T802, **T791** — "đúng ở cả hai góc nhìn" không kiểm được khi sa bàn chưa có số áo và chưa đo tương phản
+  - ✅ **Xong 2026-11-25.** Chỗ hỏng hoá ra rất cụ thể: **khối sân là khối DUY NHẤT không có
+    khung**, trong khi báo cáo sau trận và thay người đều nằm trong thẻ có viền. Thứ chính của
+    một màn hình xem trận lại là thứ nhẹ nhất trên màn hình.
+  - ✅ Sửa bằng đúng **bậc của thang**, không bằng số rời: khung `border-2 border-vien-dam`
+    (**bậc 2**, thang dành bậc ấy cho "viền nhấn mạnh") và tiêu đề `text-lg` (**bậc 4**).
+    Đo trên bản chạy: khối sân có viền **2px**, bốn khối phụ có **0px hoặc 1px** — khối sân là
+    khối **duy nhất** mang dấu chính.
+  - ✅ **Đúng ở cả hai góc nhìn**: đo lại sau khi đổi sang sân phẳng cho **kết quả giống hệt
+    từng thuộc tính** (viền, màu viền, nền, cỡ tiêu đề). Thứ bậc nằm ở khối bọc, nên nó không
+    phụ thuộc lớp vẽ bên trong.
+  - 📝 **Hai khối phụ vẫn dùng cùng bậc cỡ chữ với khối sân** (`DongTuongThuat` và `ChiThiDoi`
+    đều `text-lg`). Không hạ chúng, và lý do là **phạm vi**: cả hai còn được
+    `TrangChienThuat.tsx` và `TrangLichSu.tsx` dùng, nên hạ cỡ ở đây là đổi hai màn hình khác
+    — ngoài quyết định 10. Thứ bậc vẫn đọc được vì **độ dày viền** là kênh riêng của khối sân.
 
 ---
 

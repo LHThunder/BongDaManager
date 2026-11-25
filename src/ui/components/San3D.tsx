@@ -9,7 +9,7 @@ import {
 } from '../chieuSaBan'
 import { anhChupTuLo, mocVeTaiThoiDiem } from '../mocVe'
 import { viTriMetLienTuc, type AnhChupMet } from '../viTriVe'
-import { mauChuTuongPhan } from '../../domain/colors'
+import { nenDamBaoTuongPhan } from '../../domain/colors'
 import type { KhungAnh } from '../quyDoiMet'
 import { DAI_SAN, RONG_SAN } from '../../engine/hinhHocSan'
 import { BAN_KINH, CAO, San2D } from './San2D'
@@ -84,7 +84,7 @@ const KHUNG: KhungAnh = { rong: RONG_SA_BAN, cao: CAO, le: BAN_KINH }
 const DAY_VACH = 0.4 * tiSaBan(KHUNG)
 
 /** Màu vạch sân: cùng một chuỗi với sân 2D, không hằng màu mới. */
-const MAU_VACH = 'rgba(255,255,255,0.45)'
+const MAU_VACH = 'rgba(255,255,255,0.55)'
 
 /** Bán kính đĩa cầu thủ trên sa bàn — cùng con số với sân 2D. */
 const BAN_KINH_NGUOI = BAN_KINH
@@ -194,9 +194,15 @@ export function San3D({
           return [
             {
               id,
-              mauAo: doi.mauAo,
               laChuNha: iDoi === 0,
               so: soAo(id),
+              /*
+                Dùng CÙNG hàm với `San2D.tsx` (T799). Để một mình sân 2D đi qua
+                `nenDamBaoTuongPhan` là làm hai góc nhìn vẽ cùng một đội bằng
+                hai sắc khác nhau — thứ mà T790 đã nêu là lý do *không* sửa
+                riêng cho sa bàn lúc ấy.
+              */
+              ao: nenDamBaoTuongPhan(doi.mauAo),
               diem: chieuDiem(KHUNG, met.xMet, met.yMet, 0),
             },
           ]
@@ -305,8 +311,8 @@ export function San3D({
               cx={n.diem.x}
               cy={n.diem.y}
               r={BAN_KINH_NGUOI}
-              fill={n.mauAo}
-              stroke={mauChuTuongPhan(n.mauAo)}
+              fill={n.ao.nen}
+              stroke={n.ao.chu}
               strokeWidth={0.3}
             />
           ) : (
@@ -316,8 +322,8 @@ export function San3D({
               width={CANH_KHACH}
               height={CANH_KHACH}
               rx={CANH_KHACH / 4}
-              fill={n.mauAo}
-              stroke={mauChuTuongPhan(n.mauAo)}
+              fill={n.ao.nen}
+              stroke={n.ao.chu}
               strokeWidth={0.3}
             />
           )}
@@ -344,7 +350,7 @@ export function San3D({
               fontSize={CO_SO_AO}
               textAnchor="middle"
               dominantBaseline="central"
-              fill={mauChuTuongPhan(n.mauAo)}
+              fill={n.ao.chu}
               aria-hidden="true"
             >
               {n.so}

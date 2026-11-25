@@ -15,7 +15,7 @@ import type { LoMoc } from '../../engine/lienTuc/loMoc'
 import { metSangDonVi, toaDoTuMet, type KhungAnh } from '../quyDoiMet'
 import { useGiamChuyenDong } from '../giamChuyenDong'
 import { anhChupTuLo, mocVeTaiThoiDiem } from '../mocVe'
-import { mauChuTuongPhan } from '../../domain/colors'
+import { nenDamBaoTuongPhan } from '../../domain/colors'
 import { laySoDo, soNguoiCuaSoDo } from '../../domain/formations'
 import type { PositionId } from '../../domain/types'
 import type { BenDoi, LoaiSuKien, SuKien } from '../../engine/suKien'
@@ -917,7 +917,24 @@ export function hinhSan({
 
     const tren = cacNguoiTrenSan(doiTren.ben, laDoiNha)
     const lech = lechTrongVung(tren, buocGian)
-    const mauChu = mauChuTuongPhan(doiTren.mauAo)
+    /*
+      TRẢ MỘT MÓN NỢ CÓ TÊN (T799, nợ do T790 ghi).
+
+      Trước đây chỗ này chỉ chọn MÀU CHỮ tốt hơn trong hai màu, và với một màu
+      áo nằm giữa dải thì "tốt hơn" vẫn có thể **chưa đủ**: đo ngày 2026-11-25,
+      `#0077DD` cho **4,48:1**, thiếu 0,02 so với ngưỡng 4,5 của P9.
+
+      `nenDamBaoTuongPhan` là câu trả lời đã có sẵn trong repo từ spec 001 cho
+      đúng bài toán này, và khối AC-20.5 của `theme.test.ts` đã canh nó. Nó
+      pha nền dần về phía đen hoặc trắng cho tới khi đạt chuẩn, **giữ nguyên
+      sắc màu** — thứ người xem dùng để nhận ra đội bóng.
+
+      Giá đo được: trên bảng tám màu thử, **bảy màu không đổi một chút nào**;
+      chỉ `#0077DD` dịch **5%** thành `#0071d2`. Đây là đổi **giá trị**, không
+      đổi một công thức nào — đúng ràng buộc R64 của phase này.
+    */
+    const aoDaDamBao = nenDamBaoTuongPhan(doiTren.mauAo)
+    const mauChu = aoDaDamBao.chu
 
     for (const x of tren) {
       // Người tham gia tình huống dịch TỚI chỗ bóng; người khác giữ chỗ.
@@ -976,7 +993,7 @@ export function hinhSan({
         laDoiNha,
         x: cx,
         y: kep(cy + lechY, leY + le, leY + khung.cao - le),
-        mauNen: doiTren.mauAo,
+        mauNen: aoDaDamBao.nen,
         mauChu,
         nhan: so === null ? '' : String(so),
         noiBat,
@@ -2083,7 +2100,7 @@ export function San2D(props: Props) {
         {lienTuc ? (
           <g
             fill="none"
-            stroke="rgba(255,255,255,0.45)"
+            stroke="rgba(255,255,255,0.55)"
             strokeWidth={0.4 * tiLe}
             aria-hidden="true"
           >
@@ -2132,7 +2149,7 @@ export function San2D(props: Props) {
                       cx={d.x}
                       cy={d.y}
                       r={0.3 * tiLe}
-                      fill="rgba(255,255,255,0.45)"
+                      fill="rgba(255,255,255,0.55)"
                     />
                   ))}
                 </>
@@ -2142,7 +2159,7 @@ export function San2D(props: Props) {
         ) : (
           <g
             fill="none"
-            stroke="rgba(255,255,255,0.45)"
+            stroke="rgba(255,255,255,0.55)"
             strokeWidth={0.4 * tiLe}
             aria-hidden="true"
           >
@@ -2304,7 +2321,7 @@ export function San2D(props: Props) {
             r={1.7 * tiLe}
             fill="#ffffff"
             stroke="var(--co-net)"
-            strokeWidth={0.35 * tiLe}
+            strokeWidth={0.3 * tiLe}
           />
           <circle r={0.52 * tiLe} fill="var(--co-net)" />
           {[0, 1, 2, 3, 4].map((i) => {

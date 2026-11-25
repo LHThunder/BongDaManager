@@ -502,10 +502,28 @@ export function TrangTran({ onRoiTran }: Props) {
         </section>
       )}
 
-      {/* Sân 2D, ẩn/hiện được và nhớ lựa chọn (AC-10.1 → AC-10.6). */}
-      <section className="mt-4">
+      {/*
+        Sân 2D, ẩn/hiện được và nhớ lựa chọn (AC-10.1 → AC-10.6).
+
+        THỨ BẬC (T803, AC-48.7). Người dùng nói năm khối của màn hình này —
+        sân, dòng tường thuật, bảng điểm, điều khiển, danh sách ghi bàn — đang
+        ngang hàng nên *"mắt không biết nhìn đâu trước"*.
+
+        Chỗ hỏng cụ thể: **khối sân là khối duy nhất KHÔNG có khung**, trong
+        khi báo cáo sau trận và thay người đều nằm trong thẻ có viền. Thứ chính
+        của một màn hình xem trận lại là thứ nhẹ nhất trên màn hình.
+
+        Sửa bằng đúng bậc của thang, không bằng số rời:
+        - khung: `border-2 border-vien-dam` — **bậc 2** của thang độ dày, thang
+          ấy dành bậc 2 cho "viền nhấn mạnh"; mọi khối phụ giữ `border` bậc 1.
+        - tiêu đề: `text-lg` — **bậc 4** của thang cỡ chữ; mọi tiêu đề khối phụ
+          giữ `text-base` bậc 3.
+
+        Hai kênh cùng nói một điều, nên thứ bậc đọc được cả khi mất màu.
+      */}
+      <section className="mt-4 rounded-lg border-2 border-vien-dam bg-nen-the p-4">
         <div className="flex items-center justify-between">
-          <h3 className="flex items-center gap-2 text-base font-semibold text-chu">
+          <h3 className="flex items-center gap-2 text-lg font-semibold text-chu">
             <BieuTuong ten="san" co="nho" />
             {SAN_2D.tieuDe}
           </h3>

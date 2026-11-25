@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { cauHinhMau, MA_TRAN_CO_DINH } from '../engine/__fixtures__/doiMau'
+import { chayHetTran, dongSuKien, taoTran } from '../engine/tran'
 import { doiHinhTrenSan } from '../engine/tran'
 import {
   buocPhutLienTuc,
@@ -27,6 +28,16 @@ import { toaDoTuMet, type KhungAnh } from './quyDoiMet'
 */
 
 const KHUNG: KhungAnh = { rong: 100, cao: 64, le: 2.6 }
+
+/*
+  Tổng kiểm dòng sự kiện của 10 mã trận — ghim ở T802, 2026-11-25.
+
+  Vân tay gồm phút, cờ bù giờ, loại sự kiện, bên, và danh sách cầu thủ liên
+  quan. Bản đầu của nó đọc `e.ben`, một trường **không tồn tại** trên `SuKien`
+  (đúng tên là `doi`) — nên mảnh ấy luôn rỗng và vân tay yếu đi một bậc mà
+  phép kiểm vẫn xanh. `tsc` bắt được, `vitest` thì không: nó không kiểm kiểu.
+*/
+const VAN_TAY_DA_GHIM = -928183707
 
 /** Khung của sa bàn; rộng hơn sân 2D, xem `San3D.tsx`. */
 const KHUNG_SA_BAN: KhungAnh = { rong: 104.02352941176471, cao: 64, le: 2.6 }
@@ -168,5 +179,59 @@ describe('AC-49.2 — hai lớp vẽ đọc CÙNG một lô mốc, so từng s�
     expect(chieuDiem(KHUNG_SA_BAN, metDoi.xMet, metDoi.yMet, 0).x).not.toBe(
       chieuDiem(KHUNG_SA_BAN, metGoc.xMet, metGoc.yMet, 0).x,
     )
+  })
+})
+
+describe('AC-53.4 — diện mạo mới KHÔNG đổi một con số nào của trận (T802, P5)', () => {
+  /*
+    ⚠️ PHÉP KIỂM NÀY CHỨNG MINH ĐIỀU GÌ, VÀ KHÔNG CHỨNG MINH ĐIỀU GÌ.
+
+    AC-53.4 nói: chỉnh diện mạo sân 2D ở T799 không được đổi một con số nào của
+    trận. Một phép kiểm **không thể** chạy "bản trước" và "bản sau" cùng lúc —
+    bản trước đã không còn.
+
+    Nên lời chứng đi bằng hai chân, và chân thứ nhất mạnh hơn phép kiểm:
+
+    1. **`git diff 5265d37..HEAD -- src/engine` RỖNG** suốt cả spec 011. Dòng sự
+       kiện và tỉ số do `src/engine` sinh ra, và `boundaries.test.ts` canh rằng
+       engine không import một thứ gì của `ui`. Một thay đổi ở `San2D.tsx` vì
+       thế **không có đường nào** chạm tới chúng. Đây là lý do **cấu trúc**, và
+       nó là thứ AC-53.4 thật sự dựa vào.
+
+    2. Phép kiểm dưới đây **ghim** kết quả hiện tại thành số. Nó không bắt được
+       thay đổi đã xảy ra trong quá khứ, nhưng nó bắt được **lần sau**: một lát
+       "làm đẹp" nào đó lỡ tay sửa một công thức sẽ làm nó đỏ ngay — đúng **R64**,
+       rủi ro mà cả phase này được xếp gần cuối để tránh.
+  */
+  /** Vân tay của một trận: tỉ số cộng từng dòng sự kiện, nối lại. */
+  function vanTay(ma: string): string {
+    const tt = chayHetTran(taoTran(cauHinhMau(ma)))
+    const dong = dongSuKien(tt).map((e) => `${e.phut}|${e.buGio ? 'b' : ''}|${e.loai}|${e.doi}|${e.cacCauThu.join('+')}`)
+    return `${tt.tiSo.nha}-${tt.tiSo.khach}#${dong.length}#${dong.join(';')}`
+  }
+
+  it('cùng mã trận cho cùng vân tay ở hai lần chạy liên tiếp (P1)', () => {
+    for (const ma of MA_TRAN_CO_DINH.slice(0, 4)) {
+      expect(vanTay(ma), ma).toBe(vanTay(ma))
+    }
+  })
+
+  it('mười mã trận: vân tay được ghim lại, khác một ký tự là đỏ', () => {
+    const tong = MA_TRAN_CO_DINH.map((ma) => vanTay(ma))
+
+    // Chống rỗng: phải thật sự có sự kiện, không phải mười chuỗi rỗng.
+    expect(tong).toHaveLength(10)
+    for (const v of tong) {
+      expect(v, 'vân tay rỗng nghĩa là phép kiểm không đo gì').toMatch(/^\d+-\d+#[1-9]/)
+    }
+
+    /*
+      Ghim bằng **tổng kiểm** thay vì chép mười chuỗi dài vào đây: chuỗi đầy đủ
+      dài hàng nghìn ký tự và sẽ biến file này thành một bãi dữ liệu không ai
+      đọc. Đổi một ký tự bất kỳ trong bất kỳ dòng nào đều đổi con số này.
+    */
+    let bam = 0
+    for (const c of tong.join('\n')) bam = (bam * 31 + c.charCodeAt(0)) | 0
+    expect(bam, 'tổng kiểm dòng sự kiện của 10 mã trận').toBe(VAN_TAY_DA_GHIM)
   })
 })

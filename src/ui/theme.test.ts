@@ -235,31 +235,27 @@ describe('sa bàn: bóng và dấu chiếu đọc được trên mặt cỏ (AC-
   })
 
   /*
-    ⚠️ MÓN NỢ CÓ TÊN, KHÔNG PHẢI NGƯỠNG BỊ HẠ — và nó KHÔNG do spec 011 gây ra.
+    ✅ **MÓN NỢ NÀY ĐÃ TRẢ Ở T799.** Bản trước của khối này là một **bánh cóc**:
+    nó khẳng định vạch sân mới đạt **2,72:1**, dưới ngưỡng hình 3:1, và nói rằng
+    việc sửa thuộc Phase 65 vì sửa là đổi diện mạo `San2D`.
 
-    Hai cặp dưới đây **thiếu một chút** so với ngưỡng phi văn bản 3:1 và ngưỡng
-    chữ 4,5:1. Cả hai là chuỗi/hàm mà **`San2D` đang dùng y hệt**, nên sa bàn chỉ
-    *kế thừa*, không *gây ra*:
+    Phase 65 đã tới và đã trả: alpha của vạch sân đi từ `0.45` lên `0.55`, cho
+    **3,30:1**. Cả `San2D.tsx` lẫn `San3D.tsx` đổi **cùng một lúc** — để một
+    mình sân 2D đổi là làm hai góc nhìn vẽ cùng một mặt sân bằng hai sắc khác
+    nhau.
 
-      - vạch sân `rgba(255,255,255,0.45)` trên mặt cỏ → **2,72:1** (cần 3)
-      - số áo chọn bằng `mauChuTuongPhan` trên `#0077DD` → **4,48:1** (cần 4,5)
-
-    Spec 011 KHÔNG sửa chúng ở đây, vì sửa là đổi diện mạo `San2D` — thứ thuộc
-    **Phase 65** (lát diện mạo + hệ thống thiết kế), và đổi màu áo riêng cho sa
-    bàn sẽ làm hai góc nhìn vẽ cùng một đội bằng hai sắc khác nhau.
-
-    Hai phép kiểm dưới đây là **bánh cóc**: chúng chốt con số hiện tại và sẽ đỏ
-    nếu nó xấu đi, nhưng không giả vờ rằng ngưỡng đã đạt.
+    Nên phép kiểm nay là một **ngưỡng thật**, không còn là bánh cóc.
   */
-  it('NỢ: vạch sân trên mặt cỏ đang 2,72:1, dưới ngưỡng hình 3:1', () => {
-    const doDuoc = tiLeTuongPhan(
-      tronLenCo('rgba(255,255,255,0.45)'),
-      tronLenCo(CO['co-nen-dam']),
-    )
-    expect(doDuoc, 'chưa đạt 3:1 — nợ của Phase 65').toBeLessThan(
-      TUONG_PHAN_HINH_TOI_THIEU,
-    )
-    expect(doDuoc, 'không được xấu đi').toBeGreaterThanOrEqual(2.8)
+  it('vạch sân trên mặt cỏ đạt ngưỡng hình 3:1 (nợ T790 đã trả ở T799)', () => {
+    expect(
+      tiLeTuongPhan(tronLenCo('rgba(255,255,255,0.55)'), tronLenCo(CO['co-nen-dam'])),
+    ).toBeGreaterThanOrEqual(TUONG_PHAN_HINH_TOI_THIEU)
+  })
+
+  it('và giá trị CŨ thì không đạt — để biết phép kiểm đo thật', () => {
+    expect(
+      tiLeTuongPhan(tronLenCo('rgba(255,255,255,0.45)'), tronLenCo(CO['co-nen-dam'])),
+    ).toBeLessThan(TUONG_PHAN_HINH_TOI_THIEU)
   })
 })
 
@@ -280,32 +276,31 @@ describe('sa bàn: số áo trên màu áo người dùng chọn (AC-50.2)', () 
     '#64748B',
   ]
 
-  /** Màu duy nhất của bảng thử chưa đạt ngưỡng — xem khối NỢ ở trên. */
-  const NO_CHUA_DAT = '#0077DD'
+  /*
+    ✅ **MÓN NỢ THỨ HAI CŨNG ĐÃ TRẢ Ở T799.** Trước đây cả hai lớp vẽ chọn màu
+    chữ bằng `mauChuTuongPhan`, thứ chỉ chọn màu **tốt hơn** trong hai màu — và
+    với `#0077DD` thì "tốt hơn" vẫn chỉ được **4,48:1**, thiếu 0,02.
 
-  for (const mau of MAU_AO_THU.filter((m) => m !== NO_CHUA_DAT)) {
+    Nay cả `San2D.tsx` lẫn `San3D.tsx` đi qua `nenDamBaoTuongPhan`, hàm đã có
+    sẵn trong repo từ spec 001 cho đúng bài toán này. Giá đo được: trên tám màu
+    thử, **bảy màu không đổi một chút nào**, chỉ `#0077DD` dịch **5%**.
+  */
+  for (const mau of MAU_AO_THU) {
     it(`${mau}: số áo trên đĩa/ô cầu thủ đạt 4,5:1`, () => {
-      expect(tiLeTuongPhan(mau, mauChuTuongPhan(mau))).toBeGreaterThanOrEqual(
-        TUONG_PHAN_TOI_THIEU,
-      )
+      const { nen, chu } = nenDamBaoTuongPhan(mau)
+      expect(tiLeTuongPhan(nen, chu)).toBeGreaterThanOrEqual(TUONG_PHAN_TOI_THIEU)
     })
   }
 
-  it(`NỢ: ${NO_CHUA_DAT} chỉ đạt 4,48:1, và nó là nợ CHUNG với San2D`, () => {
-    const doDuoc = tiLeTuongPhan(NO_CHUA_DAT, mauChuTuongPhan(NO_CHUA_DAT))
-    expect(doDuoc, 'chưa đạt 4,5:1 — nợ của Phase 65').toBeLessThan(
+  it('và cách CŨ thì không đạt với #0077DD — để biết phép kiểm đo thật', () => {
+    expect(tiLeTuongPhan('#0077DD', mauChuTuongPhan('#0077DD'))).toBeLessThan(
       TUONG_PHAN_TOI_THIEU,
     )
-    expect(doDuoc, 'không được xấu đi').toBeGreaterThanOrEqual(4.4)
-    /*
-      Đường thoát ĐÃ CÓ SẴN trong repo và cố ý chưa dùng: `nenDamBaoTuongPhan`
-      chỉnh độ sáng của nền để bảo đảm 4,5:1, và khối AC-20.5 ngay dưới chứng
-      minh nó đạt với đúng bảng màu này. Spec 011 không gọi nó vì `San2D.tsx:920`
-      không gọi — và hai góc nhìn vẽ cùng một đội bằng hai sắc khác nhau là một
-      lỗi nặng hơn 0,4% tương phản.
-    */
-    const { nen, chu } = nenDamBaoTuongPhan(NO_CHUA_DAT)
-    expect(tiLeTuongPhan(nen, chu)).toBeGreaterThanOrEqual(TUONG_PHAN_TOI_THIEU)
+  })
+
+  it('bảy trên tám màu KHÔNG bị dịch — giá của việc trả nợ là nhỏ', () => {
+    const biDich = MAU_AO_THU.filter((m) => nenDamBaoTuongPhan(m).daDieuChinh)
+    expect(biDich).toEqual(['#0077DD'])
   })
 })
 
