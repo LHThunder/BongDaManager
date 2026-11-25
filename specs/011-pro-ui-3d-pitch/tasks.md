@@ -267,15 +267,28 @@
   - AC: —
   - Phụ thuộc: T774
   - ⏸ **CHƯA ĐO ĐƯỢC — và cố ý không bịa một con số.** Khung xem trình duyệt của phiên này
-    **đang ẩn**, nên `requestAnimationFrame` bị tiết lưu: một phép đo cho **1,1 fps** trong
-    khi `document.visibilityState` vẫn báo `'visible'`. Con số ấy đo **trình duyệt**, không
-    đo ứng dụng.
-    Bằng chứng nó là rác chứ không phải hiệu năng thật: tải lại sạch một trang rồi đo ngay
-    cho **60,5 fps** (182 khung trong 3,0 giây). Một phép đo 12 giây sau đó thì **treo quá
-    45 giây** vì trang bị tiết lưu giữa chừng.
-    ⚠️ T775 là phép đo **cảnh báo sớm** cho R62, và nếu nó vỡ ngân sách thì **D132 phải mở
-    lại** và phải **hỏi người dùng**. Báo một con số sai ở đây là tệ hơn không báo gì. Cần
-    chạy lại khi khung xem trình duyệt **đang hiện**.
+    **đang ẩn**, nên `requestAnimationFrame` bị tiết lưu dù `document.visibilityState` vẫn
+    báo `'visible'`. Mọi con số đo ra là của **trình duyệt**, không phải của ứng dụng.
+  - 🔬 **Phép đo ĐỐI CHỨNG là thứ kết luận dứt điểm.** Đo bốn lần, mỗi lần ngay sau một cú
+    bấm thật (cú bấm đánh thức trang), cửa sổ 2 giây:
+
+    | Lớp vẽ | Mức | fps đo được |
+    |---|---|---|
+    | Sa bàn | `thuong` | 30,3 |
+    | Sa bàn | `rat-nhanh` | 15,8 |
+    | **Sân 2D (đối chứng)** | `rat-nhanh` | **1,9** |
+
+    Sân 2D — thứ đã chạy qua bốn spec dưới một ngân sách hiệu năng **cứng** — đo ra **1,9
+    fps**, tức **thấp hơn sa bàn tám lần**. Điều đó không thể đúng. Nó chứng minh con số
+    đang phản ánh *trang được đánh thức gần đây đến mức nào*, chứ không phản ánh lớp vẽ.
+    Thêm hai dữ kiện cùng hướng: tải lại sạch rồi đo ngay cho **60,5 fps**, còn một phép đo
+    12 giây thì **treo quá 45 giây** vì bị tiết lưu giữa chừng.
+  - ⚠️ T775 là phép đo **cảnh báo sớm** cho **R62**, và nếu nó vỡ ngân sách thì **D132 phải
+    mở lại** — `three.js` là phương án hợp hiến đang chờ — và lúc ấy phải **hỏi người dùng**,
+    không tự hạ ngưỡng. Báo một con số sai ở đây dẫn thẳng tới một quyết định kiến trúc sai.
+    Cần chạy lại khi khung xem trình duyệt **đang hiện**.
+  - 📌 Phase 62–66 **không bị chặn** bởi task này: nó là cảnh báo sớm, còn phép đo nghiệm
+    thu là **T804** (cả năm mức tốc độ).
 
 - [x] **T776** [P] — Xác nhận không thêm một phụ thuộc nào.
   - File: `package.json` (chỉ đọc)
