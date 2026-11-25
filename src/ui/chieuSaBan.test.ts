@@ -420,3 +420,62 @@ describe('thuTuDoSau — xa vẽ trước, gần vẽ sau (T770, D137)', () => {
     expect([...thuTu].sort((a, b) => a - b)).toEqual(Array.from({ length: 22 }, (_, i) => i))
   })
 })
+
+describe('HE_SO_CAO sống ở ĐÚNG MỘT chỗ (T791, AC-46.6, D133)', () => {
+  /*
+    Hệ số phóng đại là con số DUY NHẤT trong dự án cố ý nói sai sự thật về hình
+    học. Một bản sao thứ hai của nó là chỗ để màn hình nói ×3 trong khi phép
+    chiếu vẽ ×2 — và không gì đỏ.
+
+    Đọc nguồn thật bằng `import.meta.glob` + `?raw`, đúng khuôn `coHoc.test.ts`
+    đã đặt: chép lại danh sách file vào đây là tạo thêm một bản sao nữa.
+  */
+  const NGUON = import.meta.glob('../**/*.{ts,tsx}', {
+    query: '?raw',
+    import: 'default',
+    eager: true,
+  }) as Record<string, string>
+
+  /** Bóc chú thích, đúng khuôn `chiCode` của `coHoc.test.ts`. */
+  function chiCode(nguon: string): string {
+    return nguon
+      .replace(/\/\*[\s\S]*?\*\//g, ' ')
+      .replace(/(^|[^:])\/\/[^\n]*/g, '$1 ')
+  }
+
+  /** Lấy nguồn theo HẬU TỐ đường dẫn — khoá của `import.meta.glob` đã chuẩn hoá. */
+  function nguonCua(duoi: string): string {
+    const khoa = Object.keys(NGUON).find((k) => k.endsWith(duoi))
+    expect(khoa, `không tìm thấy nguồn kết thúc bằng ${duoi}`).toBeDefined()
+    return NGUON[khoa!]!
+  }
+
+  it('chỉ MỘT file gán giá trị cho HE_SO_CAO', () => {
+    const ganO = Object.entries(NGUON)
+      .filter(([, m]) => /HE_SO_CAO\s*=\s*\d/.test(chiCode(m)))
+      .map(([f]) => f.replace(/^.*\//, ''))
+    expect(ganO).toEqual(['chieuSaBan.ts'])
+  })
+
+  it('và chỉ gán ĐÚNG MỘT lần trong file ấy', () => {
+    const soLan = (chiCode(nguonCua('/chieuSaBan.ts')).match(/HE_SO_CAO\s*=\s*\d/g) ?? [])
+      .length
+    expect(soLan).toBe(1)
+  })
+
+  it('chống rỗng: phép kiểm có thật sự đọc được nguồn không', () => {
+    expect(Object.keys(NGUON).length).toBeGreaterThan(50)
+    expect(nguonCua('/chieuSaBan.ts')).toContain('HE_SO_CAO')
+  })
+
+  it('hai tệp ngôn ngữ KHÔNG viết thẳng hệ số vào câu chữ', () => {
+    /*
+      `doCaoDaPhongDai` nhận hệ số bằng THAM SỐ. Viết thẳng "×3" vào `vi.ts` và
+      `en.ts` là đẻ thêm hai bản sao mà phép kiểm trên không bắt được, vì chúng
+      không có chữ `HE_SO_CAO` nào.
+    */
+    for (const f of ['/ngonNgu/vi.ts', '/ngonNgu/en.ts']) {
+      expect(chiCode(nguonCua(f)), f).not.toMatch(/[×x]\s*3\b/)
+    }
+  })
+})

@@ -1193,6 +1193,28 @@ export const SAN_2D_VI = {
    */
   doCaoDaPhongDai: (heSo: number) =>
     `Độ cao của bóng đã được phóng đại ×${heSo} cho dễ nhìn; vị trí trên mặt sân thì đúng mét.`,
+
+  /*
+    Tóm tắt sa bàn cho trình đọc màn hình (T789, AC-50.5).
+
+    Sa bàn KHÔNG dùng lại `moTaSan` được: câu ấy mở đầu bằng "Sân 2D", và một
+    trình đọc màn hình nói "Sân 2D" khi người dùng đang ở sa bàn là nói sai.
+
+    Câu này gộp hai phần, đúng khuôn `moTaDiem` đã đặt: phần **cố định** nói nó
+    LÀ gì, phần **động** nói nó đang hiển thị gì. Gộp vào một `aria-label` chứ
+    không dựng vùng `aria-live`: sa bàn đổi 60 lần một giây, và một vùng sống
+    sẽ đọc liên tục không ngớt — đó là làm hỏng trải nghiệm chứ không phải phục
+    vụ nó.
+  */
+  moTaSaBan: (nha: string, khach: string) =>
+    `Sa bàn: sân nhìn nghiêng từ trên xuống, ${nha} đá từ trái sang phải, ${khach} đá từ phải sang trái. Chủ nhà là hình tròn, đội khách là hình vuông.`,
+  tomTatSaBan: (soNguoi: number, zBongMet: number | null) => {
+    const phan = [`Đang vẽ ${soNguoi} cầu thủ.`]
+    if (zBongMet === null) phan.push('Không có bóng trên sân.')
+    else if (zBongMet <= 0) phan.push('Bóng đang lăn trên mặt sân.')
+    else phan.push(`Bóng đang trên không, cao khoảng ${zBongMet.toFixed(1)} mét.`)
+    return phan.join(' ')
+  },
 } as const
 
 /** Câu cho từng lý do can thiệp bị từ chối. */

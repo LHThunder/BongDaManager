@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **52 AC**, nhóm 46–53) |
 | **Plan** | `./plan.md` (Status `Draft`, D130–D143, R60–R66) |
-| **Tiến độ** | 14/50 — Phase 62 dừng ở T777, xem khối ⛔ ở đó |
+| **Tiến độ** | 19/50 — Phase 62 dừng ở T777 (xem khối ⛔ ở đó); Phase 63 xong |
 | **Nền đo** | commit `5265d37`, engine v6, **84 file test / 1.733 phép kiểm xanh**, bộ kiểm chạy hết **152 giây** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -417,40 +417,89 @@
 
 ## Phase 63 — Lát 3: đọc được
 
-- [ ] **T787** — Số áo là **lớp phủ cỡ cố định**.
+- [x] **T787** — Số áo là **lớp phủ cỡ cố định**.
   - File: `src/ui/components/San3D.tsx`
   - Nội dung: D140 — `<text>` cỡ cố định trong hệ viewBox, **không co theo độ sâu**, luôn quay mặt về người xem. Chữ co theo độ sâu sẽ làm **AC-15.1 (đếm được điểm) hỏng ở nửa sân**.
   - Xong khi: số áo ở đầu xa đọc được **bằng** số áo ở đầu gần; đếm đủ 22 số.
   - AC: AC-50.6
   - Phụ thuộc: T786
+  - ✅ **Xong 2026-11-25.** Đo trên DOM bản chạy: **22 số áo**, và `font-size` chỉ có **đúng
+    một giá trị** (`2.8`) trên cả 22 — tức không co theo độ sâu, số ở đầu xa đọc được bằng số
+    ở đầu gần.
+  - 📝 Số áo vẽ **cùng nhóm** với hình của chính nó chứ không gom thành một lớp phủ trên cùng:
+    gom lên trên thì số của người ở đầu **xa** sẽ đè lên đĩa của người ở đầu **gần**, tức lớp
+    3D nói dối về độ sâu.
+  - ⚠️ **Phụ thuộc T786 là một CỔNG, không phải nguồn.** T786 chỉ chạy lệnh (suite xanh, engine
+    rỗng, San2D không đổi); không nội dung nào của Phase 63 cần kết quả của T778–T785. Nên
+    Phase 63 chạy được trong khi Phase 62 còn dừng. Ghi ra để người đọc sau không tưởng đây là
+    một phụ thuộc bị bỏ qua.
 
-- [ ] **T788** — Hai đội phân biệt bằng **thêm một kênh ngoài màu**.
+- [x] **T788** — Hai đội phân biệt bằng **thêm một kênh ngoài màu**.
   - File: `src/ui/components/San3D.tsx`
   - Nội dung: hình dạng hoặc hoa văn khác nhau, đủ đọc trong ảnh đen trắng (P9: "không chỉ dựa màu"). Màu áo vẫn đi qua `src/ui/mauAo.ts` đang lo tương phản.
   - Xong khi: chụp màn hình, chuyển đen trắng — vẫn nói được đội nào là đội nào.
   - AC: AC-50.3
   - Phụ thuộc: T787
+  - ✅ **Xong 2026-11-25.** Chủ nhà là **đĩa tròn**, đội khách là **hình vuông bo góc**. Đo:
+    11 `<circle>` + 11 `<rect>`, và hai hình **cùng diện tích 21,24** đơn vị² (`a = r·√π`) nên
+    không đội nào "nặng" hơn trên màn hình.
+  - 📝 Chọn **hình dạng** chứ không hoa văn: hoa văn chiếm đúng chỗ mà số áo cần, còn hình dạng
+    chừa trống giữa. Và cùng diện tích thì `phanBietDuoc` (T781) đo bằng bán kính vẫn đúng.
 
-- [ ] **T789** — Tóm tắt cho trình đọc màn hình.
+- [x] **T789** — Tóm tắt cho trình đọc màn hình.
   - File: `src/ui/components/San3D.tsx`, `src/ui/ngonNgu/`
   - Nội dung: `San3D` tự giới thiệu được nó là gì và đang hiển thị gì ở mức tóm tắt, theo khuôn `moTaDiem` của `San2D`. Chuỗi đủ hai bản Việt–Anh trong cùng commit.
   - Xong khi: trình đọc màn hình **không im lặng** khi gặp sa bàn; `npx vitest run src/ui/ngonNgu` xanh.
   - AC: AC-50.5
   - Phụ thuộc: T788
+  - ✅ **Xong 2026-11-25.** Đo `aria-label` trên bản chạy, cả hai ngôn ngữ.
+  - 🔴 **Bắt được một lỗi khi làm task này:** `San3D` đang mượn `moTaSan` của sân 2D, mà câu ấy
+    mở đầu bằng **"Sân 2D: …"** — trình đọc màn hình sẽ nói "Sân 2D" trong khi người dùng đang
+    ở sa bàn. Đã thay bằng `moTaSaBan` + `tomTatSaBan` riêng.
+  - 📝 Gộp vào **một** `aria-label` chứ không dựng vùng `aria-live`: sa bàn đổi 60 lần một
+    giây, và một vùng sống sẽ đọc liên tục không ngớt.
 
-- [ ] **T790** — Đo tương phản của lớp 3D ở **cả hai** chủ đề.
+- [x] **T790** — Đo tương phản của lớp 3D ở **cả hai** chủ đề.
   - File: `src/ui/theme.test.ts`
   - Nội dung: thêm cặp màu của sa bàn vào bảng `CAP` đang có; đo trên **cả** khối `:root` và `:root[data-che-do='toi']` như file ấy đang làm.
   - Xong khi: mọi chữ đạt **≥ 4,5:1** ở cả hai chủ đề; phép kiểm xanh.
   - AC: AC-50.2
   - Phụ thuộc: T789
+  - ✅ **Xong 2026-11-25**, `theme.test.ts` đi từ 60 lên **66 phép kiểm**. Sa bàn **không thêm
+    một biến màu nào** — nó dùng lại đúng nhóm `co-*` của sân 2D.
+  - 🔴 **Bắt được một lỗi của chính spec 011, và một con số KHÔNG DỰNG NỔI.** Dấu chiếu quả
+    bóng vẽ bằng `rgba(0,0,0,0.35)` đo ra **1,50:1** trên mặt cỏ — gần như vô hình. Và không
+    thể chữa bằng cách làm đậm hơn: **đen tuyền** trên mặt cỏ ấy cũng chỉ đạt **2,99:1**, tức
+    **mọi** vệt tối đều dưới ngưỡng 3:1 của WCAG cho thành phần phi văn bản.
+    AC-46.2 gọi nó là **"dấu chiếu"**, không phải bóng đổ vật lý — nên nó được phép **sáng**.
+    Đổi thành vòng **rỗng ruột** viền `--co-vien` (biến đã có): **4,34:1**. Rỗng ruột để không
+    bị nhầm thành quả bóng thứ hai. Phép kiểm ghim luôn cả trần 2,99:1 để không ai "sửa lại cho
+    giống bóng đổ thật".
+  - ⚠️ **HAI MÓN NỢ CÓ TÊN, và chúng KHÔNG do spec 011 gây ra** — cả hai là chuỗi/hàm mà
+    `San2D` đang dùng y hệt, sa bàn chỉ **kế thừa**:
+    - vạch sân `rgba(255,255,255,0.45)` trên mặt cỏ → **2,72:1** (ngưỡng hình 3:1)
+    - số áo chọn bằng `mauChuTuongPhan` trên `#0077DD` → **4,48:1** (ngưỡng chữ 4,5:1)
 
-- [ ] **T791** — Chốt `HE_SO_CAO` có đúng một chỗ, và nói được cho người dùng.
+    Không sửa ở đây vì sửa là đổi diện mạo `San2D` — thuộc **Phase 65**; và chỉ đổi màu áo
+    riêng cho sa bàn sẽ làm **hai góc nhìn vẽ cùng một đội bằng hai sắc khác nhau**, một lỗi
+    nặng hơn 0,4% tương phản. Hai phép kiểm được viết thành **bánh cóc**: chúng khẳng định con
+    số hiện **chưa đạt**, và sẽ đỏ nếu nó xấu đi — không giả vờ rằng ngưỡng đã đạt.
+    📌 Đường thoát đã có sẵn trong repo (`nenDamBaoTuongPhan`) và phép kiểm chỉ thẳng vào nó.
+
+- [x] **T791** — Chốt `HE_SO_CAO` có đúng một chỗ, và nói được cho người dùng.
   - File: `src/ui/chieuSaBan.test.ts`, trang xem trận
   - Nội dung: phép kiểm đếm số chỗ `HE_SO_CAO` xuất hiện trong `src/` = **1**; giao diện mang nhãn T773 nói độ cao đã được phóng đại — để không ai tưởng sa bàn đúng tỉ lệ cả ba trục.
   - Xong khi: phép kiểm xanh; nhãn nhìn thấy được trên màn hình, cả hai ngôn ngữ.
   - AC: AC-46.6
   - Phụ thuộc: T790
+  - ✅ **Xong 2026-11-25.** 4 phép kiểm mới đọc **nguồn thật** bằng `import.meta.glob` + `?raw`
+    (khuôn `coHoc.test.ts`): chỉ `chieuSaBan.ts` gán `HE_SO_CAO`, và chỉ gán **một lần**; cộng
+    một phép **chống rỗng** (đọc được > 50 file).
+  - 📝 Phép kiểm thứ tư canh một lỗ mà ba phép trên không thấy: **hai tệp ngôn ngữ không được
+    viết thẳng "×3"**. `doCaoDaPhongDai` nhận hệ số bằng tham số, nên hằng vẫn ở đúng một chỗ.
+    Phải bóc chú thích trước khi so — lần chạy đầu nó bắt đúng câu chú thích dặn *đừng* viết ×3.
+  - ✅ Nhãn hiện trên màn hình ở **cả hai** ngôn ngữ: *"Độ cao của bóng đã được phóng đại ×3…"*
+    và *"Ball height is exaggerated ×3…"*; nút đọc "View: Diorama" khi đổi sang tiếng Anh.
 
 ---
 

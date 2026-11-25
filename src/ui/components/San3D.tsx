@@ -92,7 +92,27 @@ const BAN_KINH_NGUOI = BAN_KINH
 /** Bán kính quả bóng, đơn vị ảnh. Chính con số mà AC-46.1 lấy làm ngưỡng. */
 const BAN_KINH_BONG = 1.7
 
-export function San3D({ nha, khach, msMoiPhut, dangChay, loMoc, soLo = 0, oCuaNguoi }: Props) {
+/**
+ * Cạnh hình vuông của đội khách, chọn để **cùng diện tích** với đĩa chủ nhà.
+ *
+ * `a = r·√π` cho `a² = π·r²`. Cùng diện tích thì hai đội "nặng" như nhau trên
+ * màn hình — một bên to hơn sẽ thành một thứ bậc thị giác mà không AC nào đòi.
+ */
+const CANH_KHACH = BAN_KINH_NGUOI * Math.sqrt(Math.PI)
+
+/** Cỡ chữ số áo, **cố định** trong hệ viewBox — xem T787 ở chỗ vẽ. */
+const CO_SO_AO = 2.8
+
+export function San3D({
+  nha,
+  khach,
+  msMoiPhut,
+  dangChay,
+  loMoc,
+  soLo = 0,
+  oCuaNguoi,
+  soAo,
+}: Props) {
   const { SAN_2D } = useChuoi()
   const v = chieuMatSan(KHUNG)
 
@@ -167,11 +187,19 @@ export function San3D({ nha, khach, msMoiPhut, dangChay, loMoc, soLo = 0, oCuaNg
 
   /** 22 cầu thủ, đã chiếu. Vị trí đi qua ĐÚNG MỘT đường đọc: `viTriMetLienTuc`. */
   const nguoi = anhChup
-    ? [nha, khach].flatMap((doi) =>
+    ? [nha, khach].flatMap((doi, iDoi) =>
         doi.ben.trenSan.flatMap((id) => {
           const met = viTriMetLienTuc(anhChup, id)
           if (!met) return []
-          return [{ id, mauAo: doi.mauAo, diem: chieuDiem(KHUNG, met.xMet, met.yMet, 0) }]
+          return [
+            {
+              id,
+              mauAo: doi.mauAo,
+              laChuNha: iDoi === 0,
+              so: soAo(id),
+              diem: chieuDiem(KHUNG, met.xMet, met.yMet, 0),
+            },
+          ]
         }),
       )
     : []
@@ -214,7 +242,10 @@ export function San3D({ nha, khach, msMoiPhut, dangChay, loMoc, soLo = 0, oCuaNg
       viewBox={`0 0 ${RONG_SA_BAN} ${CAO}`}
       className="w-full rounded-lg border border-vien-dam bg-nen-nhan"
       role="img"
-      aria-label={SAN_2D.moTaSan(nha.ten, khach.ten)}
+      aria-label={`${SAN_2D.moTaSaBan(nha.ten, khach.ten)} ${SAN_2D.tomTatSaBan(
+        nguoi.length,
+        bong ? bong.zMet : null,
+      )}`}
       data-goc-nhin="sa-ban"
     >
       {/*
@@ -256,15 +287,70 @@ export function San3D({ nha, khach, msMoiPhut, dangChay, loMoc, soLo = 0, oCuaNg
         (AC-46.5). Ô `coMat = 0` thì `viTriMetLienTuc` trả `null` và không vẽ.
       */}
       {nguoiTheoDoSau.map((n) => (
-        <circle
-          key={n.id}
-          cx={n.diem.x}
-          cy={n.diem.y}
-          r={BAN_KINH_NGUOI}
-          fill={n.mauAo}
-          stroke={mauChuTuongPhan(n.mauAo)}
-          strokeWidth={0.3}
-        />
+        <g key={n.id}>
+          {/*
+            HAI KÊNH, KHÔNG CHỈ MÀU (T788, P9).
+
+            Chủ nhà là **đĩa tròn**, đội khách là **hình vuông bo góc** cùng
+            diện tích. Hình dạng là kênh đọc được trong ảnh đen trắng, còn màu
+            áo thì không — hai đội có thể chọn hai màu cùng độ sáng, và lúc ấy
+            ảnh xám chỉ còn hai vệt y hệt nhau.
+
+            Vì sao chọn hình dạng chứ không hoa văn: hoa văn chiếm chính chỗ mà
+            số áo cần, còn hình dạng thì chừa trống giữa. Và hai hình cùng diện
+            tích nên `phanBietDuoc` (T781) đo bằng bán kính vẫn đúng.
+          */}
+          {n.laChuNha ? (
+            <circle
+              cx={n.diem.x}
+              cy={n.diem.y}
+              r={BAN_KINH_NGUOI}
+              fill={n.mauAo}
+              stroke={mauChuTuongPhan(n.mauAo)}
+              strokeWidth={0.3}
+            />
+          ) : (
+            <rect
+              x={n.diem.x - CANH_KHACH / 2}
+              y={n.diem.y - CANH_KHACH / 2}
+              width={CANH_KHACH}
+              height={CANH_KHACH}
+              rx={CANH_KHACH / 4}
+              fill={n.mauAo}
+              stroke={mauChuTuongPhan(n.mauAo)}
+              strokeWidth={0.3}
+            />
+          )}
+
+          {/*
+            SỐ ÁO: CỠ CỐ ĐỊNH, KHÔNG CO THEO ĐỘ SÂU (T787, D140).
+
+            Phép chiếu dẹt chiều sâu đi `sin 50°`, nên một chữ co theo độ sâu sẽ
+            nhỏ đi ở nửa sân xa — và **AC-15.1 (đếm được từng điểm) hỏng đúng ở
+            nửa ấy**. Chữ vì thế có cỡ cố định trong hệ viewBox: số ở đầu xa đọc
+            được **bằng** số ở đầu gần.
+
+            Camera yaw 0 và không quay, nên chữ dựng đứng là đã quay mặt về
+            người xem; không cần phép xoay ngược nào.
+
+            Vẽ CÙNG nhóm với hình của chính nó chứ không gom thành một lớp phủ
+            trên cùng: gom lên trên thì số của người ở đầu XA sẽ đè lên đĩa của
+            người ở đầu GẦN, tức lớp 3D nói dối về độ sâu.
+          */}
+          {n.so !== null && (
+            <text
+              x={n.diem.x}
+              y={n.diem.y}
+              fontSize={CO_SO_AO}
+              textAnchor="middle"
+              dominantBaseline="central"
+              fill={mauChuTuongPhan(n.mauAo)}
+              aria-hidden="true"
+            >
+              {n.so}
+            </text>
+          )}
+        </g>
       ))}
 
       {/*
@@ -277,12 +363,28 @@ export function San3D({ nha, khach, msMoiPhut, dangChay, loMoc, soLo = 0, oCuaNg
       {bong && (
         <g aria-hidden="true">
           {bong.zMet > 0 && (
+            /*
+              DẤU CHIẾU LÀ MỘT VÒNG SÁNG, KHÔNG PHẢI MỘT VỆT TỐI (T790, AC-50.2).
+
+              Bản đầu vẽ nó bằng `rgba(0,0,0,0.35)` như một cái bóng đổ. Đo ra
+              **1,50:1** trên mặt cỏ — gần như vô hình. Và đây là một con số
+              **không dựng nổi** theo hướng ấy: đen **tuyền** trên mặt cỏ này
+              cũng chỉ đạt **2,99:1**, tức mọi vệt tối đều dưới ngưỡng 3:1 mà
+              WCAG đặt cho thành phần phi văn bản.
+
+              AC-46.2 gọi nó là **"dấu chiếu"**, không phải bóng đổ vật lý — nên
+              nó được phép sáng. `--co-vien` (biến đã có, không thêm màu mới)
+              cho **4,34:1**. Vẽ rỗng ruột để nó không bị nhầm thành quả bóng
+              thứ hai: bóng là đĩa đặc có viền tối, dấu chiếu là vòng rỗng.
+            */
             <ellipse
               cx={bong.matSan.x}
               cy={bong.matSan.y}
               rx={BAN_KINH_BONG}
               ry={BAN_KINH_BONG * (v.vongGiua.ry / v.vongGiua.rx)}
-              fill="rgba(0,0,0,0.35)"
+              fill="none"
+              stroke="var(--co-vien)"
+              strokeWidth={0.4}
             />
           )}
           <circle
