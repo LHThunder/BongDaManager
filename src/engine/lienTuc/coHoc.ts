@@ -106,8 +106,25 @@ export function tocDoToiDa(chiSoTocDo: number | undefined): number {
  */
 export const GIA_TOC_TOI_DA = 5.2
 
+/**
+ * Trần **tăng tốc** mà AC-38.2 phát biểu, m/s² — khác trần của mô hình.
+ *
+ * ⚠️ **Hai con số, hai việc, và trộn chúng là một lớp lỗi thật.** `GIA_TOC_TOI_DA`
+ * (5,2) là chỗ mô hình **nhắm tới**; con số dưới đây là chỗ **AC cấm vượt**. Lề
+ * 13,3% giữa chúng tồn tại vì phép đo gia tốc chồng hai lần làm tròn — và vì
+ * hai cổng cuối của `buocCoHoc` cắt tốc độ **sau** phép kẹp, nên `|Δv|` của một
+ * bước có thể nhỉnh hơn `a × dt` (đo được 7,2047 ở T731).
+ *
+ * `doCoHoc` của **T742** đo trên tệp xuất phải so với con số của **AC**, không
+ * với con số của mô hình: đo trên tệp là đo thứ người ngoài kiểm được.
+ */
+export const TRAN_GIA_TOC_AC_38_2 = 6
+
 /** Giảm tốc tối đa, m/s². **AC-38.2 cho 8; ở đây 7,2**, cùng lý lẽ lề. */
 export const GIAM_TOC_TOI_DA = 7.2
+
+/** Trần **giảm tốc** mà AC-38.2 phát biểu, m/s² — mô hình nhắm 7,2 dưới nó. */
+export const TRAN_GIAM_TOC_AC_38_2 = 8
 
 /** Dưới tốc độ này, người ta xoay người tự do — kể cả quay ngoắt 180°. */
 export const NGUONG_BANG_CHAM = 3.0

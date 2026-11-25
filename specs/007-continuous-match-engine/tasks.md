@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **30 AC**) |
 | **Plan** | `./plan.md` (Status `Approved`, D117–D134, R51–R64) |
-| **Tiến độ** | 38/50 |
+| **Tiến độ** | 39/50 |
 | **Nền đo** | commit `5c652eb`, engine v6, **1.304 test xanh / 63 file test** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -1827,7 +1827,7 @@ trận tiến theo giây**. Vòng cấm và khung thành vẽ đúng mét.
     ngoài từ vựng → 1 đỏ. Cộng một đột biến ở chỗ nối: dựng nhật ký từ `dongSuKien` → 2 đỏ.
   - 📏 Toàn bộ: **83 file / 1.682 phép kiểm xanh**.
 
-- [ ] **T742** — `lienTuc/doCoHoc.ts` + bộ test **ngược** + test độc lập thứ tự cột
+- [x] **T742** — `lienTuc/doCoHoc.ts` + bộ test **ngược** + test độc lập thứ tự cột
   - File: tạo `src/engine/lienTuc/doCoHoc.ts`, `src/engine/lienTuc/doCoHoc.test.ts`; sửa
     `src/engine/lienTuc/tepXuat.ts` (export kiểu đã parse + `khoa_bong`/`khoa_nguoi`),
     `src/engine/lienTuc/coHoc.ts` (export ba trần số)
@@ -1844,6 +1844,91 @@ trận tiến theo giây**. Vòng cấm và khung thành vẽ đúng mét.
     tồn tại khi dải 15–25 m còn bất khả thi, và dải **15–35 m** canh tuyệt đối được (người dùng
     chốt câu 6). Ba trần số (9 m/s, gia tốc 6, giảm tốc 8) phải **import** từ `coHoc.ts`, không
     chép số — chép là sinh hai nguồn cho cùng một ngưỡng.
+  - 🐞🐞 **Lỗi lớn nhất của task nằm trong CHÍNH BỘ ĐO, và chỉ bộ test NGƯỢC bắt được.**
+    `lechGoc` bản đầu của tôi là `180 - Math.abs(((a-b+540)%360)-180)` — **đảo dấu**: nó trả
+    **0** cho hai hướng ngược nhau và **180** cho hai hướng trùng nhau. Chiều thuận vẫn chạy
+    trơn, vẫn ra một bảng số trông rất thuyết phục: **30.553** vi phạm, trong đó **12.171** ở
+    AC-38.3(i) với chú thích "đổi hướng 180°" — toàn bộ là những người đang chạy **thẳng**. Ca
+    ngược "bơm một cú quay 180° ở 5 m/s" ra **0** vi phạm là chỗ duy nhất nói ra điều đó. Sau
+    khi sửa: **1.606** vi phạm. Bài học ghi thẳng vào `lechGoc`: **"nhiều vi phạm hơn" không
+    phải dấu hiệu một phép đo đang làm việc** — một dấu trừ sai cho ra nhiều hơn, không ít hơn.
+  - ⚠️⚠️ **Và tôi đã suýt báo một "lỗ thứ chín" không tồn tại.** Giữa task tôi đo được
+    AC-38.4(lùi) **9.225/118.795** và AC-38.11 **9.272/121.648** vi phạm *trên vận tốc thật*,
+    rồi thấy `lechToiDaTheoTocDo`, `tranTheoKieu`, `phanLoaiHuong` **không có người gọi** ngoài
+    `coHoc.test.ts` — khớp hoàn hảo với khuôn tám lỗ trước. Cả hai con số là do `lechGoc` đảo.
+    Đo lại: **0/48** và **0/124.111**, lệch vượt lề lớn nhất **0,00°**. Trần quay thân người
+    của `huongNguoiMocSau` **đủ** giữ cả hai AC; ba ký hiệu kia không có người gọi vì **không
+    cần**, không vì bị bỏ quên. Khuôn mẫu đúng tám lần không làm lần thứ chín thành thật.
+  - 📏 **Mô hình SẠCH khi đo trên vận tốc của chính nó** (`vx, vy` float64 trong
+    `TrangThaiLienTuc`, không qua phép làm tròn của tệp): tốc độ lớn nhất **9,0000** m/s —
+    chạm đúng trần AC-38.1 không vượt; `|Δv|` lớn nhất **7,2000** m/s² dưới trần 8;
+    AC-38.3(i) **0/7.690** cặp có `Δθ > 90°` (cổng quay ba băng của D123 làm đúng việc, và có
+    **7.690 mẫu thật** chứ không xanh rỗng); AC-38.3(ii) **0/6.739**; AC-38.4(lùi) **0/48**;
+    AC-38.11 **0/124.111**.
+  - 📏 **Nhưng đo trên DỊCH CHUYỂN — tức đúng thứ người đọc tệp đo được, và đúng thứ AC-45.6
+    nói tới — thì còn 1.606 vi phạm / ~150.000 mẫu**, ổn định quanh đó trên 5 mã (1.606 /
+    1.678 / 1.557 / 1.615 / 1.705). Chi tiết: AC-38.1(i) **15** (max **9,96** m/s),
+    AC-38.1(ii) **12** (max **5,00** giây), AC-38.2(tăng) **255** (max **13,35** m/s²),
+    AC-38.2(giảm) **11** (max **10,24**), AC-38.3(i) **443**, AC-38.3(ii) **860**,
+    AC-38.4(ngang) **5**, AC-38.11 **5**. Sáu vế **ĐẠT có mẫu**: AC-38.4(lùi) 0/180,
+    AC-38.5(khống chế) 0/146, AC-38.9 0/1, AC-38.10(c) 0/11.958, AC-38.10(d) 0/5.979.
+  - ⚠️ **Món nợ ấy có HAI nguồn có tên, và cả hai nằm NGOÀI phạm vi T742** (T742 là task
+    **đo**), nên chúng được trình cho người dùng kèm con số chứ không tự sửa:
+    **(1) `tachChen` đẩy người ra khỏi nhau SAU phép bước**, và phần đẩy ấy không đi qua trần
+    nào — nguồn của 15 mốc AC-38.1(i) và phần lớn 255 mốc AC-38.2(tăng).
+    **(2) Mốc thường cách 1 giây, tích phân chạy 0,5 giây** — hai bước một mốc. Một người quay
+    85° mỗi bước (băng giữa của D123) thì giữa hai **mốc** đã quay 170°, trong khi AC-38.3 nói
+    về "tốc độ ở **mốc** ngay trước đó" — nguồn của 443 + 860 mốc AC-38.3.
+  - ⚠️ **Bốn vế có 0 MẪU, và chúng được KHAI RA bằng tên chứ không im** (`VE_CHUA_CO_MAU`,
+    `VE_KHONG_DO_DUOC_TU_TEP`), vì một vế 0 mẫu trả "không vi phạm" **y hệt** một vế đã đo và
+    đạt: **AC-38.7** (mô hình pha bóng không có trạng thái "bóng lăn tự do" — thuộc spec 008;
+    hôm nay canh ở mức hàm thuần trong `vatLyBong.test.ts`); **AC-38.5(đánh đầu)** và **cả hai
+    vế AC-38.6**. Ba vế sau cùng một nguyên nhân: `dienPha.ts:182` đặt
+    `nguoiGiu = phaCon === 'bongChet' ? KHONG_AI_GIU : chiSoNguoiGiu`, tức **một người cho cả
+    pha**, kể cả những mốc quả bóng đang bay. Đo được: bóng đi **14.875,81 m** ở các mốc *có*
+    `nguoi_giu` và **0,00 m** ở 1.932 mốc `-1`. Nên tệp **không có dấu hiệu nào** nói "bóng đã
+    rời chân", và `trang_thai: 'danh_dau'` **không xuất hiện một lần** trong 15.180 ô-khung
+    dày. AC-38.6 vẫn **được canh** — ở mức hàm thuần, T726, 10 mã — chỉ **không đo được từ
+    tệp**, tức đúng chỗ AC-45.6 hứa.
+  - ⚠️ **Hai mệnh đề (a) và (b) của AC-38.10 KHÔNG đo được từ tệp, và đó là một lệch có tên.**
+    (a) nói về chỗ trọng tài **nhắm tới**, (b) về đoạn thẳng **đường chuyền** — tệp chứa vị trí
+    **thật** ở từng mốc, không chứa đích cũng không chứa đường chuyền. Dựng lại hai thứ ấy từ
+    tệp là **chạy lại engine**, và một phép đo tự dựng đầu vào của mô hình rồi so với đầu ra
+    của chính mô hình thì không bác được gì. Hai vế ấy canh ở mức hàm thuần (T716).
+  - ⚠️ **Ca "bơm trọng tài ra 36 m" của điều kiện ra KHÔNG đỏ được, và tôi không đổi số cho
+    nó đỏ.** Điều kiện ra viết ngày 2026-11-23, khi (a) còn là phép kiểm **tuyệt đối** trên
+    khoảng cách **thật** trong dải [15; 35] m. Hai lần làm rõ sau (câu 25 và câu 26) đã **tách
+    đích khỏi độ trễ**: khoảng cách thật nay do (d) kẹp, lề **50 m** quanh 25 m — nên 36 m lệch
+    **11 m** và **đúng theo AC hôm nay**. Phép kiểm khẳng định **cả hai nửa**: 36 m không đỏ,
+    **80 m** thì đỏ (độ lệch 55 m). Trình cho người dùng, không tự chỉnh điều kiện ra.
+  - ✅ **Lề của mọi phép so DẪN XUẤT từ phép làm tròn của tệp, không đặt tay** — đây là bài học
+    ULP của T704 ở một tầng khác: ở đó `Float32Array` làm 9 thành 9,0000005, ở đây `tron(x, 2)`
+    làm mỗi toạ độ lệch tới 0,005 m và phép chia cho `Δt` nhỏ **phóng đại** nó.
+    `LE_TRON_MET = 0,005` → `LE_QUANG = 4·LE_TRON_MET` → `LE_TOC = LE_QUANG/0,5` →
+    `LE_GIA_TOC = 2·LE_TOC/0,5`. Và `QUANG_TOI_THIEU_GOC = 1` m vì góc của một vector ngắn là
+    vô định: hai toạ độ lệch 0,005 m trên một bước 0,02 m cho một hướng gần như ngẫu nhiên.
+  - ✅ **Lề của AC-38.10(c) là con số mà `coHoc.test.ts` (T716) đã ghi là "để sau", nay đo ra:**
+    ở T716 vế (c) đúng **theo cấu trúc** vì `viTriTrongTai` trả thẳng `xTroLy(hậu vệ cuối)`;
+    trên tệp nó là **vị trí thật** nên mang theo độ trễ đuổi. Lệch lớn nhất trên 5 mã:
+    **21,00 / 19,08 / 17,91 / 19,56 / 19,13 m** → lề đặt **25 m**, dư 19%.
+  - ✅ **Phép đo chẻ tới mức VẾ, không mức AC** — 17 vế cho 10 AC. Một bảng số mẫu theo AC sẽ
+    báo "AC-38.3: 19.397 mẫu" trong khi vế (ii) có 0, và chính chỗ **không gọi tên vế (ii)** là
+    cách nó biến mất khỏi cả ba tài liệu lần đầu.
+  - ✅ **"Đúng một `ViPham`" đọc là "đúng một của VẾ ẤY", và đó là sự thật về cơ học chứ không
+    phải một chỗ nới lỏng**: một ô nhảy 9,5 m trong một giây **là** cả vi phạm trần tốc độ lẫn
+    trần gia tốc, vì nó đi từ 0 lên 9,5 m/s. Đòi "đúng một trong cả tệp" là đòi một phép bơm
+    không tồn tại. **16 vế** đều có ca ngược đỏ được, và một phép kiểm khẳng định danh sách ấy
+    phủ mọi vế trừ AC-38.7.
+  - 🐞 **Hai ca ngược đầu của tôi bị `if (h < 2) continue` bỏ qua IM LẶNG**: hai vế hướng mặt
+    cần **hai** bước liền nhau, nên một phép bơm ở mốc **thứ hai** không bao giờ tới được chỗ
+    kiểm. Đã dời sang mốc thứ ba, và ghi lý do ngay tại hai ca ấy.
+  - ✅ **Chín phép đột biến, chín lần đỏ**: `lechGoc` đảo lại → **11 đỏ**; lề trợ lý 25→100 →
+    3 đỏ; ngưỡng pha dài 7→20 → 3 đỏ; tỉ lệ 38.3(ii) 0,6→1,5 → 4 đỏ; ngưỡng 38.3(i) 3→8 →
+    4 đỏ; `QUANG_TOI_THIEU_GOC` 1→7 → **13 đỏ**; tra cột bằng số thứ tự cứng thay vì tên →
+    2 đỏ; bỏ một dòng `dem()` → 2 đỏ; đổi trần AC-38.2 sang trần **mô hình** (6→5,2, 8→7,2) →
+    3 đỏ. Phép cuối là phép canh đúng điều ghi chú task đòi: đo trên tệp phải so với con số
+    trong `spec.md`, không với con số của mô hình.
+  - 📏 Toàn bộ: **84 file / 1.733 phép kiểm xanh** (T740+T741 để lại 1.682 — T742 thêm **51**).
 
 - [ ] **T743** [P] — `xuatTranService.ts` tách `dungChuoiXuat` khỏi `taoBlobXuat`; `useXuatTran.ts`
   - File: tạo `src/services/xuatTranService.ts`, **`src/services/xuatTranService.test.ts`**,

@@ -22,6 +22,7 @@ import {
 } from './vatLyBong'
 import {
   GIAM_TOC_TOI_DA,
+  TRAN_GIAM_TOC_AC_38_2,
   KHOANG_TRONG_TAI,
   LE_DO_TRE_TRONG_TAI,
   LE_DUONG_BIEN_TRO_LY,
@@ -602,7 +603,7 @@ describe('AC-38.10 trên trận thật — ba điểm trọng tài (T716)', () =
       của T725 đã dùng cho 22 ô người.
     */
     expect(giaTocLonNhat, 'gia tốc lớn nhất, m/s²').toBeLessThanOrEqual(
-      GIAM_TOC_AC_38_2 + leLo(GIAM_TOC_AC_38_2),
+      TRAN_GIAM_TOC_AC_38_2 + leLo(TRAN_GIAM_TOC_AC_38_2),
     )
     // Và nó vẫn ở sát trần của MÔ HÌNH, không trôi xa khỏi nó.
     expect(giaTocLonNhat).toBeLessThan(GIAM_TOC_TOI_DA * 1.05)
@@ -691,8 +692,10 @@ function leLo(v: number, soUlp = 4): number {
 /** Một bước tích phân, giây — `chiSoMoc` đếm theo nửa giây. */
 const NUA_GIAY = 0.5
 
-/** Giảm tốc tối đa mà **AC-38.2** cho, m/s² — mô hình nhắm 7,2 dưới nó. */
-const GIAM_TOC_AC_38_2 = 8
+/*
+  Trần giảm tốc của AC-38.2 nay sống ở `coHoc.ts` (T742 đưa nó về đó), nên chỗ
+  này **nhập** thay vì giữ một bản sao thứ hai.
+*/
 
 /**
  * Δt giữa hai mốc ĐÃ GHI, giây — đọc từ chính `chiSoMoc` của chúng.
