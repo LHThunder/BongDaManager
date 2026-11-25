@@ -1169,6 +1169,30 @@ export const SAN_2D_VI = {
   dauThamGia: '▲',
   anKhiChayHet:
     'Sân tạm nghỉ trong lúc chạy hết trận, rồi vẽ lại ở phút cuối.',
+
+  /* Góc nhìn sân (T773 của spec 011, AC-50.4 + AC-46.6). */
+  gocNhin: 'Góc nhìn',
+  gocNhinPhang: 'Sân phẳng',
+  gocNhinSaBan: 'Sa bàn',
+  /** Nhãn nút: nói rõ góc nhìn ĐANG dùng, không chỉ nói nút làm gì. */
+  dangXemGocNhin: (nhan: string) => `Góc nhìn: ${nhan}`,
+  doiSangGocNhin: (nhan: string) => `Đổi sang ${nhan}`,
+  /**
+   * Vì sao trận cổ điển không có sa bàn (AC-47.6).
+   *
+   * Nói LÝ DO chứ không chỉ nói "không có": người dùng vừa thấy nút ấy ở một
+   * trận khác, nên câu này phải trả lời được câu hỏi họ đang nghĩ.
+   */
+  saBanChiChoLienTuc:
+    'Sa bàn chỉ có ở trận mô phỏng liên tục. Trận cổ điển không ghi độ cao của bóng, nên không có gì để dựng nghiêng.',
+  /**
+   * Độ cao đã được phóng đại — con số đi vào bằng THAM SỐ.
+   *
+   * `HE_SO_CAO` phải sống ở đúng một chỗ (AC-46.6, D133), nên viết thẳng "×3"
+   * vào hai tệp ngôn ngữ là đẻ thêm hai bản sao của nó.
+   */
+  doCaoDaPhongDai: (heSo: number) =>
+    `Độ cao của bóng đã được phóng đại ×${heSo} cho dễ nhìn; vị trí trên mặt sân thì đúng mét.`,
 } as const
 
 /** Câu cho từng lý do can thiệp bị từ chối. */

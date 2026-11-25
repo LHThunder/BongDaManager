@@ -970,6 +970,16 @@ export const SAN_2D_EN: BanDich<typeof SAN_2D_VI> = {
   dauThamGia: '▲',
   anKhiChayHet:
     'The pitch rests while the match plays itself out, then is drawn again at the final minute.',
+
+  gocNhin: 'View',
+  gocNhinPhang: 'Flat pitch',
+  gocNhinSaBan: 'Diorama',
+  dangXemGocNhin: (nhan: string) => `View: ${nhan}`,
+  doiSangGocNhin: (nhan: string) => `Switch to ${nhan}`,
+  saBanChiChoLienTuc:
+    'The diorama is only available for continuously simulated matches. A classic match records no ball height, so there is nothing to tilt.',
+  doCaoDaPhongDai: (heSo: number) =>
+    `Ball height is exaggerated ×${heSo} so it can be seen; positions on the pitch surface are true to the metre.`,
 }
 
 export const SAO_LUU_EN: BanDich<typeof SAO_LUU_VI> = {
