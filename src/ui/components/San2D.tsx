@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useReducer, useRef, useState } from 'react'
+import { useEffect, useMemo, useReducer, useRef } from 'react'
 import {
   BAN_KINH_VONG_GIUA,
   CHAM_PHAT_DEN,
@@ -13,6 +13,7 @@ import {
 } from '../../engine/hinhHocSan'
 import type { LoMoc } from '../../engine/lienTuc/loMoc'
 import { metSangDonVi, toaDoTuMet, type KhungAnh } from '../quyDoiMet'
+import { useGiamChuyenDong } from '../giamChuyenDong'
 import { anhChupTuLo, mocVeTaiThoiDiem } from '../mocVe'
 import { mauChuTuongPhan } from '../../domain/colors'
 import { laySoDo, soNguoiCuaSoDo } from '../../domain/formations'
@@ -1027,28 +1028,6 @@ export function hinhSan({
     cacBuocBong,
     bongTaiMoc,
   }
-}
-
-/**
- * Người dùng có bật chế độ giảm chuyển động của hệ điều hành không (AC-25.6).
- *
- * Bắt đầu bằng `false` rồi mới hỏi trong effect: `matchMedia` không tồn tại
- * khi file này được một test chạy ở môi trường node import vào, và `hinhSan`
- * thì đang được kiểm đúng kiểu ấy.
- */
-function useGiamChuyenDong(): boolean {
-  const [giam, datGiam] = useState(false)
-
-  useEffect(() => {
-    if (typeof window === 'undefined' || !window.matchMedia) return
-    const hoi = window.matchMedia('(prefers-reduced-motion: reduce)')
-    datGiam(hoi.matches)
-    const nghe = () => datGiam(hoi.matches)
-    hoi.addEventListener('change', nghe)
-    return () => hoi.removeEventListener('change', nghe)
-  }, [])
-
-  return giam
 }
 
 /** Bước thời gian để đo vận tốc bằng sai phân, theo tỉ lệ chặng. */
