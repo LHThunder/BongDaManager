@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **30 AC**) |
 | **Plan** | `./plan.md` (Status `Approved`, D117–D134, R51–R64) |
-| **Tiến độ** | 39/50 |
+| **Tiến độ** | 39/51 — T813 thêm ngày 2026-11-25 do spec 011 phát hiện |
 | **Nền đo** | commit `5c652eb`, engine v6, **1.304 test xanh / 63 file test** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -2059,6 +2059,40 @@ học đo **trên chính tệp ấy**.
     `src/hooks/useRePhatLai.ts:109` (bản sao của cùng con số). Đo lại hôm nay: lượt 200 mã ấy
     chạy **1.400 ms**. Nếu T753 báo con số mới mà không nhắc hai chỗ này thì repo có **ba** con
     số cho cùng một phép đo.
+
+- [ ] **T813** — Thủ môn chạy qua vạch giữa sân ở engine liên tục. *(Task do spec 011 phát hiện ngày 2026-11-25; người dùng chốt mở task ở đây thay vì để spec 011 che.)*
+  - File: `src/engine/lienTuc/coHoc.ts` (hoặc nơi đặt đích thủ môn), `src/engine/lienTuc/coHoc.test.ts`
+  - **Phát hiện, đo bằng máy ngày 2026-11-25** trên `AnhChupMet` thật, **10 mã trận × 45 phút
+    × mọi mốc = 56.640 lượt đo** vị trí thủ môn:
+
+    | | |
+    |---|---|
+    | Ra khỏi một phần ba sân nhà | **1.168 lượt — 2,06%** |
+    | Lệch xa nhất qua vạch | **31,72 m** |
+    | p50 / p90 / p99 của độ lệch | **1,91 / 8,09 / 24,06 m** |
+
+    Lệch 31,72 m đặt thủ môn ở `x ≈ 66,7` — **qua vạch giữa sân**, gần một phần ba sân đối
+    phương. Và p90 = 8,09 m nghĩa là **một phần mười** số lần vi phạm vượt 8 m, nên đây không
+    phải vài ca biên hiếm.
+  - **Nguyên nhân đã khoanh, chưa sửa:** engine kẹp **ĐÍCH** của thủ môn chứ không kẹp **VỊ
+    TRÍ**. `coHoc.test.ts:660` ghi đúng chữ *"Kẹp **ĐÍCH** của thủ môn (T714, AC-30.7 của spec
+    005)"*. Quán tính đưa anh ta vượt qua cái đích đã bị kẹp, và không gì kéo lại.
+  - ⚠️ **Đây chính là lỗi mà spec 005 sinh ra AC-30.7 để chặn, nay tái xuất ở đường liên tục.**
+    `src/ui/viTriVe.ts:11` còn ghi nguyên: *lỗi "thủ môn chạy tới giữa sân" đã lọt suốt một lát
+    cắt với 1.291 phép kiểm xanh, "trong khi mắt người dùng bắt được ngay"*. Ghi chú thực thi ở
+    cuối chính tài liệu này cũng đã dặn ba phép kiểm bất biến của `san2D.test.ts` — trong đó có
+    *"thủ môn trong một phần ba sân"* — phải **chạy lại ở MỖI lát**. Chúng không được chạy lại
+    trên đường liên tục.
+  - ⛔ **Spec 011 KHÔNG được chữa chỗ này.** Nó chỉ đọc engine, và kẹp lại ở lớp vẽ là làm hình
+    nói khác engine — `viTriVeLienTuc` đã **cố ý** tắt đúng phép kẹp ấy để `(x′ − x)/dt` còn
+    bằng vận tốc engine nói.
+  - Xong khi: đo lại đúng bộ 56.640 lượt trên cho **≤ 0,1%** ra ngoài và lệch xa nhất **≤ 2 m**;
+    `coHoc.test.ts` có một phép kiểm **chống rỗng** (số lượt đo > 50.000) để nó không xanh vì
+    không đo được gì; và **P1 còn nguyên** — cùng mã trận vẫn cho cùng dòng sự kiện từng ký tự.
+  - ⚠️ Sửa chỗ này **đổi con số trận**, nên nó chạm **P2**. Phải nêu rõ trong commit rằng mọi
+    trận đã lưu bằng engine cũ sẽ phát lại khác, và `lyDoKhongDauLai` phải nói được điều đó.
+  - AC: AC-30.7 (của spec 005) đọc lại ở engine liên tục
+  - Phụ thuộc: —
 
 - [ ] **T754** [P] — Bốn món nợ văn bản
   - File: `src/engine/vung.ts` (chú thích D23, dòng 4-18), `src/engine/suKien.ts` (dòng 88),
