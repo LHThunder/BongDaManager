@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **52 AC**, nhóm 46–53) |
 | **Plan** | `./plan.md` (Status `Draft`, D130–D143, R60–R66) |
-| **Tiến độ** | 19/50 — Phase 62 dừng ở T777 (xem khối ⛔ ở đó); Phase 63 xong |
+| **Tiến độ** | 26/50 — Phase 62 dừng ở T777 (xem khối ⛔ ở đó); Phase 63 và 64 xong |
 | **Nền đo** | commit `5265d37`, engine v6, **84 file test / 1.733 phép kiểm xanh**, bộ kiểm chạy hết **152 giây** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -509,53 +509,122 @@
 > chỉnh 42 biến màu theo trần bão hoà có thể làm vỡ tương phản ở một cặp chưa được phủ. Nên
 > T795 (phép kiểm) đi **trước** T796 (chỉnh biến), không ngược.
 
-- [ ] **T792** — Viết bảng màu của hệ thống thiết kế, bốn cột.
+- [x] **T792** — Viết bảng màu của hệ thống thiết kế, bốn cột.
   - File: `specs/011-pro-ui-3d-pitch/he-thong-thiet-ke.md` (**mới**)
   - Nội dung: mỗi màu có **tên · giá trị · nghĩa · chỗ được phép dùng**. Một màu thiếu một trong bốn thứ là một dòng chưa xong. Dùng **42 biến đang có** của spec 003, không thay bảng (quyết định 10 của `spec.md` mục 10).
   - Xong khi: mọi biến màu trong `src/index.css` có một dòng trong bảng, đủ bốn cột.
   - AC: AC-48.1
   - Phụ thuộc: T763
+  - ✅ **Xong 2026-11-25.** `he-thong-thiet-ke.md`, **42/42 biến** đều có một dòng đủ bốn cột.
+    Kiểm bằng máy: không biến nào trong `src/index.css` thiếu dòng, và **cả hai** cột giá trị
+    (sáng và tối) khớp từng ký tự với file.
+  - ⚠️ **Bản đầu tôi viết 18 trên 42 giá trị chế độ tối SAI** — viết từ trí nhớ thay vì đọc
+    `src/index.css`. Đúng loại lỗi mà tài liệu này sinh ra để chặn. Đã sinh lại cột ấy thẳng
+    từ file và kiểm lại bằng máy.
 
-- [ ] **T793** [P] — Viết trần bão hoà hai tầng và ba thang.
+- [x] **T793** [P] — Viết trần bão hoà hai tầng và ba thang.
   - File: `specs/011-pro-ui-3d-pitch/he-thong-thiet-ke.md`
   - Nội dung: tầng **thế giới** và tầng **tín hiệu** với ngưỡng bão hoà của từng tầng, cộng thang **cỡ chữ**, thang **khoảng cách**, thang **độ dày đường kẻ** — mỗi thang là một danh sách bậc hữu hạn.
   - Xong khi: mỗi thang có số bậc đếm được và một ví dụ dùng cho từng bậc.
   - AC: AC-48.6
   - Phụ thuộc: T792
+  - ✅ **Xong 2026-11-25.** Trần hai tầng + ba thang, mỗi bậc kèm **số chỗ dùng thật** đếm
+    bằng máy — nên "ngoài thang" là một danh sách việc có thật, không phải lời than chung.
+  - 🔴 **Trần TUYỆT ĐỐI của khuôn mẫu KHÔNG áp được vào repo này.** Art-bible đặt *thế giới
+    ≤65% S, tín hiệu ≥75% S*. Áp nguyên thì thứ vượt trần nặng nhất là **chính mặt cỏ**
+    (`--co-nen-dam`, **S = 88**), và `--co-o` (80), `--co-nen` (66), `--chinh-dam` (71) cũng
+    vượt; ngược lại hai biến tín hiệu `--loi-chu` (73) và `--tot-chu` (68) lại **thiếu** sàn.
+    Hạ mặt cỏ để chiều một con số mượn từ một trò chơi Unity có bảng màu khác hẳn là làm hỏng
+    thứ đang đúng — và người dùng đã chốt **"chỉ lấy phương pháp"** (quyết định 10).
+    Trần ở đây vì thế phát biểu **tương đối theo vùng**: *trang trí rực nhất ≤ tín hiệu nhạt
+    nhất*, đúng điều `spec.md` mục 1 nêu.
 
-- [ ] **T794** [P] — Viết bảng cặp màu dễ lẫn kèm cue phụ bắt buộc.
+- [x] **T794** [P] — Viết bảng cặp màu dễ lẫn kèm cue phụ bắt buộc.
   - File: `specs/011-pro-ui-3d-pitch/he-thong-thiet-ke.md`
   - Nội dung: mỗi dòng ghi **lẫn với kiểu mù màu nào** và **cue phụ bắt buộc** (hình dạng, chuyển động, icon hoặc chữ). Phải có một dòng cho **viền của T782**, vì **R65** nói viền là một tín hiệu hình dễ bị đọc nhầm thành trạng thái cầu thủ.
   - Xong khi: mỗi cặp màu mang nghĩa trong bảng T792 mà sát nhau đều có một dòng; dòng viền có mặt.
   - AC: AC-48.4
   - Phụ thuộc: T792
+  - ✅ **Xong 2026-11-25.** Bảng 7 dòng, mỗi dòng ghi **kiểu mù màu** cụ thể và **cue phụ bắt
+    buộc**. Dòng 7 là viền của T782, với ba ràng buộc mà **R65** đòi: viền phải **thường
+    trực**, phải dùng màu **phái sinh từ màu áo** (không dùng biến mang nghĩa nào), và mọi
+    trạng thái thật của cầu thủ phải dùng kênh **khác** viền hình.
 
-- [ ] **T795** — Thêm hàm **độ bão hoà** và phép kiểm trần hai tầng — **trước khi chỉnh màu**.
+- [x] **T795** — Thêm hàm **độ bão hoà** và phép kiểm trần hai tầng — **trước khi chỉnh màu**.
   - File: `src/ui/theme.test.ts`
   - Nội dung: `theme.test.ts` **đã có** hàm `sacMau`, nhưng đó là **sắc màu (hue)**, không phải bão hoà — cần một hàm mới. Rồi hai phép kiểm: biến tầng **tín hiệu** không được xuất hiện ở nhóm biến nền/trang trí (AC-48.2); và bão hoà của nhóm **thông tin** cao hơn nhóm **trang trí** (AC-48.3).
   - Xong khi: phép kiểm chạy được và **đỏ đúng chỗ** nếu có biến vượt trần — tức nó đo thật, không tự trấn an. Liệt ra danh sách biến đang vượt trần để T796 có việc cụ thể.
   - AC: AC-48.2, AC-48.3
   - Phụ thuộc: T793, T794
+  - ✅ **Xong 2026-11-25.** `theme.test.ts` đi từ 66 lên **75 phép kiểm**. Thêm `doBaoHoa` và
+    `doSang` — file đã có `sacMau` nhưng đó là **sắc màu**, không phải bão hoà.
+  - ✅ **Đỏ đúng chỗ, chứng minh bằng ba đột biến** rồi hoàn lại xanh: làm `--nen-nhan` rực
+    lên S=71 (1 đỏ) · làm `--co-o` rực lên S=100 (1 đỏ) · làm `--co-vang` nhạt đi S=35 (3 đỏ).
+  - 🔴 **Hai phát hiện trong lúc làm, cả hai được ghi chứ không nuốt:**
+    1. **Ba màu mức lệch không tách nhau bằng độ sáng**: `sai-nhe` ↔ `sai-vua` chỉ **4** điểm,
+       `sai-vua` ↔ `sai-nang` **10** — dưới hẳn ngưỡng 15 của TT-3. Dưới mù màu đỏ-lục chúng
+       về ba sắc xám gần nhau. **Không sửa, và không phải vì ngại:** ba màu ấy chỉ dùng ở
+       `OViTri.tsx` — **màn hình chiến thuật**, ngoài phạm vi quyết định 10. P9 không vỡ hôm
+       nay vì cue phụ bắt buộc đã có và là **chữ** (`MUC_SAI_VI_TRI`).
+    2. `--co-chu` (quả bóng) và `--co-vien` (vạch sân) cách nhau **0** điểm độ sáng — cả hai
+       là trắng. Cue bắt buộc là **hình**: bóng có viền tối và nhỏ hơn đĩa người, dấu chiếu là
+       vòng rỗng ruột.
 
-- [ ] **T796** — Chỉnh biến vượt trần, và **đo lại tương phản trong cùng commit**.
+    Cả hai viết thành **bánh cóc**: chốt con số hiện tại, đỏ nếu xấu đi, không giả vờ đã đạt.
+  - 📝 Tôi đã chọn **một cặp sai** lúc đầu (`co-nhan-chu` vs `co-vang`, 13 điểm) rồi bỏ: hai
+    thứ ấy **không bao giờ chạm nhau** trên màn hình, nên TT-3 không áp cho chúng.
+
+- [x] **T796** — Chỉnh biến vượt trần, và **đo lại tương phản trong cùng commit**.
   - File: `src/index.css`
   - Nội dung: chỉnh đúng danh sách T795 liệt ra. **R63**: chỉnh màu mà không đo lại là cách vỡ P9 ở một màn hình không ai nhìn tới.
   - Xong khi: T795 xanh; **và** ba khối đang có của `theme.test.ts` (bảng màu 4,5:1, chữ trên mặt cỏ, màu áo người dùng chọn) **vẫn xanh** ở cả hai chủ đề — trong cùng commit.
   - AC: AC-48.8
   - Phụ thuộc: T795
+  - ✅ **Xong 2026-11-25 — và danh sách T795 liệt ra là RỖNG.** `git diff src/index.css`
+    **rỗng**: không biến nào vượt TT-1.
+  - 📍 Đây là một kết quả, không phải một task bị bỏ. Một khi trần được định nghĩa theo **vai
+    trò** (như chính `spec.md` mục 1 đòi) thay vì theo con số tuyệt đối nhập khẩu, repo **đã
+    thoả sẵn**: vùng giao diện có trang trí rực nhất 33 (`--lop-phu`) ≤ tín hiệu nhạt nhất 40
+    (`--tot-nen`); vùng mặt cỏ có 80 (`--co-o`) ≤ 94 (`--co-noi-bat`). Trần tuyệt đối của
+    khuôn mẫu thì đã bắt tôi **hạ bão hoà của mặt cỏ** — xem T793.
+  - ✅ **R63 vẫn được tôn trọng**: ba khối tương phản đang có của `theme.test.ts` xanh, và
+    chúng xanh vì không có gì để chỉnh, chứ không phải vì không ai đo.
 
-- [ ] **T797** — Áp ba thang vào màn hình xem trận.
+- [x] **T797** — Áp ba thang vào màn hình xem trận.
   - File: `src/ui/pages/TrangTran.tsx` và các component nó render
   - Nội dung: cỡ chữ, khoảng cách và độ dày đường kẻ dùng **bậc trong thang** (lớp Tailwind), không số rời.
   - Xong khi: `grep` trên các file đã chạm không còn giá trị khoảng cách/cỡ chữ tuỳ ý ngoài thang; màn hình nhìn không lệch.
   - AC: AC-48.6
   - Phụ thuộc: T796
+  - ✅ **Xong 2026-11-25.** Trong **10 file** của màn hình xem trận, số chỗ ngoài thang nay là
+    **0**. Hai chỗ đã sửa: `mt-5` → `mt-4` (`BaoCaoSauTran.tsx`) và `space-y-5` → `space-y-4`
+    (`ChiThiDoi.tsx`). 14 chỗ `*-5/8/10` còn lại nằm ở màn hình khác, ngoài phạm vi.
+  - 🔴 **THANG CỦA TÔI SAI, KHÔNG PHẢI MÃ.** T793 viết thang cỡ chữ **5 bậc** và gọi
+    `text-3xl` là "ngoài thang". Đi xem nó nằm ở đâu thì đó chính là **tỉ số trận đấu**
+    (`TrangTran.tsx:379`) — thứ đáng to nhất màn hình. Và `text-xl` là chữ trong **khung đại
+    diện** cỡ `lon`, thuộc một thang con gắn với cỡ hộp. Thang đã sửa thành **6 bậc** cộng một
+    thang con ba bậc.
+    📌 Bài học đã ghi vào tài liệu: **đếm số chỗ dùng rồi gọi cái hiếm là ngoại lệ là một cách
+    sai** — thứ hiếm nhất ở đây lại là thứ quan trọng nhất.
 
-- [ ] **T798** — Kiểm thủ công đen trắng cho màn hình xem trận.
+- [x] **T798** — Kiểm thủ công đen trắng cho màn hình xem trận.
   - File: — (kiểm thủ công, ghi kết quả vào task)
   - Xong khi: chụp màn hình xem trận, chuyển đen trắng, vẫn đọc được **tỉ số, ai giữ bóng, đội nào là đội nào, phút mấy**. Ghi lại ảnh hoặc câu kết luận.
   - AC: AC-48.5
   - Phụ thuộc: T797
+  - ✅ **Xong 2026-11-25.** Đổ `grayscale(1)` lên cả trang rồi **đo tỉ lệ tương phản xám**
+    của bốn thứ mà task đòi, thay vì phán bằng mắt:
+
+    | Thứ cần đọc được | Tương phản xám | Ngưỡng |
+    |---|---|---|
+    | Tỉ số `0 – 0` | **15,81:1** | 4,5 |
+    | Tên hai đội | **15,81:1** | 4,5 |
+    | Phút `32'` | **7,32:1** | 4,5 |
+    | Dòng tường thuật (ai giữ bóng) | **7,32:1** | 4,5 |
+
+  - ✅ **"Đội nào là đội nào" trên sân không dựa vào tương phản chữ mà dựa vào HÌNH DẠNG**
+    (T788). Ảnh xám chụp lúc 40′ cho thấy một **đĩa tròn số 68 chồng lên một ô vuông bo góc** —
+    phân biệt được khi đã mất sạch màu.
 
 ---
 

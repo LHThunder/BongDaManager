@@ -47,7 +47,7 @@ export function ChiThiDoi({ chiThi, onDoi }: Props) {
       </h3>
       <p className="mt-0.5 text-sm text-chu-phu">{CHI_THI_DOI.moTa}</p>
 
-      <div className="mt-4 space-y-5">
+      <div className="mt-4 space-y-4">
         {THU_TU_CHI_THI.map((id) => {
           const mo = CHI_THI[id]
           const nhan = NHAN_CHI_THI[id]
