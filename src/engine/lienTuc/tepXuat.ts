@@ -15,6 +15,7 @@ import {
   taoTranLienTuc,
   type TrangThaiLienTuc,
 } from './tranLienTuc'
+import { dungNhatKy, type DongNhatKy } from './nhatKy'
 import { laTamDanhDau } from './vatLyBong'
 
 /*
@@ -178,7 +179,7 @@ export interface TepXuat {
     readonly goc_toa_do: string
   }
   readonly khoi_dau: KhoiDau
-  readonly nhat_ky: readonly unknown[]
+  readonly nhat_ky: readonly DongNhatKy[]
   readonly moc: KhoiMocMong
   readonly tinh_huong: readonly TinhHuongDay[]
 }
@@ -340,10 +341,7 @@ export function cacDoanDay(lo: LoMoc): readonly (readonly number[])[] {
  * không nhận một trạng thái đang chạy — một trạng thái giữa chừng không dựng
  * lại được phần trận đã trôi qua, mà khối mỏng đòi **100%** trận.
  */
-export function dungTepXuat(
-  cauHinh: CauHinhTran,
-  nhatKy: readonly unknown[] = [],
-): TepXuat {
+export function dungTepXuat(cauHinh: CauHinhTran): TepXuat {
   let lt: TrangThaiLienTuc = taoTranLienTuc({
     ...cauHinh,
     cheDoMoPhong: 'lien-tuc',
@@ -392,7 +390,20 @@ export function dungTepXuat(
       nguoi: bangNguoi(lt.tran, maNgan),
       o: maCuaO(lt.tran, maNgan),
     },
-    nhat_ky: nhatKy,
+    /*
+      ⚠️ **Nhật ký dựng từ `ungVien`, KHÔNG từ `dongSuKien` — đó là cả nghĩa
+      của chữ "không cắt".** `dongSuKien` chạy thêm `chonSuKien`, phép chọn mật
+      độ giữ 60–100 dòng cho **màn hình đọc được**; một tệp dùng làm **nguồn
+      đo** (AC-45.6) không có lý do gì phải chịu phép cắt ấy.
+
+      Phép đổi `UngVienSuKien` → `SuKien` nằm **ở đây** chứ không trong
+      `nhatKy.ts`: module ấy bị cấm biết tới hai cái tên này, và chính lệnh cấm
+      giữ nó là một bộ dịch thuần, không bao giờ thành một bộ lọc thứ hai.
+    */
+    nhat_ky: dungNhatKy(
+      lt.tran.ungVien.map((uv) => uv.suKien),
+      maNgan,
+    ),
     moc: { khoa_bong: KHOA_BONG, khoa_nguoi: KHOA_NGUOI, hang },
     tinh_huong: tinhHuong,
   }

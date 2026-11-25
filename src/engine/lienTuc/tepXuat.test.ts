@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { cauHinhMau, MA_TRAN_CO_DINH } from '../__fixtures__/doiMau'
+import { dongSuKien } from '../tran'
 import {
   CAC_TRANG_THAI,
   dungTepXuat,
@@ -11,7 +12,11 @@ import {
   trangThaiCuaNguoi,
   type TepXuat,
 } from './tepXuat'
-import { buocPhutLienTuc, taoTranLienTuc } from './tranLienTuc'
+import {
+  buocPhutLienTuc,
+  chayHetTranLienTuc,
+  taoTranLienTuc,
+} from './tranLienTuc'
 
 /*
   Tệp xuất JSON (T740, AC-45.5 + AC-45.6, quyết định D125).
@@ -222,5 +227,95 @@ describe('trangThaiCuaNguoi — bốn dải tốc độ và hai vai trò (T740)'
         }
       }
     }
+  })
+})
+
+/*
+  ====================================================================
+  NHẬT KÝ TRONG TỆP LÀ KÊNH **KHÔNG CẮT** (T741, AC-45.6).
+  ====================================================================
+*/
+describe('nhật ký trong tệp không đi qua phép chọn mật độ (T741)', () => {
+  /*
+    🐞 **Phép kiểm đầu của tôi ở đây SAI, và phép đo bác nó ngay.** Tôi đòi nhật
+    ký **dài hơn** dòng tường thuật, và nó ra **70 so với 70**. Lý do: `chonSuKien`
+    chỉ cắt khi số ứng viên **vượt trần** 60–100 dòng, mà `gomUngVienCuaPhut` đã
+    tỉa trước nên một trận 90 phút chỉ còn ~70 ứng viên — trần không bao giờ
+    chạm tới.
+
+    Đo trên ba thời lượng, 5 mã mỗi mức:
+
+      - **20 phút**: 121 ứng viên → **108** dòng, **2/5 trận bị cắt** (trần
+        [13; 22] theo `khoangSoDong`);
+      - **45 phút**: 205 → 205, không trận nào bị cắt;
+      - **90 phút**: 383 → 383, không trận nào bị cắt.
+
+    Nên ca chứng minh phải là trận **ngắn**, nơi phép cắt thật sự xảy ra. Một
+    phép kiểm chỉ chạy ở 90 phút sẽ **xanh mãi mãi** dù nhật ký có đi qua phép
+    cắt hay không.
+  */
+  it('trận NGẮN: dòng màn hình bị cắt, nhật ký của tệp thì không', () => {
+    let soTranBiCat = 0
+    let soTran = 0
+    for (const ma of MA_TRAN_CO_DINH.slice(0, 5)) {
+      const cauHinh = { ...cauHinhMau(ma), thoiLuong: 20 }
+      const lt = chayHetTranLienTuc(
+        taoTranLienTuc({ ...cauHinh, cheDoMoPhong: 'lien-tuc' }),
+      )
+      const soUngVien = lt.tran.ungVien.length
+      const choManHinh = dongSuKien(lt.tran).length
+      const tep = dungTepXuat(cauHinh)
+
+      // Nhật ký của tệp giữ **đủ** số ứng viên, không bớt một dòng nào.
+      expect(tep.nhat_ky.length, `${ma}`).toBe(soUngVien)
+      expect(choManHinh, `${ma}`).toBeLessThanOrEqual(soUngVien)
+      if (choManHinh < soUngVien) soTranBiCat += 1
+      soTran += 1
+    }
+    /*
+      ⚠️ CHỐNG RỖNG, và đây là mệnh đề cả task đứng trên: phải CÓ trận mà màn
+      hình bị cắt. Không có thì hai kênh không phân biệt được, và "kênh riêng"
+      chỉ là một cách đổi tên.
+    */
+    expect(soTran).toBe(5)
+    expect(soTranBiCat, 'số trận mà dòng màn hình bị cắt').toBeGreaterThan(0)
+  })
+
+  it('trận đầy đủ: nhật ký giữ đúng số ứng viên, và không ít hơn màn hình', () => {
+    const lt = chayHetTranLienTuc(
+      taoTranLienTuc({ ...cauHinhMau(MA), cheDoMoPhong: 'lien-tuc' }),
+    )
+    expect(TEP.nhat_ky.length).toBe(lt.tran.ungVien.length)
+    expect(TEP.nhat_ky.length).toBeGreaterThanOrEqual(
+      dongSuKien(lt.tran).length,
+    )
+    expect(TEP.nhat_ky.length, 'số dòng nhật ký').toBeGreaterThan(50)
+  })
+
+  it('và mỗi dòng vẫn đúng tám khoá', () => {
+    for (const d of TEP.nhat_ky.slice(0, 50)) {
+      expect(Object.keys(d)).toHaveLength(8)
+    }
+  })
+
+  /*
+    Và chỗ dựng tệp **không gọi** phép chọn mật độ. Đây là nửa còn lại: phép đo
+    ở trên nói "hôm nay nó không cắt", còn phép quét này nói "nó **không thể**
+    cắt" — hai mệnh đề khác nhau, và AC-45.6 cần cả hai.
+  */
+  it('và tepXuat.ts không gọi phép chọn mật độ', () => {
+    const nguon = Object.values(
+      import.meta.glob('./tepXuat.ts', {
+        query: '?raw',
+        import: 'default',
+        eager: true,
+      }) as Record<string, string>,
+    )
+    expect(nguon).toHaveLength(1)
+    const code = nguon[0]!
+      .replace(/\/\*[\s\S]*?\*\//g, ' ')
+      .replace(/(^|[^:])\/\/[^\n]*/g, '$1 ')
+    expect(code.includes('chonSuKien')).toBe(false)
+    expect(code.includes('dongSuKien')).toBe(false)
   })
 })

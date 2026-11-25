@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **30 AC**) |
 | **Plan** | `./plan.md` (Status `Approved`, D117–D134, R51–R64) |
-| **Tiến độ** | 37/50 |
+| **Tiến độ** | 38/50 |
 | **Nền đo** | commit `5c652eb`, engine v6, **1.304 test xanh / 63 file test** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -1773,7 +1773,7 @@ trận tiến theo giây**. Vòng cấm và khung thành vẽ đúng mét.
     (hai phép kiểm import **không** bỏ qua file `.test.ts`).
   - 📏 Toàn bộ: **82 file / 1.666 phép kiểm xanh**.
 
-- [ ] **T741** — Kênh nhật ký **RIÊNG không cắt** của engine liên tục
+- [x] **T741** — Kênh nhật ký **RIÊNG không cắt** của engine liên tục
   - File: tạo `src/engine/lienTuc/nhatKy.ts`, `src/engine/lienTuc/nhatKy.test.ts`; sửa
     `src/engine/lienTuc/moc.ts`
   - Xong khi: bảng ánh xạ loại **hai chiều** + hai danh sách khai (`loai_mo_rong`,
@@ -1791,6 +1791,41 @@ trận tiến theo giây**. Vòng cấm và khung thành vẽ đúng mét.
     sách đã lệch nhau sẵn**, và vì viết tay nên chúng **sẽ không đỏ** khi `LoaiSuKien` đổi, chỉ
     âm thầm phủ thiếu. **Nên T741 không thêm giá trị nào vào `LoaiSuKien`** — nó dùng bảng ánh
     xạ riêng, và đó chính là lý do plan chọn "kênh RIÊNG".
+  - ✅ **Ghi chú của task đúng từng chữ, và tôi chứng minh bằng đột biến:** thêm một giá trị
+    vào `LoaiSuKien` cho **đúng hai lỗi `tsc`** — `src/ui/phaBong.ts` (switch vét cạn, không
+    `default`, không `return` sau nó) và `nhatKy.test.ts` (phép kiểm mới). Kênh **riêng**
+    tránh được cả chuyện ấy lẫn chuyện hai danh sách viết tay đã lệch nhau sẵn.
+  - ⚠️ **Phép kiểm đầy đủ hai chiều đỏ ở `tsc`, không ở `vitest`.** `MOI_LOAI_SU_KIEN` là
+    một `Record<LoaiSuKien, true>`, nên TypeScript **bắt buộc** nó liệt đủ mọi giá trị. Đó
+    là thứ hai danh sách viết tay trong repo không làm được: `tuongThuat.test.ts` liệt **15**
+    còn `phaBong.test.ts` liệt **16**, và vì viết tay nên chúng âm thầm phủ thiếu mãi.
+  - ⚠️ **Mục 7b có khoá "chỉ số bàn thắng kỳ vọng" trong ví dụ, và kênh này KHÔNG mang nó.**
+    Người dùng chốt ở `/clarify` câu 11 rằng chỉ số ấy thuộc **spec 010**. Dòng nhật ký vì
+    thế có **tám** khoá chứ không chín — một lệch **có tên** so với ví dụ gốc.
+  - 🐞 **Và kiểm chỗ ấy mới lộ ra điều kiện ra của T730 CHƯA đạt theo nghĩa đen.** T730 ghi
+    `grep -rl` ký hiệu ấy trên `lienTuc/` phải **rỗng**; tôi hiện thực nó thành phép quét
+    **đã bóc chú thích** (và ghi rõ lý do), nên nó xanh — nhưng `grep` **thô** vẫn khớp hai
+    file của chính T730, nơi ký hiệu nằm trong chú thích giải thích lệnh cấm. Đã viết lại ba
+    chỗ chú thích ấy thành "chỉ số bàn thắng kỳ vọng"; nay **cả hai** cách đọc cùng đúng và
+    8 phép kiểm của T730 vẫn xanh.
+  - 🐞 **Phép kiểm "không cắt" đầu tiên của tôi SAI, và phép đo bác nó ngay.** Tôi đòi nhật
+    ký **dài hơn** dòng tường thuật, đo ra **70 so với 70**. Lý do: `chonSuKien` chỉ cắt khi
+    số ứng viên **vượt trần** 60–100 dòng, mà `gomUngVienCuaPhut` đã tỉa trước nên một trận
+    90 phút chỉ còn ~70 ứng viên — trần **không bao giờ chạm tới**. Đo trên ba thời lượng,
+    5 mã mỗi mức: **20 phút** 121 → **108**, **2/5 trận bị cắt**; **45 phút** 205 → 205,
+    không cắt; **90 phút** 383 → 383, không cắt. Nên ca chứng minh phải là trận **ngắn** —
+    một phép kiểm chỉ chạy ở 90 phút sẽ **xanh mãi mãi** dù nhật ký có đi qua phép cắt hay
+    không.
+  - ✅ **Hai mệnh đề cho "không cắt", và AC-45.6 cần cả hai**: phép đo nói "hôm nay nó không
+    cắt" (nhật ký giữ **đúng** số ứng viên trên 5 mã), còn phép quét mã nguồn nói nó
+    **không thể** cắt (`tepXuat.ts` không gọi `chonSuKien` hay `dongSuKien`).
+  - ✅ **Phép đổi `UngVienSuKien` → `SuKien` nằm ở `tepXuat.ts`, không ở `nhatKy.ts`** — và
+    chính lệnh cấm `grep` của task giữ như thế: module ấy không được biết hai cái tên đó,
+    nên nó không bao giờ thành một bộ lọc thứ hai.
+  - ✅ **Bốn phép đột biến, bốn lần đỏ**: thêm giá trị vào `LoaiSuKien` → 2 lỗi `tsc`; bỏ một
+    loại khỏi `LOAI_BO_TRONG` → 2 đỏ; cho nhật ký lọc bớt dòng → 1 đỏ; bỏ `ghi_chu` của loại
+    ngoài từ vựng → 1 đỏ. Cộng một đột biến ở chỗ nối: dựng nhật ký từ `dongSuKien` → 2 đỏ.
+  - 📏 Toàn bộ: **83 file / 1.682 phép kiểm xanh**.
 
 - [ ] **T742** — `lienTuc/doCoHoc.ts` + bộ test **ngược** + test độc lập thứ tự cột
   - File: tạo `src/engine/lienTuc/doCoHoc.ts`, `src/engine/lienTuc/doCoHoc.test.ts`; sửa

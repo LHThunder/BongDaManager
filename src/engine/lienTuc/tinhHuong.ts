@@ -5,12 +5,13 @@ import type { KetCucPhaV6 } from '../tran'
   "TÌNH HUỐNG QUAN TRỌNG" LÀ GÌ (T730, AC-37.8).
   ====================================================================
 
-  ⚠️ **Định nghĩa bằng LOẠI SỰ KIỆN, không bằng xG** — người dùng chốt ở
-  `/clarify` ngày 2026-11-19 (câu 11). xG thuộc **spec 010**, và một phép kiểm
+  ⚠️ **Định nghĩa bằng LOẠI SỰ KIỆN, không bằng chỉ số bàn thắng kỳ vọng** —
+  người dùng chốt ở
+  `/clarify` ngày 2026-11-19 (câu 11). Chỉ số ấy thuộc **spec 010**, và một phép kiểm
   quét mã nguồn ở `tinhHuong.test.ts` canh đúng điều ấy: thư mục `lienTuc/`
   không được chứa ký hiệu ấy, kể cả trong chú thích.
 
-  Lý do định nghĩa này đáng giá hơn một ngưỡng xG: nó **đã có sẵn trong dữ
+  Lý do định nghĩa này đáng giá hơn một ngưỡng xác suất: nó **đã có sẵn trong dữ
   liệu**. Ba trong bốn toán hạng là ba trường mà `quyetKetCucChuoi` **đã tính**
   — `coBan`, `coHoiRoRang`, `biCuu` — nên lớp liên tục không phải rút thêm một
   lần ngẫu nhiên nào, không phải đoán, và hai chế độ không thể lệch nhau ở chỗ

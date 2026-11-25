@@ -90,7 +90,7 @@ describe('dauHieuCuaPha — đọc thẳng từ kết cục pha (T730)', () => {
   })
 })
 
-describe('lienTuc/ KHÔNG nhắc tới xG (T730, AC-37.8)', () => {
+describe('lienTuc/ KHÔNG nhắc tới chỉ số kỳ vọng (T730, AC-37.8)', () => {
   const NGUON = import.meta.glob('./*.ts', {
     query: '?raw',
     import: 'default',
@@ -99,7 +99,7 @@ describe('lienTuc/ KHÔNG nhắc tới xG (T730, AC-37.8)', () => {
 
   /*
     ⚠️ **Điều kiện ra của task viết phép kiểm này là `grep -rl`, và nó CẢNH BÁO
-    một cách viết sai**: `grep -c "xG"` trên một thư mục mà thiếu `-r` thì grep
+    một cách viết sai**: `grep -c` ký hiệu ấy trên một thư mục mà thiếu `-r` thì grep
     in `0` ra stdout và lỗi ra stderr, nên điều kiện "= 0" **luôn thoả dù sai**.
     Viết thành phép kiểm thì cái bẫy ấy biến mất — và phép kiểm còn sống sau khi
     người chạy lệnh đi mất.
