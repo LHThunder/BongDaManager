@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **30 AC**) |
 | **Plan** | `./plan.md` (Status `Approved`, D117–D134, R51–R64) |
-| **Tiến độ** | 36/50 |
+| **Tiến độ** | 37/50 |
 | **Nền đo** | commit `5c652eb`, engine v6, **1.304 test xanh / 63 file test** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -1726,7 +1726,7 @@ trận tiến theo giây**. Vòng cấm và khung thành vẽ đúng mét.
 
 ## Phase 57 — Tệp xuất JSON và bộ đo cơ học chạy trên chính tệp
 
-- [ ] **T740** — `lienTuc/tepXuat.ts`: năm khoá gốc, khối mỏng tuple + hàng tiêu đề
+- [x] **T740** — `lienTuc/tepXuat.ts`: năm khoá gốc, khối mỏng tuple + hàng tiêu đề
   - File: tạo `src/engine/lienTuc/tepXuat.ts`, `src/engine/lienTuc/tepXuat.test.ts`; sửa
     `src/engine/lienTuc/moc.ts` (export `loMoc`), `src/engine/lienTuc/tinhHuong.ts`
   - Xong khi: test thuần trên cấu trúc xanh — **5 khoá gốc**; `tinh_huong[].khung[]` đúng **4**
@@ -1738,6 +1738,40 @@ trận tiến theo giây**. Vòng cấm và khung thành vẽ đúng mét.
   - Ghi chú: `boundaries.test.ts` chặn **cả** `tepXuat.ts` **và** `tepXuat.test.ts` import
     `../../services` hoặc `../../storage` — hai phép kiểm import (dòng 84 và 100) **không** bỏ
     qua file `.test.ts`; chỉ hai phép kiểm đồng hồ (131, 158) mới có `if (laFileTest) continue`.
+  - 📏 **Tệp thật nặng 4.512.038 byte = 4,51 MB thập phân, dựng trong 375 ms.** Con số ấy
+    **hoà giải** hai con số mà D125 ghi là chưa hoà giải: ~11,3 MB của D125 và 7,2/8,0/9,0
+    MB của plan mục 10. Thực tế **thấp hơn cả hai**, và dưới ngưỡng 11.000.000 byte của
+    AC-45.11 một khoảng rộng. **T744** vẫn là chỗ đo chính thức; đây là phép đo đầu tiên.
+  - ✅ **Hai lần xuất cùng mã trận GIỐNG TỪNG BYTE** — đã so cả độ dài lẫn nội dung chuỗi.
+  - ⚠️ **Mã ngắn gán từ BẢN GHI, không từ thứ tự duyệt.** `cacCauThu` không đổi suốt trận,
+    còn `trenSan` đổi mỗi lượt thay người và mỗi thẻ đỏ. Có **hai** phép kiểm canh: mã khớp
+    thứ tự danh sách đăng ký, và mã **không đổi sau 40 phút** khi đội hình đã đổi. Đột biến
+    gán theo `trenSan` → đỏ.
+  - 📏 **Hình dạng đo được**: 5 khoá gốc; khối mỏng **5.980 hàng × 80 số** (1 `t` + 4 bóng +
+    25 ô × 3 cột); khối dày **16 đoạn / 690 khung**, mỗi khung **4** khoá gốc, `bong` **7**,
+    mỗi `cau_thu` **8**; bảng tra **36 người**; thứ tự ô 25 chỗ kết thúc bằng `REF, AR1, AR2`.
+  - ⚠️ **Hai trong tám khoá của `cau_thu` mang `null`, và tôi nói thẳng chứ không bịa.**
+    `hanh_dong` cần một **từ vựng động tác** mà spec 007 không dựng (`LoaiHanhDong` chỉ có
+    bốn giá trị, và chúng là **đường bóng** chứ không phải động tác); `muc_dich` là **US-40
+    của spec 009**, nơi người dùng đã chốt "tám loại trở lên" khi `/clarify`. Điền bừa một
+    chuỗi vào đây là **nói dối trong một tệp mà AC-45.6 dùng làm nguồn đo**.
+  - ⚠️ **Enum `trang_thai` liệt đủ 14 giá trị nhưng engine chỉ phát SÁU**: `dung_yen`,
+    `di_bo`, `chay`, `nuoc_rut`, `dan_bong`, `danh_dau`. Tám giá trị còn lại cần thứ spec
+    007 không có — `nhay`/`nga`/`tac_bong`/`bat_bong` cần pha tranh chấp và thủ môn (spec
+    008), `giam_toc`/`quay_nguoi` cần một ngưỡng không AC nào nêu, còn `chuyen`/`sut` là
+    **hành động một khoảnh khắc** chứ không phải trạng thái của cả một khung 0,5 giây.
+    Phép kiểm vì thế canh **"mọi giá trị phát ra đều thuộc enum"**, không canh "đủ 14 đều
+    xuất hiện" — mệnh đề sau sẽ ép tôi **bịa ra** tám trạng thái.
+  - ✅ **Khối dày đọc độ dày TỪ CHÍNH LÔ** (các mốc cách nhau đúng một bước), không hỏi lại
+    `cacPhaDay`: lô là thứ sẽ nằm trong tệp, nên nếu hai bên lệch thì bên đúng là lô. Một
+    nguồn, không hai.
+  - ➕ **Hai chỗ khai sai trong plan, sửa theo thực tế code**: `BenTran` giữ `teamId` chứ
+    không giữ tên đội (tên sống ở lớp dữ liệu đội, engine không đọc nó), và `HoSoCauThu` có
+    `positions` số nhiều chứ không `position`.
+  - ✅ **Bốn phép đột biến, bốn lần đỏ**; `boundaries.test.ts` xanh — `tepXuat.ts` và
+    `tepXuat.test.ts` đều không chạm `services` hay `storage`, đúng điều ghi chú task nhắc
+    (hai phép kiểm import **không** bỏ qua file `.test.ts`).
+  - 📏 Toàn bộ: **82 file / 1.666 phép kiểm xanh**.
 
 - [ ] **T741** — Kênh nhật ký **RIÊNG không cắt** của engine liên tục
   - File: tạo `src/engine/lienTuc/nhatKy.ts`, `src/engine/lienTuc/nhatKy.test.ts`; sửa
