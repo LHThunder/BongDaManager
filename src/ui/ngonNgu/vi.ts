@@ -1169,6 +1169,52 @@ export const SAN_2D_VI = {
   dauThamGia: '▲',
   anKhiChayHet:
     'Sân tạm nghỉ trong lúc chạy hết trận, rồi vẽ lại ở phút cuối.',
+
+  /* Góc nhìn sân (T773 của spec 011, AC-50.4 + AC-46.6). */
+  gocNhin: 'Góc nhìn',
+  gocNhinPhang: 'Sân phẳng',
+  gocNhinSaBan: 'Sa bàn',
+  /** Nhãn nút: nói rõ góc nhìn ĐANG dùng, không chỉ nói nút làm gì. */
+  dangXemGocNhin: (nhan: string) => `Góc nhìn: ${nhan}`,
+  doiSangGocNhin: (nhan: string) => `Đổi sang ${nhan}`,
+  /**
+   * Vì sao trận cổ điển không có sa bàn (AC-47.6).
+   *
+   * Nói LÝ DO chứ không chỉ nói "không có": người dùng vừa thấy nút ấy ở một
+   * trận khác, nên câu này phải trả lời được câu hỏi họ đang nghĩ.
+   */
+  saBanChiChoLienTuc:
+    'Sa bàn chỉ có ở trận mô phỏng liên tục. Trận cổ điển không ghi độ cao của bóng, nên không có gì để dựng nghiêng.',
+  /**
+   * Độ cao đã được phóng đại — con số đi vào bằng THAM SỐ.
+   *
+   * `HE_SO_CAO` phải sống ở đúng một chỗ (AC-46.6, D133), nên viết thẳng "×3"
+   * vào hai tệp ngôn ngữ là đẻ thêm hai bản sao của nó.
+   */
+  doCaoDaPhongDai: (heSo: number) =>
+    `Độ cao của bóng đã được phóng đại ×${heSo} cho dễ nhìn; vị trí trên mặt sân thì đúng mét.`,
+
+  /*
+    Tóm tắt sa bàn cho trình đọc màn hình (T789, AC-50.5).
+
+    Sa bàn KHÔNG dùng lại `moTaSan` được: câu ấy mở đầu bằng "Sân 2D", và một
+    trình đọc màn hình nói "Sân 2D" khi người dùng đang ở sa bàn là nói sai.
+
+    Câu này gộp hai phần, đúng khuôn `moTaDiem` đã đặt: phần **cố định** nói nó
+    LÀ gì, phần **động** nói nó đang hiển thị gì. Gộp vào một `aria-label` chứ
+    không dựng vùng `aria-live`: sa bàn đổi 60 lần một giây, và một vùng sống
+    sẽ đọc liên tục không ngớt — đó là làm hỏng trải nghiệm chứ không phải phục
+    vụ nó.
+  */
+  moTaSaBan: (nha: string, khach: string) =>
+    `Sa bàn: sân nhìn nghiêng từ trên xuống, ${nha} đá từ trái sang phải, ${khach} đá từ phải sang trái. Chủ nhà là hình tròn, đội khách là hình vuông.`,
+  tomTatSaBan: (soNguoi: number, zBongMet: number | null) => {
+    const phan = [`Đang vẽ ${soNguoi} cầu thủ.`]
+    if (zBongMet === null) phan.push('Không có bóng trên sân.')
+    else if (zBongMet <= 0) phan.push('Bóng đang lăn trên mặt sân.')
+    else phan.push(`Bóng đang trên không, cao khoảng ${zBongMet.toFixed(1)} mét.`)
+    return phan.join(' ')
+  },
 } as const
 
 /** Câu cho từng lý do can thiệp bị từ chối. */

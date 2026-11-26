@@ -128,7 +128,7 @@ export function BaoCaoSauTran({
         </div>
       ))}
 
-      <div className="mt-5 border-t border-vien pt-4">
+      <div className="mt-4 border-t border-vien pt-4">
         <h4 className="text-base font-semibold text-chu">
           {BAO_CAO_SAU_TRAN.tieuDeDauLai}
         </h4>

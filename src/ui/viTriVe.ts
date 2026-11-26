@@ -99,11 +99,38 @@ export function viTriVeLienTuc(
   playerId: string,
   khung: KhungAnh,
 ): Diem | null {
+  const met = viTriMetLienTuc(anhChup, playerId)
+  if (!met) return null
+  return toaDoTuMet(khung, met.xMet, met.yMet)
+}
+
+/**
+ * Vị trí **bằng mét** của một cầu thủ ở chế độ liên tục — ĐƯỜNG ĐỌC DUY NHẤT.
+ *
+ * Bóc ra khỏi `viTriVeLienTuc` ngày 2026-11-25 (quyết định **D145** của spec
+ * 011). Lý do: `San3D` phải chiếu từ **mét** sang toạ độ vẽ bằng một phép chiếu
+ * khác hẳn `toaDoTuMet`, nên nó không dùng lại được `viTriVeLienTuc` — thứ đã
+ * quy đổi xong. Nếu để nguyên, `San3D` buộc phải tự đọc lô mốc, tức **hai**
+ * đường đọc cho một câu hỏi, đúng thứ AC-46.5 cấm.
+ *
+ * Nay đường đọc duy nhất là hàm này, và cả hai lớp vẽ đứng trên nó: sân 2D qua
+ * `toaDoTuMet`, sa bàn qua `chieuDiem`. AC-46.5 vì thế đúng **theo cấu trúc**,
+ * không phải nhờ canh.
+ *
+ * ⚠️ Hàm này **không** phục vụ quả bóng: bóng không có `playerId`. Bóng đi
+ * đường riêng ở `viTriBongLienTuc` của `chieuSaBan.ts` (**D142**).
+ *
+ * Trả `null` đúng hai trường hợp cũ: không có ô, hoặc ô không có mặt.
+ */
+export function viTriMetLienTuc(
+  anhChup: AnhChupMet,
+  playerId: string,
+): { readonly xMet: number; readonly yMet: number } | null {
   const chiSo = anhChup.oCuaNguoi.get(playerId)
   if (chiSo === undefined) return null
   const o = anhChup.thucThe[chiSo]
   if (!o || o.coMat === 0) return null
-  return toaDoTuMet(khung, o.x, o.y)
+  return { xMet: o.x, yMet: o.y }
 }
 
 /**

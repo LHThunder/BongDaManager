@@ -1,0 +1,57 @@
+# Phép kiểm chạy trên máy khác máy của người dùng.
+#
+# Vì sao repo này cần CI, viết ra để người sau không gỡ nó đi:
+#
+# 1. Điều kiện RA chung của MỌI task trong `specs/*/tasks.md` là "bộ kiểm xanh".
+#    Trước workflow này, lời khẳng định ấy chỉ có một nguồn: máy của người dùng.
+#
+# 2. `tsc` bắt được thứ `vitest` không bắt. Ngày 2026-11-25, một vân tay dòng sự
+#    kiện đọc `e.ben` — một trường KHÔNG tồn tại trên `SuKien` — nên nó luôn rỗng
+#    và phép kiểm vẫn XANH. Chỉ `tsc --noEmit` bắt được. Nên `typecheck` ở đây là
+#    một bước riêng, không phải phần phụ của `build`.
+#
+# 3. Có một phép kiểm CHẬP CHỜN chưa bắt được tên: 1 lần đỏ trên 4 lần chạy cả
+#    bộ (xem `specs/011-pro-ui-3d-pitch/tasks.md`). CI giữ NGUYÊN nhật ký mỗi lần
+#    chạy, nên lần đỏ tiếp theo sẽ để lại tên phép kiểm — thứ tôi đã làm mất ở
+#    máy cục bộ vì `tail` mất đầu ra.
+
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# Đẩy liên tiếp thì huỷ lượt cũ: lượt cũ không còn nói gì về đỉnh nhánh nữa.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  kiem:
+    name: Kiểu, phép kiểm, dựng bản
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # Máy người dùng đang chạy Node 26; runner chưa có bản ấy nên CI dùng
+          # 22 LTS. Chênh lệch này là có thật và được ghi ra ở đây thay vì giấu:
+          # một lỗi chỉ xuất hiện ở Node 26 sẽ KHÔNG bị CI bắt.
+          node-version: '22'
+          cache: npm
+
+      - name: Cài đúng lockfile
+        run: npm ci
+
+      - name: Kiểm kiểu
+        run: npm run typecheck
+
+      - name: Bộ kiểm
+        run: npm test
+
+      - name: Dựng bản
+        run: npx vite build

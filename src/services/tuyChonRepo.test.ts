@@ -4,11 +4,14 @@ import { DB_NAME, dongDb, moDb } from '../storage/db'
 import {
   CHE_DO_MAC_DINH,
   datCheDo,
+  datGocNhinSan,
   datHienSan2D,
   datNgonNgu,
   docCheDo,
+  docGocNhinSan,
   docHienSan2D,
   docNgonNgu,
+  GOC_NHIN_SAN_MAC_DINH,
   HIEN_SAN_2D_MAC_DINH,
   NGON_NGU_MAC_DINH,
 } from './tuyChonRepo'
@@ -135,6 +138,72 @@ describe('ba tuỳ chọn độc lập với nhau', () => {
     await datHienSan2D(false)
     await datNgonNgu('en')
 
+    expect(await docCheDo()).toBe('toi')
+    expect(await docHienSan2D()).toBe(false)
+    expect(await docNgonNgu()).toBe('en')
+  })
+})
+
+/*
+  Góc nhìn sân (T772 của spec 011, AC-47.4).
+
+  Đi đúng ba ca mà ba tuỳ chọn trên đã đi: chưa đặt gì, ghi rồi đọc lại, và
+  giá trị rác trong store. Cộng một ca riêng cho rủi ro **R61**.
+*/
+describe('đọc và ghi góc nhìn sân', () => {
+  it('chưa đặt gì thì trả về sân PHẲNG, không phải sa bàn', async () => {
+    // Sa bàn là lối xem thứ hai. Người chưa bấm gì phải thấy đúng thứ họ vẫn thấy.
+    expect(await docGocNhinSan()).toBe('phang')
+    expect(GOC_NHIN_SAN_MAC_DINH).toBe('phang')
+  })
+
+  it('ghi rồi đọc lại ra đúng giá trị', async () => {
+    await datGocNhinSan('sa-ban')
+    expect(await docGocNhinSan()).toBe('sa-ban')
+
+    await datGocNhinSan('phang')
+    expect(await docGocNhinSan()).toBe('phang')
+  })
+
+  it('giá trị sống qua một lần mở lại database (AC-47.3)', async () => {
+    await datGocNhinSan('sa-ban')
+    await dongDb()
+    expect(await docGocNhinSan()).toBe('sa-ban')
+  })
+
+  it('giá trị rác trong store thì rơi về sân phẳng', async () => {
+    const db = await moDb()
+    await db.put('meta', { key: 'gocNhinSan', value: 'ba-chieu' })
+    expect(await docGocNhinSan()).toBe('phang')
+  })
+
+  it('R61: góc nhìn nằm ở khoá RIÊNG, không giẫm lên chế độ mô phỏng', async () => {
+    /*
+      Góc nhìn là tuỳ chọn HIỂN THỊ; `cheDoMoPhong` là thuộc tính của TRẬN, đi
+      vào tệp sao lưu và quyết định engine nào chạy. Nhét cái này vào cái kia
+      làm một trận đã lưu đọc ra khác đi — và `backupService.test.ts:913` đã
+      lấy đúng giá trị `'ba-chieu'` làm ví dụ chế độ lạ phải bị từ chối.
+    */
+    await datGocNhinSan('sa-ban')
+    const db = await moDb()
+    const hang = await db.get('meta', 'gocNhinSan')
+    expect(hang?.value).toBe('sa-ban')
+    // Và không có hàng `cheDoMoPhong` nào bị đẻ ra trong `meta`.
+    expect(await db.get('meta', 'cheDoMoPhong')).toBeUndefined()
+  })
+
+  it('bốn tuỳ chọn độc lập: đổi góc nhìn không làm đổi ba thứ kia', async () => {
+    await datCheDo('toi')
+    await datHienSan2D(false)
+    await datNgonNgu('en')
+    await datGocNhinSan('sa-ban')
+
+    expect(await docCheDo()).toBe('toi')
+    expect(await docHienSan2D()).toBe(false)
+    expect(await docNgonNgu()).toBe('en')
+    expect(await docGocNhinSan()).toBe('sa-ban')
+
+    await datGocNhinSan('phang')
     expect(await docCheDo()).toBe('toi')
     expect(await docHienSan2D()).toBe(false)
     expect(await docNgonNgu()).toBe('en')
