@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **ID** | `011-pro-ui-3d-pitch` |
-| **Status** | **Planned** — **47/52 AC đạt**. Ba AC là phép đo nhịp khung (51.1, 51.4, 51.5) chờ một môi trường vẽ khung thật. Hai AC (49.6, 49.7) bị gỡ tích ngày 2026-11-26 sau phán quyết `T760`; `T814` của spec 007 **xong cùng ngày** và kéo số đo từ **7,27% xuống 0,07%** số cặp, nhưng hai AC ấy **chờ người dùng xem lại** chứ không chờ phép kiểm. **Chưa `Done`.** |
+| **Status** | **Planned** — **47/52 AC đạt**. Ba AC là phép đo nhịp khung (51.1, 51.4, 51.5) chờ một môi trường vẽ khung thật. Hai AC (49.6, 49.7) bị gỡ tích ngày 2026-11-26 sau phán quyết `T760`; `T814` của spec 007 **xong cùng ngày** và kéo số đo từ **7,27% xuống 0,041%** số cặp, nhưng hai AC ấy **chờ người dùng xem lại** chứ không chờ phép kiểm. **Chưa `Done`.** |
 | **Created** | 2026-11-25 |
 | **Clarified** | 2026-11-25 — **15 quyết định**, xem mục 10 (quyết định 15 đến từ `/analyze`) |
 | **Planned** | 2026-11-25 — `./plan.md`, 13 quyết định D130–D142, 7 rủi ro R60–R66 |
@@ -346,8 +346,8 @@ hỏng điều gì**, để **không phải kiểm lại bằng mắt từ đầ
       > đây là chuyện **chung**, không phải lỗi của sa bàn.
       > Chủ nợ là **spec 007**, task `T814`. Spec 011 **không chữa được**: dịch người ở
       > lớp vẽ là vỡ **AC-46.5**.
-      > ⏳ **`T814` XONG NGÀY 2026-11-26, và số đo đã đổi hẳn: 7,27% → 0,07% số cặp,
-      > 100% → 15,6% số mốc.** Nguyên nhân thật không phải `tachChen` (nó giữ đúng 2,0 m) mà
+      > ⏳ **`T814` XONG NGÀY 2026-11-26, và số đo đã đổi hẳn: 7,27% → 0,041% số cặp,
+      > 100% → 8,8% số mốc, đĩa chạm mép 9,53% → 0,75%.** Nguyên nhân thật không phải `tachChen` (nó giữ đúng 2,0 m) mà
       > là **lưới 12 vùng chỉ phát 8 điểm đích cho 22 người** — 22 trong 231 cặp nhắm đúng
       > một điểm. Đã có phép kiểm mang đúng tên AC này ở `batBienSaBan.test.ts`, đo **sau khi
       > chiếu**, trên 1.336.690 cặp.
@@ -360,8 +360,8 @@ hỏng điều gì**, để **không phải kiểm lại bằng mắt từ đầ
       > trực và **đúng là** không được bật/tắt theo trạng thái (**R65** vẫn đứng). Nhưng điều
       > kiện thật của AC này là *"hai cầu thủ đứng khít nhau vẫn đếm ra hai"*, và số đo nói
       > không: 7,4% số cặp vẫn đè. Viền là điều kiện **cần**, không phải **đủ**.
-      > ⏳ **`T814` xong 2026-11-26** — 0,07% số cặp. Điều kiện **đủ** nay có vẻ đã tới, nhưng
-      > AC này **chờ `T760`** như AC-49.6, không chờ một phép kiểm.
+      > ⏳ **`T814` xong 2026-11-26** — 0,041% số cặp. Điều kiện **đủ** nay có vẻ đã tới,
+      > nhưng AC này **chờ `T760`** như AC-49.6, không chờ một phép kiểm.
 
 **Toàn cục:**
 

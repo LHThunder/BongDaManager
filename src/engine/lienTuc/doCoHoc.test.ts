@@ -172,36 +172,44 @@ describe('phép đo CÓ MẪU THẬT — chống rỗng (T742, AC-45.6)', () => 
     bị xô ra mỗi mốc, cả trận. `choDungDoiHinhMet` giãn họ ra, và:
 
       tổng vi phạm         1.613 → 77      ← bớt 95,2%
-      AC-38.2(tăng)          259 → 2
-      AC-38.2(giảm)           12 → 1
-      AC-38.3(i)             443 → 13
-      AC-38.3(ii)            862 → 37
+      AC-38.2(tăng)          259 → 3
+      AC-38.2(giảm)           12 → 0       ← sạch hẳn
+      AC-38.3(i)             443 → 4
+      AC-38.3(ii)            862 → 26
       AC-38.4(ngang) đếm       7 → 0       ← sạch hẳn
-      AC-38.11                 7 → 0       ← sạch hẳn
-      AC-38.1(i)              12 → 15      ← TỆ HƠN, thêm 3
+      AC-38.11                 7 → 1
+      AC-38.1(i)              12 → 34      ← TỆ HƠN, gần gấp ba
       AC-38.1(ii)             11 → 9
-      AC-38.4(lùi) soMau     180 → 22      ← mẫu thưa đi 8 lần
-      AC-38.4(ngang) soMau 1.423 → 2.353
-      năm mã  1.606/1.678/1.557/1.615/1.705 → 77/136/60/68/90
+      AC-38.4(lùi) soMau     180 → 21      ← mẫu thưa đi 9 lần
+      AC-38.4(ngang) soMau 1.423 → 2.363
+      năm mã  1.606/1.678/1.557/1.615/1.705 → 77/114/56/66/95
 
-    📌 **Hai con số đi ngược, và tôi không gộp chúng vào lời khoe.**
-    `AC-38.1(i)` tăng 12 → 15: người đứng rời nhau thì `tachChen` xô ít hơn
-    nhưng xô **mạnh hơn** ở những lần còn lại, vì không còn cặp nào đã nằm sẵn
-    trên tường 2,0 m để chia bớt cú đẩy. Và `AC-38.4(lùi)` chỉ còn 22 mẫu —
-    xem chú thích tại chỗ của nó.
+    📌 Bảng trên là của bản **giãn 6,0 m** — con số người dùng chốt sau khi xem
+    bản chạy. Bản giãn **3,5 m** làm trước đó cho: tổng 77, AC-38.1(i) **15**,
+    AC-38.2(tăng) 2, AC-38.2(giảm) 1, AC-38.3(i) 13, AC-38.3(ii) 37, AC-38.11
+    **0**, soMau lùi 22. Giãn rộng thêm **không** đổi tổng, nhưng dồn món nợ
+    còn lại sang vế AC-38.1(i).
+
+    📌 **Ba con số đi ngược, và tôi không gộp chúng vào lời khoe.**
+    `AC-38.1(i)` tăng **12 → 34** — hơn gấp đôi, và nó xấu đi thêm khi giãn từ
+    3,5 m lên 6,0 m (15 → 34). Người đứng rời nhau thì quãng phải chạy về phía
+    bóng **dài hơn**, nên tốc độ đo trên dịch chuyển chạm trần nhiều hơn; và
+    những cú xô `tachChen` còn lại không còn cặp nào nằm sẵn trên tường 2,0 m
+    để chia bớt. `AC-38.11` đi từ 0 lên **1**. Và `AC-38.4(lùi)` chỉ còn 21
+    mẫu — xem chú thích tại chỗ của nó.
 
     📍 **Dòng sự kiện lại KHÔNG đổi một ký tự**, lần thứ hai trong một ngày:
-    1.819 phép kiểm còn lại xanh nguyên, kể cả vân tay `batBienSaBan.test.ts`.
+    1.828 phép kiểm còn lại xanh nguyên, kể cả vân tay `batBienSaBan.test.ts`.
     Vị trí mét không vào bản ghi trận (**AC-45.4**), nên không trận đã lưu nào
     đổi. **P2 nguyên vẹn.**
   */
-  it('AC-38.4 có mẫu ở CẢ HAI vế, dù vế lùi THƯA ĐI 8 LẦN sau T814', () => {
+  it('AC-38.4 có mẫu ở CẢ HAI vế, dù vế lùi THƯA ĐI 9 LẦN sau T814', () => {
     /*
-      ⚠️ **180 → 22, và con số cũ phần lớn là RÁC.** Vế "lùi" đếm những mốc một
+      ⚠️ **180 → 21, và con số cũ phần lớn là RÁC.** Vế "lùi" đếm những mốc một
       người di chuyển ngược hướng thân mình. Trước T814, hai mươi hai cặp người
       đứng chung một điểm đích và bị `tachChen` xô qua xô lại mỗi mốc — những
       cú xô ấy **trông như** chạy lùi với phép đo dựa trên dịch chuyển. Gỡ chỗ
-      đứng trùng đi thì 158 trong 180 mẫu biến mất cùng với chúng.
+      đứng trùng đi thì 159 trong 180 mẫu biến mất cùng với chúng.
 
       📌 Nhưng 22 mẫu là **thưa**, và chú thích đầu `describe` này đã rào trước:
       *"một vế chỉ chạm tới vài chục lần thì xanh hay đỏ đều là ngẫu nhiên"*.
@@ -209,8 +217,8 @@ describe('phép đo CÓ MẪU THẬT — chống rỗng (T742, AC-45.6)', () => 
       vế ấy có người đo, nhưng không còn chứng minh được bao nhiêu. Ghi thành
       món nợ có tên ở `T814` của `tasks.md` chứ không lặng lẽ đổi số.
     */
-    expect(KQ.soMau['AC-38.4(lùi)']).toBe(22)
-    expect(KQ.soMau['AC-38.4(ngang)']).toBe(2353)
+    expect(KQ.soMau['AC-38.4(lùi)']).toBe(21)
+    expect(KQ.soMau['AC-38.4(ngang)']).toBe(2363)
   })
 })
 
@@ -287,25 +295,28 @@ describe('MÓN NỢ đo được hôm nay — phép đo này KHÔNG xanh (T742)'
   })
 
   it('AC-38.1 và AC-38.2: vỡ khi đo trên DỊCH CHUYỂN, dù vận tốc đúng trần', () => {
-    expect(DEM.get('AC-38.1(i)')).toBe(15)
+    expect(DEM.get('AC-38.1(i)')).toBe(34)
     expect(DEM.get('AC-38.1(ii)')).toBe(9)
-    expect(DEM.get('AC-38.2(tăng)')).toBe(2)
-    expect(DEM.get('AC-38.2(giảm)')).toBe(1)
+    expect(DEM.get('AC-38.2(tăng)')).toBe(3)
+    expect(DEM.get('AC-38.2(giảm)') ?? 0).toBe(0)
   })
 
   it('AC-38.3: cả hai vế đỏ ở độ phân giải MỐC', () => {
-    expect(DEM.get('AC-38.3(i)')).toBe(13)
-    expect(DEM.get('AC-38.3(ii)')).toBe(37)
+    expect(DEM.get('AC-38.3(i)')).toBe(4)
+    expect(DEM.get('AC-38.3(ii)')).toBe(26)
   })
 
-  it('AC-38.4(ngang) và AC-38.11: KHÔNG CÒN MỐC NÀO sau T814', () => {
+  it('AC-38.4(ngang) sạch hẳn, AC-38.11 còn đúng MỘT mốc', () => {
     /*
-      Hai vế này **sạch hẳn** (7 → 0 mỗi vế). Chúng đo lệch giữa hướng thân
-      người và hướng di chuyển; mọi mốc lệch còn lại hôm qua đều là cú xô của
-      `tachChen` trên những cặp đứng trùng điểm đích.
+      Hai vế này đo lệch giữa hướng thân người và hướng di chuyển, và gần như
+      mọi mốc lệch trước T814 đều là cú xô của `tachChen` trên những cặp đứng
+      trùng điểm đích: `AC-38.4(ngang)` 7 → **0**.
+
+      `AC-38.11` thì 7 → 0 ở bản giãn **3,5 m**, rồi **0 → 1** khi giãn lên
+      **6,0 m**. Một mốc trên 27.012 mẫu. Nêu ra chứ không làm tròn xuống.
     */
     expect(DEM.get('AC-38.4(ngang)') ?? 0).toBe(0)
-    expect(DEM.get('AC-38.11') ?? 0).toBe(0)
+    expect(DEM.get('AC-38.11') ?? 0).toBe(1)
   })
 
   it('và tổng số vi phạm đúng bằng tổng từng vế — không vế nào bị đếm hai lần', () => {
@@ -316,7 +327,7 @@ describe('MÓN NỢ đo được hôm nay — phép đo này KHÔNG xanh (T742)'
 
   /*
     Món nợ **không** là chuyện của riêng một mã trận: đo trên 5 mã cho
-    **77 / 136 / 60 / 68 / 90** (trước T814: 1.606 / 1.678 / 1.557 / 1.615 /
+    **77 / 114 / 56 / 66 / 95** (trước T814: 1.606 / 1.678 / 1.557 / 1.615 /
     1.705). Phép kiểm chỉ canh **bậc độ lớn** của dải ấy, vì khẳng định năm con
     số chính xác là buộc phép kiểm chạy 5 trận đầy đủ (≈3 giây) mỗi lần ai đó
     chạy bộ test.

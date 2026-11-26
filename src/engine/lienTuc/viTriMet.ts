@@ -130,11 +130,19 @@ export const GIAN_TRONG_VUNG = 10
  * Lùi về phía khung thành **của chính mình**, mét.
  *
  * Bốn điểm giữa sân bị **hai bên** cùng nhắm, vì dải 1 của nhà là dải 2 của
- * khách. Lùi mỗi bên `3,5 m` về sân mình tách hai bên ra **7 m** — hơn ngưỡng
- * 6,01 m ở trên — và nó cũng là điều một hậu vệ thật làm: đứng **phía khung
- * thành** so với người anh ta kèm.
+ * khách. Lùi mỗi bên về sân mình tách hai bên ra **gấp đôi** con số này, và nó
+ * cũng là điều một hậu vệ thật làm: đứng **phía khung thành** so với người anh
+ * ta kèm.
+ *
+ * ⚠️ **3,5 → 6,0 ngày 2026-11-26, và lý do là MẮT chứ không phải phép đo.**
+ * `3,5 m` đủ để qua ngưỡng đếm-ra-hai (7 m > 6,01 m) và mọi phép kiểm đều
+ * xanh — nhưng người dùng nhìn bản chạy và thấy **11 cặp khiêu vũ**: mỗi cầu
+ * thủ nhà đứng sát đúng một cầu thủ khách, vì 7 m chỉ hơn **một** đường kính
+ * đĩa vẽ (6,01 m) có 1 cm. `6,0 m` cho **12 m** giữa hai tuyến đối diện —
+ * **hai** đường kính đĩa — và đó là khoảng một hậu vệ thật giữ với tiền vệ đối
+ * phương. Người dùng chốt ngày 2026-11-26 sau khi xem.
  */
-export const LUI_VE_SAN_MINH = 3.5
+export const LUI_VE_SAN_MINH = 6
 
 /**
  * Chỗ đứng của **cả đội hình**, mét, đã bảo đảm không hai người cùng một điểm.

@@ -2181,44 +2181,58 @@ học đo **trên chính tệp ấy**.
     hai người dịch **y hệt nhau** từng mốc — họ không chỉ gần nhau, họ là **một khối**.
   - **Cách sửa:** `choDungDoiHinhMet` trong `src/engine/lienTuc/viTriMet.ts` — người thứ `i`
     trong nhóm `k` người cùng vùng lệch `(i − (k−1)/2) × 10 m` theo trục ngang, và mỗi bên lùi
-    `3,5 m` về sân mình (bốn điểm giữa sân bị hai bên cùng nhắm vì dải 1 của nhà là dải 2 của
-    khách). Hai nơi gọi: `coHocXuatPhat` và vòng dựng `choDung` của `buocPhutLienTuc`.
+    **`6,0 m`** về sân mình (bốn điểm giữa sân bị hai bên cùng nhắm vì dải 1 của nhà là dải 2
+    của khách). Hai nơi gọi: `coHocXuatPhat` và vòng dựng `choDung` của `buocPhutLienTuc`.
+    ⚠️ **`3,5 m` → `6,0 m` là quyết định của MẮT, không của phép đo.** Bản `3,5 m` làm **mọi**
+    phép kiểm xanh — 7 m qua ngưỡng đếm-ra-hai (6,01 m) — nhưng người dùng xem bản chạy và
+    thấy **11 cặp khiêu vũ**: 7 m chỉ hơn **một** đường kính đĩa đúng 1 cm, nên mỗi cầu thủ
+    nhà đứng dính một cầu thủ khách suốt trận. `6,0 m` cho **12 m**, tức **hai** đường kính.
+    Người dùng chốt ngày 2026-11-26 sau khi xem.
     ⛔ **Không** thêm vai trò, pha, hay chỉ số nào — nó chỉ làm một việc: **không đặt hai người
     lên cùng một điểm**. Khối phòng ngự, hai tuyến, pressing vẫn là **US-40 của spec 009**.
   - **Số đo sau khi sửa**, đúng bộ mẫu cũ:
 
-    | | trước | sau |
-    |---|---|---|
-    | cặp không phân biệt được | **7,27%** | **0,07%** |
-    | mốc có cặp như vậy | **100%** | **15,6%** |
-    | phân vị 1% của khoảng cách | 2,000 m | **5,250 m** |
-    | cặp nằm đúng trên tường 2,0 m | 6,23% | 0,02% |
+    | | trước | giãn 3,5 m | giãn **6,0 m** |
+    |---|---|---|---|
+    | cặp không phân biệt được | **7,27%** | 0,073% | **0,041%** |
+    | mốc có cặp như vậy | **100%** | 15,6% | **8,8%** |
+    | **đĩa chạm mép nhau** | 9,53% | 3,95% | **0,75%** |
+    | phân vị 1% của khoảng cách | 2,000 m | 5,25 m | **7,50 m** |
+    | cặp nằm đúng trên tường 2,0 m | 6,23% | 0,02% | **0,01%** |
 
-    Điều kiện ra đòi **≤ 1% số cặp** và **≤ 20% số mốc**: cả hai đạt. Phép kiểm ở
-    `src/ui/batBienSaBan.test.ts` (1.336.690 cặp, trên ngưỡng chống rỗng 200.000) và 7 phép
-    kiểm đơn vị ở `viTriMet.test.ts`, trong đó **một phép chống rỗng** khẳng định hàm **cũ**
-    trùng đúng 8 điểm — không có nó thì cả khối xanh mà chẳng chứng minh gì.
-  - 🔴 **MỘT ĐIỀU KHÔNG ĐƯỢC CHÔN: vế "số mốc" KHÔNG ỔN ĐỊNH THEO MẪU.** Cùng mã nguồn, chỉ
-    đổi bước lấy mẫu: 5 mã / mọi mốc → **15,6%**; 2 mã / mọi mốc → **18,7%**; 2 mã / mỗi 7 mốc
-    → **20,1%**; 2 mã / mỗi 10 mốc → **25,0%**. Vế **cặp** nằm trong `1%` ở mọi mẫu (biên gần
-    mười lần); vế **mốc** thì **bước qua lại đường 20%**. Lý do là số học: một mốc có 231 cặp,
-    nên `0,1%` số cặp đã cho ~20% số mốc — hai ngưỡng tôi công bố **không độc lập**, và `1%` số
-    cặp tương đương ~**90%** số mốc chứ không 20%. Nên con số 20% là một ngưỡng tôi đặt **sai
-    tỉ lệ** với ngưỡng kia, và việc nó đạt trên mẫu đã ghim **không** chứng minh nó an toàn.
-    Bảng đầy đủ nằm trong chú thích của chính phép kiểm.
+    📌 Cột đáng nhìn nhất là **đĩa chạm mép** — `9,53% → 0,75%`, bớt **13 lần** — vì đó là
+    thứ người xem thật sự thấy. Hai vế của điều kiện ra (`≤ 1%` số cặp, `≤ 20%` số mốc) đều
+    đạt với biên hơn hai lần. Phép kiểm ở `src/ui/batBienSaBan.test.ts` (1.336.690 cặp, trên
+    ngưỡng chống rỗng 200.000) và 7 phép kiểm đơn vị ở `viTriMet.test.ts`, trong đó **một
+    phép chống rỗng** khẳng định hàm **cũ** trùng đúng 8 điểm — không có nó thì cả khối xanh
+    mà chẳng chứng minh gì.
+  - ⚠️ **HAI NGƯỠNG TÔI CÔNG BỐ KHÔNG ĐỘC LẬP VỚI NHAU — lỗi của tôi khi đặt chúng.** Một
+    mốc có **231 cặp**, nên `0,1%` số cặp đã cho ~20% số mốc; tức `1%` số cặp tương đương
+    ~**90%** số mốc, chứ không 20%. Vế **mốc** chặt hơn vế **cặp** gần mười lần, và nó mới là
+    vế thật sự ràng.
+    📍 Ở bản `3,5 m` điều đó từng đau: vế mốc đo ra **15,6% / 18,7% / 20,1% / 25,0%** tuỳ mẫu,
+    tức **bước qua lại** đường 20%, và phép kiểm chỉ xanh nhờ mẫu nào được chọn — tôi đã nói
+    thẳng điều ấy với người dùng thay vì để yên. Ở bản `6,0 m` nó hết chông chênh:
+    **8,8% / 9,0% / 10,9% / 10,2%** trên cùng bốn mẫu ấy. Dải nằm trong 20% với biên **hơn hai
+    lần**, và không mẫu nào tới gần đường. Đó là khác biệt thật giữa hai bản, không phải một
+    mẫu may mắn.
   - 💰 **HỆ QUẢ PHỤ LỚN NHẤT: món nợ cơ học của `T742` rụng 95%.** Chú thích của
     `doCoHoc.test.ts` nêu hai nguồn có tên của chênh lệch vận tốc ↔ dịch chuyển, nguồn thứ nhất
     là *"tachChen đẩy người ra sau phép bước"*. Gỡ chỗ đứng trùng đi:
 
     ```
-    tổng vi phạm         1.613 → 77      (năm mã: 1.606/1.678/1.557/1.615/1.705 → 77/136/60/68/90)
-    AC-38.2(tăng)          259 → 2        AC-38.3(i)    443 → 13
-    AC-38.2(giảm)           12 → 1        AC-38.3(ii)   862 → 37
-    AC-38.4(ngang) đếm       7 → 0        AC-38.11        7 → 0     ← sạch hẳn
-    AC-38.1(i)              12 → 15      ← TỆ HƠN        AC-38.1(ii)  11 → 9
+    tổng vi phạm         1.613 → 77      (năm mã: 1.606/1.678/1.557/1.615/1.705 → 77/114/56/66/95)
+    AC-38.2(tăng)          259 → 3        AC-38.3(i)    443 → 4
+    AC-38.2(giảm)           12 → 0        AC-38.3(ii)   862 → 26
+    AC-38.4(ngang) đếm       7 → 0        AC-38.11        7 → 1
+    AC-38.1(i)              12 → 34      ← TỆ HƠN        AC-38.1(ii)  11 → 9
     ```
+    ⚠️ **`AC-38.1(i)` là chỗ xấu đi, và giãn rộng làm nó xấu thêm: 12 → 15 (bản 3,5 m) → 34
+    (bản 6,0 m).** Người đứng rời nhau thì quãng phải chạy về phía bóng **dài hơn**, nên tốc
+    độ đo trên **dịch chuyển** chạm trần nhiều hơn. Tổng vi phạm vẫn là 77 ở cả hai bản — việc
+    giãn rộng **dồn** món nợ còn lại sang một vế chứ không tạo thêm nợ.
   - ⚠️ **MỘT MÓN NỢ MỚI, NÊU RA CHỨ KHÔNG TỰ SỬA:** `soMau` của vế `AC-38.4(lùi)` tụt
-    **180 → 22**. Phần lớn 180 mẫu cũ là **rác** — những cú xô của `tachChen` trông như chạy
+    **180 → 21**. Phần lớn 180 mẫu cũ là **rác** — những cú xô của `tachChen` trông như chạy
     lùi với phép đo dựa trên dịch chuyển. Nhưng 22 mẫu là **thưa**, và chính `doCoHoc.test.ts`
     đã rào *"một vế chỉ chạm tới vài chục lần thì xanh hay đỏ đều là ngẫu nhiên"*. Nên phép
     chống rỗng của vế ấy **yếu hơn hôm qua**. Chưa mở task riêng: nó thuộc `T742`, và nên gộp
@@ -2299,8 +2313,10 @@ giải để người dùng quyết.
     móc và dính liền đến nhau"*.
   - 📍 **Cả hai đều đúng, và cả hai đều lọt qua 1.825 phép kiểm.** Đã đo lại thành số và mở
     **`T814`** (đè nhau: 7,4% số cặp, 100% số mốc) và **`T815`** (dính khối: p90 = 0,72).
-  - ✅ `T814` **xong cùng ngày**: 7,27% → **0,07%** số cặp, 100% → **15,6%** số mốc. `T815`
-    còn mở, và số đo của nó đã bị rút lại vì thước đo sai. **Chờ người dùng xem lại.**
+  - ✅ `T814` **xong cùng ngày**, hai nhịp: bản `3,5 m` (7,27% → 0,073% số cặp) rồi bản
+    `6,0 m` sau khi người dùng xem và thấy *"11 cặp khiêu vũ"* — **0,041%** số cặp,
+    100% → **8,8%** số mốc, đĩa chạm mép 9,53% → **0,75%**. `T815` còn mở, và số đo của nó đã
+    bị rút lại vì thước đo sai. **Chờ người dùng xem lại lần nữa.**
   - 📌 Task này **giữ nguyên chưa tick**: nó là cổng nghiệm thu của người dùng, và người dùng
     đã phán là chưa được. Nó chỉ xong khi `T814` và `T815` xong rồi người dùng xem lại.
   - File: — (không chạm file nào; kết quả ghi vào `spec.md` mục 7)

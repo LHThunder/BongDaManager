@@ -397,45 +397,54 @@ describe('AC-47.5 — đổi góc nhìn không đổi một ký tự của trậ
   tới hai chữ số thập phân vì chúng là **cùng một tập cặp**. `T814` của spec 007
   giãn chúng ra (`choDungDoiHinhMet`), và trên đúng bộ mẫu ấy:
 
-  |  | trước T814 | sau T814 |
-  |---|---|---|
-  | cặp không phân biệt được | **7,27%** | **0,07%** |
-  | mốc có một cặp như vậy | **100%** | **15,6%** |
-  | phân vị 1% của khoảng cách | 2,000 m | **5,250 m** |
-  | cặp nằm đúng trên tường 2,0 m | 6,23% | 0,02% |
+  |  | trước T814 | giãn 3,5 m | giãn **6,0 m** |
+  |---|---|---|---|
+  | cặp không phân biệt được | **7,27%** | 0,073% | **0,041%** |
+  | mốc có một cặp như vậy | **100%** | 15,6% | **8,8%** |
+  | **đĩa chạm mép nhau** | 9,53% | 3,95% | **0,75%** |
+  | phân vị 1% của khoảng cách | 2,000 m | 5,25 m | **7,50 m** |
+  | cặp nằm đúng trên tường 2,0 m | 6,23% | 0,02% | **0,01%** |
+
+  ⚠️ **Cột giữa và cột phải khác nhau vì MẮT, không vì phép đo.** Bản `3,5 m`
+  làm mọi phép kiểm xanh, nhưng người dùng xem bản chạy và thấy **11 cặp khiêu
+  vũ**: 7 m chỉ hơn **một** đường kính đĩa (6,01 m) đúng 1 cm, nên mỗi cầu thủ
+  nhà đứng dính một cầu thủ khách. `6,0 m` cho 12 m — **hai** đường kính. Cột
+  đáng nhìn nhất là **đĩa chạm mép**: `9,53% → 3,95% → 0,75%`, vì đó là thứ
+  người xem thật sự thấy.
 
   ⚠️ **HAI NGƯỠNG DƯỚI ĐÂY LÀ HỢP ĐỒNG, KHÔNG PHẢI SỐ ĐO.** `1%` và `20%` được
   viết vào điều kiện ra của `T814` **trước khi** đo, và người dùng chốt chúng
-  ngày 2026-11-26. Giữ nguyên chữ ấy thay vì xiết về sát 0,07% là có chủ ý: một
+  ngày 2026-11-26. Giữ nguyên chữ ấy thay vì xiết về sát số đo là có chủ ý: một
   ngưỡng đặt sau khi biết kết quả thì không còn là một lời hứa. Nhưng để một
-  hồi quy từ 0,07% lên 0,9% không ai thấy cũng là sai, nên có thêm **một dây
+  hồi quy từ 0,04% lên 0,9% không ai thấy cũng là sai, nên có thêm **một dây
   bẫy chặt** ở `0,2%` ngay cạnh, và nó được gọi tên là dây bẫy.
 
-  🔴 **VÀ MỘT ĐIỀU PHẢI ĐỌC TRƯỚC KHI TIN CON SỐ 20%: VẾ "SỐ MỐC" KHÔNG ỔN
-  ĐỊNH THEO MẪU.** Cùng một mã nguồn, cùng một ngưỡng, chỉ đổi bước lấy mẫu và
-  số mã trận:
+  ⚠️ **HAI NGƯỠNG ẤY KHÔNG ĐỘC LẬP VỚI NHAU, VÀ ĐÓ LÀ LỖI CỦA TÔI KHI ĐẶT
+  CHÚNG.** Một mốc có **231 cặp**, nên `0,1%` số cặp đã cho ~0,23 cặp đè mỗi
+  mốc, tức ~20% số mốc. Nói cách khác `1%` số cặp tương đương ~**90%** số mốc,
+  chứ không 20% — vế **mốc** chặt hơn vế **cặp** gần mười lần, và nó mới là vế
+  thật sự ràng.
+
+  📍 Ở bản **3,5 m** điều đó từng đau: vế mốc đo ra 15,6% / 18,7% / 20,1% /
+  25,0% tuỳ mẫu, tức **bước qua lại** đường 20%, và phép kiểm chỉ xanh nhờ mẫu
+  nào được chọn. Ở bản **6,0 m** nó hết chông chênh:
 
   | mẫu | cặp đè | mốc có cặp đè |
   |---|---|---|
-  | 5 mã, **mọi** mốc (30.240 mốc) | 0,073% | **15,6%** |
-  | 2 mã, mọi mốc | 0,089% | **18,7%** |
-  | 2 mã, mỗi 7 mốc | 0,096% | **20,1%** |
-  | 2 mã, mỗi 10 mốc | 0,124% | **25,0%** |
-  | 3 mã, mỗi 3 mốc *(bộ phép kiểm này dùng)* | 0,074% | **15,7%** |
+  | 5 mã, **mọi** mốc (30.240 mốc) | 0,041% | **8,8%** |
+  | 2 mã, mọi mốc | 0,042% | **9,0%** |
+  | 2 mã, mỗi 7 mốc | 0,050% | **10,9%** |
+  | 2 mã, mỗi 10 mốc | 0,048% | **10,2%** |
 
-  Vế **cặp** nằm trong `1%` ở **mọi** mẫu tôi thử — biên gần mười lần. Vế
-  **mốc** thì đi từ 15,6% tới 25,0%, tức **bước qua lại đường 20%**. Lý do là
-  số học, không phải ngẫu nhiên: một mốc có **231 cặp**, nên `0,1%` số cặp đã
-  cho ~0,23 cặp đè mỗi mốc và ~20% số mốc. Hai ngưỡng tôi công bố vì thế
-  **không độc lập**, và vế mốc là vế **chặt hơn hẳn** — `1%` số cặp sẽ tương
-  đương ~90% số mốc, chứ không 20%.
+  Dải **8,8–10,9%** — nằm trong ngưỡng 20% với biên **hơn hai lần**, và không
+  mẫu nào tới gần đường ấy. Đó là khác biệt thật giữa hai bản, chứ không phải
+  một mẫu may mắn.
 
-  📌 Nên: `expect` dưới đây **đạt trên mẫu này**, và tôi không coi đó là bằng
-  chứng rằng ngưỡng 20% đã an toàn. Điều ấy đã được nói thẳng với người dùng
-  kèm cả bảng trên, và `AC-49.6` **chưa được tích lại** bằng phép kiểm này —
-  cổng của nó là `T760`: người dùng xem lại rồi phán.
+  📌 `AC-49.6` **vẫn chưa được tích lại** bằng phép kiểm này — cổng của nó là
+  `T760`: người dùng xem lại rồi phán. Tích một AC **hành vi** bằng một phép
+  kiểm xanh là đúng cái lỗi đã phải gỡ tích một lần.
 
-  📌 **Đĩa vẽ vẫn CHỒNG MÉP nhau ở 3,95% số cặp, và đó KHÔNG phải lỗi.** Đĩa
+  📌 **Đĩa vẽ vẫn chồng mép nhau ở 0,75% số cặp, và đó KHÔNG phải lỗi.** Đĩa
   cầu thủ có bán kính `2,6` đơn vị = **3,01 m** ở sân 2D, tức đường kính 6 m —
   rộng hơn một người thật hơn mười lần. Hai người đứng cách nhau 5 m là chuyện
   thường của bóng đá, và hai đĩa 6 m của họ thì phải giao nhau. AC-49.6 không

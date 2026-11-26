@@ -160,8 +160,16 @@ describe('choDungDoiHinhMet — giãn người cùng vùng (T814)', () => {
       }
     }
     expect(ganNhat).toBeGreaterThan(BAN_KINH_MET)
-    // Và nêu luôn con số, để một hồi quy về sát ngưỡng cũng thành đỏ.
-    expect(ganNhat).toBeCloseTo(7, 5)
+    /*
+      Và nêu luôn con số: **10 m**, đúng `GIAN_TRONG_VUNG` — hai người cùng
+      vùng. Cặp hai đội đối diện nhau cách **12 m** (`2 × LUI_VE_SAN_MINH`),
+      nên cặp chặt nhất trên sân nay là cặp **cùng đội**, không phải cặp đối
+      mặt. Ở bản đầu của T814 (`LUI_VE_SAN_MINH = 3,5`) thì ngược lại: cặp
+      đối mặt chỉ cách 7 m — qua ngưỡng đếm-ra-hai nhưng chỉ hơn **một**
+      đường kính đĩa 1 cm, và trên bản chạy nó thành 11 cặp dính nhau. Người
+      dùng xem rồi chốt `6,0 m` ngày 2026-11-26.
+    */
+    expect(ganNhat).toBeCloseTo(GIAN_TRONG_VUNG, 5)
   })
 
   it('mọi điểm nằm TRONG sân', () => {
