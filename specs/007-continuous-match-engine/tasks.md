@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **30 AC**) |
 | **Plan** | `./plan.md` (Status `Approved`, D117–D134, R51–R64) |
-| **Tiến độ** | 39/51 — T813 thêm ngày 2026-11-25 do spec 011 phát hiện |
+| **Tiến độ** | 40/51 — T813 thêm ngày 2026-11-25 và xong ngày 2026-11-26 |
 | **Nền đo** | commit `5c652eb`, engine v6, **1.304 test xanh / 63 file test** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -2060,7 +2060,7 @@ học đo **trên chính tệp ấy**.
     chạy **1.400 ms**. Nếu T753 báo con số mới mà không nhắc hai chỗ này thì repo có **ba** con
     số cho cùng một phép đo.
 
-- [ ] **T813** — Thủ môn chạy qua vạch giữa sân ở engine liên tục. *(Task do spec 011 phát hiện ngày 2026-11-25; người dùng chốt mở task ở đây thay vì để spec 011 che.)*
+- [x] **T813** — Thủ môn chạy qua vạch giữa sân ở engine liên tục. *(Task do spec 011 phát hiện ngày 2026-11-25; người dùng chốt mở task ở đây thay vì để spec 011 che.)*
   - File: `src/engine/lienTuc/coHoc.ts` (hoặc nơi đặt đích thủ môn), `src/engine/lienTuc/coHoc.test.ts`
   - **Phát hiện, đo bằng máy ngày 2026-11-25** trên `AnhChupMet` thật, **10 mã trận × 45 phút
     × mọi mốc = 56.640 lượt đo** vị trí thủ môn:
@@ -2093,6 +2093,47 @@ học đo **trên chính tệp ấy**.
     trận đã lưu bằng engine cũ sẽ phát lại khác, và `lyDoKhongDauLai` phải nói được điều đó.
   - AC: AC-30.7 (của spec 005) đọc lại ở engine liên tục
   - Phụ thuộc: —
+  - ✅ **Xong 2026-11-26.** Đo lại trên **đúng** bộ 56.640 lượt đã phát hiện lỗi:
+
+    | | Trước | Sau |
+    |---|---|---|
+    | Ra khỏi một phần ba sân | 1.168 — **2,06%** | 36 — **0,06%** |
+    | Lệch xa nhất | **31,72 m** | **2,19 m** |
+    | p50 / p90 / p99 | 1,91 / 8,09 / 24,06 | **0,82 / 1,46 / 2,19** |
+
+  - 🔴 **NGUYÊN NHÂN KHÔNG PHẢI THỨ TASK NÀY ĐOÁN, và chỗ sửa cũng không.**
+    Task viết *"engine kẹp ĐÍCH chứ không kẹp VỊ TRÍ, nên quán tính đưa anh ta
+    vượt qua"*, và đề xuất **kẹp vị trí**. Cả hai đều sai:
+    - `grep` ngày 2026-11-26 cho thấy `kepDichThuMon` **chưa từng được gọi từ
+      một dòng mã sản phẩm nào**. Nó có từ T714, có phép kiểm riêng ở
+      `coHoc.test.ts:669`, và là **mã chết**. Đích của thủ môn **chưa từng bị
+      kẹp gì cả** — quán tính không thể đưa ai đi 31,72 m quá đích.
+    - Kẹp **vị trí** sẽ **vỡ AC-38.2**. Chú thích của chính `kepDichThuMon` đã
+      từ chối cách ấy từ T714: kẹp vị trí là để thủ môn chạy ra rồi **giật**
+      về, một bước dịch không qua phép kẹp gia tốc, và trên hình trông như
+      teleport.
+
+    Cách sửa thật: **nối phép kẹp đã có vào đường chạy** —
+    `tranLienTuc.ts` dựng bảng `thuMonCuaO` trong chính vòng lặp dựng `choDung`
+    (cùng `doiHinhTrenSan`, nên hai mảng không thể lệch chỉ số) rồi gọi
+    `kepDichThuMon` cho đúng hai ô ấy. Kẹp áp **cả khi thủ môn đang giữ bóng**,
+    đúng chữ AC-30.7.
+  - ⚠️ **NGƯỠNG ĐÃ ĐỔI, người dùng chốt ngày 2026-11-26: `≤ 2,5 m` thay vì
+    `≤ 2 m`.** Ngưỡng 2 m **không bảo đảm được bằng thiết kế này**: ở 9 m/s với
+    giảm tốc 7,2 m/s², quãng hãm lý thuyết là `v²/2a = 5,6 m`. Một thủ môn chạy
+    hết tốc nhắm đúng biên có thể vượt tới 5,6 m, và ép về 0 thì phải kẹp vị
+    trí — tức vỡ AC-38.2. Ngưỡng mới đặt **sát số đo thật 2,19 m** nên nó đỏ
+    ngay nếu xấu đi, và trần lý thuyết 5,6 m được ghi ra để không ai tưởng 0 là
+    đạt được.
+  - ✅ **P2 KHÔNG bị chạm — lời cảnh báo của chính task này SAI.** Task viết
+    *"sửa chỗ này đổi con số trận, nên nó chạm P2"*. Đo thật: `taiLap`,
+    `phatLai` (36 phép), `sosanh.*` và vân tay dòng sự kiện của spec 011 đều
+    **xanh** qua thay đổi này — **dòng sự kiện và tỉ số không đổi một ký tự**.
+    Đúng như hiến pháp nói: vùng là đơn vị **QUYẾT ĐỊNH**, lớp liên tục chỉ
+    **DIỄN**. Thay đổi này đổi cách trận được **vẽ**, không đổi trận.
+  - 📝 Chín bộ đếm đo lường trong `doCoHoc.test.ts` đã ghim lại, kèm chú thích
+    tại chỗ. Hai trong chín là **tốt lên**: `AC-38.1(i)` 15 → 12 và
+    `AC-38.1(ii)` 12 → 11. Bộ kiểm đầy đủ: **86 file / 1.809 phép kiểm xanh**.
 
 - [ ] **T754** [P] — Bốn món nợ văn bản
   - File: `src/engine/vung.ts` (chú thích D23, dòng 4-18), `src/engine/suKien.ts` (dòng 88),

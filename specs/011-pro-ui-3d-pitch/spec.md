@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **ID** | `011-pro-ui-3d-pitch` |
-| **Status** | **Planned** — **40/52 AC đạt** (T810, 2026-11-26). 12 AC chưa đạt đều có dòng lý do tại chỗ: 7 chờ Phase 62, 1 chặn bởi `T813` của spec 007, 3 không đo được trong môi trường này, 1 chờ phép kiểm P5 mang đúng tên nó. **Chưa `Done`.** |
+| **Status** | **Planned** — **41/52 AC đạt** (T810 ngày 2026-11-26, cộng AC-49.1 sau khi `T813` của spec 007 xong). 11 AC chưa đạt đều có dòng lý do tại chỗ: 7 chờ Phase 62 — nay **đã gỡ chặn**, 3 không đo được trong môi trường này, 1 chờ phép kiểm P5 mang đúng tên nó. **Chưa `Done`.** |
 | **Created** | 2026-11-25 |
 | **Clarified** | 2026-11-25 — **15 quyết định**, xem mục 10 (quyết định 15 đến từ `/analyze`) |
 | **Planned** | 2026-11-25 — `./plan.md`, 13 quyết định D130–D142, 7 rủi ro R60–R66 |
@@ -266,7 +266,7 @@ hỏng điều gì**, để **không phải kiểm lại bằng mắt từ đầ
 > phương án dưới đây. **Không con số nào bị hạ lặng lẽ** — cả hai món nợ đều được gọi tên và
 > trả về đúng chủ của nó là **spec 007**.
 
-- [ ] ⛔ AC-49.1 — **ĐANG BỊ CHẶN bởi `T813` của spec 007.** KHI trận đang chạy ở góc nhìn 3D
+- [x] AC-49.1 — **ĐÃ GỠ CHẶN: `T813` của spec 007 xong ngày 2026-11-26.** KHI trận đang chạy ở góc nhìn 3D
       THÌ thủ môn PHẢI luôn nằm trong **một phần ba sân của đội mình** (AC-30.7 đọc lại).
       > 📍 **Hai lần đo, và lần đầu tôi đã đưa người dùng một con số sai — sửa công khai.**
       > Lần một (3 mã trận × 20 phút, lấy mỗi mốc thứ 10): 0,96% và lệch tối đa 2,01 m. Trên số
@@ -289,8 +289,13 @@ hỏng điều gì**, để **không phải kiểm lại bằng mắt từ đầ
       >
       > Người dùng chốt trên số đo đúng ngày **2026-11-25**: **mở `T813` ở spec 007**, thay vì
       > để spec 011 đặt ngưỡng 32 m rồi gọi đó là phép kiểm. Spec 011 **MUST NOT** thêm kẹp ở
-      > lớp vẽ: `viTriVeLienTuc` đã cố ý tắt đúng phép kẹp ấy. AC này **mở** cho tới khi T813
-      > xong.
+      > lớp vẽ: `viTriVeLienTuc` đã cố ý tắt đúng phép kẹp ấy.
+      >
+      > ✅ **T813 xong ngày 2026-11-26**, và nguyên nhân hoá ra khác hẳn: `kepDichThuMon` là
+      > **mã chết** — có từ T714, có phép kiểm riêng, nhưng **chưa từng được gọi**. Nối nó vào
+      > đường chạy cho **2,06% → 0,06%** và **31,72 m → 2,19 m**. Ngưỡng của AC này nay là
+      > **≥ 99,9% số mốc** và **≤ 2,5 m** — đặt sát số đo, vì 0 không dựng nổi: quãng hãm lý
+      > thuyết ở 9 m/s là **5,6 m**, và ép về 0 thì phải kẹp vị trí, tức vỡ **AC-38.2**.
       > ⬜ **CHƯA ĐẠT (T810, 2026-11-26):** ⛔ **chặn bởi `T813` của spec 007** — engine kẹp ĐÍCH chứ không kẹp VỊ TRÍ, thủ môn ra khỏi một phần ba sân ở 2,06% số mốc, lệch tối đa **31,72 m**. Spec 011 chỉ đọc engine và **không được** kẹp lại ở lớp vẽ.
 - [x] AC-49.2 — KHI hai góc nhìn hiển thị **cùng một mốc** THÌ vị trí mà lớp 3D đọc ra PHẢI
       bằng **từng số** với vị trí mà lớp 2D đọc ra, cho **mọi cầu thủ có mặt**.
