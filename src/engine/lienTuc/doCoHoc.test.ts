@@ -182,13 +182,25 @@ describe('phép đo CÓ MẪU THẬT — chống rỗng (T742, AC-45.6)', () => 
       AC-38.1(ii)             11 → 9
       AC-38.4(lùi) soMau     180 → 21      ← mẫu thưa đi 9 lần
       AC-38.4(ngang) soMau 1.423 → 2.363
-      năm mã  1.606/1.678/1.557/1.615/1.705 → 77/114/56/66/95
+      năm mã  1.606/1.678/1.557/1.615/1.705 → 77/101/57/78/90
 
-    📌 Bảng trên là của bản **giãn 6,0 m** — con số người dùng chốt sau khi xem
-    bản chạy. Bản giãn **3,5 m** làm trước đó cho: tổng 77, AC-38.1(i) **15**,
-    AC-38.2(tăng) 2, AC-38.2(giảm) 1, AC-38.3(i) 13, AC-38.3(ii) 37, AC-38.11
-    **0**, soMau lùi 22. Giãn rộng thêm **không** đổi tổng, nhưng dồn món nợ
-    còn lại sang vế AC-38.1(i).
+    📌 Bảng trên đã đi qua **ba** bản trong một ngày, và tổng vi phạm đứng yên
+    ở **77** cả ba lần:
+
+    | | giãn 3,5 m | giãn 6,0 m | **+ T815** |
+    |---|---|---|---|
+    | tổng | 77 | 77 | **77** |
+    | AC-38.1(i) | 15 | 34 | **33** |
+    | AC-38.2(tăng) | 2 | 3 | **4** |
+    | AC-38.2(giảm) | 1 | 0 | **0** |
+    | AC-38.3(i) | 13 | 4 | **5** |
+    | AC-38.3(ii) | 37 | 26 | **25** |
+    | AC-38.11 | 0 | 1 | **1** |
+    | soMau lùi | 22 | 21 | **22** |
+
+    Nói cách khác: **`T815` gần như không chạm món nợ cơ học.** Nó đổi *chỗ
+    đứng*, không đổi *cách bước*. Chỗ đổi lớn nằm ở `T814` và ở việc giãn
+    6,0 m, không ở đây.
 
     📌 **Ba con số đi ngược, và tôi không gộp chúng vào lời khoe.**
     `AC-38.1(i)` tăng **12 → 34** — hơn gấp đôi, và nó xấu đi thêm khi giãn từ
@@ -217,8 +229,8 @@ describe('phép đo CÓ MẪU THẬT — chống rỗng (T742, AC-45.6)', () => 
       vế ấy có người đo, nhưng không còn chứng minh được bao nhiêu. Ghi thành
       món nợ có tên ở `T814` của `tasks.md` chứ không lặng lẽ đổi số.
     */
-    expect(KQ.soMau['AC-38.4(lùi)']).toBe(21)
-    expect(KQ.soMau['AC-38.4(ngang)']).toBe(2363)
+    expect(KQ.soMau['AC-38.4(lùi)']).toBe(22)
+    expect(KQ.soMau['AC-38.4(ngang)']).toBe(2423)
   })
 })
 
@@ -295,15 +307,15 @@ describe('MÓN NỢ đo được hôm nay — phép đo này KHÔNG xanh (T742)'
   })
 
   it('AC-38.1 và AC-38.2: vỡ khi đo trên DỊCH CHUYỂN, dù vận tốc đúng trần', () => {
-    expect(DEM.get('AC-38.1(i)')).toBe(34)
+    expect(DEM.get('AC-38.1(i)')).toBe(33)
     expect(DEM.get('AC-38.1(ii)')).toBe(9)
-    expect(DEM.get('AC-38.2(tăng)')).toBe(3)
+    expect(DEM.get('AC-38.2(tăng)')).toBe(4)
     expect(DEM.get('AC-38.2(giảm)') ?? 0).toBe(0)
   })
 
   it('AC-38.3: cả hai vế đỏ ở độ phân giải MỐC', () => {
-    expect(DEM.get('AC-38.3(i)')).toBe(4)
-    expect(DEM.get('AC-38.3(ii)')).toBe(26)
+    expect(DEM.get('AC-38.3(i)')).toBe(5)
+    expect(DEM.get('AC-38.3(ii)')).toBe(25)
   })
 
   it('AC-38.4(ngang) sạch hẳn, AC-38.11 còn đúng MỘT mốc', () => {
@@ -327,7 +339,7 @@ describe('MÓN NỢ đo được hôm nay — phép đo này KHÔNG xanh (T742)'
 
   /*
     Món nợ **không** là chuyện của riêng một mã trận: đo trên 5 mã cho
-    **77 / 114 / 56 / 66 / 95** (trước T814: 1.606 / 1.678 / 1.557 / 1.615 /
+    **77 / 101 / 57 / 78 / 90** (trước T814: 1.606 / 1.678 / 1.557 / 1.615 /
     1.705). Phép kiểm chỉ canh **bậc độ lớn** của dải ấy, vì khẳng định năm con
     số chính xác là buộc phép kiểm chạy 5 trận đầy đủ (≈3 giây) mỗi lần ai đó
     chạy bộ test.

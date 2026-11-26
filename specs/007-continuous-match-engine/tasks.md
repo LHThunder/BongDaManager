@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **30 AC**) |
 | **Plan** | `./plan.md` (Status `Approved`, D117–D134, R51–R64) |
-| **Tiến độ** | 41/53 — T813 và **T814** xong 2026-11-26; T814 gỡ **95%** món nợ cơ học của `T742` (1.613 → 77 vi phạm) như một hệ quả phụ. `T815` còn mở, và `T760` còn chờ người dùng xem lại |
+| **Tiến độ** | 42/53 — T813, **T814** và **T815** xong 2026-11-26. T814 gỡ **95%** món nợ cơ học của `T742` (1.613 → 77 vi phạm) như một hệ quả phụ; T815 phá cái lưới ô vuông của đội hình. `T760` còn chờ người dùng xem lại |
 | **Nền đo** | commit `5c652eb`, engine v6, **1.304 test xanh / 63 file test** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -2244,7 +2244,7 @@ học đo **trên chính tệp ấy**.
   - AC: AC-30.5 (của spec 005) đọc lại ở engine liên tục; gỡ chặn AC-49.6/49.7 của spec 011
   - Phụ thuộc: —
 
-- [ ] **T815** — Cả đội hình trượt cùng nhau như một khối. *(Thêm 2026-11-26 từ phán quyết `T760`.)*
+- [x] **T815** — Cả đội hình trượt cùng nhau như một khối. *(Thêm **và xong** 2026-11-26 từ phán quyết `T760`.)*
   - File: `src/engine/lienTuc/viTriMet.ts` (`dichNguoiKhongBong`), phép kiểm cạnh nó
   - **Phát hiện:** cùng lượt xem ấy, người dùng nói *"di chuyển của cầu thủ quá máy móc và
     dính liền đến nhau"*.
@@ -2273,6 +2273,54 @@ học đo **trên chính tệp ấy**.
     xạ của một lỗi khác làm mẫu số.
   - Xong khi: có một thước đo được chốt, một số đo trước/sau, và **người dùng xem lại rồi
     phán** — chính `T760` là cổng của việc này, không phải một phép kiểm.
+  - ✅ **XONG 2026-11-26. Và thước đo mới KHÔNG phải một phép đo — nó là ĐẠI SỐ.**
+    Với một hệ số `p` duy nhất cho cả 22 người:
+
+    > `đích_i = (1 − p)·chỗ_i + p·bóng`  ⟹  `Δđích_i = p·Δbóng`, **giống hệt nhau với mọi i**
+
+    Hai mươi hai vectơ dịch chuyển **bằng nhau từng số**. Trường đích không *trông như* một
+    khối — nó **là** một phép tịnh tiến cứng, chứng minh bằng hai dòng. Đó là lý do thước đo
+    cũ (lấy tán xạ làm mẫu số) sai ngay từ cách đặt: nó đi đo một thứ đã chứng minh được.
+  - 📐 **Hai thước đo đã chốt:**
+    1. **Độ tản mạn của trường đích** — lệch chuẩn của 22 vectơ `Δđích` chia độ dài trung bình.
+       Mô hình một-hệ-số cho **đúng 0**; sau T815 nó bằng **hệ số biến thiên của dãy `p`** =
+       **0,1434**. Một con số **đóng**, không phụ thuộc mã trận nào.
+    2. **Số ô lưới** — trung bình số giá trị `x` khác nhau (làm tròn 0,5 m) trong 22 vị trí, và
+       số giá trị `y`. Trước T815: **9,15 / 22** và **5,56 / 22** — quá nửa số người đứng chung
+       toạ độ với ai đó. Đó chính là cái lưới ô vuông nhìn thấy trên bản chạy.
+  - **Cách sửa:** `phanDichCuaO(o)` trong `viTriMet.ts` — dãy tỉ-lệ-vàng rải 11 ô đều trên dải
+    `0,25 ± 0,06`, **trung bình đúng bằng `PHAN_DICH_THEO_BONG` cũ** (có một phép kiểm mang
+    đúng tên điều đó: dãy thô lệch tâm ở 0,4538 chứ không 0,5, không trừ đi thì cả hai đội lùi
+    sâu thêm). Hai đội dùng **cùng** dãy (`o % 11`). Không tiêu một lần rút ngẫu nhiên nào —
+    tiêu một lần rút là đổi **dòng sự kiện**.
+  - **Số đo, và biên độ chọn từ một đường đánh đổi chứ không từ cảm tính:**
+
+    | biên độ | lưới `x` | lưới `y` | cặp đè | mốc có cặp đè |
+    |---|---|---|---|---|
+    | **0** *(trước T815)* | 9,15 | 5,56 | 0,041% | **8,8%** |
+    | 0,04 | 18,49 | 9,52 | 0,041% | 8,9% |
+    | **0,06** ← chọn | **18,85** | **9,97** | **0,041%** | **9,0%** |
+    | 0,08 | 19,16 | 10,10 | 0,047% | 10,1% |
+    | 0,10 | 19,73 | 10,18 | 0,077% | **16,2%** |
+
+    Giãn dải rộng ra thì lưới vỡ tốt hơn **nhưng người đè nhau trở lại** — hai hệ số khác nhau
+    thì chỗ đứng trượt qua nhau. `0,06` lấy gần hết phần lưới vỡ được mà **không mất một phần
+    nghìn nào** của `T814`. `0,10` đổi thêm 0,9 giá trị `x` lấy **16,2%**, tức đẩy phép đo về
+    đúng vùng chông chênh quanh ngưỡng 20% mà bản giãn 3,5 m đã mắc.
+  - ⚠️ **THỨ T815 KHÔNG CHỮA, và phải nói ra:** 22 vectơ dịch chuyển vẫn **song song** — chỉ
+    khác độ dài. Đội hình nay **co giãn** theo bóng thay vì **trượt cứng**, nhưng không ai đi
+    hướng riêng của mình. Hướng riêng cần **độ trễ phản ứng** hoặc **vai trò**, và cả hai là
+    **US-40 của spec 009**. Lưới `y` cũng bão hoà quanh **10 / 22** ở mọi biên độ, vì ba tâm
+    cột chỉ có ba giá trị `y` để bắt đầu.
+  - ⚠️ **Và dãy `p` KHÔNG mang nghĩa chiến thuật nào.** Ai bám bóng nhiều hơn ai là việc chưa
+    ai quyết; đây chỉ là một dãy rải đều, tất định. Một trùng hợp được ghi lại để không ai đọc
+    ngược: ô 0 là **thủ môn** và nhận hệ số **thấp nhất** (0,1955), vì `frac(0·φ) = 0` luôn ở
+    đáy dải — tôi không thiết kế điều đó.
+  - 📍 **Món nợ cơ học gần như không nhúc nhích:** tổng vi phạm vẫn **77** (năm mã
+    77/101/57/78/90), AC-38.1(i) 34→33, AC-38.3(ii) 26→25. T815 đổi **chỗ đứng**, không đổi
+    **cách bước**. **P2 nguyên vẹn**, 1.841 phép kiểm xanh kể cả vân tay dòng sự kiện.
+  - 📌 Task này vẫn chỉ **đóng một nửa**: điều kiện ra của nó nói *"người dùng xem lại rồi
+    phán"*, và cổng ấy là **`T760`**.
   - AC: (chất lượng chuyển động — chưa có AC nào mang đúng tên nó)
   - Phụ thuộc: —
 
@@ -2315,8 +2363,11 @@ giải để người dùng quyết.
     **`T814`** (đè nhau: 7,4% số cặp, 100% số mốc) và **`T815`** (dính khối: p90 = 0,72).
   - ✅ `T814` **xong cùng ngày**, hai nhịp: bản `3,5 m` (7,27% → 0,073% số cặp) rồi bản
     `6,0 m` sau khi người dùng xem và thấy *"11 cặp khiêu vũ"* — **0,041%** số cặp,
-    100% → **8,8%** số mốc, đĩa chạm mép 9,53% → **0,75%**. `T815` còn mở, và số đo của nó đã
-    bị rút lại vì thước đo sai. **Chờ người dùng xem lại lần nữa.**
+    100% → **8,8%** số mốc, đĩa chạm mép 9,53% → **0,75%**.
+  - ✅ `T815` **cũng xong cùng ngày**: lưới ô vuông **9,15 → 18,85** giá trị `x` và
+    **5,56 → 9,97** giá trị `y` trên 22 người, mà không mất một phần nghìn nào của `T814`.
+  - 📌 **Nên task này nay chỉ chờ ĐÚNG MỘT THỨ: người dùng xem lại và phán.** Hai món nợ nó
+    chỉ ra đều đã trả; thứ chưa có là con mắt đã bác chúng lần đầu.
   - 📌 Task này **giữ nguyên chưa tick**: nó là cổng nghiệm thu của người dùng, và người dùng
     đã phán là chưa được. Nó chỉ xong khi `T814` và `T815` xong rồi người dùng xem lại.
   - File: — (không chạm file nào; kết quả ghi vào `spec.md` mục 7)

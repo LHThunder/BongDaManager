@@ -27,6 +27,7 @@ import {
 import {
   choDungDoiHinhMet,
   dichNguoiKhongBong,
+  phanDichCuaO,
   tamVungMet,
 } from './viTriMet'
 import {
@@ -759,7 +760,11 @@ export function buocPhutLienTuc(ttVao: TrangThaiLienTuc): MotPhutLienTuc {
       const dichThoi =
         o === nguoiGiu
           ? dBong
-          : dichNguoiKhongBong(choDung[o] ?? { x: TAM_X, y: TAM_Y }, dBong)
+          : dichNguoiKhongBong(
+              choDung[o] ?? { x: TAM_X, y: TAM_Y },
+              dBong,
+              phanDichCuaO(o),
+            )
       /*
         KẸP ĐÍCH CỦA THỦ MÔN (T813) — chỗ phép kẹp đáng lẽ phải được gọi từ đầu.
 

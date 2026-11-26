@@ -3,12 +3,14 @@ import { DAI_SAN, RONG_SAN, trongSan } from '../hinhHocSan'
 import { CAC_COT, CAC_DAI, layVung, vungCuaViTri } from '../vung'
 import type { PositionId } from '../../domain/types'
 import {
+  BIEN_DO_PHAN_DICH,
   choDungDoiHinhMet,
   choDungMet,
   dichNguoiKhongBong,
   GIAN_TRONG_VUNG,
   LUI_VE_SAN_MINH,
   PHAN_DICH_THEO_BONG,
+  phanDichCuaO,
   tamVungMet,
   TI_LE_DAI_MET,
 } from './viTriMet'
@@ -216,5 +218,105 @@ describe('choDungDoiHinhMet — giãn người cùng vùng (T814)', () => {
     ]
     const khoa = new Set(cu.map((d) => `${d.x.toFixed(6)},${d.y.toFixed(6)}`))
     expect(khoa.size).toBe(8)
+  })
+})
+
+/*
+  ====================================================================
+  MỘT HỆ SỐ CHO 22 NGƯỜI LÀ MỘT KHỐI CỨNG (T815).
+  ====================================================================
+
+  Khối này canh **đại số**, không canh một con số đo được trên trận: với một hệ
+  số `p` duy nhất thì `Δđích_i = p · Δbóng` **bằng nhau với mọi i**, tức trường
+  đích là một phép tịnh tiến cứng. Phép kiểm cuối dựng lại đúng mệnh đề ấy và
+  đòi nó **sai** sau T815.
+*/
+describe('phanDichCuaO — mỗi người một hệ số bám bóng (T815)', () => {
+  const O = Array.from({ length: 11 }, (_, o) => o)
+
+  it('trung bình đúng bằng PHAN_DICH_THEO_BONG — đội hình không lùi sâu thêm', () => {
+    /*
+      ⚠️ Đây là lời hứa đắt nhất của T815. Dãy `frac(o·φ)` thô có trung bình
+      0,4538 chứ không phải 0,5; không trừ đi thì hệ số trung bình tụt còn
+      0,2408 và **cả hai đội lùi sâu hơn** so với trước T815 — một thay đổi
+      hành vi mà task này không xin phép làm.
+    */
+    const tong = O.reduce((s, o) => s + phanDichCuaO(o), 0)
+    expect(tong / O.length).toBeCloseTo(PHAN_DICH_THEO_BONG, 12)
+  })
+
+  it('11 hệ số KHÁC NHAU từng đôi một — không hai ai cùng một hệ số', () => {
+    expect(new Set(O.map((o) => phanDichCuaO(o).toFixed(9))).size).toBe(11)
+  })
+
+  it('nằm trong dải đã nêu, và không hệ số nào âm hay quá 1', () => {
+    for (const o of O) {
+      const p = phanDichCuaO(o)
+      expect(p, `ô ${o}`).toBeGreaterThan(PHAN_DICH_THEO_BONG - BIEN_DO_PHAN_DICH)
+      expect(p, `ô ${o}`).toBeLessThan(PHAN_DICH_THEO_BONG + BIEN_DO_PHAN_DICH)
+      expect(p, `ô ${o}`).toBeGreaterThan(0)
+      expect(p, `ô ${o}`).toBeLessThan(1)
+    }
+  })
+
+  it('hai đội dùng CÙNG dãy — ô 11 lặp lại ô 0, không bên nào được lợi', () => {
+    for (const o of O) expect(phanDichCuaO(o + 11)).toBe(phanDichCuaO(o))
+  })
+
+  it('tất định: gọi lại cho đúng con số ấy (P1)', () => {
+    expect(O.map((o) => phanDichCuaO(o))).toEqual(O.map((o) => phanDichCuaO(o)))
+  })
+
+  it('AC-30.5 còn nguyên: ai đứng đúng chỗ bóng thì KHÔNG dịch, dù hệ số nào', () => {
+    /*
+      Lực kéo vẫn **tỉ lệ khoảng cách**, nên mệnh đề cũ không bị hệ số riêng
+      làm hỏng. Đây là bất biến mà T510 của spec 005 đã trả giá hai lần.
+    */
+    const bong = { x: 60, y: 20 }
+    for (const o of O) {
+      const d = dichNguoiKhongBong(bong, bong, phanDichCuaO(o))
+      expect(d.x, `ô ${o}`).toBeCloseTo(bong.x, 12)
+      expect(d.y, `ô ${o}`).toBeCloseTo(bong.y, 12)
+    }
+  })
+
+  it('🧮 TRƯỜNG ĐÍCH KHÔNG CÒN LÀ MỘT KHỐI CỨNG — và chống rỗng đi kèm', () => {
+    /*
+      Dựng hai thế bóng và lấy hiệu của 22 đích. Với **một** hệ số chung, 22
+      vectơ ấy bằng nhau **từng số** — phần dưới khẳng định đúng điều đó, để
+      phép kiểm này không xanh bằng cách không đo gì.
+    */
+    const cho = Array.from({ length: 22 }, (_, i) => ({ x: 10 + i * 4, y: 8 + (i % 7) * 8 }))
+    const b1 = { x: 30, y: 20 }
+    const b2 = { x: 70, y: 50 }
+    const hieu = (phan: (i: number) => number) =>
+      cho.map((c, i) => {
+        const a = dichNguoiKhongBong(c, b1, phan(i))
+        const b = dichNguoiKhongBong(c, b2, phan(i))
+        return { x: b.x - a.x, y: b.y - a.y }
+      })
+
+    const tanMan = (d: readonly { x: number; y: number }[]) => {
+      const mx = d.reduce((s, v) => s + v.x, 0) / d.length
+      const my = d.reduce((s, v) => s + v.y, 0) / d.length
+      const dai = d.reduce((s, v) => s + Math.hypot(v.x, v.y), 0) / d.length
+      const sd = Math.sqrt(
+        d.reduce((s, v) => s + (v.x - mx) ** 2 + (v.y - my) ** 2, 0) / d.length,
+      )
+      return sd / dai
+    }
+
+    // ⚠️ CHỐNG RỖNG: mô hình MỘT hệ số cho đúng 0 — khối cứng, không sai số.
+    expect(tanMan(hieu(() => PHAN_DICH_THEO_BONG))).toBeCloseTo(0, 12)
+
+    /*
+      Và sau T815 nó bằng **hệ số biến thiên của dãy `p`** — một con số đóng,
+      không phụ thuộc thế bóng nào, vì `Δđích_i = p_i · Δbóng`.
+    */
+    const ps = Array.from({ length: 11 }, (_, o) => phanDichCuaO(o))
+    const tb = ps.reduce((s, v) => s + v, 0) / 11
+    const cv = Math.sqrt(ps.reduce((s, v) => s + (v - tb) ** 2, 0) / 11) / tb
+    expect(cv).toBeCloseTo(0.1434, 4)
+    expect(tanMan(hieu((i) => phanDichCuaO(i)))).toBeCloseTo(cv, 10)
   })
 })

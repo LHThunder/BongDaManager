@@ -63,6 +63,113 @@ export function choDungMet(viTriO: PositionId, ben: BenSan): Diem {
  */
 export const PHAN_DICH_THEO_BONG = 0.25
 
+/*
+  ====================================================================
+  MỘT HỆ SỐ CHO CẢ HAI MƯƠI HAI NGƯỜI LÀ MỘT KHỐI CỨNG (T815).
+  ====================================================================
+
+  🧮 **Đây không phải phép đo, đây là ĐẠI SỐ.** Với một hệ số `p` duy nhất:
+
+      đích_i = chỗ_i + p · (bóng − chỗ_i) = (1 − p)·chỗ_i + p·bóng
+
+  nên giữa hai mốc liên tiếp:
+
+      Δđích_i = p · Δbóng,   **giống hệt nhau với mọi i**
+
+  Hai mươi hai vectơ dịch chuyển **bằng nhau từng số**. Trường đích không chỉ
+  *trông như* một khối — nó **là** một phép tịnh tiến cứng, chứng minh được bằng
+  hai dòng, không cần đo. Đó chính là chữ *"dính liền đến nhau"* của người dùng
+  ở `T760`.
+
+  📐 **Thước đo đã chốt cho T815** (thay cho thước đo cũ đã bị rút lại vì nó lấy
+  tán xạ của một lỗi khác làm mẫu số):
+
+  1. **Độ tản mạn của trường đích** — lệch chuẩn của 22 vectơ `Δđích` chia cho
+     độ dài trung bình. Mô hình một-hệ-số cho **đúng 0**, mọi mốc, mọi trận.
+  2. **Số ô lưới** — trung bình số giá trị `x` khác nhau (làm tròn 0,5 m) trong
+     22 vị trí, và số giá trị `y`. Đo trên 5 mã trận, 30.240 mốc, trước T815:
+     **9,15 / 22** theo `x` và **5,56 / 22** theo `y`. Tức quá nửa số người
+     đứng chung toạ độ với một người khác — cái lưới ô vuông nhìn thấy trên
+     bản chạy.
+
+  ⛔ **Và đây vẫn KHÔNG phải mô hình chiến thuật của spec 009.** Chú thích đầu
+  file rào khối phòng ngự, hai tuyến, pressing cho **US-40**. Thứ dưới đây
+  không thêm vai trò, không đọc chỉ số, không nhìn pha bóng: nó chỉ nói rằng
+  **một hằng số cho 22 người là một giả định, không phải một sự thật**, và thay
+  hằng số ấy bằng một dải **có trung bình đúng bằng nó**.
+
+  📊 **KẾT QUẢ, và biên độ được chọn từ một đường đánh đổi chứ không từ cảm
+  tính.** Giãn dải rộng ra thì lưới vỡ tốt hơn, nhưng người bắt đầu đè nhau trở
+  lại — vì hai người hệ số khác nhau thì chỗ đứng của họ trượt qua nhau. Đo
+  trên 5 mã, 30.240 mốc:
+
+  | biên độ | lưới `x` | lưới `y` | cặp đè | mốc có cặp đè |
+  |---|---|---|---|---|
+  | **0** *(trước T815)* | 9,15 | 5,56 | 0,041% | **8,8%** |
+  | 0,04 | 18,49 | 9,52 | 0,041% | 8,9% |
+  | **0,06** ← chọn | **18,85** | **9,97** | **0,041%** | **9,0%** |
+  | 0,08 | 19,16 | 10,10 | 0,047% | 10,1% |
+  | 0,10 | 19,73 | 10,18 | 0,077% | **16,2%** |
+
+  `0,06` lấy **gần hết** phần lưới vỡ được mà **không** mất một phần nghìn nào
+  của `T814`: 9,0% so với 8,8%. `0,10` đổi thêm 0,9 giá trị `x` lấy **16,2%** —
+  gần gấp đôi, và nó đẩy phép đo trở lại đúng vùng chông chênh quanh ngưỡng 20%
+  mà bản giãn 3,5 m đã mắc. Đường cong có một **khuỷu rõ** ở 0,06–0,08.
+
+  🧮 **Độ tản mạn của trường đích sau T815 cũng là đại số, không phải phép đo:**
+  `Δđích_i = p_i · Δbóng`, nên lệch chuẩn chia trung bình của 22 vectơ **đúng
+  bằng hệ số biến thiên của dãy `p`** — `0` trước, **`0,1434`** sau. Một con số
+  đóng, kiểm được bằng số học, không phụ thuộc mẫu trận nào.
+
+  ⚠️ **Thứ T815 KHÔNG chữa, và phải nói ra:** 22 vectơ dịch chuyển vẫn **song
+  song** với nhau — chỉ khác độ dài. Đội hình nay **co giãn** theo bóng thay vì
+  **trượt cứng**, nhưng không ai đi hướng riêng của mình. Hướng riêng cần độ trễ
+  phản ứng hoặc vai trò, và cả hai đều là **US-40 của spec 009**.
+*/
+
+/** Biên độ của dải hệ số bám bóng, quanh `PHAN_DICH_THEO_BONG`. */
+export const BIEN_DO_PHAN_DICH = 0.06
+
+/** Tỉ lệ vàng — dùng để rải 11 ô đều trên đoạn `[0, 1)` mà không cần bảng tra. */
+const TI_LE_VANG = 0.6180339887498949
+
+/** Số ô trong một đội hình. */
+const SO_O = 11
+
+/**
+ * Trung bình của `frac(o · φ)` trên 11 ô — tính ra chứ không viết tay.
+ *
+ * ⚠️ Không có nó thì dải lệch tâm: dãy thô có trung bình **0,4538**, không phải
+ * 0,5, nên hệ số trung bình sẽ tụt còn **0,2408** và **cả hai đội lùi sâu hơn**
+ * so với trước T815. Trừ đi đúng con số này giữ lời hứa quan trọng nhất của
+ * task: **trung bình không đổi**, chỉ có tản mạn là mới.
+ */
+const TRUNG_BINH_PHAN: number = (() => {
+  let tong = 0
+  for (let o = 0; o < SO_O; o += 1) tong += (o * TI_LE_VANG) % 1
+  return tong / SO_O
+})()
+
+/**
+ * Hệ số bám bóng của **ô thứ `o`** trong đội hình, `o` lấy theo mod 11.
+ *
+ * ⚠️ **Dãy này KHÔNG mang một nghĩa chiến thuật nào, và đó là chủ ý.** Nó là
+ * một dãy tỉ-lệ-vàng: rải đều, tất định, không cần bảng tra, không tiêu một
+ * lần rút ngẫu nhiên nào (tiêu một lần rút là đổi **dòng sự kiện**, vỡ P1/P2).
+ * Ai bám nhiều hơn ai là **chưa có ai quyết** — đó là việc của **US-40 spec
+ * 009**, và khi ấy hàm này bị **thay**, không phải cộng thêm.
+ *
+ * 📌 Một trùng hợp đáng ghi: ô 0 là **thủ môn** và nhận hệ số **thấp nhất**
+ * (0,159). Tôi không thiết kế điều đó — `frac(0 · φ) = 0` nên ô 0 luôn ở đáy
+ * dải. Nêu ra để không ai đọc ngược thành một lập luận bóng đá.
+ *
+ * Hai đội dùng **cùng** dãy (`o % 11`), nên không bên nào được lợi.
+ */
+export function phanDichCuaO(o: number): number {
+  const f = ((o % SO_O) * TI_LE_VANG) % 1
+  return PHAN_DICH_THEO_BONG + (f - TRUNG_BINH_PHAN) * 2 * BIEN_DO_PHAN_DICH
+}
+
 /**
  * Đích của một người **không** cầm bóng: chỗ đứng theo sơ đồ, dịch một phần về
  * phía bóng.
@@ -70,11 +177,18 @@ export const PHAN_DICH_THEO_BONG = 0.25
  * Dịch **theo tỉ lệ khoảng cách**, nên người đứng đúng chỗ bóng không dịch một
  * mét nào — cùng lý lẽ đã giữ AC-30.5 ở lớp vẽ: một lực kéo **đều tay** sẽ dồn
  * mọi người lại một chỗ, còn lực kéo tỉ lệ thì không.
+ *
+ * `phan` mặc định là `PHAN_DICH_THEO_BONG` để mọi nơi gọi cũ giữ nguyên nghĩa;
+ * đường chạy thật truyền `phanDichCuaO(o)` (T815).
  */
-export function dichNguoiKhongBong(choDung: Diem, bong: Diem): Diem {
+export function dichNguoiKhongBong(
+  choDung: Diem,
+  bong: Diem,
+  phan: number = PHAN_DICH_THEO_BONG,
+): Diem {
   return {
-    x: choDung.x + (bong.x - choDung.x) * PHAN_DICH_THEO_BONG,
-    y: choDung.y + (bong.y - choDung.y) * PHAN_DICH_THEO_BONG,
+    x: choDung.x + (bong.x - choDung.x) * phan,
+    y: choDung.y + (bong.y - choDung.y) * phan,
   }
 }
 
