@@ -34,13 +34,46 @@ export function hatGiongTuMaTran(maTran: string): number {
   return (h ^ (h >>> 16)) >>> 0
 }
 
+/**
+ * Bước cộng của `mulberry32` ở mỗi lần rút.
+ *
+ * Tách thành hằng số có tên để `nhayRut` dùng lại CHÍNH con số ấy: hai bản sao
+ * của một hằng số là hai dãy số rồi sẽ trôi khỏi nhau mà không ai thấy.
+ */
+export const BUOC_HAT_GIONG = 0x6d2b79f5
+
+/**
+ * Nhảy `soLan` lần rút trong O(1), thay vì rút `soLan` lần.
+ *
+ * Trạng thái của `mulberry32` tiến đúng MỘT phép cộng mỗi lần rút, nên cả
+ * không gian trạng thái 2^32 là một vòng duy nhất và "nhảy tới đâu" chỉ là một
+ * phép nhân. Đây là thứ cho phép mỗi mốc của engine liên tục có một dòng rút
+ * riêng mà không phải rút qua toàn bộ các mốc trước nó (D118).
+ *
+ * PHẢI dùng `Math.imul`, KHÔNG được nhân thường — và cơ chế làm sai KHÔNG phải
+ * chỗ người ta tưởng. Ở `soLan = 2^30` thì phép NHÂN vẫn chính xác tuyệt đối:
+ * `2^30 × 0x6d2b79f5` là một số 31 bit dịch trái 30 bit, nên float giữ đủ.
+ * Thứ làm sai là phép CỘNG hạt giống vào nó: tích ấy khoảng `1,97e18`, tức
+ * `ulp = 256`, nên `hatGiong` (cỡ `1e9`) bị làm tròn về bội của 256 và mất
+ * phần thấp. Lệch đo được: **43** ở `2^30`, **781.781** ở `5754 · 2^30`.
+ *
+ * Ca mà phép nhân mới thật sự mất chính xác là `soLan` KHÔNG phải luỹ thừa 2 —
+ * ví dụ `2^30 + 1`, nơi tích có hơn 53 bit ý nghĩa. Phép kiểm canh cả hai ca.
+ *
+ * `Math.imul` lấy đúng phần dư mod 2^32 với mọi `soLan` — kể cả `soLan` vượt
+ * 2^31 hay vượt 2^32 — vì phép nhân mod 2^32 chỉ phụ thuộc đầu vào mod 2^32.
+ */
+export function nhayRut(hatGiong: number, soLan: number): number {
+  return ((hatGiong | 0) + Math.imul(soLan, BUOC_HAT_GIONG)) >>> 0
+}
+
 /** Nguồn ngẫu nhiên chạy tiếp từ một hạt giống đã có (mulberry32). */
 export function taoRngTuHatGiong(hatGiongBanDau: number): RngCoTrangThai {
   let a = hatGiongBanDau | 0
 
   return {
     next(): number {
-      a = (a + 0x6d2b79f5) | 0
+      a = (a + BUOC_HAT_GIONG) | 0
       let t = Math.imul(a ^ (a >>> 15), 1 | a)
       t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
       return ((t ^ (t >>> 14)) >>> 0) / 4294967296

@@ -287,6 +287,9 @@ Là một **HLV**, tôi muốn **một bản báo cáo sau trận**, để **bi�
 - Kéo-thả cầu thủ trên sơ đồ: phản hồi hình ảnh trong dưới 100ms kể từ thao tác.
 - Giả lập trọn một trận ở chế độ chạy hết trận ngay: hoàn tất trong dưới 3 giây, kể cả khi sân 2D đang bật.
 - Tường thuật tốc độ thường: 1 phút trận tương ứng khoảng 200ms thực tế; phải có thêm ít nhất 2 mức nhanh hơn.
+  **Sửa 2026-11-23:** "tốc độ thường" nay là **1000ms** một phút trận — người dùng
+  chốt dời cả thang xuống hai nấc. Vế "ít nhất 2 mức nhanh hơn" vẫn đạt: còn hai
+  mức 200ms và 20ms. Xem AC-29.5 của spec 005.
 - Mở ứng dụng với dữ liệu 20 đội và 20 trận lịch sử: dùng được trong dưới 2 giây.
 
 **Bảo mật/quyền riêng tư**

@@ -94,7 +94,42 @@ engine (KHÔNG đổi hành vi)
 | **D103** | Ai giữ bóng | **Quy tắc tất định theo loại sự kiện**, bảng ở mục 3.1 | Chọn người gần bóng nhất | Người gần nhất đổi theo từng nhịp nên quyền giữ bóng nhảy lung tung — đúng thứ spec này sinh ra để chữa. Quy tắc theo loại sự kiện đọc được từ `cacCauThu`, mà thứ tự của nó do `nguoiThamGiaTinhHuong` quy định rõ |
 | **D104** | Bóng đi theo người hay người đi theo bóng | **Trong một đoạn `re-bong`, người giữ bóng đi theo ĐƯỜNG CỦA BÓNG**; ở các đoạn khác, bóng tự bay còn người đi chặng của mình. **Khi nhịp KHÔNG có pha bóng nào** (`thay-nguoi`, `kiet-suc`, hay dòng có `duongBong` rỗng), bóng **bám chân người giữ bóng**, kể cả lớp dao động của anh ta — bóng đứng im cả nhịp chính là nguồn của con số **3144ms** mà spec này sinh ra để chữa (phát hiện số 2 của `/analyze`) | Bóng bám chân người (bóng là hàm của người) | Bóng bám chân thì nó không bao giờ đi hết đường chuyền — mất đúng thứ T524 vừa làm được. Chiều ngược lại giữ cả hai: bóng đi đường thật, người dẫn bóng bám nó |
 | **D105** | Người giữ bóng về mốc của mình thế nào | **Đoạn cuối của anh ta là một đường thẳng từ chỗ rời bóng về đúng mốc `hinhSan`** của chính anh ta | Để anh ta đứng lại chỗ bóng | Bất biến "tại tỉ lệ 1, mọi điểm ở đúng mốc" là thứ giữ AC-28.3; phá nó là phá cả lưới của spec 004 và 005 |
-| **D106** | Hai nhóm di chuyển khác nhau | **Mở rộng `nghiengKhoiTheoBong` thêm một tham số vai trò**: đồng đội của người giữ bóng được kéo thêm về phía khung thành đối phương, đối phương được kéo thêm về phía bóng. **Tổng mọi lực kéo vẫn bị chặn ở một phần mười chiều dài sân** (AC-30.4 của spec 005) | Một lớp "di chuyển không bóng" riêng | Đã có sẵn một lớp làm đúng việc ấy với một biên đã chứng minh; thêm lớp thứ hai là thêm một nguồn dịch chuyển nữa mà trật tự tám hàng (AC-30.8) phải chịu |
+| **D106** | Hai nhóm di chuyển khác nhau | **Mở rộng `nghiengKhoiTheoBong` thêm một tham số vai trò**: đồng đội của người giữ bóng được kéo thêm về phía khung thành đối phương, đối phương được kéo thêm về **khung thành của chính họ** (sửa 2026-11-23 — xem khối ghi chú ngay dưới bảng). **Hai lớp có trần RIÊNG**: co khối 1/6 và vai trò 1/6 | Một lớp "di chuyển không bóng" riêng | Đã có sẵn một lớp làm đúng việc ấy với một biên đã chứng minh; thêm lớp thứ hai là thêm một nguồn dịch chuyển nữa mà trật tự tám hàng (AC-30.8) phải chịu |
+
+> **Sửa D106 ngày 2026-11-23, người dùng chốt.** Hai chỗ đổi, vì người dùng nói họ
+> **không thấy** đội tấn công dâng lên — và số đo nói họ đúng: phần dâng riêng của
+> lớp vai trò chỉ được **2,881 đơn vị** trên sân dài 100, bằng hơn nửa bề ngang một
+> chấm cầu thủ (5,2) một chút, và bằng 20% khoảng cách giữa hai dải đội hình.
+>
+> 1. **Trần riêng cho mỗi lớp.** Một phép kẹp chung nghĩa là lớp co khối — thứ chạm
+>    trần ở cặp dải xa nhất — ăn hết ngân sách, lớp vai trò chỉ còn phần thừa. Nới
+>    trần chung thì cả hai lớp cùng được lợi và tỉ lệ vẫn thế, nên lần nới 1/10 → 1/6
+>    ngày 19/11 không giải quyết được gì.
+> 2. **Đối phương lùi về khung thành NHÀ**, không ép theo bóng, và mạnh hơn mức đồng
+>    đội dâng lên. Nhật ký làm rõ của spec 006 (dòng 5) đã cho phép cả hai nhánh —
+>    đối phương "lùi về **hoặc** ép theo bóng" — nên đây là chọn nhánh còn lại, chứ
+>    không phải sửa một AC đã đóng.
+>
+> Đo trên 10 mã × 7 quân số × mọi dòng (dâng / lùi / sàn chồng điểm; ngưỡng đỏ của
+> sàn là 1,0 bán kính):
+>
+> | thiết kế | dâng | lùi | sàn |
+> |---|---|---|---|
+> | nền (ép theo bóng) | 2,881 | 2,881 | 1,4696 |
+> | ép theo bóng, tỉ lệ /3 | 5,556 | 5,556 | **0,4474 ĐỎ** |
+> | cùng chiều /4 /3 | 4,167 | 5,556 | 1,6746 |
+> | **cùng chiều /2 /1,5 — đã chọn** | **8,333** | **11,111** | **1,5163** |
+> | cùng chiều /1,5 /1 | 11,111 | 16,667 | 1,3580 — **vỡ AC-33.1** |
+>
+> Điều đáng ghi nhất: mức đã chọn cho sàn **CAO HƠN cả nền**. Kéo hai đội **hội tụ
+> vào bóng** mới là thứ ăn hết biên chống chồng điểm; dịch cả hai khối **về cùng một
+> phía** thì giữ nguyên khoảng cách giữa chúng. Mức mạnh hơn nữa không vỡ AC-30.5 mà
+> vỡ **AC-33.1**: vòng nét đứt quanh người giữ bóng trùm lên tâm một người khác.
+>
+> Phép kiểm cũ không bắt được chuyện này vì nó chỉ đòi "không bao giờ ngược hướng" và
+> "có hơn 16 cặp dâng thêm" — cả hai đều xanh ở mức 2,881. Nay có thêm một ca đo
+> **ĐỘ LỚN** (dâng ≥ 7, lùi ≥ 9, và lùi phải sâu hơn dâng), đã đột biến kiểm: đưa tỉ
+> lệ về /4 thì đúng ca ấy đỏ.
 | **D107** | Mức tốc độ thứ năm | Thêm `rat-cham: 2000` vào `MS_MOI_PHUT`, xếp **đầu** `CAC_MUC_TOC_DO`; **mặc định giữ `cham`** | Đổi mặc định sang mức mới | Mặc định `cham` là quyết định D97 của spec 005, người dùng đã xem và nói "vừa"; đổi mặc định là đổi một thứ đã được phán |
 | **D108** | Dấu người giữ bóng | **Một vòng tròn mảnh, nét đứt, quanh điểm**, bán kính lớn hơn viền "tham gia tình huống" | (a) Đổi màu điểm; (b) dùng lại dấu ▲ | (a) phá P9; (b) dấu ▲ đã có nghĩa "đang tham gia tình huống" từ spec 001 — đổi nghĩa một dấu đang dùng là làm hỏng hồ sơ của nó. Nét đứt phân biệt được với viền liền mà không cần màu |
 | **D109** | Đi vòng qua đối thủ | **Hàm thuần trong `phaBong.ts`**: nếu một điểm đối phương nằm trong hành lang quanh đoạn đang rê, đường của người dẫn bóng **lệch sang bên** một lượng bị chặn ở **một nửa khoảng cách hai hàng** | Né bằng cách đổi mốc đến | Đổi mốc là đổi chỗ đứng tại mốc — phá AC-28.3. Lệch có biên giữ được cả AC-30.5 lẫn AC-30.8 |

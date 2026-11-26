@@ -9,6 +9,7 @@ import {
   BU_GIO_TOI_THIEU,
   buocTiep,
   cauHinhDauLai,
+  CHE_DO_MAC_DINH,
   chayHetTran,
   dongSuKien,
   QUAN_SO_MAC_DINH,
@@ -585,5 +586,86 @@ describe('thời lượng trận (AC-12.5)', () => {
   it('đấu lại giữ nguyên thời lượng', () => {
     const tt = taoTran(cauHinhMau(MA, { thoiLuong: 30 }))
     expect(cauHinhDauLai(tt, 'MA-MOI-002').thoiLuong).toBe(30)
+  })
+})
+
+/*
+  Chế độ mô phỏng (T705 của spec 007, D122, AC-45.1 + AC-45.4).
+
+  Phép kiểm xương sống ở đây là cái thứ ba: chế độ **KHÔNG** được vào
+  `TrangThaiTran`. D119 đóng băng trạng thái trận ở đúng 16 trường, và
+  AC-45.4 đòi bản ghi trận không phình thêm một byte. Nếu chế độ lọt vào
+  trạng thái thì nó sẽ theo đường `dungBanGhi` vào bản ghi, và cả hai lời
+  hứa ấy vỡ cùng lúc — nên có một phép kiểm ĐẾM trường, không phải một lời.
+*/
+describe('chế độ mô phỏng (T705, AC-45.1)', () => {
+  const MA_CD = MA_TRAN_CO_DINH[0]!
+
+  it('mặc định có tên, và nó là chế độ cổ điển', () => {
+    expect(CHE_DO_MAC_DINH).toBe('co-dien')
+  })
+
+  it('cấu hình nhận được cả hai chế độ, và trận vẫn chạy', () => {
+    for (const cheDo of ['co-dien', 'lien-tuc'] as const) {
+      const tt = taoTran({ ...cauHinhMau(MA_CD), cheDoMoPhong: cheDo })
+      const xong = chayHetTran(tt)
+      expect(xong.ketThuc, cheDo).toBe(true)
+      expect(dongSuKien(xong).length, cheDo).toBeGreaterThan(0)
+    }
+  })
+
+  it('chế độ KHÔNG vào TrangThaiTran — trạng thái vẫn đúng 16 trường', () => {
+    const khongKhai = taoTran(cauHinhMau(MA_CD))
+    const coKhai = taoTran({
+      ...cauHinhMau(MA_CD),
+      cheDoMoPhong: 'lien-tuc',
+    })
+
+    expect(Object.keys(khongKhai)).toHaveLength(16)
+    expect(Object.keys(coKhai)).toHaveLength(16)
+    expect(Object.keys(coKhai).sort()).toEqual(Object.keys(khongKhai).sort())
+    expect(Object.keys(coKhai)).not.toContain('cheDoMoPhong')
+  })
+
+  it('và khai chế độ KHÔNG đổi một kết quả nào của trận', () => {
+    /*
+      Chế độ là một nhãn của cấu hình, không phải một đầu vào của mô hình:
+      cùng mã trận thì cùng trận, bất kể nhãn. Chỗ hai chế độ rẽ nhau là
+      HẠT GIỐNG mà `taoTranLienTuc` đặt (D136), không phải trường này.
+    */
+    for (const ma of MA_TRAN_CO_DINH.slice(0, 5)) {
+      const a = chayHetTran(taoTran(cauHinhMau(ma)))
+      const b = chayHetTran(
+        taoTran({ ...cauHinhMau(ma), cheDoMoPhong: 'lien-tuc' }),
+      )
+      expect(b.tiSo, ma).toEqual(a.tiSo)
+      expect(dongSuKien(b), ma).toEqual(dongSuKien(a))
+    }
+  })
+
+  it('cauHinhDauLai MANG chế độ, vì trạng thái không mang được', () => {
+    const tt = taoTran(cauHinhMau(MA_CD))
+    expect(cauHinhDauLai(tt, 'MA-MOI-CD1', 'lien-tuc').cheDoMoPhong).toBe(
+      'lien-tuc',
+    )
+    expect(cauHinhDauLai(tt, 'MA-MOI-CD2', 'co-dien').cheDoMoPhong).toBe(
+      'co-dien',
+    )
+  })
+
+  it('không truyền thì cauHinhDauLai điền mặc định, chỗ gọi cũ không đổi', () => {
+    const tt = taoTran(cauHinhMau(MA_CD))
+    expect(cauHinhDauLai(tt, 'MA-MOI-CD3').cheDoMoPhong).toBe(CHE_DO_MAC_DINH)
+  })
+
+  it('đấu lại một trận liên tục mà quên truyền chế độ thì nó RƠI — có chủ ý', () => {
+    /*
+      Phép kiểm này ghi lại một cái bẫy chứ không canh một tính năng: vì
+      trạng thái không mang chế độ, chỗ gọi mà quên truyền sẽ lặng lẽ đấu lại
+      ở chế độ cổ điển. Đó là lý do mặc định phải là 'co-dien' chứ không phải
+      một giá trị đoán, và là lý do T709 phải truyền nó từ `useMatch`.
+    */
+    const tt = taoTran({ ...cauHinhMau(MA_CD), cheDoMoPhong: 'lien-tuc' })
+    expect(cauHinhDauLai(tt, 'MA-MOI-CD4').cheDoMoPhong).toBe('co-dien')
   })
 })

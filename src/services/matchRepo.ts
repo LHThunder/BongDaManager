@@ -1,4 +1,10 @@
 import { moDb, type TomTatTran, type TranDaLuu } from '../storage/db'
+import { PHIEN_BAN_ENGINE_LIEN_TUC } from '../engine/lienTuc/tranLienTuc'
+import {
+  CHE_DO_MAC_DINH,
+  PHIEN_BAN_ENGINE,
+  type CheDoMoPhong,
+} from '../engine/tran'
 import { QUAN_SO_TRAN_CU, THOI_LUONG_TRAN_CU } from '../storage/migrations'
 import { chuanHoaLoiLuuTru } from './errors'
 
@@ -33,11 +39,25 @@ export const SO_TRAN_GIU_LAI = 20
   Bản ghi trên đĩa KHÔNG bị sửa (P3): đây là phép đọc, không phải phép ghi.
 */
 function dienMacDinh<T extends TomTatTran>(tran: T): T {
-  if (tran.quanSo !== undefined && tran.thoiLuong !== undefined) return tran
+  /*
+    ⚠️ Đường rẽ sớm phải kể ĐỦ ba trường. Nếu nó chỉ hỏi `quanSo` và
+    `thoiLuong` thì một bản ghi của spec 002–006 — có hai trường ấy nhưng
+    chưa có chế độ — sẽ trả về sớm với chế độ vẫn `undefined`, và phần còn
+    lại của ứng dụng lại phải tự đoán. Đó đúng là chuyện mà cả khối chú thích
+    trên sinh ra để chặn.
+  */
+  if (
+    tran.quanSo !== undefined &&
+    tran.thoiLuong !== undefined &&
+    tran.cheDoMoPhong !== undefined
+  ) {
+    return tran
+  }
   return {
     ...tran,
     quanSo: tran.quanSo ?? QUAN_SO_TRAN_CU,
     thoiLuong: tran.thoiLuong ?? THOI_LUONG_TRAN_CU,
+    cheDoMoPhong: tran.cheDoMoPhong ?? CHE_DO_MAC_DINH,
   }
 }
 
@@ -49,6 +69,29 @@ export function quanSoCua(tran: TomTatTran): number {
 /** Thời lượng của một trận đã lưu, đã tính cả bản ghi cũ. */
 export function thoiLuongCua(tran: TomTatTran): number {
   return tran.thoiLuong ?? THOI_LUONG_TRAN_CU
+}
+
+/**
+ * Chế độ mô phỏng của một trận đã lưu, đã tính cả bản ghi cũ.
+ *
+ * Mọi trận lưu trước spec 007 là `co-dien` — lúc ấy chỉ có một chế độ, nên
+ * đây là sự thật chắc chắn chứ không phải phỏng đoán (AC-45.1, P7).
+ */
+export function cheDoCua(tran: TomTatTran): CheDoMoPhong {
+  return tran.cheDoMoPhong ?? CHE_DO_MAC_DINH
+}
+
+/**
+ * Số phiên bản engine HIỆN TẠI của một chế độ.
+ *
+ * Hai chế độ mang hai số riêng, và đó là cả điểm của D122: engine liên tục
+ * là `101`, còn `PHIEN_BAN_ENGINE` của v6 **giữ nguyên 6**. Nhờ vậy 20 trận
+ * đã lưu bằng v6 không mất nút đấu lại lần thứ hai — `lyDoKhongDauLai` so
+ * `tran.phienBanEngine` với số của **chế độ của chính trận ấy**, không với
+ * một số dùng chung.
+ */
+export function phienBanEngineHienTaiCua(cheDo: CheDoMoPhong): number {
+  return cheDo === 'lien-tuc' ? PHIEN_BAN_ENGINE_LIEN_TUC : PHIEN_BAN_ENGINE
 }
 
 export interface KetQuaLuuTran {
@@ -156,6 +199,7 @@ export function tomTatCua(tran: TranDaLuu): TomTatTran {
     doiKhach: tran.doiKhach,
     quanSo: tran.quanSo,
     thoiLuong: tran.thoiLuong,
+    cheDoMoPhong: tran.cheDoMoPhong,
   }
 }
 

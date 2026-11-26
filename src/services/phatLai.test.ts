@@ -462,28 +462,41 @@ describe('XƯƠNG SỐNG 2 — phần trước điểm rẽ giống hệt (T430,
   /*
     VÌ SAO phải ghép, bằng một ca THẬT — không phải lo xa.
 
-    Quét 10 mã trận × 10 phút rẽ tìm được đúng một ca, và nó đủ để nói hết
-    vấn đề: `W5H4J2YD9F` rẽ ở phút 70. Cả trận gốc lẫn trận nhánh đều chạm
-    đúng trần 100 dòng, nhưng nhánh sinh tình huống điểm cao hơn ở phần sau,
-    nên bộ lọc mật độ đẩy **ba dòng TRƯỚC điểm rẽ** ra ngoài trần: 65 dòng
-    thay vì 68. Đọc trên màn hình thì đó đúng là thứ AC-27.2 cấm — ba dòng
-    trước điểm rẽ biến mất, trong khi engine không hề chạy khác một nhịp.
+    Cả trận gốc lẫn trận nhánh đều chạm đúng trần 100 dòng, nhưng nhánh sinh
+    tình huống điểm cao hơn ở phần sau, nên bộ lọc mật độ đẩy **hai dòng
+    TRƯỚC điểm rẽ** ra ngoài trần: 48 dòng thay vì 50. Đọc trên màn hình thì
+    đó đúng là thứ AC-27.2 cấm — dòng trước điểm rẽ biến mất, trong khi engine
+    không hề chạy khác một nhịp.
 
-    Nếu một ngày phép kiểm này đỏ vì hai con số không còn lệch, đừng tưởng
-    là tin tốt: nó nghĩa là trần thôi cắt, và `dongSuKienNhanh` mất ca thử
-    duy nhất chứng minh nó cần thiết.
+    === CA THỬ NÀY ĐÃ ĐƯỢC TÌM LẠI MỘT LẦN, NGÀY 2026-11-22 ===
+
+    Ca cũ là `W5H4J2YD9F` rẽ ở phút 70, lệch ba dòng (65 thay vì 68), tìm
+    được bằng một lượt quét 10 mã × 10 phút rẽ. **Nó chết ngày 2026-11-22**
+    khi phễu dứt điểm lên engine v6: engine ghi bàn ít hơn nên sinh ít dòng
+    hơn, trận ấy tụt xuống dưới trần và trần thôi cắt. Chính cái ghi chú cũ ở
+    đây đã đoán trước: "nếu một ngày phép kiểm này đỏ vì hai con số không còn
+    lệch, đừng tưởng là tin tốt".
+
+    Nên ca thử phải tìm lại, không phải bỏ. Quét **210 mã trận × 5 phút rẽ**
+    (10 mã cố định cộng 200 mã sinh ra) được **đúng một ca**: `J2D1M5G4Q8` rẽ
+    ở phút 50. Một trên 1.050 — hiếm tới mức ấy, nên nếu chỉ dựa may thì
+    `dongSuKienNhanh` sẽ không bao giờ có bằng chứng là nó cần thiết.
+
+    Cảnh báo cũ vẫn còn giá trị, và lần này có thêm một việc phải làm: nếu
+    phép kiểm này đỏ vì hai con số không còn lệch, đó là trần thôi cắt — hãy
+    quét lại tìm ca mới như lần này, đừng xoá phép kiểm.
   */
   it('dòng tường thuật của riêng nhánh thì KHÔNG đủ — trần dòng cắt mất dòng trước điểm rẽ', () => {
-    const banGhi = tranDaLuuMau('W5H4J2YD9F', BA_CAN_THIEP)
-    const { cuoiTran } = reVoiChiThiKhac(banGhi, 70)
+    const banGhi = tranDaLuuMau('J2D1M5G4Q8', BA_CAN_THIEP)
+    const { cuoiTran } = reVoiChiThiKhac(banGhi, 50)
     const truoc = (cac: readonly { phut: number; buGio: boolean }[]) =>
-      cac.filter((sk) => phutThucTe(cuoiTran, sk) < 70)
+      cac.filter((sk) => phutThucTe(cuoiTran, sk) < 50)
 
     const gocTruoc = truoc(banGhi.cacSuKien)
     expect(truoc(dongSuKien(cuoiTran)).length).toBeLessThan(gocTruoc.length)
 
     // Còn dòng GHÉP thì khớp, đúng từng dòng.
-    expect(truoc(dongSuKienNhanh(banGhi, cuoiTran, 70))).toEqual(gocTruoc)
+    expect(truoc(dongSuKienNhanh(banGhi, cuoiTran, 50))).toEqual(gocTruoc)
   })
 
   /*
@@ -530,10 +543,11 @@ describe('XƯƠNG SỐNG 2 — phần trước điểm rẽ giống hệt (T430,
   /*
     Dòng tường thuật ghép (`dongSuKienNhanh`) làm AC-27.2 đúng bằng CẤU TRÚC.
 
-    Trần 100 dòng CÓ cắt thật: trận `W5H4J2YD9F` có can thiệp chạm đúng
-    100/100 dòng, trong khi trận không can thiệp chỉ 74–87 dòng. Quét 10 mã ×
-    7 phút rẽ chưa gặp dòng nào trước điểm rẽ bị trần đẩy ra, nhưng phép ghép
-    làm câu hỏi ấy không còn tồn tại — nên phép kiểm dưới không cần may.
+    Trần 100 dòng CÓ cắt thật, và nó cắt cả dòng trước điểm rẽ: `J2D1M5G4Q8`
+    rẽ ở phút 50 mất hai dòng (phép kiểm ngay trên). Nhưng ca ấy là **một
+    trên 1.050** lượt quét, và nó đã phải tìm lại một lần khi engine lên v6.
+    Phép ghép làm câu hỏi "lần này trần có cắt không" không còn tồn tại — nên
+    phép kiểm dưới không cần may.
   */
   it('dòng ghép: phần tới điểm rẽ LÀ bản ghi gốc, từng dòng một', () => {
     for (const ma of MA_TRAN_CO_DINH) {

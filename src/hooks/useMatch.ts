@@ -1,7 +1,15 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { LoiCauHinhTran, type LyDoKhongBatDau } from '../engine/batDau'
 import { chuanHoaLoiLuuTru } from '../services/errors'
 import { dungBaoCao } from '../engine/baoCao'
+import type { LoMoc } from '../engine/lienTuc/loMoc'
+import {
+  buocPhutLienTuc,
+  cheDoCuaTrangThai,
+  oCuaNguoiTrenSan,
+  taoTranLienTuc,
+  type TrangThaiLienTuc,
+} from '../engine/lienTuc/tranLienTuc'
 import { taoMaTran } from '../engine/rng'
 import {
   apDungCanThiep,
@@ -60,11 +68,35 @@ export type MucTocDo =
  * ngồi xem, và đó phải là lựa chọn của người dùng chứ không phải cái họ gặp
  * khi chưa chọn gì.
  */
+/*
+  ====================================================================
+  THANG DỜI XUỐNG HAI NẤC (2026-11-23, người dùng chốt).
+  ====================================================================
+
+  Yêu cầu nguyên văn: "tốc độ chậm bây giờ là tốc độ thường". Tức nhịp mà
+  người dùng vẫn xem — **1000ms một phút trận** — phải mang tên **Thường**,
+  không phải tên Chậm. Thang cũ nhảy từ 1000 xuống 200 ngay sau mức mặc định,
+  nên mọi mức "nhanh hơn mặc định" đều nhanh gấp năm lần trở lên.
+
+      cũ:  rat-cham 2000 | cham 1000* | thuong 200 | nhanh 70 | rat-nhanh 20
+      mới: rat-cham 4000 | cham  2000 | thuong 1000* | nhanh 200 | rat-nhanh 20
+                                          (* = mức mặc định)
+
+  **Nhịp mở hộp KHÔNG đổi**: mặc định đi từ `cham` sang `thuong`, cả hai đều là
+  1000ms. Đó là điều **AC-29.5** của spec 005 đòi ("mức mặc định PHẢI là … một
+  phút trận dài 1000ms") — chỉ cái tên đổi, con số thì không.
+
+  `rat-nhanh` **giữ nguyên 20ms** vì **AC-29.4** ghim nó: ở 20ms thì nội suy tắt
+  hẳn. Cái giá: quãng `nhanh` → `rat-nhanh` nay gấp 10 lần thay vì 3,5 — chấp
+  nhận được, vì cả hai đều là mức "xem cho xong", 18 giây và 1,8 giây một trận.
+
+  Một trận 90 phút: 6 phút / 3 phút / 1,5 phút / 18 giây / 1,8 giây.
+*/
 export const MS_MOI_PHUT: Readonly<Record<MucTocDo, number>> = {
-  'rat-cham': 2000,
-  cham: 1000,
-  thuong: 200,
-  nhanh: 70,
+  'rat-cham': 4000,
+  cham: 2000,
+  thuong: 1000,
+  nhanh: 200,
   'rat-nhanh': 20,
 }
 
@@ -75,9 +107,12 @@ export const MS_MOI_PHUT: Readonly<Record<MucTocDo, number>> = {
   thì người dùng khó đọc ra mình đang ở đâu".
 
   T614 thêm `rat-cham` vào **đầu** thang, nên hai tính chất ấy tách ra: mức mặc
-  định giờ là phần tử **thứ hai**. Thang một chiều thắng, vì một thang tốc độ mà
+  định giờ **không** còn đứng đầu. Thang một chiều thắng, vì một thang tốc độ mà
   thứ tự không đơn điệu thì không đọc được; và mức đang chọn vẫn luôn nhận ra
   được, vì nút của nó được tô khác và `aria-checked` nói ra điều đó (P9).
+
+  Từ 2026-11-23 mặc định là phần tử **thứ ba** (`thuong`), vì thang dời xuống
+  hai nấc — xem khối chú thích của `MS_MOI_PHUT`.
 */
 /**
  * Một nhịp lặng sau bàn thắng, mực thời gian thật (AC-32.5, T515).
@@ -85,8 +120,17 @@ export const MS_MOI_PHUT: Readonly<Record<MucTocDo, number>> = {
  * Đủ để xem hết hiệu ứng trên sân và đọc dòng tường thuật vừa hiện, như khi
  * truyền hình dừng lại một nhịp ở bàn thắng. Không phụ thuộc mức tốc độ: mắt
  * người cần một khoảng thời gian thật, không phải một số phút trận.
+ *
+ * **1.500 → 4.000 ngày 2026-11-23, người dùng chốt.** AC-32.5 của spec 005 đã
+ * sửa theo. 1,5 giây là đủ để *thấy* hiệu ứng nhưng không đủ để *đọc* dòng
+ * tường thuật vừa hiện rồi nhìn lại sân.
+ *
+ * ⚠️ Con số này là thời gian THẬT, nên ở mức Rất nhanh (20 ms mỗi phút trận)
+ * một bàn thắng dừng lâu bằng **200 phút trận** — trước đây là 75. Mức ấy vốn
+ * để xem nhanh kết cục, và "Chạy hết trận" chạy đồng bộ nên không dính nhịp
+ * lặng nào; nhưng nếu thấy chướng thì chỗ sửa là ở đây.
  */
-export const MS_LANG_SAU_BAN_THANG = 1500
+export const MS_LANG_SAU_BAN_THANG = 4000
 
 export const CAC_MUC_TOC_DO: readonly MucTocDo[] = [
   'rat-cham',
@@ -132,6 +176,16 @@ function dungBanGhi(
     tiSo: tt.tiSo,
     quanSo: tt.quanSo,
     thoiLuong: tt.thoiLuong,
+    /*
+      Chế độ ĐỌC RA từ trạng thái, không nhận từ ngoài (AC-45.1, AC-45.4).
+
+      `dungBanGhi` chỉ có `TrangThaiTran` trong tay, mà kiểu ấy đóng băng ở
+      đúng 16 trường (D119) nên không mang chế độ. Nhận chế độ qua tham số thì
+      phải nhớ nó ở đâu đó suốt trận — một nguồn sự thật thứ hai, và nó sẽ lệch
+      khỏi engine thật sự đã chạy. `cheDoCuaTrangThai` hỏi `phienBanEngine`,
+      thứ đã nằm sẵn trong trạng thái và đã là thứ `lyDoKhongDauLai` so.
+    */
+    cheDoMoPhong: cheDoCuaTrangThai(tt),
     doiChuNha: anhChupDoi(tt.ben.nha.teamId, teams),
     doiKhach: anhChupDoi(tt.ben.khach.teamId, teams),
     sanTrungLap: tt.sanTrungLap,
@@ -153,6 +207,39 @@ function dungBanGhi(
   }
 }
 
+/*
+  ====================================================================
+  TRẬN LIÊN TỤC CHẠY Ở ĐÂY (T733, và nó là món T704 đã HOÃN CÓ TÊN).
+  ====================================================================
+
+  ⚠️ **Trạng thái liên tục sống NGOÀI React, ở mức module.** Cùng lý do mà
+  `batDauTranNgay` không phải hook: mỗi lần gọi `useMatch` là thêm một đồng hồ,
+  nên trạng thái phải là **một** cho cả ứng dụng chứ không một bản mỗi
+  component. Một `useRef` sẽ cho hai bản và trận sẽ đi **hai phút mỗi nhịp**.
+
+  ⚠️ **Và nó KHÔNG vào store.** Store giữ `TrangThaiTran` — 16 trường mà D119
+  đóng băng — còn `TrangThaiLienTuc` mang thêm cơ học, điều kiện và lô mốc.
+  Nhét lô (hai mảng typed, ~100 KB một phút) vào một store Zustand là bắt mọi
+  thành phần đăng ký store vẽ lại mỗi phút vì một thứ chỉ sân 2D đọc.
+
+  Mỗi phút, vòng đồng hồ gọi `buocPhutLienTuc` rồi đẩy **phần `tran`** vào
+  store, nên tường thuật, tỉ số và mọi thứ khác chạy y hệt chế độ cổ điển.
+*/
+interface ChayLienTuc {
+  readonly tt: TrangThaiLienTuc
+  /** Lô mốc của phút vừa chạy; `null` trước khi phút đầu tiên chạy xong. */
+  readonly lo: LoMoc | null
+  /** Tăng một đơn vị mỗi lô — lớp vẽ đặt lại mốc thời gian theo số này. */
+  readonly soLo: number
+}
+
+let chayLienTuc: ChayLienTuc | null = null
+
+/** Trạng thái liên tục hiện tại, hoặc `null` khi trận đang ở chế độ cổ điển. */
+export function lienTucHienTai(): ChayLienTuc | null {
+  return chayLienTuc
+}
+
 /**
  * Bắt đầu một trận, KHÔNG phải hook.
  *
@@ -167,7 +254,20 @@ export function batDauTranNgay(
   cauHinh: CauHinhTran,
 ): readonly LyDoKhongBatDau[] | null {
   try {
-    useAppStore.getState().datTran(taoTran(cauHinh))
+    /*
+      Chế độ liên tục dựng trạng thái bằng `taoTranLienTuc` — nó đặt hạt giống
+      về dòng riêng của engine liên tục (D136) và đóng dấu `PHIEN_BAN_ENGINE_
+      LIEN_TUC`. Dựng bằng `taoTran` rồi mới bọc là chạy **sai dòng rút** ngay
+      từ phút đầu.
+    */
+    if (cauHinh.cheDoMoPhong === 'lien-tuc') {
+      const lt = taoTranLienTuc(cauHinh)
+      chayLienTuc = { tt: lt, lo: null, soLo: 0 }
+      useAppStore.getState().datTran(lt.tran)
+    } else {
+      chayLienTuc = null
+      useAppStore.getState().datTran(taoTran(cauHinh))
+    }
     // Mỗi lần bắt đầu là một lần chạy mới, kể cả khi đấu lại cùng mã trận.
     useAppStore.getState().datIdLanChay(crypto.randomUUID())
     useAppStore.getState().datTranDangChay(true)
@@ -189,7 +289,12 @@ export function useMatch() {
     như AC-29.5 viết, và là một trong những phát hiện MEDIUM còn mở của
     `/analyze` nếu sau này muốn nhớ lựa chọn.
   */
-  const [tocDo, datTocDo] = useState<MucTocDo>('cham')
+  /*
+    Mặc định là `thuong` từ 2026-11-23, trước đó là `cham`. Con số KHÔNG đổi —
+    cả hai đều là 1000ms một phút trận — chỉ cái tên đổi khi thang dời xuống
+    hai nấc. AC-29.5 của spec 005 nói về con số, nên nó vẫn đúng từng chữ.
+  */
+  const [tocDo, datTocDo] = useState<MucTocDo>('thuong')
   const [lyDoKhongBatDau, datLyDoKhongBatDau] = useState<
     readonly LyDoKhongBatDau[]
   >([])
@@ -237,6 +342,12 @@ export function useMatch() {
   const roiTran = useCallback(() => {
     datDangChay(false)
     useAppStore.getState().datTran(null)
+    /*
+      Dọn trạng thái liên tục cùng lúc với trạng thái trận. Để nó lại thì trận
+      **sau** — nếu mở ở chế độ cổ điển — sẽ thấy `chayLienTuc` khác `null` và
+      bước bằng engine liên tục trên một trạng thái của trận cũ.
+    */
+    chayLienTuc = null
   }, [])
 
   /*
@@ -257,7 +368,23 @@ export function useMatch() {
         datDangChay(false)
         return
       }
-      const moi = buocTiep(hienTai)
+      /*
+        Hai chế độ, **một** vòng đồng hồ. Chế độ liên tục bước bằng
+        `buocPhutLienTuc` — thứ gọi lại chính `buocTiep` bên trong (D136) — nên
+        luật trận là một bản duy nhất, chỉ đầu ra là khác.
+      */
+      let moi: TrangThaiTran
+      if (chayLienTuc !== null) {
+        const b = buocPhutLienTuc(chayLienTuc.tt)
+        chayLienTuc = {
+          tt: b.tt,
+          lo: b.lo,
+          soLo: chayLienTuc.soLo + 1,
+        }
+        moi = b.tt.tran
+      } else {
+        moi = buocTiep(hienTai)
+      }
       useAppStore.getState().datTran(moi)
 
       /*
@@ -343,13 +470,42 @@ export function useMatch() {
     if (!hienTai) return false
 
     const ma = dungMaCu ? hienTai.maTran : taoMaTran(RNG_THAT)
-    return batDauTran(cauHinhDauLai(hienTai, ma))
+    /*
+      Đấu lại giữ nguyên CHẾ ĐỘ của trận đang xem (tham số thứ ba của T705).
+      Bỏ trống thì một trận liên tục đấu lại ra một trận cổ điển — đổi cả tỉ số,
+      vì hai chế độ chạy trên hai dòng rút khác nhau (D118).
+    */
+    return batDauTran(
+      cauHinhDauLai(hienTai, ma, cheDoCuaTrangThai(hienTai)),
+    )
   }, [batDauTran])
+
+  /*
+    Bảng ô của từng người, tính lại khi đội hình đổi — thay người và thẻ đỏ đều
+    đổi `trenSan`, nên một bảng tính một lần lúc bắt đầu sẽ vẽ sai sau lượt thay
+    người đầu tiên.
+  */
+  const oCuaNguoi = useMemo(
+    () => (tran === null ? null : oCuaNguoiTrenSan(tran)),
+    [tran],
+  )
+
+  /*
+    Lô mốc đọc thẳng từ biến module, không qua state: nó đã được đặt **ngay
+    trước** `datTran` trong cùng một nhịp, và chính `datTran` là thứ làm React
+    vẽ lại. Thêm một `useState` cho nó là thêm một lần vẽ lại cho cùng một tin.
+  */
+  const lienTuc = chayLienTuc
 
   return {
     tran,
     dangChay,
     tocDo,
+    /** Lô mốc của phút vừa chạy — `null` ở chế độ cổ điển. */
+    loMoc: lienTuc?.lo ?? null,
+    /** Số thứ tự lô; lớp vẽ đặt lại mốc thời gian mỗi khi nó đổi. */
+    soLo: lienTuc?.soLo ?? 0,
+    oCuaNguoi,
     datTocDo,
     lyDoKhongBatDau,
     batDauTran,

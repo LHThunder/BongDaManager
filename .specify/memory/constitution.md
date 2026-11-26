@@ -1,7 +1,7 @@
 # Constitution — Ứng dụng bóng đá: dựng đội, giả lập trận, và sự nghiệp một cầu thủ
 
 > Hiến pháp kỹ thuật của dự án. Mọi spec / plan / task đều phải tuân thủ.
-> Version: 3.0.1 · Ratified: 2026-10-26 · Last amended: 2026-11-16
+> Version: 4.0.1 · Ratified: 2026-10-26 · Last amended: 2026-11-26
 
 ## 1. Mục đích & phạm vi
 
@@ -20,12 +20,13 @@ Dữ liệu người dùng bỏ công nhập là tài sản quý nhất của �
 
 **Không thuộc phạm vi (non-goals):**
 - Backend, máy chủ, tài khoản, đăng nhập, đồng bộ nhiều máy, chơi nhiều người.
-- Đồ hoạ 3D; mọi hiển thị sân là 2D dạng điểm.
 - Ngôn ngữ thứ ba ngoài tiếng Việt và tiếng Anh (xem P8).
 - Bản cho điện thoại và máy tính bảng.
 - **Dữ liệu bóng đá có thật đóng gói sẵn trong repo** — xem ràng buộc ở mục 3.
 
 *Hai dòng non-goals đã được GỠ ngày 2026-11-16, vì chúng chính là hướng mới:* "chế độ career nhiều mùa, chuyển nhượng, tài chính, tập luyện, scout, phát triển cầu thủ theo tuổi" và "giải đấu: lịch thi đấu, bảng xếp hạng, thống kê cả mùa". Gỡ khỏi non-goals **không** có nghĩa là làm hết ngay: từng phần vào phạm vi qua từng spec, như mọi thứ khác.
+
+*Một dòng non-goals đã được GỠ ngày 2026-11-25:* “Đồ hoạ 3D; mọi hiển thị sân là 2D dạng điểm.” Gỡ nó mở đường cho **chế độ xem sân dạng sa bàn** (spec 011): một phép chiếu trực giao góc cố định vẽ trên chính lớp SVG đang có, **song song** với sân 2D chứ không thay thế nó — người dùng đổi qua lại được, và hiển thị 2D dạng điểm vẫn là mặc định. Gỡ khỏi non-goals **không** mở cửa cho một engine đồ hoạ 3D: ngân sách hiệu năng ở mục 3 và **P4** (không gọi mạng lúc chạy) không đổi một chữ. Non-goals của spec 001 — và của mọi spec đã `Done` — **KHÔNG bị sửa ngược**, đúng nguyên tắc đã ghi ở trên: spec 011 MUST nêu rõ nó thay thế non-goal ấy và dẫn về mục này.
 
 ## 2. Nguyên tắc bất di bất dịch (Principles)
 
@@ -161,6 +162,8 @@ Mọi giới hạn kiểu "giữ N trận gần nhất" MUST NOT âm thầm xoá
 | **2.0.0** | **2026-11-16** | **P8 đổi từ "chỉ tiếng Việt, cấm hạ tầng đa ngôn ngữ" sang "song ngữ Việt–Anh". MAJOR vì đổi nghĩa một nguyên tắc. Kéo theo: bỏ "đa ngôn ngữ" khỏi non-goals, sửa mục xử lý lỗi và mục i18n ở Chuẩn chất lượng** |
 | **3.0.0** | **2026-11-16** | **Đổi hướng dự án: thêm vòng lặp "sự nghiệp một cầu thủ" bên cạnh vòng lặp huấn luyện viên đã có. MAJOR vì gỡ hai non-goals nền tảng (career nhiều mùa; giải đấu, lịch thi đấu, bảng xếp hạng) và vì mục đích dự án đổi nghĩa. Kéo theo: P1 mở rộng sang quy mô mùa giải, P6 nói rõ "chạy được" nghĩa là chơi hết một mùa, P7 phủ tệp sao lưu một sự nghiệp, thêm **P10** về quy mô lưu trữ, thêm ràng buộc về dữ liệu đóng gói sẵn và bản quyền, thêm ngân sách hiệu năng cho mùa giải. Non-goals của spec 001 KHÔNG sửa ngược — xem mục 1** |
 | 3.0.1 | 2026-11-16 | Ghi lại trình tự: hoàn thiện vòng lặp huấn luyện viên trước, sự nghiệp sau. Spec 004 thuộc vòng lặp 1; ba điểm cần xác nhận ở mục 7 chỉ chặn spec đầu tiên của vòng lặp 2. PATCH vì chỉ làm rõ, không đổi nguyên tắc nào |
+| **4.0.0** | **2026-11-25** | **Gỡ non-goal “Đồ hoạ 3D; mọi hiển thị sân là 2D dạng điểm” để mở đường cho chế độ xem sân dạng sa bàn của spec 011. MAJOR vì gỡ một non-goal nền tảng — cùng loại thay đổi với lần 3.0.0, không phải một lần làm rõ câu chữ. Kéo theo: mục 1 thêm một đoạn nói rõ phạm vi của việc gỡ — sa bàn **song song** với sân 2D, 2D vẫn mặc định, và gỡ non-goal **không** mở cửa cho engine đồ hoạ 3D. **Không** nguyên tắc P1–P10 nào đổi nghĩa, và ngân sách hiệu năng ở mục 3 không đổi một chữ. Non-goals của spec 001 KHÔNG sửa ngược — xem mục 1** |
+| 4.0.1 | 2026-11-26 | Gỡ đường dẫn tuyệt đối của thư mục dự án khỏi mục 7 — nó mang tên tài khoản máy của người dùng, và repo chuyển sang **công khai** ngày này. PATCH vì chỉ đổi câu chữ: nội dung quyết định ngày 2026-10-29 (dự án sống ở một thư mục cố định, không phải thư mục tạm của phiên) giữ nguyên, và không nguyên tắc nào bị động tới |
 
 ## 7. Điểm cần xác nhận
 
@@ -172,9 +175,11 @@ Mọi giới hạn kiểu "giữ N trận gần nhất" MUST NOT âm thầm xoá
 
 Hai điểm mở từ ngày 2026-10-26 đã chốt ngày **2026-10-29**:
 
-- **Thư mục lâu dài của dự án**: `C:\Users\tungh\source\BongDaManager`, một repo git thật
-  với nhánh `001-football-team-sim`. Lo ngại ban đầu — spec nằm trong thư mục tạm của
-  phiên làm việc và mất khi phiên bị xoá — không còn đúng nữa.
+- **Thư mục lâu dài của dự án**: một thư mục **cố định trên máy người dùng**, là một repo
+  git thật với nhánh `001-football-team-sim`. Lo ngại ban đầu — spec nằm trong thư mục tạm
+  của phiên làm việc và mất khi phiên bị xoá — không còn đúng nữa.
+  *(Đường dẫn tuyệt đối đã được gỡ ngày 2026-11-26 khi repo chuyển sang công khai: nó mang
+  tên tài khoản máy của người dùng. Nội dung quyết định không đổi một chữ nào.)*
 - **Trình duyệt đích**: chỉ cần chạy đúng trên trình duyệt Chromium đời mới mà người
   dùng đang dùng. **Được phép** dùng tính năng mới mà không kiểm tương thích chéo, và
   **không** phải viết đường lùi cho Firefox hay Safari. Đây là lý do code được phép dựa

@@ -869,6 +869,85 @@ describe('tệp sao lưu v4 mang theo lịch sử trận đấu', () => {
     return ra
   }
 
+  /*
+    Chế độ mô phỏng đi qua cả vòng xuất–nhập (T708, D122, hiến pháp P7).
+
+    `SCHEMA_VERSION` giữ nguyên **5** và trường chế độ là **tuỳ chọn**: một tệp
+    v5 xuất trước spec 007 không có trường ấy, và bắt buộc nó ở schema là tự tay
+    làm cho tệp của chính mình không nhập lại được — đúng lý lẽ mà khối chú
+    thích của `TranDaLuuSchemaV5` đã viết cho `quanSo`.
+
+    `luuMayTran` dựng bản ghi KHÔNG có `quanSo`, `thoiLuong` hay chế độ, nên nó
+    đúng là hình dạng của một trận lưu trước spec 002 — không phải một bản ghi
+    viết tay cho vừa phép kiểm.
+  */
+  it('trận v5 KHÔNG có chế độ: nhập ở thay-the rồi đọc ra co-dien (P7)', async () => {
+    await dungDuLieuMau()
+    const goc = await luuMayTran(1)
+    expect('cheDoMoPhong' in goc[0], 'fixture phải là bản ghi kiểu CŨ').toBe(
+      false,
+    )
+
+    const tep = await backup.exportAll()
+    const baoCao = await backup.importAll(tep, 'thay-the')
+    expect(baoCao.soTran).toBe(1)
+
+    const matchRepo = await import('./matchRepo')
+    const daDoc = await matchRepo.doc(goc[0].id)
+    expect(daDoc).not.toBeNull()
+    expect(daDoc?.cheDoMoPhong).toBe('co-dien')
+    expect(matchRepo.cheDoCua(daDoc!)).toBe('co-dien')
+
+    // Và hai trường của spec 002 cũng được điền, không chỗ nào bị bỏ sót.
+    expect(daDoc?.quanSo).toBe(11)
+    expect(daDoc?.thoiLuong).toBe(90)
+  })
+
+  /*
+    ⚠️ Phép kiểm NÀY là cái duy nhất canh được dòng `cheDoMoPhong` của schema.
+
+    `TranDaLuuSchema` kết bằng `.passthrough()` (dòng 243) và `.extend()` giữ
+    nguyên nết ấy, nên một trường KHÔNG khai trong schema vẫn lọt qua nguyên
+    vẹn — tức hai phép kiểm vòng xuất–nhập ở trên vẫn xanh cả khi xoá hẳn dòng
+    schema (đã thử: 58/58 xanh). Giá trị thật của việc khai nó là **từ chối một
+    chế độ lạ**: không khai thì `cheDoMoPhong: 'ba-chieu'` đi thẳng vào
+    IndexedDB rồi nằm đó chờ làm vỡ một `switch` ở đâu đó về sau.
+  */
+  it('tệp mang một chế độ LẠ bị từ chối, không lọt vào máy', async () => {
+    await dungDuLieuMau()
+    await luuMayTran(1)
+
+    // Tệp xuất ra là ZIP, nên phải mở manifest rồi gói lại — đúng đường mà
+    // phép kiểm "tệp lỗi ở BẢN GHI CUỐI" đã đi.
+    const muc = await docZip(await backup.exportAll())
+    const manifest = JSON.parse(
+      strFromU8(muc[backup.TEN_MANIFEST] as Uint8Array),
+    )
+    expect(manifest.matches).toHaveLength(1)
+    manifest.matches[0].cheDoMoPhong = 'ba-chieu'
+
+    const anh: Record<string, Uint8Array> = {}
+    for (const [k, v] of Object.entries(muc)) {
+      if (k !== backup.TEN_MANIFEST) anh[k] = v
+    }
+
+    await expect(
+      backup.importAll(taoZip(manifest, anh), 'thay-the'),
+    ).rejects.toMatchObject({ ma: 'SchemaInvalid' })
+  })
+
+  it('trận liên tục đi qua vòng xuất–nhập mà không mất chế độ', async () => {
+    await dungDuLieuMau()
+    const goc = await luuMayTran(1)
+    const matchRepo = await import('./matchRepo')
+    await matchRepo.luu({ ...goc[0], cheDoMoPhong: 'lien-tuc' })
+
+    const tep = await backup.exportAll()
+    await backup.importAll(tep, 'thay-the')
+
+    expect((await matchRepo.doc(goc[0].id))?.cheDoMoPhong).toBe('lien-tuc')
+  })
+
   it('xuất rồi nhập lại ra ĐÚNG từng dòng sự kiện', async () => {
     await dungDuLieuMau()
     const goc = await luuMayTran(3)

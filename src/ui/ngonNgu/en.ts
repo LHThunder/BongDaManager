@@ -746,6 +746,13 @@ export const CHON_CAP_DAU_EN: BanDich<typeof CHON_CAP_DAU_VI> = {
   sanTrungLap: 'Play on a neutral ground',
   moTaSanTrungLap:
     'Turns home advantage off completely, so two tactics can be compared fairly.',
+  nhanCheDo: 'Simulation mode',
+  cheDoCoDien: 'By the minute',
+  moTaCheDoCoDien:
+    'One line of commentary per match minute — exactly as every match so far.',
+  cheDoLienTuc: 'Continuous',
+  moTaCheDoLienTuc:
+    'Players and the ball move every match second. Score, commentary and player ratings stay identical to the by-the-minute mode.',
   nhanMaTran: 'Match code',
   moTaMaTran:
     'Keep this code — or paste an old one back in — and you can replay exactly that match, even after changing your tactics.',
@@ -783,6 +790,8 @@ export const LY_DO_KHONG_BAT_DAU_EN: BanDich<typeof LY_DO_KHONG_BAT_DAU_VI> = {
     `${tenDoi} still have players missing attributes: ${tenCauThu.join(', ')}.`,
   khongDuNguoi: (tenDoi: string, co: number) =>
     `${tenDoi} only have ${co} players in the squad, not the 18 needed to register.`,
+  lienTucChiSan11: (quanSo: number, can: number) =>
+    `Continuous mode only runs on ${can}-a-side; this match is ${quanSo}-a-side. Both the pitch geometry and the movement mechanics of that mode are ${can}-a-side figures.`,
 }
 
 export const TRAN_DAU_EN: BanDich<typeof TRAN_DAU_VI> = {
@@ -808,6 +817,21 @@ export const TRAN_DAU_EN: BanDich<typeof TRAN_DAU_VI> = {
   nhanTheVang: 'Yellow card',
   nhanTheDo: 'Red card',
   quayLai: 'Leave match',
+  nhanDieuKien: 'Conditions',
+  thoiTiet: {
+    nong: 'hot',
+    kho: 'dry pitch',
+    am: 'damp pitch',
+    mua: 'rain',
+    'mua-to': 'heavy rain',
+  },
+  gio: (tocDo: string, chieu: string) => `${tocDo} m/s wind ${chieu}`,
+  chieuGio: {
+    doc: 'along the pitch',
+    ngang: 'across the pitch',
+    cheo: 'at an angle',
+  },
+  gioLang: 'no wind',
 }
 
 export const THAY_NGUOI_EN: BanDich<typeof THAY_NGUOI_VI> = {
@@ -946,6 +970,26 @@ export const SAN_2D_EN: BanDich<typeof SAN_2D_VI> = {
   dauThamGia: '▲',
   anKhiChayHet:
     'The pitch rests while the match plays itself out, then is drawn again at the final minute.',
+
+  gocNhin: 'View',
+  gocNhinPhang: 'Flat pitch',
+  gocNhinSaBan: 'Diorama',
+  dangXemGocNhin: (nhan: string) => `View: ${nhan}`,
+  doiSangGocNhin: (nhan: string) => `Switch to ${nhan}`,
+  saBanChiChoLienTuc:
+    'The diorama is only available for continuously simulated matches. A classic match records no ball height, so there is nothing to tilt.',
+  doCaoDaPhongDai: (heSo: number) =>
+    `Ball height is exaggerated ×${heSo} so it can be seen; positions on the pitch surface are true to the metre.`,
+
+  moTaSaBan: (nha: string, khach: string) =>
+    `Diorama: the pitch seen at an angle from above, ${nha} playing left to right, ${khach} right to left. The home side are circles, the away side are squares.`,
+  tomTatSaBan: (soNguoi: number, zBongMet: number | null) => {
+    const phan = [`Drawing ${soNguoi} players.`]
+    if (zBongMet === null) phan.push('No ball on the pitch.')
+    else if (zBongMet <= 0) phan.push('The ball is on the ground.')
+    else phan.push(`The ball is in the air, about ${zBongMet.toFixed(1)} metres up.`)
+    return phan.join(' ')
+  },
 }
 
 export const SAO_LUU_EN: BanDich<typeof SAO_LUU_VI> = {

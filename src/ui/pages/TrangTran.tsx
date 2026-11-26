@@ -1,6 +1,6 @@
 import { BieuTuong } from '../components/BieuTuong'
 import { useChuoi } from '../../hooks/useNgonNgu'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { dungBaoCao } from '../../engine/baoCao'
 import type { SuKien } from '../../engine/suKien'
 import {
@@ -10,6 +10,7 @@ import {
   phutHienThi,
   type NoiDungCanThiep,
 } from '../../engine/tran'
+import { chieuCuaGio, dieuKienTuMaTran } from '../../engine/lienTuc/dieuKien'
 import { MS_MOI_PHUT, useMatch } from '../../hooks/useMatch'
 import * as playerRepo from '../../services/playerRepo'
 import * as tuyChonRepo from '../../services/tuyChonRepo'
@@ -19,10 +20,39 @@ import { AnhThayThe } from '../components/AnhThayThe'
 import { BangDieuKhienTran } from '../components/BangDieuKhienTran'
 import { BaoCaoSauTran } from '../components/BaoCaoSauTran'
 import { San2D } from '../components/San2D'
+import { San3D } from '../components/San3D'
+import { HE_SO_CAO } from '../chieuSaBan'
+import type { PositionId } from '../../domain/types'
+import { cheDoCuaTrangThai } from '../../engine/lienTuc/tranLienTuc'
 import { ChiThiDoi } from '../components/ChiThiDoi'
 import { DongTuongThuat } from '../components/DongTuongThuat'
 import { ThayNguoi } from '../components/ThayNguoi'
 
+
+/**
+ * Dưới mức này thì nhãn nói "lặng gió" thay vì đọc ra một con số, m/s.
+ *
+ * 0,5 m/s là ngưỡng mà người ta **không cảm thấy** gió; in "gió 0,2 m/s" là nói
+ * một con số đúng mà vô nghĩa.
+ */
+const NGUONG_GIO_LANG = 0.5
+
+/**
+ * Một chữ số thập phân, theo **mã vùng** của ngôn ngữ đang chọn.
+ *
+ * ⚠️ **`toFixed(1)` là sai ở đây, và tôi thấy nó bằng mắt chứ không bằng phép
+ * kiểm:** nhãn in ra "gió 4.0 m/s dọc sân" — dấu **chấm** trong một câu tiếng
+ * Việt. `DINH_DANG.maVung` đã có sẵn cho đúng lớp lỗi này, và chú thích của nó
+ * ở `ngonNgu/vi.ts` nói thẳng: đặt cứng một kiểu định dạng là **trộn hai ngôn
+ * ngữ trên một màn hình**, đúng điều P8 cấm. Tiếng Việt ra `4,0`; tiếng Anh ra
+ * `4.0`.
+ */
+function motChuSoThapPhan(so: number, maVung: string): string {
+  return so.toLocaleString(maVung, {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  })
+}
 
 interface Props {
   readonly onRoiTran: () => void
@@ -39,6 +69,7 @@ export function TrangTran({ onRoiTran }: Props) {
     NHAN_VI_TRI,
     CAN_THIEP_GIUA_TRAN,
     CHON_CAP_DAU,
+    DINH_DANG,
     CHUNG,
     SAN_2D,
     SO_SANH_TRAN,
@@ -51,6 +82,9 @@ export function TrangTran({ onRoiTran }: Props) {
     tran,
     dangChay,
     tocDo,
+    loMoc,
+    soLo,
+    oCuaNguoi,
     datTocDo,
     tamDung,
     tiepTuc,
@@ -61,6 +95,21 @@ export function TrangTran({ onRoiTran }: Props) {
     daLoaiTranCu,
     xoaBaoDaLoai,
   } = useMatch()
+
+  /*
+    Điều kiện trận dẫn xuất từ MÃ TRẬN, nên nó không cần một trạng thái nào và
+    không cần một lần đọc dữ liệu nào (quyết định D130). `useMemo` ở đây không
+    phải để tiết kiệm — hai lần băm là rẻ — mà để nhãn không dựng lại một chuỗi
+    mới ở **mỗi khung vẽ** trong lúc trận chạy 60 khung một giây.
+
+    `tran` còn `null` trước khi trận dựng xong, và `useMemo` phải chạy **không
+    điều kiện** như mọi hook, nên phép kiểm `null` nằm TRONG hàm chứ không bọc
+    quanh hook.
+  */
+  const dieuKien = useMemo(
+    () => (tran === null ? null : dieuKienTuMaTran(tran.maTran)),
+    [tran],
+  )
 
   const [loiCanThiep, datLoiCanThiep] = useState<string | null>(null)
   const [nguoiVaoGon, datNguoiVaoGon] = useState('')
@@ -84,6 +133,49 @@ export function TrangTran({ onRoiTran }: Props) {
     const moi = !(hienSan ?? true)
     datHienSan(moi)
     void tuyChonRepo.datHienSan2D(moi).catch(() => {
+      // Lỗi ghi tuỳ chọn hiển thị không nên chặn người xem trận.
+    })
+  }
+
+  /*
+    Góc nhìn sân (T774 của spec 011, AC-47.1 → AC-47.4). Đi đúng con đường
+    `hienSan` ngay trên, kể cả cách nuốt lỗi ghi.
+
+    Đổi góc nhìn **không chạm vào trạng thái trận**: không dừng, không tua,
+    không đụng `loMoc` hay đồng hồ. Đó là lý do AC-47.2 đòi đồng hồ không lùi
+    và không nhảy phút khi đổi giữa lúc trận đang chạy — hai lớp vẽ đọc cùng
+    một lô mốc, nên đổi lớp vẽ là đổi đúng một thứ: lớp vẽ.
+  */
+  /*
+    ⚠️ Thẻ phân biệt là **chế độ mô phỏng của trận**, KHÔNG phải `loMoc != null`.
+
+    T774 bản đầu viết `loMoc != null`, đúng thẻ mà `San2D` dùng (D121). Nhưng
+    `San2D` dùng nó để chọn ĐƯỜNG VẼ của một khung hình, còn ở đây nó quyết
+    định một NÚT có tồn tại hay không — và nút thì phải ổn định cả trận.
+    Đo trên bản chạy ngày 2026-11-25: ở **phút 0** của một trận liên tục, lô
+    mốc đầu tiên chưa được ghi nên `loMoc` còn `null`; nút biến mất, và câu
+    "sa bàn chỉ có ở trận liên tục" hiện ra **trên chính một trận liên tục**.
+    Rồi tới phút 1 nút mới nhảy vào. `cheDoCuaTrangThai` đọc `phienBanEngine`
+    đã nằm sẵn trong trạng thái, nên nó đúng ngay từ phút 0.
+  */
+  const lienTuc = tran !== null && cheDoCuaTrangThai(tran) === 'lien-tuc'
+
+  const [gocNhin, datGocNhin] = useState<tuyChonRepo.GocNhinSan | null>(null)
+  useEffect(() => {
+    let conHieuLuc = true
+    void tuyChonRepo.docGocNhinSan().then((x) => {
+      if (conHieuLuc) datGocNhin(x)
+    })
+    return () => {
+      conHieuLuc = false
+    }
+  }, [])
+
+  const doiGocNhin = () => {
+    const moi: tuyChonRepo.GocNhinSan =
+      (gocNhin ?? tuyChonRepo.GOC_NHIN_SAN_MAC_DINH) === 'phang' ? 'sa-ban' : 'phang'
+    datGocNhin(moi)
+    void tuyChonRepo.datGocNhinSan(moi).catch(() => {
       // Lỗi ghi tuỳ chọn hiển thị không nên chặn người xem trận.
     })
   }
@@ -316,6 +408,23 @@ export function TrangTran({ onRoiTran }: Props) {
         <code className="font-mono">{tran.maTran}</code>
       </p>
 
+      {/*
+        Điều kiện trận đứng cạnh MÃ TRẬN, không treo lên sân 2D (quyết định
+        D130): nó dẫn xuất từ mã trận nên nó thuộc về chỗ của mã trận, và
+        `San2D` đã gần 2.000 dòng.
+      */}
+      {dieuKien && (
+        <p className="text-center text-xs text-chu-phu">
+          {TRAN_DAU.nhanDieuKien}: {TRAN_DAU.thoiTiet[dieuKien.thoiTiet]},{' '}
+          {dieuKien.tocDoGio < NGUONG_GIO_LANG
+            ? TRAN_DAU.gioLang
+            : TRAN_DAU.gio(
+                motChuSoThapPhan(dieuKien.tocDoGio, DINH_DANG.maVung),
+                TRAN_DAU.chieuGio[chieuCuaGio(dieuKien.huongGio)],
+              )}
+        </p>
+      )}
+
       <div className="mt-4">
         <BangDieuKhienTran
           dangChay={dangChay}
@@ -393,46 +502,130 @@ export function TrangTran({ onRoiTran }: Props) {
         </section>
       )}
 
-      {/* Sân 2D, ẩn/hiện được và nhớ lựa chọn (AC-10.1 → AC-10.6). */}
-      <section className="mt-4">
+      {/*
+        Sân 2D, ẩn/hiện được và nhớ lựa chọn (AC-10.1 → AC-10.6).
+
+        THỨ BẬC (T803, AC-48.7). Người dùng nói năm khối của màn hình này —
+        sân, dòng tường thuật, bảng điểm, điều khiển, danh sách ghi bàn — đang
+        ngang hàng nên *"mắt không biết nhìn đâu trước"*.
+
+        Chỗ hỏng cụ thể: **khối sân là khối duy nhất KHÔNG có khung**, trong
+        khi báo cáo sau trận và thay người đều nằm trong thẻ có viền. Thứ chính
+        của một màn hình xem trận lại là thứ nhẹ nhất trên màn hình.
+
+        Sửa bằng đúng bậc của thang, không bằng số rời:
+        - khung: `border-2 border-vien-dam` — **bậc 2** của thang độ dày, thang
+          ấy dành bậc 2 cho "viền nhấn mạnh"; mọi khối phụ giữ `border` bậc 1.
+        - tiêu đề: `text-lg` — **bậc 4** của thang cỡ chữ; mọi tiêu đề khối phụ
+          giữ `text-base` bậc 3.
+
+        Hai kênh cùng nói một điều, nên thứ bậc đọc được cả khi mất màu.
+      */}
+      <section className="mt-4 rounded-lg border-2 border-vien-dam bg-nen-the p-4">
         <div className="flex items-center justify-between">
-          <h3 className="flex items-center gap-2 text-base font-semibold text-chu">
+          <h3 className="flex items-center gap-2 text-lg font-semibold text-chu">
             <BieuTuong ten="san" co="nho" />
             {SAN_2D.tieuDe}
           </h3>
-          <button
-            type="button"
-            onClick={doiHienSan}
-            aria-pressed={hienSan ?? true}
-            className="text-sm text-chinh underline hover:text-chinh-dam"
-          >
-            {(hienSan ?? true) ? SAN_2D.an : SAN_2D.hien}
-          </button>
+          <div className="flex items-center gap-3">
+            {/*
+              Nút đổi góc nhìn — ẨN HẲN ở trận cổ điển (AC-47.6, D141).
+
+              Thẻ phân biệt là `loMoc != null`, đúng thẻ mà `San2D` đang dùng
+              (D121 của spec 007). Ẩn chứ không vô hiệu hoá: một nút xám không
+              nói được VÌ SAO, còn câu giải thích bên dưới thì nói được.
+
+              Là `button` thật, không phải `div` có `onClick`, nên bàn phím tới
+              được sẵn và `aria-pressed` có nghĩa (P9, AC-50.1).
+            */}
+            {lienTuc && (
+              <button
+                type="button"
+                onClick={doiGocNhin}
+                aria-pressed={(gocNhin ?? tuyChonRepo.GOC_NHIN_SAN_MAC_DINH) === 'sa-ban'}
+                className="text-sm text-chinh underline hover:text-chinh-dam"
+              >
+                {SAN_2D.dangXemGocNhin(
+                  (gocNhin ?? tuyChonRepo.GOC_NHIN_SAN_MAC_DINH) === 'sa-ban'
+                    ? SAN_2D.gocNhinSaBan
+                    : SAN_2D.gocNhinPhang,
+                )}
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={doiHienSan}
+              aria-pressed={hienSan ?? true}
+              className="text-sm text-chinh underline hover:text-chinh-dam"
+            >
+              {(hienSan ?? true) ? SAN_2D.an : SAN_2D.hien}
+            </button>
+          </div>
         </div>
 
-        {(hienSan ?? true) && mauAo && doiNha && doiKhach && (
-          <div className="mt-2">
-            <San2D
-              nha={{
+        {(hienSan ?? true) &&
+          mauAo &&
+          doiNha &&
+          doiKhach &&
+          (() => {
+            /*
+              MỘT bộ prop, hai lớp vẽ (T774). Khai một lần rồi trải vào cả hai:
+              hai bản sao của mười hai prop là hai chỗ để lệch nhau, và lệch ở
+              đây nghĩa là hai góc nhìn đọc hai thứ khác nhau — đúng điều
+              AC-46.5 cấm.
+            */
+            const propsSan = {
+              nha: {
                 ben: tran.ben.nha,
                 ten: doiNha.name,
                 mauAo: mauAoRaSan(doiNha, mauAo.nha),
-              }}
-              khach={{
+              },
+              khach: {
                 ben: tran.ben.khach,
                 ten: doiKhach.name,
                 mauAo: mauAoRaSan(doiKhach, mauAo.khach),
-              }}
-              suKien={suKienDangXem}
-              msMoiPhut={MS_MOI_PHUT[tocDo]}
-              dangChay={dangChay}
-              tenCauThu={(id) => tenTheoId.get(id) ?? id}
-              soAo={(id) => soAoTheoId.get(id) ?? null}
-              nhanViTri={(v) => NHAN_VI_TRI[v].ten}
-              moTaDiem={SAN_2D.moTaDiem}
-            />
-          </div>
-        )}
+              },
+              suKien: suKienDangXem,
+              msMoiPhut: MS_MOI_PHUT[tocDo],
+              dangChay,
+              loMoc,
+              soLo,
+              oCuaNguoi,
+              tenCauThu: (id: string) => tenTheoId.get(id) ?? id,
+              soAo: (id: string) => soAoTheoId.get(id) ?? null,
+              nhanViTri: (v: PositionId) => NHAN_VI_TRI[v].ten,
+              moTaDiem: SAN_2D.moTaDiem,
+            }
+            const xemSaBan =
+              lienTuc && (gocNhin ?? tuyChonRepo.GOC_NHIN_SAN_MAC_DINH) === 'sa-ban'
+
+            return (
+              <div className="mt-2">
+                {xemSaBan ? <San3D {...propsSan} /> : <San2D {...propsSan} />}
+
+                {/*
+                  Nhãn nói độ cao đã được phóng đại (AC-46.6). Đây là con số duy
+                  nhất trong dự án cố ý nói sai sự thật về hình học, nên nó phải
+                  được nói ra — và hệ số đi vào bằng tham số để `HE_SO_CAO` còn
+                  sống ở đúng một chỗ.
+                */}
+                {xemSaBan && (
+                  <p className="mt-1 text-xs text-chu-nhat">
+                    {SAN_2D.doCaoDaPhongDai(HE_SO_CAO)}
+                  </p>
+                )}
+
+                {/*
+                  Trận cổ điển không có nút đổi góc nhìn, nên chỗ này nói VÌ SAO
+                  (AC-47.6). Không có câu này thì người vừa thấy nút ở một trận
+                  khác sẽ tưởng giao diện hỏng.
+                */}
+                {!lienTuc && (
+                  <p className="mt-1 text-xs text-chu-nhat">{SAN_2D.saBanChiChoLienTuc}</p>
+                )}
+              </div>
+            )
+          })()}
       </section>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">

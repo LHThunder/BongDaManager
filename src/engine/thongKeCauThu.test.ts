@@ -166,7 +166,7 @@ describe('phút vào sân và phút ra sân (AC-11.5)', () => {
   it('người vào sân từ băng ghế rồi bị đuổi có cả hai mốc', () => {
     let daGap = 0
 
-    for (let i = 0; i < 120; i += 1) {
+    for (let i = 0; i < 600; i += 1) {
       const { tt, vao } = thayOPhut(`V${String(i).padStart(4, '0')}XQ4B`, 5)
       const tk = tt.ben.nha.thongKe.theoCauThu[vao]
       if (!tk || tk.phutRa === null) continue
@@ -176,7 +176,7 @@ describe('phút vào sân và phút ra sân (AC-11.5)', () => {
       daGap += 1
     }
 
-    console.log(`số mã trận mà người mới vào sân bị đuổi: ${daGap}/120`)
+    console.log(`số mã trận mà người mới vào sân bị đuổi: ${daGap}/600`)
     expect(daGap).toBeGreaterThan(0)
   })
 })

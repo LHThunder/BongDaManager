@@ -261,6 +261,7 @@ const TranDaLuuSchemaV5 = TranDaLuuSchema.extend({
     .max(QUAN_SO_TOI_DA)
     .optional(),
   thoiLuong: z.number().int().positive().optional(),
+  cheDoMoPhong: z.enum(['co-dien', 'lien-tuc']).optional(),
 })
 
 const ThanTepV4 = z.object({

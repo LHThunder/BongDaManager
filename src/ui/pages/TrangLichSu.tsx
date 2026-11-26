@@ -1,7 +1,6 @@
 import { BieuTuong } from '../components/BieuTuong'
 import { useChuoi } from '../../hooks/useNgonNgu'
 import { useEffect, useMemo, useState } from 'react'
-import { PHIEN_BAN_ENGINE } from '../../engine/tran'
 import type { SuKien } from '../../engine/suKien'
 import * as matchRepo from '../../services/matchRepo'
 import * as phatLai from '../../services/phatLai'
@@ -69,9 +68,20 @@ export function TrangLichSu({ onQuayLai, onDauLai }: Props) {
     vì cả hai đều là chạy lại engine, nên hai lối không được phép có hai câu
     trả lời khác nhau cho cùng một trận (AC-27.5, AC-27.6).
   */
+  /*
+    ⚠️ Số phiên bản phải hỏi theo CHẾ ĐỘ của chính trận ấy, không đặt cứng.
+
+    Dòng này từng truyền thẳng `PHIEN_BAN_ENGINE` (= 6). Từ spec 007 có hai
+    engine và hai số: v6 mang **6**, engine liên tục mang **101**. Đặt cứng 6
+    thì **mọi** trận liên tục đã lưu rơi vào `khac-phien-ban-engine` và mất cả
+    hai nút — mà đây là chỗ DUY NHẤT trong ứng dụng gọi `lyDoKhongDauLai`, nên
+    engine có đóng dấu 101 đúng tới đâu cũng vô ích nếu cửa này còn hỏi sai.
+  */
   const lyDoTuBanGhi = dangMo
-    ? matchRepo.lyDoKhongDauLai(dangMo, PHIEN_BAN_ENGINE, (teamId) =>
-        teams.some((d) => d.id === teamId),
+    ? matchRepo.lyDoKhongDauLai(
+        dangMo,
+        matchRepo.phienBanEngineHienTaiCua(matchRepo.cheDoCua(dangMo)),
+        (teamId) => teams.some((d) => d.id === teamId),
       )
     : null
 

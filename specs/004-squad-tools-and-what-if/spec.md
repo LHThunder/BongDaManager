@@ -218,7 +218,11 @@ Là một **người dùng**, tôi muốn **quay lại một phút trong trận 
   - Và ngân sách ấy PHẢI đo cả ở đường **đang phát theo đồng hồ**, không chỉ
     ở chế độ chạy ngay: 22 điểm đang nội suy thì công việc mỗi khung vẽ
     **gọn trong một nhịp** ở mức Thường (200ms một phút trận) và **không rơi
-    nhịp** ở mức Nhanh (70ms). Sửa ngày 2026-11-17 lúc `/analyze`: chế độ
+    nhịp** ở mức Nhanh (70ms). **Sửa 2026-11-23:** hai cái TÊN ấy nay trỏ vào
+    1000ms và 200ms, vì thang tốc độ dời xuống hai nấc; ngân sách tính bằng
+    mili-giây thì **dễ đạt hơn trước**, nên không có chỗ nào xấu đi. Giữ nguyên
+    câu gốc để không làm sai lệch hồ sơ quyết định lúc ấy.
+    Sửa ngày 2026-11-17 lúc `/analyze`: chế độ
     chạy ngay chạy engine một lèo rồi mới vẽ một lần, nên đo riêng nó là đo
     đúng con đường mà chuyển động mới không hề đi qua.
   - Chạy tiếp một trận rẽ nhánh: **< 3 giây**, như một trận thường.

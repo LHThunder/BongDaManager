@@ -1,5 +1,21 @@
-import { useEffect, useMemo, useReducer, useRef, useState } from 'react'
-import { mauChuTuongPhan } from '../../domain/colors'
+import { useEffect, useMemo, useReducer, useRef } from 'react'
+import {
+  BAN_KINH_VONG_GIUA,
+  CHAM_PHAT_DEN,
+  DAI_SAN,
+  RONG_SAN,
+  RONG_VONG_CAM,
+  SAU_VONG_CAM,
+  TAM_X,
+  TAM_Y,
+  Y_COT_GAN,
+  Y_COT_XA,
+} from '../../engine/hinhHocSan'
+import type { LoMoc } from '../../engine/lienTuc/loMoc'
+import { metSangDonVi, toaDoTuMet, type KhungAnh } from '../quyDoiMet'
+import { useGiamChuyenDong } from '../giamChuyenDong'
+import { anhChupTuLo, mocVeTaiThoiDiem } from '../mocVe'
+import { nenDamBaoTuongPhan } from '../../domain/colors'
 import { laySoDo, soNguoiCuaSoDo } from '../../domain/formations'
 import type { PositionId } from '../../domain/types'
 import type { BenDoi, LoaiSuKien, SuKien } from '../../engine/suKien'
@@ -29,6 +45,10 @@ import {
   type Diem,
   type KhungKep,
 } from '../noiSuy'
+import {
+  viTriVe as hopViTriVe,
+  type AnhChupMet,
+} from '../viTriVe'
 import type { BoChuoi } from '../ngonNgu'
 
 /*
@@ -77,6 +97,109 @@ export interface KhungSan {
   105×68): co đúng thật thì sân 5 bé tới mức mười cái điểm chen nhau không
   đọc nổi số áo, mà AC-15.1 lại đếm điểm.
 */
+/**
+ * Độ sâu khung thành khi VẼ, mét — con số của lớp vẽ, không của engine.
+ *
+ * `hinhHocSan.ts` không có nó vì engine không cần biết khung thành sâu bao
+ * nhiêu: bóng vào lưới là một kết cục, không phải một va chạm. Ở đây nó chỉ để
+ * người xem thấy hai cái khung, và 2 m lọt gọn trong lề `BAN_KINH` của ảnh.
+ */
+export const SAU_KHUNG_THANH_VE = 2
+
+/** Một hình chữ nhật trong toạ độ vẽ. */
+export interface HinhChuNhat {
+  readonly x: number
+  readonly y: number
+  readonly rong: number
+  readonly cao: number
+}
+
+/** Toàn bộ vạch sân của **chế độ liên tục**, đã quy ra toạ độ vẽ. */
+export interface VachSan {
+  readonly bien: HinhChuNhat
+  readonly vachGiua: { readonly x: number; readonly y1: number; readonly y2: number }
+  readonly tamSan: { readonly x: number; readonly y: number }
+  readonly banKinhVongGiua: number
+  readonly vongCam: readonly HinhChuNhat[]
+  readonly chamPhatDen: readonly { readonly x: number; readonly y: number }[]
+  readonly khungThanh: readonly HinhChuNhat[]
+}
+
+/*
+  ====================================================================
+  VẠCH SÂN ĐÚNG MÉT (T736, AC-37.2).
+  ====================================================================
+
+  ⚠️ **Nhánh theo PHÚT vẽ vạch sân bằng TỈ LỆ ƯỚC, và nó ở lại — thành một món
+  nợ CÓ TÊN, không sửa im.** Ba con số của nó lệch thật:
+
+    - vòng tròn giữa `cao / 8` → **7,6 đơn vị**, trong khi 9,15 m là **8,7**;
+    - vòng cấm sâu `rộng × 0,12` → **12 đơn vị**, trong khi 16,5 m là **15,7**;
+    - vòng cấm cao `cao × 0,4375` → **26,7 đơn vị**, trong khi 40,32 m là
+      **38,4** — lệch **30%**.
+
+  Lý do để nguyên: khung của chế độ phút **co theo quân số** (AC-15.6), và sân
+  5 người không có một kích thước mét nào để quy đổi — `hinhHocSan.ts` chỉ nói
+  về sân 11. Sửa nhánh ấy là phải phát minh ra kích thước cho sáu quân số, việc
+  mà không AC nào đòi. Nợ này được ghi vào `plan.md` mục 9.
+
+  Chế độ liên tục thì **luôn 11 người** (T707 khoá), nên nó có đúng một sân thật
+  để quy đổi — và từ đây nó vẽ đúng mét.
+*/
+export function vachSanMet(khung: KhungAnh): VachSan {
+  const met = (m: number) => metSangDonVi(khung, m)
+  const goc = toaDoTuMet(khung, 0, RONG_SAN)
+  const tam = toaDoTuMet(khung, TAM_X, TAM_Y)
+  const nuaVongCam = RONG_VONG_CAM / 2
+
+  /** Vòng cấm ở đầu sân có goal line tại `xBien`. */
+  const vongCamTai = (xBien: number, vaoSan: 1 | -1): HinhChuNhat => {
+    const tren = toaDoTuMet(
+      khung,
+      vaoSan === 1 ? xBien : xBien - SAU_VONG_CAM,
+      TAM_Y + nuaVongCam,
+    )
+    return {
+      x: tren.x,
+      y: tren.y,
+      rong: met(SAU_VONG_CAM),
+      cao: met(RONG_VONG_CAM),
+    }
+  }
+
+  /** Khung thành dựng NGOÀI đường biên ngang, đúng như sân thật. */
+  const khungThanhTai = (xBien: number, raNgoai: 1 | -1): HinhChuNhat => {
+    const tren = toaDoTuMet(
+      khung,
+      raNgoai === 1 ? xBien : xBien - SAU_KHUNG_THANH_VE,
+      Y_COT_XA,
+    )
+    return {
+      x: tren.x,
+      y: tren.y,
+      rong: met(SAU_KHUNG_THANH_VE),
+      cao: met(Y_COT_XA - Y_COT_GAN),
+    }
+  }
+
+  return {
+    bien: { x: goc.x, y: goc.y, rong: met(DAI_SAN), cao: met(RONG_SAN) },
+    vachGiua: {
+      x: tam.x,
+      y1: toaDoTuMet(khung, TAM_X, RONG_SAN).y,
+      y2: toaDoTuMet(khung, TAM_X, 0).y,
+    },
+    tamSan: tam,
+    banKinhVongGiua: met(BAN_KINH_VONG_GIUA),
+    vongCam: [vongCamTai(0, 1), vongCamTai(DAI_SAN, -1)],
+    chamPhatDen: [
+      toaDoTuMet(khung, CHAM_PHAT_DEN, TAM_Y),
+      toaDoTuMet(khung, DAI_SAN - CHAM_PHAT_DEN, TAM_Y),
+    ],
+    khungThanh: [khungThanhTai(0, -1), khungThanhTai(DAI_SAN, 1)],
+  }
+}
+
 export const KHUNG_SAN: Readonly<Record<number, KhungSan>> = {
   11: { rong: 100, cao: 64 },
   10: { rong: 96, cao: 62 },
@@ -144,7 +267,7 @@ const DICH_THEO_DO_CAO: Readonly<Record<string, number>> = {
  * Quả bóng **cố tình giữ nguyên 1,7**: người dùng xin thu *điểm cầu thủ*, và
  * bóng to hơn so với người thì càng dễ nhìn theo — đúng điều AC-32.1 muốn.
  */
-const BAN_KINH = 2.6
+export const BAN_KINH = 2.6
 
 /** Khoảng giãn giữa hai người cùng ĐỘI đứng cùng một vùng. */
 const BUOC_GIAN = 8
@@ -349,14 +472,77 @@ const PHAN_CO_KHOI = BIEN_NGHIENG_KHOI / KHOANG_TOI_DA_TOI_BONG
  */
 export type VaiTroTheoBong = 'dong-doi' | 'doi-phuong' | 'chua-ro'
 
+/*
+  ======================================================================
+  HAI KHỐI DỊCH VỀ CÙNG MỘT PHÍA (sửa 2026-11-23, người dùng chốt).
+  ======================================================================
+
+  Người dùng nói họ **không thấy** đội tấn công dâng lên. Số đo nói họ đúng:
+  phần dâng lên riêng của lớp vai trò chỉ được **2,881 đơn vị** trên sân dài
+  100 — hơn nửa bề ngang một chấm cầu thủ (5,2) một chút, và bằng **20%**
+  khoảng cách giữa hai dải đội hình (14,0). Hai nguyên nhân, cả hai đã đo:
+
+  **(1) Một phép kẹp CHUNG cho hai lớp.** Lớp co khối một mình đã chạm trần
+  `BIEN_NGHIENG_KHOI` ở cặp dải xa nhất, nên lớp vai trò chỉ còn phần thừa.
+  Nới trần chung thì cả hai lớp cùng được lợi và tỉ lệ vẫn thế — đó là vì sao
+  lần nới 1/10 → 1/6 ngày 19/11 không đổi được gì. Nay mỗi lớp có trần riêng.
+
+  **(2) Hướng kéo của đối phương SAI so với điều người dùng mô tả.** Bản cũ kéo
+  đối phương **về phía bóng** ("vây quanh quả bóng"). Người dùng muốn khối phòng
+  ngự **lùi về khung thành nhà**. Hai thứ ngược nhau khi bóng còn ở sân nhà của
+  đội tấn công. Nhật ký làm rõ của spec 006 (dòng 5) đã cho phép **cả hai**:
+  "đối phương lùi về **hoặc** ép theo bóng" — nên đây là chọn nhánh còn lại,
+  không phải sửa một AC.
+
+  Và nhánh ấy còn **an toàn hơn**, đo trên 10 mã × 7 quân số × mọi dòng:
+
+      thiết kế                        dâng     lùi     sàn chồng điểm
+      nền (đối phương ép theo bóng)   2,881    2,881   1,4696
+      ép theo bóng, tỉ lệ /3          5,556    5,556   0,4474  ← ĐỎ
+      cùng chiều /4 /3                4,167    5,556   1,6746
+      cùng chiều /2 /1,5  ← chọn      8,333   11,111   1,5163
+      cùng chiều /1,5 /1             11,111   16,667   1,3580  ← vỡ vòng nét đứt
+
+  Ngưỡng đỏ của sàn là **1,0 bán kính** (`khoangPhanBiet`). Mức đã chọn cho sàn
+  **1,5163 — CAO HƠN cả nền 1,4696**: kéo hai đội **hội tụ vào bóng** mới là thứ
+  ăn hết biên chống chồng điểm, còn dịch cả hai khối **về cùng một phía** thì giữ
+  nguyên khoảng cách giữa chúng. Mức mạnh hơn nữa không vỡ AC-30.5 mà vỡ
+  **AC-33.1**: vòng nét đứt quanh người giữ bóng trùm lên tâm một người khác.
+*/
+
 /**
- * Lực kéo thêm theo **vai trò**, so với lớp co khối: **một nửa**.
+ * Lực kéo thêm cho **đồng đội** của người giữ bóng: cả đội dâng lên.
  *
- * Không lấy bằng lớp co khối: hai lực cùng độ lớn thì tổng chạm trần
- * `BIEN_NGHIENG_KHOI` ở gần nửa sân, và mọi người bị kẹp vào cùng một lượng dịch
- * — đúng kiểu "dịch cả khối một lượng như nhau" mà T510 đã làm hỏng hai lần.
+ * Vẫn **tỉ lệ** với khoảng cách tới dải có bóng, nên nó nhỏ dần liên tục về không
+ * khi người ta tiến tới dải ấy. (Không cặp dải nào cho khoảng cách bằng đúng không:
+ * bảng dải của ĐỘI và bảng TRUNG LẬP không trùng nhau ở điểm nào — T523.)
+ * Tính tỉ lệ không phải thẩm mỹ mà là thứ giữ **AC-30.5**: người tham gia tình huống
+ * được đặt thẳng vào vùng của tình huống và không nhận lực kéo nào, nên một lực
+ * kéo **đều tay** sẽ triệt tiêu đúng khoảng lệch tách họ khỏi người không tham gia
+ * đứng cùng dải — hai bản đầu của T510 đã làm hỏng đúng kiểu ấy. Tách trần thì
+ * được; bỏ tính tỉ lệ thì không.
  */
-const PHAN_VAI_TRO = PHAN_CO_KHOI / 4
+const PHAN_DONG_DOI = PHAN_CO_KHOI / 2
+
+/**
+ * Lực kéo thêm cho **đối phương**: lùi về khung thành nhà, **mạnh hơn** đồng đội.
+ *
+ * Mạnh hơn vì đó là hình ảnh thật của một khối phòng ngự: nó lùi sâu hơn mức đội
+ * tấn công dâng lên, nên pha bóng dồn vào một phần ba sân của đội đang phòng ngự —
+ * đúng điều người dùng mô tả. Cùng chiều với đồng đội, nên khoảng cách giữa hai
+ * khối không co lại và sàn chồng điểm không xấu đi.
+ */
+const PHAN_DOI_PHUONG = PHAN_CO_KHOI / 1.5
+
+/**
+ * Trần **riêng** của lớp vai trò, tách khỏi `BIEN_NGHIENG_KHOI`.
+ *
+ * Tổng dịch lớn nhất vì thế là `BIEN_NGHIENG_KHOI + BIEN_VAI_TRO` = một phần ba
+ * chiều dài sân. Nghe nhiều, nhưng hai lớp chỉ cộng dồn hết cỡ ở những cặp dải xa
+ * nhau nhất, và cả ba bất biến đã đo đều còn nguyên: sàn chồng điểm 1,5163 bán
+ * kính, thủ môn vẫn trong một phần ba sân nhà, tám hàng vẫn xen kẽ đúng thứ tự.
+ */
+const BIEN_VAI_TRO = 1 / 6
 
 /**
  * Một người KHÔNG tham gia dịch bao nhiêu theo trục dọc, vì bóng đang ở dải
@@ -393,7 +579,12 @@ export function nghiengKhoiTheoBong(
 
     - **Đồng đội của người giữ bóng** được kéo thêm về phía khung thành đối
       phương: cả đội dâng lên khi đang cầm bóng.
-    - **Đối phương** được kéo thêm về phía bóng: cả đội lùi về vây quanh quả bóng.
+    - **Đối phương** được kéo thêm về **khung thành của chính họ**, mạnh hơn: cả
+      khối phòng ngự lùi sâu. (Trước 2026-11-23 nhánh này kéo họ *về phía bóng*;
+      xem khối chú thích ở `PHAN_DONG_DOI` để biết vì sao đổi và cái giá đã đo.)
+
+    **Hai lực cùng một chiều** — về khung thành của đội đang phòng ngự — nên pha
+    bóng dồn vào một phần ba sân của họ, mà khoảng cách giữa hai khối không co lại.
 
     **Cả hai lực đều tỉ lệ với khoảng cách tới dải có bóng, nên chúng bằng KHÔNG
     ở đúng dải ấy.** Đó không phải thẩm mỹ: người **tham gia tình huống** được
@@ -404,17 +595,32 @@ export function nghiengKhoiTheoBong(
     Tổng mọi lực kéo vẫn bị chặn ở `BIEN_NGHIENG_KHOI` (AC-30.4 của spec 005).
   */
   const huongTanCong = benNguoi === 'khach' ? -1 : 1
-  const them =
+  /*
+    Chiều của CẢ HAI nhóm là chiều tấn công của người đang giữ bóng. Với một
+    đồng đội thì đó là chiều tấn công của chính anh ta; với một đối phương thì
+    đó là chiều ngược lại — tức lùi về khung thành nhà.
+  */
+  const huongNguoiGiuBong =
+    vaiTro === 'doi-phuong' ? -huongTanCong : huongTanCong
+  const phanTheoVaiTro =
     vaiTro === 'dong-doi'
-      ? PHAN_VAI_TRO * Math.abs(cach) * huongTanCong
+      ? PHAN_DONG_DOI
       : vaiTro === 'doi-phuong'
-        ? PHAN_VAI_TRO * cach
+        ? PHAN_DOI_PHUONG
         : 0
+  const them = phanTheoVaiTro * Math.abs(cach) * huongNguoiGiuBong
 
-  const tong = PHAN_CO_KHOI * cach + them
-  return (
-    Math.max(-BIEN_NGHIENG_KHOI, Math.min(BIEN_NGHIENG_KHOI, tong)) * khung.rong
+  /*
+    HAI PHÉP KẸP RIÊNG. Một phép kẹp chung nghĩa là lớp co khối — thứ chạm trần
+    ở cặp dải xa nhất — ăn hết ngân sách và lớp vai trò chỉ còn phần thừa, đúng
+    cái lỗi mà khối chú thích ở `PHAN_DONG_DOI` kể.
+  */
+  const coKhoi = Math.max(
+    -BIEN_NGHIENG_KHOI,
+    Math.min(BIEN_NGHIENG_KHOI, PHAN_CO_KHOI * cach),
   )
+  const theoVaiTro = Math.max(-BIEN_VAI_TRO, Math.min(BIEN_VAI_TRO, them))
+  return (coKhoi + theoVaiTro) * khung.rong
 }
 
 /**
@@ -519,6 +725,34 @@ interface Props extends DuLieuVe {
   */
   /** Trận đang chạy hay đang tạm dừng — tạm dừng thì đóng băng cả sân (AC-28.5). */
   readonly dangChay: boolean
+  /**
+   * Khung hình của **chế độ liên tục**, toạ độ bằng mét — `null` hoặc thiếu
+   * nghĩa là chế độ cổ điển (quyết định D121, T714).
+   *
+   * Khác `null` **là** thẻ phân biệt hai chế độ. Cái giá của cách ấy đã có
+   * tên trong plan: kiểu **không** phát biểu được "chế độ liên tục bắt buộc
+   * có mốc" lúc biên dịch, nên có một cổng lúc chạy ở `viTriVe` — ô thiếu
+   * hoặc không có mặt thì rơi về đường cổ điển thay vì vẽ sai chỗ.
+   *
+   * Phương án bị loại: biến `Props` thành **union có thẻ phân biệt**. Chín
+   * trong mười prop cần ở **cả hai** chế độ, nên hai nhánh union phải liệt
+   * lại cùng chín trường; và `suKien` buộc phải ở lại phần dùng chung vì
+   * khối hiệu ứng bàn thắng đọc `suKien.loai === 'ban-thang'` — một nhánh
+   * liên tục không mang `suKien` sẽ **tắt AC-32.4 lặng lẽ**.
+   */
+  readonly loMoc?: LoMoc | null
+  /**
+   * Số thứ tự lô — đổi nghĩa là **một phút mới** đã phát xong.
+   *
+   * Vòng khung hình đặt lại mốc thời gian theo con số này, **ngay trong vòng**
+   * chứ không qua một `useEffect`. Đó là cách **R52** dặn: một effect có `soLo`
+   * trong mảng phụ thuộc sẽ chạy lại mỗi phút và dựng lại cả vòng, còn một
+   * effect **thiếu** nó thì đồng hồ mốc đứng vĩnh viễn ở 0 — mà màn hình vẫn
+   * có 22 điểm, nên không ai thấy.
+   */
+  readonly soLo?: number
+  /** Ô của từng người, từ `oCuaNguoiTrenSan` của engine. */
+  readonly oCuaNguoi?: ReadonlyMap<string, number> | null
 }
 
 /**
@@ -683,7 +917,24 @@ export function hinhSan({
 
     const tren = cacNguoiTrenSan(doiTren.ben, laDoiNha)
     const lech = lechTrongVung(tren, buocGian)
-    const mauChu = mauChuTuongPhan(doiTren.mauAo)
+    /*
+      TRẢ MỘT MÓN NỢ CÓ TÊN (T799, nợ do T790 ghi).
+
+      Trước đây chỗ này chỉ chọn MÀU CHỮ tốt hơn trong hai màu, và với một màu
+      áo nằm giữa dải thì "tốt hơn" vẫn có thể **chưa đủ**: đo ngày 2026-11-25,
+      `#0077DD` cho **4,48:1**, thiếu 0,02 so với ngưỡng 4,5 của P9.
+
+      `nenDamBaoTuongPhan` là câu trả lời đã có sẵn trong repo từ spec 001 cho
+      đúng bài toán này, và khối AC-20.5 của `theme.test.ts` đã canh nó. Nó
+      pha nền dần về phía đen hoặc trắng cho tới khi đạt chuẩn, **giữ nguyên
+      sắc màu** — thứ người xem dùng để nhận ra đội bóng.
+
+      Giá đo được: trên bảng tám màu thử, **bảy màu không đổi một chút nào**;
+      chỉ `#0077DD` dịch **5%** thành `#0071d2`. Đây là đổi **giá trị**, không
+      đổi một công thức nào — đúng ràng buộc R64 của phase này.
+    */
+    const aoDaDamBao = nenDamBaoTuongPhan(doiTren.mauAo)
+    const mauChu = aoDaDamBao.chu
 
     for (const x of tren) {
       // Người tham gia tình huống dịch TỚI chỗ bóng; người khác giữ chỗ.
@@ -742,7 +993,7 @@ export function hinhSan({
         laDoiNha,
         x: cx,
         y: kep(cy + lechY, leY + le, leY + khung.cao - le),
-        mauNen: doiTren.mauAo,
+        mauNen: aoDaDamBao.nen,
         mauChu,
         nhan: so === null ? '' : String(so),
         noiBat,
@@ -794,28 +1045,6 @@ export function hinhSan({
     cacBuocBong,
     bongTaiMoc,
   }
-}
-
-/**
- * Người dùng có bật chế độ giảm chuyển động của hệ điều hành không (AC-25.6).
- *
- * Bắt đầu bằng `false` rồi mới hỏi trong effect: `matchMedia` không tồn tại
- * khi file này được một test chạy ở môi trường node import vào, và `hinhSan`
- * thì đang được kiểm đúng kiểu ấy.
- */
-function useGiamChuyenDong(): boolean {
-  const [giam, datGiam] = useState(false)
-
-  useEffect(() => {
-    if (typeof window === 'undefined' || !window.matchMedia) return
-    const hoi = window.matchMedia('(prefers-reduced-motion: reduce)')
-    datGiam(hoi.matches)
-    const nghe = () => datGiam(hoi.matches)
-    hoi.addEventListener('change', nghe)
-    return () => hoi.removeEventListener('change', nghe)
-  }, [])
-
-  return giam
 }
 
 /** Bước thời gian để đo vận tốc bằng sai phân, theo tỉ lệ chặng. */
@@ -878,7 +1107,7 @@ const VONG_SANG_NO_GAP = 7
  * không phải một biên cho có — đúng bài học R45 lặp lại lần thứ ba: sàn phụ
  * thuộc vào việc đo quanh ai.
  */
-const SAN_HAI_DIEM_GAN_NHAT = 1.71
+const SAN_HAI_DIEM_GAN_NHAT = 1.46
 
 /**
  * Điểm người ghi bàn được phì thêm tối đa bao nhiêu (AC-32.4, rủi ro R45).
@@ -914,7 +1143,8 @@ export const PHI_THEM_NGUOI_GHI_BAN = ((BUOC_GIAN / 2 - BAN_KINH) * 3) / 4
  * lỗi "phì to một điểm mà không đặt biên" hai lần ở R45. Hai biên, và vòng phải
  * nằm dưới **cả hai**:
  *
- * 1. **Sàn đã đo**: hai điểm gần nhau nhất cách nhau **1,71 bán kính**, xem
+ * 1. **Sàn đã đo**: hai điểm gần nhau nhất cách nhau **1,46 bán kính** (đo lại
+ *    2026-11-22 sau khi phễu dứt điểm đổi engine lên v6; trước đó là 1,71), xem
  *    `SAN_HAI_DIEM_GAN_NHAT`. Vòng rộng hơn thế là trùm tâm người khác, tức
  *    đếm sai số người trên sân — điều AC-15.2 cấm.
  * 2. **Dấu ▲** đặt ở `-banKinh - 1,2 · tiLe`. Vòng cao hơn thế là đi xuyên dấu
@@ -1055,7 +1285,25 @@ export interface ChuyenDiemDang {
 
 export function San2D(props: Props) {
   const { SAN_2D } = useChuoi()
-  const { nha, khach, suKien, msMoiPhut, dangChay } = props
+  const {
+    nha,
+    khach,
+    suKien,
+    msMoiPhut,
+    dangChay,
+    loMoc,
+    soLo = 0,
+    oCuaNguoi,
+  } = props
+
+  /*
+    ⚠️ **`loMoc` khác `null` LÀ thẻ phân biệt hai chế độ** — đúng vai trò mà
+    T714 giao cho `anhChup`. Prop `anhChup` cũ bị thay vì không một nơi gọi nào
+    truyền được nó: ảnh chụp đổi **mỗi khung hình**, mà đồng hồ khung hình nằm
+    trong chính thành phần này. Một component cha muốn dựng nó sẽ phải mở vòng
+    rAF **thứ hai**, đúng thứ điều kiện ra của T733 cấm.
+  */
+  const lienTuc = loMoc !== null && loMoc !== undefined
   const msChuyen = thoiGianChuyen(msMoiPhut)
 
   /*
@@ -1192,6 +1440,17 @@ export function San2D(props: Props) {
     bongTaiMoc ?? bongMocCuoi.current ?? { x: RONG / 2, y: CAO / 2 }
   const batDau = useRef(0)
   const [, veLai] = useReducer((n: number) => n + 1, 0)
+
+  /*
+    Ảnh chụp của khung hình đang vẽ. Nó đổi mỗi khung nên nó là `ref`, không
+    phải `state`: một `setState` mỗi khung là 60 lần dựng lại cây React một
+    giây, trong khi `veLai` của vòng đã có làm đúng việc ấy một lần.
+  */
+  const anhChupRef = useRef<AnhChupMet | null>(null)
+  /** Mốc thời gian lúc lô hiện tại bắt đầu được phát, theo `performance.now`. */
+  const moMocRef = useRef(0)
+  /** Số lô mà `moMocRef` đang nói về — đổi thì đặt lại mốc. */
+  const soLoRef = useRef(-1)
 
   /*
     Khoá của một bộ mốc: chỉ khi toạ độ ĐÍCH đổi mới bắt đầu một cú di
@@ -1445,7 +1704,31 @@ export function San2D(props: Props) {
     băng ở đúng khung cuối (AC-28.5, và AC-10.4 của spec 001 vẫn đúng).
   */
   useEffect(() => {
-    if (!dangChay || giamChuyenDong || msChuyen <= 0) return
+    /*
+      ⚠️ **Cổng nới đúng một chỗ: `msChuyen <= 0` không còn tắt vòng ở chế độ
+      liên tục.** `thoiGianChuyen` trả 0 ở mức nhanh nhất (spec 005 tắt nội suy
+      ở đó), nên trước lát này mức **Rất nhanh** chạy **0 khung** — tức lô mốc
+      có được phát ra cũng không ai đọc. Ở chế độ liên tục, đồng hồ **mốc** mới
+      là thứ vẽ ra chuyển động, và nó cần chạy ở cả năm mức.
+    */
+    /*
+      ⚠️ **Cổng của đồng hồ MỐC không nhận `giamChuyenDong` (T734, AC-45.9).**
+
+      Hai đồng hồ, hai việc khác nhau, và D132 tách chúng ra đúng vì chuyện này:
+
+        - đồng hồ **mốc** đẩy trận đi theo giây — nó là **mô phỏng**;
+        - đồng hồ **dao động** làm các điểm rung nhẹ — nó là **thẩm mỹ**.
+
+      Người bật giảm chuyển động tắt cái thứ hai, **không** tắt cái thứ nhất.
+      AC-31.1 nói "không nội suy, không dao động"; nó **không** nói "ít chuyển
+      động hơn", và một trận đứng im không phải là một trận.
+
+      Ở chế độ **cổ điển** thì giảm chuyển động vẫn tắt cả vòng, y như trước:
+      ở đó vòng này **chỉ** làm việc thẩm mỹ, nên để nó chạy là đốt khung hình
+      cho một thứ đã bị tắt.
+    */
+    if (!dangChay) return
+    if (!lienTuc && (msChuyen <= 0 || giamChuyenDong)) return
 
     let yeuCau = 0
     let truoc = performance.now()
@@ -1468,18 +1751,51 @@ export function San2D(props: Props) {
         trúc** (AC-28.5) — vòng tắt thì không ai cộng nữa, không cần thêm một nhánh nào.
       */
       const bayGio = performance.now()
-      if (msMoiPhut > 0) {
+      // Đồng hồ DAO ĐỘNG là thứ thẩm mỹ, nên nó đứng khi người dùng xin ít chuyển động.
+      if (msMoiPhut > 0 && !giamChuyenDong) {
         // Chặn một khung dài bất thường — tab bị ẩn rồi hiện lại — thành một cú nhảy.
         const troi = Math.min(bayGio - truoc, msMoiPhut)
         dongHoDao.current += troi / msMoiPhut
       }
       truoc = bayGio
+
+      /*
+        ĐỒNG HỒ MỐC (T733). Đặt lại theo **số lô**, ngay trong vòng.
+
+        Một phút trận = một lô = `msMoiPhut` mili giây. `mocVeTaiThoiDiem` quy
+        hai thứ ấy thành một chỉ số mốc bằng **một phép chia**, và nó không biết
+        tên một mức tốc độ nào — nên mức thứ sáu không phải sửa gì ở đây.
+      */
+      if (lienTuc && loMoc) {
+        if (soLoRef.current !== soLo) {
+          soLoRef.current = soLo
+          moMocRef.current = bayGio
+        }
+        const { chiSo } = mocVeTaiThoiDiem(
+          bayGio - moMocRef.current,
+          msMoiPhut,
+          loMoc.soMocDaGhi,
+        )
+        anhChupRef.current = anhChupTuLo(
+          loMoc,
+          chiSo,
+          oCuaNguoi ?? new Map<string, number>(),
+        )
+      }
+
       veLai()
       yeuCau = requestAnimationFrame(buoc)
     }
     yeuCau = requestAnimationFrame(buoc)
     return () => cancelAnimationFrame(yeuCau)
-  }, [dangChay, giamChuyenDong, msChuyen, msMoiPhut])
+    /*
+      `loMoc` và `soLo` **không** nằm trong mảng phụ thuộc, và đó là cố ý: vòng
+      đọc chúng qua closure mỗi khung, nên một lô mới **không** dựng lại vòng.
+      Đưa chúng vào là huỷ rồi tạo lại `requestAnimationFrame` mỗi phút — đúng
+      cái bẫy mà R52 gọi tên.
+    */
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dangChay, giamChuyenDong, msChuyen, msMoiPhut, lienTuc])
 
   /**
    * Đồng hồ của lớp dao động, tính bằng **nhịp** (T620, D114).
@@ -1671,16 +1987,26 @@ export function San2D(props: Props) {
       ? aiGiuBong
       : nguoiGiuBongLucNay(bongDang.current, tiLeNhipVe())
 
+  /** Khung ảnh cho phép quy đổi mét → đơn vị viewBox (T703). */
+  const khungAnh = { rong: RONG, cao: CAO, le: BAN_KINH }
+
   function viTriVe(d: DiemCauThu): Diem {
-    if (giamChuyenDong) return { x: d.x, y: d.y }
+    /*
+      Thân hàm này chỉ còn việc **gom đầu vào**; phép hợp nằm ở
+      `src/ui/viTriVe.ts` (T714). Trước đó nó là một hàm bên trong, đóng kín
+      trên trạng thái component, nên không một phép kiểm nào gọi tới được —
+      và chính khoảng mù ấy từng để lọt lỗi "thủ môn chạy tới giữa sân" suốt
+      một lát cắt, với 1.291 phép kiểm xanh.
+    */
     const tt = dang.current.get(d.playerId)
-    const thuong = tt
+    const sauNoiSuy = tt
       ? viTriTaiThoiDiem(tt.tu, tt.den, troiQuaCua(tt), {
           huongVao: tt.huongVao,
           doMet: doMetTheoNguoi.get(d.playerId) ?? 0,
           gioiHan,
         })
-      : { x: d.x, y: d.y }
+      : null
+    const thuong = sauNoiSuy ?? { x: d.x, y: d.y }
 
     /*
       NGƯỜI ĐANG CÓ BÓNG ĐI THEO ĐƯỜNG CỦA BÓNG (D104, D105, T606).
@@ -1693,7 +2019,7 @@ export function San2D(props: Props) {
     const cacDoan = bongDang.current
     const cuaSo =
       msChuyen > 0 && cacDoan ? cuaSoGiuBong(cacDoan, d.playerId) : null
-    const theoBong =
+    const sauBamBong =
       cuaSo && cacDoan
         ? viTriNguoiGiuBong({
             cuaSo,
@@ -1702,7 +2028,7 @@ export function San2D(props: Props) {
             viTriThuong: thuong,
             moc: { x: d.x, y: d.y },
           })
-        : thuong
+        : null
 
     /*
       THỦ MÔN KHÔNG RỜI MỘT PHẦN BA SÂN CỦA MÌNH, KỂ CẢ KHI ĐANG CẦM BÓNG
@@ -1717,28 +2043,40 @@ export function San2D(props: Props) {
       Kẹp ở đây, không phải bỏ hẳn luật đi theo bóng: thủ môn có bóng trong chân
       thì vẫn nhúch nhích theo nó, chỉ là không bước qua vạch một phần ba sân.
     */
-    const goc = d.laThuMon
-      ? (() => {
-          const dai = daiThuMon(d.laDoiNha, khung)
-          return { x: kep(theoBong.x, dai.tu, dai.den), y: theoBong.y }
-        })()
-      : theoBong
-
     /*
-      Dao động cộng vào SAU CÙNG, và chỉ cộng cho người — không cho bóng:
-      một quả bóng nằm yên thì nằm yên. Vị trí tại mốc của lớp nội suy
-      không bị đụng tới, nên bất biến của nó còn nguyên (D89).
+      Thứ tự hợp — kẹp dải thủ môn SAU lớp bám bóng, dao động cộng SAU CÙNG —
+      nay sống ở `src/ui/viTriVe.ts`, nơi phép kiểm `node` gọi tới được.
     */
-    const lech = lechDaoDong(d.playerId, thoiDiemTran, bienDoDao)
-    return {
-      x: kep(goc.x + lech.x, gioiHan.xTu, gioiHan.xDen),
-      y: kep(goc.y + lech.y, gioiHan.yTu, gioiHan.yDen),
-    }
+    return hopViTriVe(
+      {
+        moc: { x: d.x, y: d.y },
+        sauNoiSuy,
+        sauBamBong,
+        daiThuMon: d.laThuMon ? daiThuMon(d.laDoiNha, khung) : null,
+        lechDao: lechDaoDong(d.playerId, thoiDiemTran, bienDoDao),
+      },
+      gioiHan,
+      giamChuyenDong,
+      anhChupRef.current,
+      d.playerId,
+      khungAnh,
+    )
   }
 
   return (
     <figure className="m-0">
       <svg
+        /*
+          Khung này được vẽ từ **nguồn nào**: `moc` nghĩa là từ lô mốc của
+          engine liên tục, `phut` nghĩa là từ đường nội suy theo phút.
+
+          Đây là thứ duy nhất **đọc được từ bên ngoài** nói rằng mối nối của
+          T733 còn sống. Cả tầng này không có một phép kiểm tự động nào (R52:
+          `find src -name "*.test.tsx"` ra rỗng), nên nếu lô ngừng tới nơi thì
+          sân vẫn có 22 điểm nhúc nhích nhờ lớp dao động — và không ai thấy.
+          **T761** kiểm bằng mắt đúng thuộc tính này.
+        */
+        data-nguon={anhChupRef.current ? 'moc' : 'phut'}
         viewBox={`0 0 ${RONG} ${CAO}`}
         className="w-full rounded-lg border border-vien-dam bg-nen-nhan"
         role="img"
@@ -1759,33 +2097,94 @@ export function San2D(props: Props) {
         />
 
         {/* Vạch sân: chỉ những vạch giúp định hướng, không vẽ cho đẹp. */}
-        <g
-          fill="none"
-          stroke="rgba(255,255,255,0.45)"
-          strokeWidth={0.4 * tiLe}
-          aria-hidden="true"
-        >
-          <rect
-            x={leX + 2}
-            y={leY + 2}
-            width={khung.rong - 4}
-            height={khung.cao - 4}
-          />
-          <line x1={giuaX} y1={leY + 2} x2={giuaX} y2={leY + khung.cao - 2} />
-          <circle cx={giuaX} cy={giuaY} r={sauVongTron} />
-          <rect
-            x={leX + 2}
-            y={giuaY - caoVongCam / 2}
-            width={sauVongCam}
-            height={caoVongCam}
-          />
-          <rect
-            x={leX + khung.rong - 2 - sauVongCam}
-            y={giuaY - caoVongCam / 2}
-            width={sauVongCam}
-            height={caoVongCam}
-          />
-        </g>
+        {lienTuc ? (
+          <g
+            fill="none"
+            stroke="rgba(255,255,255,0.55)"
+            strokeWidth={0.4 * tiLe}
+            aria-hidden="true"
+          >
+            {(() => {
+              const v = vachSanMet(khungAnh)
+              return (
+                <>
+                  <rect
+                    x={v.bien.x}
+                    y={v.bien.y}
+                    width={v.bien.rong}
+                    height={v.bien.cao}
+                  />
+                  <line
+                    x1={v.vachGiua.x}
+                    y1={v.vachGiua.y1}
+                    x2={v.vachGiua.x}
+                    y2={v.vachGiua.y2}
+                  />
+                  <circle
+                    cx={v.tamSan.x}
+                    cy={v.tamSan.y}
+                    r={v.banKinhVongGiua}
+                  />
+                  {v.vongCam.map((o, i) => (
+                    <rect
+                      key={`cam${i}`}
+                      x={o.x}
+                      y={o.y}
+                      width={o.rong}
+                      height={o.cao}
+                    />
+                  ))}
+                  {v.khungThanh.map((o, i) => (
+                    <rect
+                      key={`gon${i}`}
+                      x={o.x}
+                      y={o.y}
+                      width={o.rong}
+                      height={o.cao}
+                    />
+                  ))}
+                  {[v.tamSan, ...v.chamPhatDen].map((d, i) => (
+                    <circle
+                      key={`cham${i}`}
+                      cx={d.x}
+                      cy={d.y}
+                      r={0.3 * tiLe}
+                      fill="rgba(255,255,255,0.55)"
+                    />
+                  ))}
+                </>
+              )
+            })()}
+          </g>
+        ) : (
+          <g
+            fill="none"
+            stroke="rgba(255,255,255,0.55)"
+            strokeWidth={0.4 * tiLe}
+            aria-hidden="true"
+          >
+            <rect
+              x={leX + 2}
+              y={leY + 2}
+              width={khung.rong - 4}
+              height={khung.cao - 4}
+            />
+            <line x1={giuaX} y1={leY + 2} x2={giuaX} y2={leY + khung.cao - 2} />
+            <circle cx={giuaX} cy={giuaY} r={sauVongTron} />
+            <rect
+              x={leX + 2}
+              y={giuaY - caoVongCam / 2}
+              width={sauVongCam}
+              height={caoVongCam}
+            />
+            <rect
+              x={leX + khung.rong - 2 - sauVongCam}
+              y={giuaY - caoVongCam / 2}
+              width={sauVongCam}
+              height={caoVongCam}
+            />
+          </g>
+        )}
 
         {/*
           ĐƯỜNG KẺ VÀNG ĐÃ BỎ (T524).
@@ -1922,7 +2321,7 @@ export function San2D(props: Props) {
             r={1.7 * tiLe}
             fill="#ffffff"
             stroke="var(--co-net)"
-            strokeWidth={0.35 * tiLe}
+            strokeWidth={0.3 * tiLe}
           />
           <circle r={0.52 * tiLe} fill="var(--co-net)" />
           {[0, 1, 2, 3, 4].map((i) => {

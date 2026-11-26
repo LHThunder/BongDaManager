@@ -61,6 +61,26 @@ export interface DangKyBen {
   readonly cacCauThu: readonly HoSoCauThu[]
 }
 
+/**
+ * Chế độ mô phỏng của một trận (T705 của spec 007, quyết định D122).
+ *
+ * `'co-dien'` là engine v6, một mốc mỗi phút — mọi trận trước spec 007.
+ * `'lien-tuc'` là engine liên tục, mốc theo giây và toạ độ mét.
+ *
+ * Hai chế độ **sống song song**: engine mới là lối vào thứ hai, không phải bản
+ * thay thế. Vì thế chế độ thuộc về **trận**, không thuộc về đội.
+ */
+export type CheDoMoPhong = 'co-dien' | 'lien-tuc'
+
+/**
+ * Chế độ của một trận không khai chế độ.
+ *
+ * Có tên thay vì rải chuỗi `'co-dien'` khắp nơi: hai chỗ cùng điền một mặc
+ * định là hai chỗ để chúng trôi khỏi nhau. Mọi bản ghi lưu trước spec 007 đều
+ * là `'co-dien'` theo định nghĩa — lúc ấy chưa có chế độ nào khác.
+ */
+export const CHE_DO_MAC_DINH: CheDoMoPhong = 'co-dien'
+
 export interface CauHinhTran {
   readonly maTran: string
   readonly nha: DangKyBen
@@ -88,6 +108,16 @@ export interface CauHinhTran {
    * (AC-9.8). Không khai thì mặc định là đội chủ nhà.
    */
   readonly doiCuaNguoiDung?: BenDoi
+  /**
+   * Chế độ mô phỏng (AC-45.1). Không khai thì `CHE_DO_MAC_DINH`.
+   *
+   * ⚠️ Nó **KHÔNG** vào `TrangThaiTran`: trạng thái trận đóng băng ở đúng 16
+   * trường (D119), và bản ghi trận không phình thêm một byte vì chế độ
+   * (AC-45.4 — `TomTatTran` nhận nó ở T708, còn trạng thái thì không). Nên hai
+   * đường dựng lại cấu hình — `cauHinhDauLai` và `cauHinhTuBanGhi` — phải được
+   * **truyền** chế độ, chứ không đọc nó ra từ trạng thái.
+   */
+  readonly cheDoMoPhong?: CheDoMoPhong
 }
 
 export interface ThongKeBen {
@@ -419,7 +449,7 @@ export function taoTran(cauHinh: CauHinhTran): TrangThaiTran {
   }
 }
 
-function taoUngVien(
+export function taoUngVien(
   tt: TrangThaiTran,
   phut: number,
   loai: LoaiSuKien,
@@ -453,7 +483,7 @@ function taoUngVien(
 // Đội hình đang trên sân
 // ---------------------------------------------------------------------------
 
-interface ViTriTrenSan {
+export interface ViTriTrenSan {
   readonly playerId: string
   readonly hoSo: HoSoCauThu
   readonly viTriO: PositionId
@@ -465,7 +495,7 @@ interface ViTriTrenSan {
  * đó là nơi AC-6.6 đặt vai trò — và lọc theo `trenSan`, vì thẻ đỏ gỡ người ra
  * khỏi sân mà không đụng tới bộ chiến thuật.
  */
-function doiHinhTrenSan(ben: BenTran): readonly ViTriTrenSan[] {
+export function doiHinhTrenSan(ben: BenTran): readonly ViTriTrenSan[] {
   const soDo = laySoDo(ben.chienThuatHienTai.formationId)
   const viTriTheoSlot = new Map(soDo.oVien.map((o) => [o.slotId, o.viTri]))
   const hoSoTheoId = new Map(ben.cacCauThu.map((c) => [c.id, c]))
@@ -815,6 +845,21 @@ export function xacSuatCoHoiRoRang(sucManhCong: number): number {
   return Math.min(Math.max(p, 0.1), 0.85)
 }
 
+/*
+  PHỄU DỨT ĐIỂM — nền và độ dốc của tầng "đi đúng hướng".
+
+  Đo được trước khi có tầng này: **70%** số cú sút đi trúng đích, vì mô hình cũ
+  chỉ có hai kết cục cho một cú sút — thành bàn, hoặc bị cứu. Một cú sút đi vọt
+  xà hay ra ngoài cột **không có chỗ nào để xảy ra**.
+
+  Bóng đá thật (Opta, Premier League): trong số cú sút KHÔNG BỊ CHẶN, khoảng
+  **49%** đi trúng đích. Nền 0,30 cộng 0,28 lần sức mạnh bên tấn công cho đúng
+  mức ấy ở sức mạnh trung bình đo được (≈ 0,68), và vẫn giữ được chiều mà AC-8.8
+  nói tới: đội mạnh hơn sút chuẩn hơn.
+*/
+const NEN_TRUNG_DICH = 0.335
+const THEO_SUC_TRUNG_DICH = 0.28
+
 const NEN_BI_CUU = 0.3
 const THEO_SUC_BI_CUU = 0.7
 
@@ -827,6 +872,21 @@ const THEO_SUC_BI_CUU = 0.7
  * điểm cho thủ môn. Khung bỏ trống (thủ môn vừa nhận thẻ đỏ mà người dùng
  * chưa chọn ai vào bắt gôn) thì không có ai cứu, nên trả về 0.
  */
+/**
+ * Xác suất một cú sút **đi đúng hướng khung thành** (phễu dứt điểm, tầng hai).
+ *
+ * Tầng này **không tồn tại trước ngày 2026-11-22**, và việc nó không tồn tại là
+ * sai số lớn nhất của cả engine: mô hình cũ cho mọi cú sút hoặc thành bàn hoặc
+ * bị cứu, nên tỉ lệ trúng đích đo được là **70%** so với **49%** của bóng đá
+ * thật, và tỉ lệ thành bàn là **23,1%** so với **11,3–11,9%**.
+ *
+ * Nguồn của hai con số thật: Opta Analyst, giải Ngoại hạng Anh.
+ */
+export function xacSuatTrungDich(sucManhCong: number): number {
+  const p = NEN_TRUNG_DICH + THEO_SUC_TRUNG_DICH * sucManhCong
+  return Math.min(Math.max(p, 0.15), 0.75)
+}
+
 export function xacSuatBiCuu(sucThuMon: number | null): number {
   if (sucThuMon === null) return 0
   const p = NEN_BI_CUU + THEO_SUC_BI_CUU * sucThuMon
@@ -918,7 +978,7 @@ function congThongKeThu(
 // Một phút trận đấu
 // ---------------------------------------------------------------------------
 
-function giamTheLuc(ben: BenTran): BenTran {
+export function giamTheLuc(ben: BenTran): BenTran {
   const muc = mucPressingCuaBen(ben)
   const hoSoTheoId = new Map(ben.cacCauThu.map((c) => [c.id, c]))
   const theLuc: Record<string, number> = { ...ben.theLuc }
@@ -944,7 +1004,7 @@ interface KetQuaThe {
  * `playerId` do `nguoiTaiVung` rút ở vòng lặp chính (D34), chứ không rút lại ở
  * đây: hai lần rút riêng thì cầu thủ A phạm lỗi mà cầu thủ B bị ghi tên.
  */
-function thuRutThe(
+export function thuRutThe(
   ben: BenTran,
   playerId: string | null,
   rng: RngCoTrangThai,
@@ -995,7 +1055,7 @@ function thuRutThe(
 }
 
 /** Phát sự kiện kiệt sức đúng MỘT lần cho mỗi cầu thủ mỗi trận (AC-8.7). */
-function moiKietSuc(ben: BenTran): readonly string[] {
+export function moiKietSuc(ben: BenTran): readonly string[] {
   return ben.trenSan.filter(
     (id) =>
       daKietSuc(ben.theLuc[id] ?? THE_LUC_DAY) &&
@@ -1197,7 +1257,7 @@ export function apDungCanThiep(
 }
 
 /** Áp hết hàng đợi ở đầu phút, và trả về những dòng sự kiện phát sinh. */
-function apHangDoi(
+export function apHangDoi(
   tt: TrangThaiTran,
   phut: number,
 ): {
@@ -1267,15 +1327,23 @@ function apHangDoi(
  * 11, hai hàm thời lượng trả lại đúng 45 và 90, ngưỡng huỷ cần tới 5 thẻ đỏ
  * một bên, và trần số dòng ở 90 phút vẫn là 100.
  *
- * `tuongThichV5.test.ts` đo thay vì tin: 5 mã trận cố định, **409/409 dòng
- * khớp từng ký tự** với engine tại commit cuối của spec 001 — phút, bù giờ,
- * loại, đội, danh sách cầu thủ, mẫu câu và tỉ số sau đó, cả bảy trường.
+ * `tuongThichEngine.test.ts` đo thay vì tin: 5 mã trận cố định, mọi dòng khớp
+ * từng ký tự với bảng mốc — phút, bù giờ, loại, đội, danh sách cầu thủ, mẫu
+ * câu và tỉ số sau đó, cả bảy trường.
  *
  * Tăng thừa không phải là "cẩn thận": nó tước nút đấu lại của mọi trận đã
  * lưu và bắt ứng dụng nói với người dùng rằng trận cũ chạy bằng engine khác,
- * trong khi nó chạy bằng đúng engine này.
+ * trong khi nó chạy bằng đúng engine này. Suốt spec 001 tới 006 con số này
+ * giữ nguyên **5** vì đúng lý do ấy.
+ *
+ * **Lên 6 ngày 2026-11-22**, và lần này tăng là ĐÚNG: người dùng chốt sửa
+ * phễu dứt điểm, một thay đổi cố ý của mô hình xác suất. Engine cũ cho 3,95
+ * bàn một trận so với 2,82–3,28 thật, và 70% cú sút trúng đích so với 49%
+ * thật, vì nó không có tầng "đi đúng hướng". Kết quả đổi thật, nên con số
+ * này phải đổi theo — và 20 trận đã lưu mất nút đấu lại, điều người dùng
+ * biết và chấp nhận trước khi sửa.
  */
-export const PHIEN_BAN_ENGINE = 5
+export const PHIEN_BAN_ENGINE = 6
 
 /**
  * Dựng lại đăng ký ban đầu của một bên TỪ trạng thái trận.
@@ -1305,9 +1373,21 @@ export function dangKyTuTrangThai(ben: BenTran): DangKyBen {
 }
 
 /** Cấu hình để chạy lại đúng cặp đấu này (AC-11.6). */
+/**
+ * Cấu hình để đấu lại một trận, dựng từ trạng thái của nó.
+ *
+ * ⚠️ `cheDo` là **tham số**, không đọc từ `tt`: trạng thái trận đóng băng ở
+ * đúng 16 trường (D119) nên chế độ không có ở đó. Nếu để nó tự suy thì nút
+ * "đấu lại" của một trận liên tục sẽ lặng lẽ chạy ở chế độ cổ điển — chỗ gọi
+ * (`useMatch`) là nơi biết chế độ, nên chỗ gọi phải nói ra.
+ *
+ * Không khai thì `CHE_DO_MAC_DINH`, nên mọi chỗ gọi có từ trước không đổi hành
+ * vi (T705 của spec 007).
+ */
 export function cauHinhDauLai(
   tt: TrangThaiTran,
   maTran: string,
+  cheDo: CheDoMoPhong = CHE_DO_MAC_DINH,
 ): CauHinhTran {
   return {
     maTran,
@@ -1315,12 +1395,332 @@ export function cauHinhDauLai(
     quanSo: tt.quanSo,
     thoiLuong: tt.thoiLuong,
     doiCuaNguoiDung: tt.doiCuaNguoiDung,
+    cheDoMoPhong: cheDo,
     nha: dangKyTuTrangThai(tt.ben.nha),
     khach: dangKyTuTrangThai(tt.ben.khach),
   }
 }
 
-export function buocTiep(ttVao: TrangThaiTran): TrangThaiTran {
+/*
+  Kết cục của MỘT pha bóng, như mô hình xác suất v6 quyết (T701 của spec 007).
+
+  Đây là mặt cắt mà engine liên tục dùng lại: nó gọi `quyetKetCucChuoi` để biết
+  pha bóng KẾT THÚC ra sao, rồi tự diễn pha ấy ra toạ độ mét và thời gian giây.
+  Hai chế độ vì thế dùng CHUNG một mô hình xác suất — cùng `nguoiTaiVung`, cùng
+  `loaiCuaChuoi`, cùng `diemCuaChuoi` — nên hai bảng thống kê còn so được với
+  nhau (AC-45.3, rủi ro R54).
+
+  CHỈ chứa những gì phần sau của vòng lặp còn đọc. Mười thứ khác —`smCong`,
+  `smThu`, `doiHinhCong`, `doiHinhThu`, `nguoi`, `sucThuMon`, `trungDich`,
+  `nguoiKienTao`, `nguoiCuopBong`, `nguoiChuyen` — đều bị tiêu thụ ngay trong
+  hàm (phần lớn đi vào `gan`), nên chúng không có mặt ở đây.
+
+  `nguoiPhamLoi` cũng không có trường riêng: nó đã nằm trong `gan.nguoiPhamLoi`,
+  và một trường thứ hai cho cùng một giá trị là một chỗ để hai bản trôi khỏi
+  nhau.
+*/
+export interface KetCucPhaV6 {
+  /** Bên tổ chức pha bóng này. */
+  readonly doi: BenDoi
+  /** Trạng thái bên công KHI VÀO pha (chưa cộng thống kê). */
+  readonly benCong: BenTran
+  /** Trạng thái bên thủ KHI VÀO pha (chưa cộng thống kê). */
+  readonly benThu: BenTran
+  /** Kết cục chuỗi bóng của `chayChuoiBong`. */
+  readonly kq: KetQuaChuoi
+  /** Ai làm gì trong pha này. */
+  readonly gan: GanHanhDong
+  /** Pha này có thành bàn không. */
+  readonly coBan: boolean
+  /** Cú sút trúng đích có bị thủ môn cản không. */
+  readonly biCuu: boolean
+  /** Pha này có phải một cơ hội rõ ràng không (AC-11.2). */
+  readonly coHoiRoRang: boolean
+  /** Người đứng trong khung của bên thủ, hoặc `null` nếu khung bỏ trống. */
+  readonly thuMonThu: string | null
+}
+
+/**
+ * Quyết kết cục một pha bóng bằng mô hình xác suất v6.
+ *
+ * ⚠️ Thứ tự tiêu thụ `rng` trong hàm này là HỢP ĐỒNG, không phải chi tiết cài
+ * đặt: đổi nó là đổi mọi trận của mọi mã trận đã lưu (P1). Chứng minh duy nhất
+ * được nhận là bảng `MOC_V6` của `tuongThichEngine.test.ts` — **không** phải
+ * một chú thích tự khai, và **không** phải `taiLap.test.ts` (file ấy so engine
+ * với chính nó, nên thứ tự rút lệch thì cả hai vế lệch y hệt và nó vẫn xanh).
+ *
+ * Phép bóc T701 giữ nguyên từng dòng và từng thứ tự của thân vòng chuỗi cũ.
+ */
+export function quyetKetCucChuoi(
+  benNha: BenTran,
+  benKhach: BenTran,
+  sanTrungLap: boolean,
+  quanSo: number,
+  rng: RngCoTrangThai,
+): KetCucPhaV6 {
+  const doi: BenDoi = rng.next() < 0.5 ? 'nha' : 'khach'
+  const benCong = doi === 'nha' ? benNha : benKhach
+  const benThu = doi === 'nha' ? benKhach : benNha
+
+  const smCong = tinhSucManh(benCong, doi === 'nha', sanTrungLap)
+  const smThu = tinhSucManh(benThu, doi !== 'nha', sanTrungLap)
+
+  const kq = chayChuoiBong(layVung('giua', 1), rng, {
+    heSoCong: smCong.heSo,
+    heSoThu: smThu.heSo,
+    sucManhCong: smCong.trungBinh,
+    sucManhThu: smThu.trungBinh,
+    quanSo,
+  })
+
+  /*
+    Người kết thúc tình huống được rút THEO VÙNG, đúng như ba vai kia của
+    D34c (T130).
+
+    Trước đó nó rút trong cả đội, chỉ cân theo sức mạnh — nên thủ môn dứt
+    điểm và ghi bàn ngang một tiền đạo, và sân 2D kéo anh ta lên tận dải 3
+    để đứng cạnh thủ môn đối phương. Rút theo vùng thì thủ môn chỉ còn kết
+    thúc tình huống khi bóng ở ngay khu vực của mình.
+
+    Số lần rút `Rng` KHÔNG đổi: cả hai hàm đều tiêu đúng một lần khi còn
+    người trên sân, nên tỉ số, chuỗi tình huống và vùng bóng của mọi mã
+    trận cũ giữ nguyên — chỉ TÊN người đổi.
+  */
+  const doiHinhCong = doiHinhTrenSan(benCong)
+  const doiHinhThu = doiHinhTrenSan(benThu)
+  const nguoi = nguoiTaiVung(doiHinhCong, smCong, kq.vungKetThuc, false, rng)
+
+  /*
+    PHỄU DỨT ĐIỂM BA TẦNG (2026-11-22, engine v6).
+
+    **Mô hình cũ chỉ có MỘT tầng**: một cú sút hoặc thành bàn, hoặc bị cứu.
+    Không có chỗ nào cho một cú sút đi vọt xà. Hệ quả đo được trên 20 mã trận,
+    đặt cạnh số của Opta ở giải Ngoại hạng Anh:
+
+    | | Engine cũ | Bóng đá thật |
+    |---|---|---|
+    | Cú sút không bị chặn mỗi trận | 17,2 | **17,3** ✅ |
+    | Trong đó trúng đích | **70%** | **49%** |
+    | Thành bàn, trên cú sút không bị chặn | **23,1%** | **11,3–11,9%** |
+    | Bàn thắng mỗi trận | **3,95** | 2,82 · 2,85 · 3,28 (ba mùa) |
+
+    Tức số cú sút thì đúng, nhưng engine **ghi bàn dễ hơn thật 1,4–2 lần**, và
+    nguyên nhân nằm ở chỗ thiếu tầng "đi đúng hướng".
+
+    **Ba tầng, và một tầng được SUY RA chứ không rút thêm:**
+      1. `trungDich` — cú sút có đi đúng hướng khung thành không.
+      2. `biCuu`     — nếu trúng đích, thủ môn có cản được không.
+      3. `coBan`     — trúng đích mà không bị cứu thì là bàn. **Không rút.**
+
+    Tầng ba suy ra là chỗ mô hình mới đúng hơn mô hình cũ về bóng đá: một cú
+    sút đi đúng hướng chỉ có hai kết cục, và "trúng đích mà không ai cứu cũng
+    không vào" là một trạng thái không tồn tại trên sân.
+
+    **Khung bỏ trống**: `xacSuatBiCuu(null)` trả 0, nên mọi cú trúng đích
+    thành bàn — đúng như một khung thành không người.
+
+    **Thứ tự tiêu thụ `Rng` trong một chuỗi là CỐ ĐỊNH:** người kết thúc →
+    trúng đích → bị cứu → cơ hội rõ ràng → kiến tạo → cướp bóng → phạm lỗi →
+    một lượt cho mỗi bước chuyền. Đổi thứ tự là đổi mọi trận của mọi mã trận
+    (P1), và chính vì thứ tự đã đổi ở đây mà `PHIEN_BAN_ENGINE` lên **6**.
+  */
+  const thuMonThu = nguoiTrongKhung(benThu)
+  const sucThuMon =
+    thuMonThu === null
+      ? null
+      : (smThu.theoCauThu.find((x) => x.id === thuMonThu)?.suc ?? null)
+
+  const trungDich =
+    kq.ketCuc === 'dut-diem' && rng.next() < xacSuatTrungDich(smCong.trungBinh)
+  const biCuu = trungDich && rng.next() < xacSuatBiCuu(sucThuMon)
+  const coBan = trungDich && !biCuu
+
+  /*
+    Cơ hội rõ ràng (AC-11.2, quyết định D37). Bàn thắng thì khỏi phải hỏi.
+    Cú sút không thành bàn mới rút một lần, nên bất biến `banThang ≤
+    coHoiRoRang ≤ cuSut` luôn đúng và kiểm được.
+  */
+  const coHoiRoRang =
+    kq.ketCuc === 'dut-diem' &&
+    (coBan || rng.next() < xacSuatCoHoiRoRang(smCong.trungBinh))
+
+  /*
+    Gán hành động cho người (AC-11.3, quyết định D34 và D34c). Thứ tự rút
+    nối tiếp phần trên và CỐ ĐỊNH: kiến tạo → cướp bóng → phạm lỗi → một
+    lượt cho mỗi bước chuyền.
+
+    `kienTao` chỉ rút khi CÓ BÀN, đúng nghĩa bóng đá, nên tổng kiến tạo của
+    một trận không bao giờ vượt tổng số bàn — một bất biến kiểm được.
+  */
+  const nguoiKienTao = coBan
+    ? nguoiTaiVung(doiHinhCong, smCong, kq.vungKetThuc, false, rng, nguoi)
+    : null
+  const nguoiCuopBong =
+    kq.ketCuc === 'mat-bong'
+      ? nguoiTaiVung(doiHinhThu, smThu, kq.vungKetThuc, true, rng)
+      : null
+  const nguoiPhamLoi =
+    kq.ketCuc === 'pham-loi'
+      ? nguoiTaiVung(doiHinhThu, smThu, kq.vungKetThuc, true, rng)
+      : null
+
+  const nguoiChuyen: string[] = []
+  for (const hanhDong of kq.cacHanhDong) {
+    if (hanhDong.loai === 'sut') continue
+    const id = nguoiTaiVung(doiHinhCong, smCong, hanhDong.vung, false, rng)
+    if (id) nguoiChuyen.push(id)
+  }
+
+  const gan: GanHanhDong = {
+    ...GAN_RONG,
+    nguoiKetThuc: nguoi,
+    nguoiKienTao,
+    nguoiCuopBong,
+    nguoiPhamLoi,
+    nguoiChuyen,
+  }
+
+  return {
+    doi,
+    benCong,
+    benThu,
+    kq,
+    gan,
+    coBan,
+    biCuu,
+    coHoiRoRang,
+    thuMonThu,
+  }
+}
+
+/**
+ * Dựng một ứng viên sự kiện. `tiSo` tường minh — xem ghi chú ở `buocTiep`.
+ *
+ * Là **tham số** của `congPhaVaoTran` chứ không phải một hàm module: nó phải
+ * đóng lại trên `tt`, `phut` và mảng ứng viên của riêng từng phút.
+ */
+export type ThemUngVien = (
+  tiSo: TiSo,
+  loai: LoaiSuKien,
+  doi: BenDoi,
+  cacCauThu: readonly string[],
+  vung: VungSan | null,
+  duongBong: readonly VungSan[],
+  diem: number,
+  cacBuocBong?: readonly BuocBong[],
+) => void
+
+/** Trạng thái hai bên và tỉ số sau khi cộng một pha bóng vào trận. */
+export interface KetQuaCongPha {
+  readonly tiSo: TiSo
+  readonly benNha: BenTran
+  readonly benKhach: BenTran
+}
+
+/*
+  MỐI HÀN THỨ HAI (T719 của spec 007, quyết định D135).
+
+  `quyetKetCucChuoi` nói pha bóng kết thúc RA SAO; hàm này cộng kết cục ấy VÀO
+  trận — tỉ số, thống kê hai bên, ứng viên sự kiện, và lần rút thẻ.
+
+  Vì sao nó phải là một hàm chung chứ không phải 62 dòng chép sang
+  `lienTuc/`: **AC-45.3** so hiệu số bàn thắng và tỉ lệ thắng giữa hai chế độ,
+  và **R54** nói hai bảng thống kê chỉ còn so được **nếu** chúng do cùng một
+  đoạn code tính. Hai bản sao của 62 dòng này là hai bảng sẽ trôi khỏi nhau,
+  và không phép kiểm nào thấy.
+
+  ⚠️ Thứ tự tiêu thụ `rng` ở đây cũng là HỢP ĐỒNG, y như `quyetKetCucChuoi`:
+  mẫu câu của sự kiện chuỗi → lần rút thẻ → mẫu câu của sự kiện thẻ. `MOC_V6`
+  là thứ duy nhất chứng minh được nó không dịch.
+*/
+export function congPhaVaoTran(
+  phut: number,
+  tiSoVao: TiSo,
+  pha: KetCucPhaV6,
+  rng: RngCoTrangThai,
+  themUngVien: ThemUngVien,
+): KetQuaCongPha {
+  const { doi, benCong, benThu, kq, gan, coBan, biCuu, coHoiRoRang, thuMonThu } =
+    pha
+
+  const tiSo: TiSo = !coBan
+    ? tiSoVao
+    : doi === 'nha'
+      ? { nha: tiSoVao.nha + 1, khach: tiSoVao.khach }
+      : { nha: tiSoVao.nha, khach: tiSoVao.khach + 1 }
+
+  const benCongMoi = congThongKeCong(
+    benCong,
+    kq,
+    coBan,
+    gan,
+    coHoiRoRang,
+    biCuu,
+  )
+  let benThuMoi = congThongKeThu(benThu, kq, gan, biCuu ? thuMonThu : null)
+
+  const loaiSuKien = loaiCuaChuoi(kq, coBan, biCuu)
+  const phaBong = duongBongCuaChuoi(kq)
+  themUngVien(
+    tiSo,
+    loaiSuKien,
+    doi,
+    nguoiThamGiaTinhHuong(
+      loaiSuKien,
+      gan,
+      biCuu ? thuMonThu : null,
+      nguoiDeMatBong(kq, gan),
+    ),
+    kq.vungKetThuc,
+    phaBong.duong,
+    diemCuaChuoi(kq, coBan),
+    phaBong.cacBuoc,
+  )
+
+  /*
+    Phạm lỗi: đội PHÒNG NGỰ là bên có thể ăn thẻ, và người ăn thẻ phải là
+    ĐÚNG người vừa phạm lỗi — trước đây hai chỗ rút riêng nên cầu thủ A
+    phạm lỗi mà cầu thủ B bị ghi tên vào sổ.
+  */
+  if (kq.ketCuc === 'pham-loi') {
+    const kqThe = thuRutThe(benThuMoi, gan.nguoiPhamLoi, rng, phut)
+    benThuMoi = kqThe.ben
+    if (kqThe.theSauDo && kqThe.playerId) {
+      themUngVien(
+        tiSo,
+        kqThe.theSauDo === 'vang' ? 'the-vang' : 'the-do',
+        doi === 'nha' ? 'khach' : 'nha',
+        [kqThe.playerId],
+        kq.vungKetThuc,
+        phaBong.duong,
+        100,
+        phaBong.cacBuoc,
+      )
+    }
+  }
+
+  return doi === 'nha'
+    ? { tiSo, benNha: benCongMoi, benKhach: benThuMoi }
+    : { tiSo, benNha: benThuMoi, benKhach: benCongMoi }
+}
+
+/**
+ * Quan sát kết cục từng pha bóng khi `buocTiep` chạy (D136, T704).
+ *
+ * Mối hàn **quan sát**: chế độ liên tục cần biết ba pha bóng của một phút kết
+ * thúc ra sao để dựng chuyển động, nhưng nó KHÔNG được dựng lại luật trận.
+ * Callback này cho nó đủ thứ nó cần mà không chép một dòng nào.
+ *
+ * ⚠️ Nó PHẢI thuần và PHẢI không rút `rng`: nó chạy giữa vòng chuỗi, nên một
+ * lần rút ở đây là dịch thứ tự rút của cả trận. Chuyển động rút từ **dòng 2**
+ * qua `hatGiongMoc`, tức ngoài hàm này — đó là lý do D118 có ba dòng.
+ */
+export type QuanSatPha = (pha: KetCucPhaV6) => void
+
+export function buocTiep(
+  ttVao: TrangThaiTran,
+  quanSatPha?: QuanSatPha,
+): TrangThaiTran {
   if (ttVao.ketThuc) return ttVao
 
   // Can thiệp có hiệu lực từ ĐẦU phút này, trước khi mô phỏng (D30b).
@@ -1335,18 +1735,27 @@ export function buocTiep(ttVao: TrangThaiTran): TrangThaiTran {
   let benKhach = giamTheLuc(tt.ben.khach)
   const ungVienMoi: UngVienSuKien[] = []
 
-  const themUngVien = (
-    loai: LoaiSuKien,
-    doi: BenDoi,
-    cacCauThu: readonly string[],
-    vung: VungSan | null,
-    duongBong: readonly VungSan[],
-    diem: number,
-    cacBuocBong: readonly BuocBong[] = [],
+  /*
+    `tiSo` là THAM SỐ TƯỜNG MINH, không phải biến đọc qua closure (D135, T719).
+
+    Tỉ số được cộng BÊN TRONG `congPhaVaoTran`, nên một closure đọc biến `tiSo`
+    của `buocTiep` sẽ chụp tỉ số **trước** bàn thắng và dòng tường thuật lệch —
+    `MOC_V6` đỏ ngay. Truyền tường minh thì chỗ gọi chịu trách nhiệm nói nó
+    muốn tỉ số ở thời điểm nào.
+  */
+  const themUngVien: ThemUngVien = (
+    tiSoLucDo,
+    loai,
+    doi,
+    cacCauThu,
+    vung,
+    duongBong,
+    diem,
+    cacBuocBong = [],
   ) => {
     ungVienMoi.push(
       taoUngVien(
-        { ...tt, tiSo },
+        { ...tt, tiSo: tiSoLucDo },
         phut,
         loai,
         doi,
@@ -1364,6 +1773,7 @@ export function buocTiep(ttVao: TrangThaiTran): TrangThaiTran {
   for (const ct of daThay) {
     if (ct.noiDung.loai !== 'thay-nguoi') continue
     themUngVien(
+      tiSo,
       'thay-nguoi',
       ct.doi,
       [ct.noiDung.vao, ct.noiDung.ra],
@@ -1374,177 +1784,28 @@ export function buocTiep(ttVao: TrangThaiTran): TrangThaiTran {
   }
 
   for (let i = 0; i < SO_CHUOI_MOI_PHUT; i += 1) {
-    const doi: BenDoi = rng.next() < 0.5 ? 'nha' : 'khach'
-    const benCong = doi === 'nha' ? benNha : benKhach
-    const benThu = doi === 'nha' ? benKhach : benNha
-
-    const smCong = tinhSucManh(benCong, doi === 'nha', tt.sanTrungLap)
-    const smThu = tinhSucManh(benThu, doi !== 'nha', tt.sanTrungLap)
-
-    const kq = chayChuoiBong(layVung('giua', 1), rng, {
-      heSoCong: smCong.heSo,
-      heSoThu: smThu.heSo,
-      sucManhCong: smCong.trungBinh,
-      sucManhThu: smThu.trungBinh,
-      quanSo: tt.quanSo,
-    })
-
     /*
-      Người kết thúc tình huống được rút THEO VÙNG, đúng như ba vai kia của
-      D34c (T130).
+      Hai mối hàn, và vòng lặp này không còn gì khác: `quyetKetCucChuoi` (T701,
+      D117) nói pha bóng kết thúc RA SAO, `congPhaVaoTran` (T719, D135) cộng
+      kết cục ấy VÀO trận. Engine liên tục gọi đúng hai hàm này, nên hai chế độ
+      dùng chung cả mô hình xác suất lẫn cách cộng thống kê mà không chép một
+      dòng nào — đó là điều kiện để AC-45.3 so được hai bảng (R54).
 
-      Trước đó nó rút trong cả đội, chỉ cân theo sức mạnh — nên thủ môn dứt
-      điểm và ghi bàn ngang một tiền đạo, và sân 2D kéo anh ta lên tận dải 3
-      để đứng cạnh thủ môn đối phương. Rút theo vùng thì thủ môn chỉ còn kết
-      thúc tình huống khi bóng ở ngay khu vực của mình.
-
-      Số lần rút `Rng` KHÔNG đổi: cả hai hàm đều tiêu đúng một lần khi còn
-      người trên sân, nên tỉ số, chuỗi tình huống và vùng bóng của mọi mã
-      trận cũ giữ nguyên — chỉ TÊN người đổi.
+      Thứ tự tiêu thụ `rng` không dịch một lần rút — `MOC_V6` canh điều đó.
     */
-    const doiHinhCong = doiHinhTrenSan(benCong)
-    const doiHinhThu = doiHinhTrenSan(benThu)
-    const nguoi = nguoiTaiVung(
-      doiHinhCong,
-      smCong,
-      kq.vungKetThuc,
-      false,
+    const pha = quyetKetCucChuoi(
+      benNha,
+      benKhach,
+      tt.sanTrungLap,
+      tt.quanSo,
       rng,
     )
+    quanSatPha?.(pha)
 
-    const coBan =
-      kq.ketCuc === 'dut-diem' &&
-      rng.next() < 0.22 * (smCong.trungBinh + 0.4)
-
-    /*
-      Cơ hội rõ ràng (AC-11.2, quyết định D37). Bàn thắng thì khỏi phải hỏi.
-      Cú sút không thành bàn mới rút một lần, nên bất biến `banThang ≤
-      coHoiRoRang ≤ cuSut` luôn đúng và kiểm được.
-
-      Thứ tự tiêu thụ `Rng` trong một chuỗi là CỐ ĐỊNH và phải giữ nguyên:
-      người kết thúc → bàn thắng → cơ hội rõ ràng. Đổi thứ tự là đổi mọi trận
-      của mọi mã trận (P1).
-    */
-    const coHoiRoRang =
-      kq.ketCuc === 'dut-diem' &&
-      (coBan || rng.next() < xacSuatCoHoiRoRang(smCong.trungBinh))
-
-    /*
-      Cứu thua (AC-11.2, quyết định D38). Chỉ rút khi cú sút KHÔNG thành bàn,
-      và chỉ khi khung thành có người — thủ môn vừa bị đuổi mà chưa ai vào
-      bắt gôn thì không có ai cứu.
-
-      Thứ tự rút trong một chuỗi, cố định: người kết thúc → bàn thắng → cơ hội
-      rõ ràng → bị cứu.
-    */
-    const thuMonThu = nguoiTrongKhung(benThu)
-    const sucThuMon =
-      thuMonThu === null
-        ? null
-        : (smThu.theoCauThu.find((x) => x.id === thuMonThu)?.suc ?? null)
-    const biCuu =
-      kq.ketCuc === 'dut-diem' &&
-      !coBan &&
-      rng.next() < xacSuatBiCuu(sucThuMon)
-
-    /*
-      Gán hành động cho người (AC-11.3, quyết định D34 và D34c). Thứ tự rút
-      nối tiếp phần trên và CỐ ĐỊNH: kiến tạo → cướp bóng → phạm lỗi → một
-      lượt cho mỗi bước chuyền.
-
-      `kienTao` chỉ rút khi CÓ BÀN, đúng nghĩa bóng đá, nên tổng kiến tạo của
-      một trận không bao giờ vượt tổng số bàn — một bất biến kiểm được.
-    */
-    const nguoiKienTao = coBan
-      ? nguoiTaiVung(doiHinhCong, smCong, kq.vungKetThuc, false, rng, nguoi)
-      : null
-    const nguoiCuopBong =
-      kq.ketCuc === 'mat-bong'
-        ? nguoiTaiVung(doiHinhThu, smThu, kq.vungKetThuc, true, rng)
-        : null
-    const nguoiPhamLoi =
-      kq.ketCuc === 'pham-loi'
-        ? nguoiTaiVung(doiHinhThu, smThu, kq.vungKetThuc, true, rng)
-        : null
-
-    const nguoiChuyen: string[] = []
-    for (const hanhDong of kq.cacHanhDong) {
-      if (hanhDong.loai === 'sut') continue
-      const id = nguoiTaiVung(doiHinhCong, smCong, hanhDong.vung, false, rng)
-      if (id) nguoiChuyen.push(id)
-    }
-
-    const gan: GanHanhDong = {
-      ...GAN_RONG,
-      nguoiKetThuc: nguoi,
-      nguoiKienTao,
-      nguoiCuopBong,
-      nguoiPhamLoi,
-      nguoiChuyen,
-    }
-
-    if (coBan) {
-      tiSo =
-        doi === 'nha'
-          ? { nha: tiSo.nha + 1, khach: tiSo.khach }
-          : { nha: tiSo.nha, khach: tiSo.khach + 1 }
-    }
-
-    let benCongMoi = congThongKeCong(
-      benCong,
-      kq,
-      coBan,
-      gan,
-      coHoiRoRang,
-      biCuu,
-    )
-    let benThuMoi = congThongKeThu(benThu, kq, gan, biCuu ? thuMonThu : null)
-
-    const loaiSuKien = loaiCuaChuoi(kq, coBan, biCuu)
-    const phaBong = duongBongCuaChuoi(kq)
-    themUngVien(
-      loaiSuKien,
-      doi,
-      nguoiThamGiaTinhHuong(
-        loaiSuKien,
-        gan,
-        biCuu ? thuMonThu : null,
-        nguoiDeMatBong(kq, gan),
-      ),
-      kq.vungKetThuc,
-      phaBong.duong,
-      diemCuaChuoi(kq, coBan),
-      phaBong.cacBuoc,
-    )
-
-    /*
-      Phạm lỗi: đội PHÒNG NGỰ là bên có thể ăn thẻ, và người ăn thẻ phải là
-      ĐÚNG người vừa phạm lỗi — trước đây hai chỗ rút riêng nên cầu thủ A
-      phạm lỗi mà cầu thủ B bị ghi tên vào sổ.
-    */
-    if (kq.ketCuc === 'pham-loi') {
-      const kqThe = thuRutThe(benThuMoi, nguoiPhamLoi, rng, phut)
-      benThuMoi = kqThe.ben
-      if (kqThe.theSauDo && kqThe.playerId) {
-        themUngVien(
-          kqThe.theSauDo === 'vang' ? 'the-vang' : 'the-do',
-          doi === 'nha' ? 'khach' : 'nha',
-          [kqThe.playerId],
-          kq.vungKetThuc,
-          phaBong.duong,
-          100,
-          phaBong.cacBuoc,
-        )
-      }
-    }
-
-    if (doi === 'nha') {
-      benNha = benCongMoi
-      benKhach = benThuMoi
-    } else {
-      benKhach = benCongMoi
-      benNha = benThuMoi
-    }
+    const sau = congPhaVaoTran(phut, tiSo, pha, rng, themUngVien)
+    tiSo = sau.tiSo
+    benNha = sau.benNha
+    benKhach = sau.benKhach
   }
 
   // Kiệt sức: mỗi cầu thủ báo đúng một lần (AC-8.7).
@@ -1555,7 +1816,7 @@ export function buocTiep(ttVao: TrangThaiTran): TrangThaiTran {
     const moi = moiKietSuc(ben)
     if (moi.length === 0) continue
     for (const id of moi) {
-      themUngVien('kiet-suc', doi, [id], null, [], 100)
+      themUngVien(tiSo, 'kiet-suc', doi, [id], null, [], 100)
     }
     const capNhat: BenTran = {
       ...ben,
@@ -1656,7 +1917,7 @@ export function buocTiep(ttVao: TrangThaiTran): TrangThaiTran {
 }
 
 /** Giữ tình huống đáng kể nhất của phút, cộng mọi tình huống bắt buộc. */
-function gomUngVienCuaPhut(
+export function gomUngVienCuaPhut(
   cacUngVien: readonly UngVienSuKien[],
 ): readonly UngVienSuKien[] {
   const batBuoc = cacUngVien.filter((uv) => uv.diemDangKe >= 100)

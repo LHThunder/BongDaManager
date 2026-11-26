@@ -3,6 +3,7 @@ import type { SuKien } from '../engine/suKien'
 import {
   apDungCanThiep,
   buocTiep,
+  CHE_DO_MAC_DINH,
   dangKyTuTrangThai,
   dongSuKien,
   phutHiep1,
@@ -12,6 +13,7 @@ import {
   type BenTran,
   type CanThiep,
   type CauHinhTran,
+  type CheDoMoPhong,
   type DangKyBen,
   type TrangThaiTran,
 } from '../engine/tran'
@@ -68,7 +70,10 @@ function benTuBanGhi(ben: BenDaLuu): DangKyBen {
  * `quanSoCua`/`thoiLuongCua` chứ không `?? 11`: bản ghi lưu trước spec 002
  * không có hai trường ấy, và chỗ điền mặc định chỉ được có MỘT (`matchRepo`).
  */
-export function cauHinhTuBanGhi(tran: TranDaLuu): CauHinhTran {
+export function cauHinhTuBanGhi(
+  tran: TranDaLuu,
+  cheDo: CheDoMoPhong = CHE_DO_MAC_DINH,
+): CauHinhTran {
   return {
     maTran: tran.maTran,
     nha: benTuBanGhi(tran.nha),
@@ -77,6 +82,7 @@ export function cauHinhTuBanGhi(tran: TranDaLuu): CauHinhTran {
     thoiLuong: thoiLuongCua(tran),
     sanTrungLap: tran.sanTrungLap,
     doiCuaNguoiDung: tran.doiCuaNguoiDung,
+    cheDoMoPhong: cheDo,
   }
 }
 

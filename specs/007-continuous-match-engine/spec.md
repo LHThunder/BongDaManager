@@ -3,10 +3,10 @@
 | | |
 |---|---|
 | **ID** | `007-continuous-match-engine` |
-| **Status** | Clarified |
+| **Status** | Planned |
 | **Created** | 2026-11-19 |
-| **Clarified** | 2026-11-19 |
-| **Branch** | `007-continuous-match-engine` — **chưa cắt**, xem mục 9 |
+| **Clarified** | 2026-11-19, bổ sung 2026-11-22 và **2026-11-23** khi lập plan (mục 14 và 15) |
+| **Branch** | `007-continuous-match-engine` — **đã cắt** từ `main` tại `7e1b065` |
 
 > ⚠️ Tài liệu này mô tả **WHAT** và **WHY**. Mọi chi tiết kỹ thuật (thư viện, schema, API, tên file) thuộc về `plan.md`.
 
@@ -16,9 +16,20 @@
 > người. Luật IFAB, chiến thuật, thể lực, nhịp trận và thống kê đi sang spec 008–010 —
 > xem mục 12, nơi giữ nguyên văn các user story ấy để các spec sau bắt đầu từ đó.
 
-> **Engine mới SỐNG SONG SONG với engine hiện tại**, không thay thế. Engine v5 và 20 trận
-> đã lưu giữ nguyên, đấu lại ra đúng từng dòng như cũ. Đây là lối vào thứ hai, đúng tiền lệ
-> hiến pháp 3.0 đã cho hai vòng lặp chơi sống song song.
+> **Engine mới SỐNG SONG SONG với engine hiện tại**, không thay thế. Engine hiện tại là
+> **v6** (`PHIEN_BAN_ENGINE = 6`, từ commit `f537d7d` của spec 006), và nó giữ nguyên: trận
+> lưu bằng v6 đấu lại ra đúng từng dòng như cũ. Đây là lối vào thứ hai, đúng tiền lệ hiến
+> pháp 3.0 đã cho hai vòng lặp chơi sống song song.
+>
+> ⚠️ **Sửa 2026-11-23 — câu cũ ở đây nói sai một chuyện đã xảy ra.** Bản đầu viết "Engine v5
+> và 20 trận đã lưu giữ nguyên, **đấu lại** ra đúng từng dòng như cũ". Điều đó **đã không còn
+> đúng** từ lúc spec 006 nâng engine lên v6: `lyDoKhongDauLai` trả `'khac-phien-ban-engine'`
+> khi `tran.phienBanEngine !== PHIEN_BAN_ENGINE` (`src/services/matchRepo.ts:202`), nên trận
+> lưu bằng v5 **mở lại và xem lại được** — bản ghi mang dòng sự kiện đầy đủ — nhưng **không
+> đấu lại được**. Chúng đã mất nút đấu lại **một lần rồi**, và đó chính là cái giá mà spec
+> 007 từ chối trả lần thứ hai: `PHIEN_BAN_ENGINE` giữ **6**, engine liên tục mang số riêng.
+> Lời hứa đúng của spec này nằm ở **AC-45.2**, vốn đã viết cẩn thận ("một trận đã lưu bằng
+> engine **hiện tại**"), không phải ở câu văn này.
 
 ---
 
@@ -78,7 +89,9 @@ Những thứ **KHÔNG** làm trong spec 007:
 - **Kể trận theo từng đoạn 15 phút** với tóm tắt và khối trạng thái → **spec 010**.
 
 **Không làm, không hoãn:**
-- **Thay thế engine hiện tại.** Engine v5 sống tiếp, trận đã lưu đấu lại y nguyên.
+- **Thay thế engine hiện tại.** Engine **v6** sống tiếp và không đổi một kết quả nào; trận
+  lưu bằng v6 đấu lại y nguyên, trận lưu bằng v5 vẫn mở và **xem lại** được (xem ghi chú ở
+  mục 1 — chúng đã mất nút **đấu lại** từ spec 006, và spec 007 không lấy thêm gì nữa).
 - **Vẽ trọng tài và hai trợ lý trên sân 2D.** Họ có trong **dữ liệu** khung hình (AC-38.10)
   nhưng sân 2D không vẽ ở lát này — thêm ba điểm lên sân đụng thẳng vào ràng buộc "không hai
   điểm nào chồng khít", vốn đã là ràng buộc chật nhất của sân 2D.
@@ -173,9 +186,92 @@ hơn mức một cầu thủ thật làm được**, để **không còn cảm g
       bóng lăn sệt (AC-38.7) và quỹ đạo bóng bổng dài. Ảnh hưởng tới thể lực và tới tỉ lệ
       khống chế hỏng thuộc spec 009 và 010.
 - [ ] AC-38.10 — KHI xuất một khung hình THÌ trọng tài chính và hai trợ lý PHẢI **có trong
-      dữ liệu** với mã `REF`, `AR1`, `AR2`: trọng tài chính cách bóng **15–25 m** và không
-      nằm trên đường chuyền, mỗi trợ lý **ngang hàng hậu vệ cuối cùng** của nửa sân mình phụ
-      trách. Sân 2D PHẢI **không vẽ** ba điểm này ở spec 007.
+      dữ liệu** với mã `REF`, `AR1`, `AR2`, và bốn mệnh đề sau PHẢI đúng ở **mọi** mốc:
+      **(a)** chỗ trọng tài chính **NHẮM TỚI** cách bóng **15–35 m**; **(b)** chỗ ấy **không
+      nằm trên đường chuyền** — cách đoạn thẳng người giữ bóng → người nhận hơn một lề nêu
+      bằng số; **(c)** mỗi trợ lý **ngang hàng hậu vệ cuối cùng** của nửa sân mình phụ trách,
+      sai số nêu bằng số; **(d)** khoảng cách **THẬT** từ trọng tài chính tới bóng lệch khỏi
+      khoảng cách anh ta nhắm tới (**25 m**, đúng tâm dải) **không quá 50 m**. Sân 2D PHẢI
+      **không vẽ** ba điểm này ở spec 007.
+
+  > **Dải nới từ 15–25 m lên 15–35 m, người dùng chốt 2026-11-23.** Dải cũ **bất khả thi về
+  > số học** với AC-38.1 (tối đa 9 m/s) và AC-38.2 (gia tốc tối đa 6 m/s²): một quả phát bóng
+  > 70 m ở 25 m/s bay 2,8 giây, trọng tài phải dịch tối thiểu 20 m nhưng tối đa đi được
+  > 9·2,8 − 6,75 = **18,45 m** — thiếu **1,55 m** ở trường hợp **thuận lợi nhất**. Hai đường
+  > còn lại đã bị loại khi hỏi: phát biểu theo **phần trăm** số mốc (≥ 95%) bỏ trống ~270 mốc
+  > một trận mà không ai canh; chuyển AC sang spec 008 thì ba điểm vẫn nằm trong dữ liệu khung
+  > hình mà **không bất biến nào** canh vị trí. Dải mới dựng được bằng một phép kiểm **tuyệt
+  > đối**, không ngoại lệ. Cái giá đã nói trước khi chốt: 35 m là hơn một phần ba chiều dài
+  > sân, nên ý "trọng tài theo sát bóng" yếu hẳn đi.
+  >
+  > **Hai mệnh đề còn lại của AC này không đổi** — "không nằm trên đường chuyền" và "ngang
+  > hàng hậu vệ cuối cùng" vẫn là yêu cầu tuyệt đối, và `plan.md` D133 là chủ sở hữu của
+  > chúng. Nếu lúc dựng chúng cũng hoá ra không dựng nổi thì xử đúng mục 9: **quay lại hỏi
+  > người dùng, không tự hạ ngưỡng**.
+  >
+  > ---
+  >
+  > **Tách thành ĐÍCH và ĐỘ TRỄ, người dùng chốt 2026-11-24 — và lần này con số 15–35 m
+  > KHÔNG đổi.** Lúc dựng T716 hoá ra dải 15–35 m **vẫn bất khả thi** nếu đo trên **vị trí
+  > thật**: đo 20 mã / **113.460 mốc** thì **749 mốc (0,660%)** ra ngoài dải, dải thật là
+  > **[5,1; 40,3] m**. Nguyên nhân **không** phải đích đặt sai — trung vị khoảng cách là
+  > **25,00 m**, tức đích luôn đúng tâm dải — mà là **độ trễ đuổi theo**, và độ trễ ấy bị
+  > chặn dưới bởi chính hai AC khác của spec này:
+  >
+  > > Để đổi từ *đang chạy về phía bóng 9 m/s* sang *chạy ra xa 9 m/s*, trọng tài phải quay
+  > > 180°. **AC-38.11** cho 90°/s, tức **2 giây**; trong 2 giây ấy **AC-38.4** kẹp anh ta ở
+  > > **4 m/s** vì anh ta đang chạy lùi. Quả bóng đi **18 m**, anh ta đi **≤ 8 m sai hướng**
+  > > → khe hở đổi **~16–20 m chỉ trong MỘT lần pha bóng đổi chiều**, trong khi dải 15–35 m
+  > > chỉ cho **10 m** dư mỗi phía. Số đo khớp phép tính: lệch sâu nhất **19,87 m**, lệch xa
+  > > nhất **15,3 m**.
+  >
+  > Vì thế AC được **tách làm hai mệnh đề tuyệt đối** chứ không nới số lần thứ hai: **(a)**
+  > nói về **đích**, và nó đúng **100% theo cấu trúc** (`viTriTrongTai` chỉ sinh điểm cách
+  > bóng đúng `KHOANG_TRONG_TAI` = 25 m); **(d)** nói về **độ trễ**, nêu bằng một con số.
+  >
+  > Mệnh đề (d) phát biểu theo **khoảng cách tới bóng** chứ không theo "lệch khỏi đích", vì
+  > khoảng cách tới bóng **đọc được từ một khung hình** mà không cần biết trạng thái trong
+  > của engine — và vì đích luôn cách bóng **đúng** 25 m, nó chính là **thành phần hướng
+  > tâm** của độ trễ. Tức (d) tương đương một phép kiểm tuyệt đối trên lô mốc: khoảng cách
+  > trọng tài–bóng nằm trong **[5; 45] m** ở **mọi** mốc.
+  >
+  > Hai đường còn lại đã bị loại khi hỏi: **nới dải thành 5–41 m** thì 41 m là 39% chiều dài
+  > sân và 5 m cho trọng tài đứng ngay trong pha bóng — dải rộng tới mức gần như không canh
+  > gì, đúng thứ đã bị từ chối ở câu 22; **miễn ba điểm trọng tài khỏi AC-38.4 và AC-38.11**
+  > thì phá điều D133 chốt ("ba điểm đi qua CHÍNH `buocCoHoc` như mọi người khác") mà vẫn
+  > không chắc đạt.
+  >
+  > ⚠️ **Con số 20 m chỉ còn 0,13 m dư so với phép đo (19,87 m), và nó đo trên mô hình bóng
+  > TẠM của T716** — quả bóng hiện bị kẹp chung trần 9 m/s. **T720** cho bóng vật lý thật
+  > (bay nhanh hơn người), nên nó **phải đo lại con số này**, và phép kiểm của mệnh đề (d) sẽ
+  > là thứ bắt được.
+  >
+  > ---
+  >
+  > **Và nó đã phải đo lại, đúng ở T726, ngày 2026-11-24 (câu 26).** Khi quả bóng được nối
+  > vật lý thật vào lô mốc — bay tới **30 m/s** thay vì bị kẹp 9 — phép kiểm mệnh đề (d) **đỏ
+  > ngay**, đo lại được **46,48 m**. Người dùng chốt hai thay đổi:
+  >
+  > 1. **Trọng tài bám CHỖ PHA BÓNG SẮP TỚI, không bám quả bóng đang bay.** Một trọng tài
+  >    thật **đọc trận**: bóng rời chân bay 60 m thì ông ta chạy về chỗ nó sắp tới chứ không
+  >    đuổi theo giữa đường. Đo trên 10 mã, mọi phân vị đều tốt lên: lệch lớn nhất **46,5 →
+  >    37,9 m**, lúc bóng nằm yên **42,7 → 34,7 m**.
+  > 2. **Lề của (d) nới từ 20 m lên 50 m** — đo **48,09 m** trên **20 mã / 113.460 mốc**, dư
+  >    1,91 m.
+  >
+  > **Vì sao không nhỏ hơn được — số học, không phải chính sách:** `dienPha.ts` cho mỗi hành
+  > động đúng **2 giây**, trong khi hai tâm vùng cách nhau tới **84 m**. Pha bóng nhảy 84 m
+  > trong 2 giây còn trọng tài đi được `9 × 2 = 18` m, nên độ trễ **không thể nhỏ hơn ~33 m**
+  > dù neo vào đâu. Và đuôi ấy là **vật lý chứ không phải lỗi**: quả bóng không teleport lần
+  > nào, nhảy xa nhất **đúng 30,00 m** giữa hai mốc, tức đúng `30 m/s × 1 s`.
+  >
+  > Hai đường còn lại đã bị loại khi hỏi: **bỏ hẳn mệnh đề (d)** (mất đúng thứ vừa thêm hôm
+  > qua), và **sửa lưới thời gian của `dienPha.ts`** (đổi `BUOC_MOI_HANH_DONG` là đổi bố cục
+  > thời gian của **mọi** pha bóng, và trận sẽ thấy chậm hẳn).
+  >
+  > ⚠️ **Cái giá đã nói trước khi chốt:** 50 m cho trọng tài cách bóng 0–75 m trên một sân dài
+  > 105 m, nên (d) nay chỉ còn bắt được loại lỗi "điểm trọng tài chết hẳn hoặc bay loạn",
+  > không còn bắt được "đứng sai chỗ".
 - [ ] AC-38.11 — KHI một cầu thủ di chuyển THÌ mỗi mốc PHẢI có **hướng người** (0–360°), và
       hướng ấy PHẢI khớp với hướng di chuyển trừ khi anh ta đang chạy lùi hoặc chạy ngang.
 
@@ -195,22 +291,131 @@ thay vì phải tin**.
 - [ ] AC-45.2 — KHI mở một trận đã lưu bằng engine hiện tại THÌ nó PHẢI mở được, xem lại
       được và đấu lại được **đúng từng dòng như trước spec này**; engine hiện tại PHẢI
       không đổi một kết quả nào (P1, P3).
-- [ ] AC-45.3 — KHI mô phỏng **100 mã trận** với cùng hai đội và cùng chiến thuật ở **cả hai
+- [ ] AC-45.3 — KHI mô phỏng **200 mã trận** với cùng hai đội và cùng chiến thuật ở **cả hai
       chế độ** THÌ hiệu số bàn thắng trung bình giữa hai chế độ PHẢI không lệch quá **0,5
       bàn**, và tỉ lệ thắng của đội mạnh hơn PHẢI không lệch quá **10 điểm phần trăm**. Một
       trận **cụ thể** PHẢI không bắt buộc ra cùng tỉ số — hai chế độ rút ngẫu nhiên ở hai
       chỗ khác nhau, nên đòi giống từng trận là đòi một điều không thể.
+
+  > **100 → 200 mã, sửa ngày 2026-11-22.** Chính repo đã đo được nhiễu lấy mẫu **12 điểm
+  > phần trăm ở 60 mã** (`src/engine/sosanh.doiManhHon.test.ts`: một bộ cho 28% thắng
+  > trong khi tỉ lệ thật là 40,0%) — **lớn hơn** ngưỡng 10 điểm của chính AC này. Hai chế
+  > độ rút ngẫu nhiên ở hai dòng độc lập nên nhiễu cộng cả hai phía. Ở 100 mã, phép kiểm
+  > có thể **đỏ vì lấy mẫu chứ không vì mô hình sai**. 200 mã là đúng cách repo đã xử khi
+  > gặp chuyện này lần trước: nới mẫu, giữ ngưỡng.
+  >
+  > ⚠️ **AC này là một hợp đồng TẠM, và nó có ngày hết hạn.** Bản đầu của ghi chú này ghim
+  > vào **3,95 bàn một trận** của engine v5. **Đo lại trên v6 ngày 2026-11-23**, 200 mã do
+  > `taoMaTran` sinh, bốn hạt giống (1, 2, 7, 99), sân trung lập:
+  >
+  > | Cặp đấu | Bàn một trận (4 mẫu × 200 mã) | So với dải 2–3 của spec 010 |
+  > |---|---|---|
+  > | Hai đội **bằng nhau** (chỉ số 12) | 2,495 / 2,565 / 2,760 / 2,870 | **trong dải** |
+  > | **A15 vs B10** — cặp mà phép kiểm AC-45.3 thật sự dùng | 3,110 / 3,230 / 3,285 / 3,390 | **trên dải, cả bốn mẫu** |
+  >
+  > Nên **hợp đồng tạm vẫn còn hiệu lực, chỉ nhẹ hơn**: khoảng cách tới dải của spec 010 co
+  > từ ~0,95 bàn xuống ~0,2–0,4 bàn, nhưng ở đúng cặp đấu mà phép kiểm dùng thì nó **vẫn
+  > trên dải**, nên spec 010 **vẫn phải phá** AC-45.3 chứ không chỉ chạm vào nó. Vì thế yêu
+  > cầu kỹ thuật không đổi: phép kiểm PHẢI đặt cả hai ngưỡng thành hằng số đọc được ở **một
+  > chỗ**, kèm chú thích trỏ về đoạn này — để khi spec 010 tới, người sửa thấy ngay vì sao
+  > con số ấy tồn tại. Lệnh dựng lại được: một bộ đo tạm trên `benMau('A'/'B')` +
+  > `chayHetTran`, đúng khuôn `src/engine/sosanh.sanNha.test.ts` đã dùng.
 - [ ] AC-45.4 — KHI một trận ở chế độ liên tục được lưu THÌ bản ghi PHẢI chỉ lưu mã trận,
-      hai đội, chuỗi can thiệp, chế độ và kết quả — PHẢI **không lưu vị trí** của bất kỳ mốc
-      nào; và mở lại trận ấy PHẢI **sinh lại** đúng từng khung hình đã từng thấy.
+      hai đội, **quân số, thời lượng, sân trung lập, đội của người dùng**, chuỗi can thiệp,
+      chế độ và kết quả — PHẢI **không lưu vị trí** của bất kỳ mốc nào; và mở lại trận ấy
+      PHẢI **sinh lại** đúng từng khung hình đã từng thấy.
+
+  > **Bốn trường được thêm vào danh sách ngày 2026-11-22.** Bản liệt kê cũ thiếu `quanSo`,
+  > `thoiLuong`, `sanTrungLap` và `doiCuaNguoiDung` — **cả bốn đều đổi kết quả trận**, nên
+  > thiếu chúng là sinh lại ra một trận khác. Chúng đã nằm sẵn trong bản ghi; AC chỉ ghi
+  > thiếu.
+  >
+  > **Và một điều kiện phải giữ để AC này khả thi: can thiệp ở độ phân giải PHÚT.** Hôm nay
+  > `CanThiep` mang số phút nguyên và được áp vào **đầu phút kế tiếp** (quyết định D30b của
+  > spec 001). Chế độ liên tục có 60 mốc mỗi phút, nên nếu can thiệp mang thêm mốc giây thì
+  > bản ghi **đổi hình dạng** và sinh lại sẽ lệch khi người dùng bấm giữa phút. Giữ nguyên
+  > độ phân giải phút thì sinh lại **đúng theo cấu trúc**, và cái giá — thay người có hiệu
+  > lực ở đầu phút sau — **đúng bằng hành vi hôm nay**, nên không ai mất gì.
 - [ ] AC-45.5 — KHI người dùng xuất một trận ở chế độ liên tục THÌ họ PHẢI nhận được một tệp
-      **JSON** chứa nhật ký sự kiện và khung hình chi tiết đúng định dạng mục 7b và mục 15
-      của bản mô tả gốc.
+      **JSON** chứa nhật ký sự kiện và khung hình chi tiết đúng định dạng **mục 7b** và
+      **mục 15** của [`ban-mo-ta-goc.md`](./ban-mo-ta-goc.md).
+
+  > **Bản mô tả gốc đã được lưu vào repo ngày 2026-11-22.** Trước đó AC này trỏ vào một tài
+  > liệu **không tồn tại trong repo** — bản 21 mục người dùng dán trong hội thoại. Người
+  > dùng chọn lưu nó thay vì để tôi tự định nghĩa một schema, để **lời của họ** là hợp đồng.
+  > Hệ quả: đổi định dạng tệp xuất là đổi **cả tài liệu ấy**, không chỉ đổi code.
 - [ ] AC-45.6 — KHI tệp xuất ở AC-45.5 có trong tay THÌ mọi phép kiểm cơ học của US-38
       PHẢI chạy được **trên chính tệp ấy** — không phải dựng một bản đo riêng mỗi lần muốn
-      kiểm một con số, như đã phải làm suốt spec 005 và 006.
+      kiểm một con số, như đã phải làm suốt spec 005 và 006. **Ngoại lệ: AC-38.8.**
+
+  > **Vì sao AC-38.8 là ngoại lệ, chốt 2026-11-22.** Tệp xuất chứa vị trí **tại từng mốc**;
+  > độ cong là chuyện **giữa hai mốc**, và nó do lớp nội suy ở tầng giao diện sinh ra
+  > (`src/ui/noiSuy.ts`). Lớp engine **bị cấm import tầng ui** — `src/engine/boundaries.test.ts`
+  > quét mọi file engine và chặn đúng điều đó. Nên AC-45.6 ∧ AC-38.8 chỉ cùng đúng nếu dời
+  > độ cong xuống engine (**trái quyết định 5**: giữ nguyên lớp nội suy spec 005) hoặc dời
+  > cả `noiSuy.ts` xuống `domain/` (một đợt dọn động vào file mà spec 005 và 006 canh bằng
+  > một describe **không được sửa**, và nó đang import thể lực từ engine).
+  >
+  > Người dùng chọn đường thứ ba: **tám AC cơ học khác của US-38 kiểm được từ tệp, riêng
+  > AC-38.8 canh bằng phép kiểm thuần ở lớp vẽ** — đúng cách spec 006 đã làm ba lần với
+  > những thứ `environment: 'node'` không nhìn tới.
 - [ ] AC-45.7 — KHI chế độ liên tục đang chạy THÌ mọi tính ngẫu nhiên PHẢI đến từ mã trận;
       PHẢI không có nguồn ngẫu nhiên hay nguồn thời gian toàn cục nào trong engine (P1).
+- [ ] AC-45.8 — KHI người dùng chọn **quân số khác 11** THÌ chế độ liên tục PHẢI bị **khoá**,
+      và giao diện PHẢI nói rõ vì sao bằng ngôn ngữ đang chọn (P8). Trận quân số 5–10 PHẢI
+      chạy bằng chế độ hiện tại như cũ.
+
+  > **AC mới, người dùng chốt 2026-11-22.** Trận của app chạy được **5 đến 11 người**
+  > (`CAC_QUAN_SO`) và **20 đến 90 phút** (`CAC_THOI_LUONG`), cả hai là trường thật của bản
+  > ghi trận. Nhưng AC-37.1 và AC-37.2 chỉ định nghĩa hình học **105×68 của sân 11** — vòng
+  > cấm 16,5 m, khung thành 7,32 m, chấm phạt đền 11 m đều là số của sân 11. Co sân theo
+  > quân số thì mọi con số ấy phải co theo, trong khi cơ học của US-38 (9 m/s, gia tốc
+  > 6 m/s²) **không co** vì người vẫn là người — tỉ lệ người trên sân đổi hẳn. Giữ 105×68
+  > cho sân 5 thì mật độ vô lý, và chính lớp vẽ đã từ chối cách ấy từ spec 002.
+  >
+  > Khoá chế độ hợp với quyết định 1: engine mới là **lối vào thứ hai**, nên nó được phép
+  > có điều kiện riêng. Cái giá đã nói trước khi chốt: **người chơi sân 7 không bao giờ
+  > thấy chuyển động mới**, và giao diện phải giải thích vì sao nút bị khoá.
+
+- [ ] AC-45.9 — KHI người dùng bật **giảm chuyển động** VÀ trận đang ở **chế độ liên tục**
+      THÌ đồng hồ **mốc** PHẢI vẫn chạy đủ mọi mốc (1 giây ở phần thường, 0,5 giây ở tình
+      huống quan trọng — AC-37.7), còn lớp **nội suy** và lớp **dao động** PHẢI tắt
+      (AC-31.1): ở mọi khung vẽ, toạ độ của mọi điểm PHẢI **trùng khít** toạ độ của một mốc
+      đã phát, PHẢI không bao giờ là một giá trị nằm giữa hai mốc.
+- [ ] AC-45.10 — KHI spec 007 nói "**tua**" THÌ nó PHẢI chỉ nghĩa là tua **TỚI**: đổi mức
+      tốc độ, và *Chạy hết trận*. Chế độ liên tục trong spec 007 PHẢI **không** có tua ngược
+      và PHẢI **không** có thanh thời gian nhảy về giây thứ N. Người dùng muốn xem lại một
+      pha đã trôi qua PHẢI chạy lại trận bằng **cùng mã trận** — AC-37.5 bảo đảm họ thấy
+      đúng chuyển động ấy.
+- [ ] AC-45.11 — KHI xuất tệp JSON của một trận **90 phút** ở chế độ liên tục (AC-45.5) THÌ
+      tệp PHẢI **không vượt 11 MB = 11.000.000 byte** (cơ số **thập phân** — cùng cơ số với
+      phép tính "dư 37%" ở ghi chú dưới), và phép kiểm PHẢI **đo kích thước thật** của tệp sinh
+      ra, không ước lượng từ số mốc.
+
+  > **Ba AC mới, người dùng chốt 2026-11-23 khi đọc `plan.md`.** Cả ba lấp ba chỗ **không một
+  > AC nào trong 27 AC cũ nói tới**, nên plan không được quyền tự quyết:
+  >
+  > - **AC-45.9.** AC-31.1 chỉ nói "không nội suy, không dao động" — nó **không** nói "ít
+  >   chuyển động hơn", nên ba cách đọc đều thoả đúng từng chữ. Cái giá đã nói trước khi chốt
+  >   và PHẢI không được che: bóng tới 30 m/s nên một đường chuyền dài là một bước nhảy
+  >   **~26 đơn vị vẽ**, lớn hơn bước nhảy lớn nhất của **người** (7,78 đơn vị) **3,3 lần** —
+  >   tức ở riêng chỗ ấy, người bật giảm chuyển động thấy **tệ hơn hôm nay**. Bù lại: tần số
+  >   cập nhật ×60, và bước nhảy lớn nhất của **người** nhỏ hơn hôm nay 6,1 lần vì AC-38.1
+  >   chặn. Hai phương án bị loại: giữ mỗi phút một mốc như v6 (họ không nhận **một phần nào**
+  >   của spec 007); chia đường chuyền thành nhiều chặng ngắn (đó là nội suy dưới tên khác,
+  >   nên nó buộc viết lại AC-31.1 của spec 005 chứ không chỉ thêm AC mới).
+  > - **AC-45.10.** Mục 4 bước 3 viết "dừng và tua được" nhưng không AC nào định nghĩa "tua",
+  >   và hôm nay trong app chỉ có nút *Chạy hết trận*. Cái giá đã chọn: xem lại một pha vừa
+  >   trôi qua thì phải chạy lại cả trận. Phương án thanh thời gian bị loại vì nó buộc chọn
+  >   một trong hai cái giá nặng: sinh lại từ mốc 0 mỗi lần kéo, hoặc giữ bộ đệm cả trận
+  >   **3,4 MB** thường trú — hình dạng bộ đệm ấy đã bị plan loại vì bộ nhớ.
+  > - **AC-45.11.** Đo được trên hình dạng tệp đề nghị: **~7,2 MB** ca trung bình, **8,0 MB**
+  >   ca xấu, **~9,0 MB** sau khi spec 009 điền hai trường còn `null`. **11 MB** dư 37% hôm
+  >   nay và 22% sau spec 009, nên nó **vẫn đỏ được** — một ngân sách không bao giờ đỏ được
+  >   thì vô dụng. Con số này **ở trong spec 007, KHÔNG vào hiến pháp**: ràng cả spec 008–010
+  >   vào một con số đo trên hình dạng dữ liệu của hôm nay thì spec 009 thêm chỉ số thể lực
+  >   vào mỗi mốc là vỡ ngay. Phương án 6,6 MB bị loại vì nó phải bỏ trường trạng thái khỏi
+  >   khối mỏng, làm AC-38.5 chỉ gác được **7%** thời lượng trận thay vì 100%.
 
 ---
 
@@ -220,7 +425,8 @@ thay vì phải tin**.
    mô phỏng** → hệ thống nhận một mã trận, và thời tiết của trận sinh ra từ mã ấy.
 2. Người dùng bấm bắt đầu → trận chạy ở chế độ liên tục: mọi điểm di chuyển theo cơ học của
    US-38, bóng có độ cao, người giữ bóng luôn xác định.
-3. Người dùng xem sân 2D, dừng và tua được; ở các tình huống quan trọng chuyển động dày lên
+3. Người dùng xem sân 2D, **dừng và tua TỚI được** (đổi mức tốc độ, *Chạy hết trận* —
+   AC-45.10; spec 007 không có tua ngược); ở các tình huống quan trọng chuyển động dày lên
    **0,5 giây một mốc**.
 4. Giữa trận, người dùng thay người hoặc đổi chỉ thị; mọi can thiệp được ghi lại để phát
    lại (P1).
@@ -242,7 +448,7 @@ thay vì phải tin**.
 | Tệp sao lưu từ phiên bản dữ liệu cũ | Nhập lại được trọn vẹn, điền mặc định như trên (P7) |
 | Hết dung lượng lưu trữ giữa lúc đang lưu trận | Thông báo bằng ngôn ngữ đang chọn, nói rõ cái gì chưa lưu được và phải làm gì; PHẢI không để lại một trận hỏng một nửa (P3) |
 | Tệp JSON xuất ra quá lớn cho một lần ghi | Nói rõ kích thước trước khi ghi và cho người dùng huỷ; PHẢI không ghi nửa tệp rồi dừng |
-| Mở lại một trận cũ mà engine đã đổi kể từ đó | Kết quả vẫn đúng (vì kết quả được lưu), nhưng **chuyển động có thể khác**. Nói rõ cho người dùng, PHẢI không im lặng |
+| Mở lại một trận cũ mà engine đã đổi kể từ đó | Kết quả vẫn đúng (vì kết quả được lưu) và **xem lại** vẫn đúng từng dòng (vì bản ghi mang dòng sự kiện đầy đủ), nhưng **đấu lại bị từ chối** kèm lý do nói ra bằng chữ — chạy lại cùng mã trận trên một engine khác sẽ ra một trận KHÁC, nên hứa "đấu lại" là hứa sai. PHẢI không im lặng |
 | Mô phỏng chạy quá ngân sách thời gian | Nói rõ đang chạy, có đường dừng; PHẢI không treo giao diện không dấu hiệu |
 | Một phép kiểm cơ học của US-38 thất bại khi chạy | Lộ ra ngay khi phát triển, PHẢI không làm tròn cho qua |
 | Người dùng tạm dừng giữa một tình huống đang chạy | Đóng băng hoàn toàn: bóng, người và đồng hồ đều dừng (giữ AC-28.5) |
@@ -266,7 +472,9 @@ thay vì phải tin**.
   khi spec 009 hay 010 chốt kiến trúc. Nếu con số không vừa thì đó là việc của người dùng
   quyết — nới hiến pháp, hay cho mùa giải chạy ở chế độ hiện tại.
 - **Dữ liệu.** Bản ghi trận **không phình thêm một byte**: vị trí sinh lại từ mã trận, không
-  lưu (AC-45.4). Đây là cách spec này giữ P10 mà không phải cắt bớt gì.
+  lưu (AC-45.4). Đây là cách spec này giữ P10 mà không phải cắt bớt gì. **Tệp xuất** thì khác
+  bản ghi: nó mang vị trí từng mốc, nên nó có ngân sách riêng **11 MB** cho một trận 90 phút
+  (AC-45.11). Con số ấy **chỉ ràng spec 007**, không vào hiến pháp.
 - **Tái lập được (P1).** Mọi tính ngẫu nhiên — kể cả thời tiết của trận — PHẢI đến từ mã
   trận. PHẢI không có nguồn ngẫu nhiên toàn cục, PHẢI không bám đồng hồ thật.
 - **Luật bóng đá tách khỏi giao diện (P2).** Toàn bộ cơ học chuyển động và mọi quyết định của
@@ -284,7 +492,7 @@ thay vì phải tin**.
 - [ ] Toàn bộ AC ở mục 3 pass
 - [ ] Trường hợp biên mục 5 được xử lý
 - [ ] Không vi phạm nguyên tắc nào trong constitution
-- [ ] Mọi AC dạng **khoảng số** (AC-37.7, AC-38.1 → AC-38.8, AC-38.11, AC-45.3) có **test tự
+- [ ] Mọi AC dạng **khoảng số** (AC-37.7, AC-38.1 → AC-38.8, AC-38.11, AC-45.3, AC-45.11) có **test tự
       động** đo đúng khoảng đó trên nhiều mã trận — không AC nào trong nhóm này được tick bằng
       cách xem mắt (P5, và chuẩn chất lượng mục 4)
 - [ ] Ngân sách mùa giải đã được **đo và báo số**, dù spec này không bị nó ràng (mục 6)
@@ -323,7 +531,11 @@ Spec này đã qua cổng chặn của hiến pháp mục 5 và sẵn sàng cho 
   lăn "chậm dần nhanh hơn trên sân ướt **hoặc cỏ dài**", còn mục 21 viết "mưa làm bóng lăn
   **nhanh** và trơn hơn". Hai câu ngược nhau: cỏ ướt **giảm** ma sát (bóng đi xa hơn), cỏ dài
   **tăng** ma sát. AC-38.7 lấy theo vật lý và theo mục 21 — **sân ướt thì bóng đi xa hơn**.
-  Nếu ý người dùng là chiều kia thì AC-38.7 phải sửa.
+  **Người dùng xác nhận chiều này ngày 2026-11-23**, nên AC-38.7 **không đổi**. Kèm theo: **độ
+  dài cỏ KHÔNG vào spec 007** — nó là một đại lượng mới chưa có trong AC nào, và thêm nó thì
+  phải thêm một AC, một nguồn sinh từ mã trận và một hằng số ma sát nữa. Câu ở mục 10 của
+  `ban-mo-ta-goc.md` vì thế **không đúng** cho spec 007; tài liệu ấy **giữ nguyên lời của
+  người dùng** và chỉ được **thêm một ghi chú phán xử** có ngày, không sửa câu nào.
 - Người dùng vẫn là **một người, trên một máy, offline**.
 - Bản mô tả 21 mục là **yêu cầu của người dùng**, không phải tài liệu kỹ thuật: những con số
   trong đó là **mức mong muốn**, và spec này ghi chúng thành AC đo được. Nếu một con số hoá ra
@@ -342,7 +554,7 @@ nhất. Mọi AC dưới đây PHẢI còn đúng khi spec 007 đóng.
 |---|---|
 | **P1** tái lập được | Engine mới có hàng nghìn lần rút ngẫu nhiên mỗi trận thay vì vài chục. Một chỗ lỡ bám đồng hồ thật là mất cả P1. Và vì vị trí **sinh lại** chứ không lưu, P1 là thứ duy nhất giữ cho một trận cũ xem lại vẫn ra đúng chuyển động ấy |
 | **P2** luật bóng đá tách khỏi giao diện | Cơ học chuyển động rất muốn được viết ngay chỗ đang vẽ. Không được |
-| **P3** dữ liệu người dùng bất khả xâm phạm | 20 trận đã lưu bằng engine cũ phải đấu lại y nguyên (AC-45.2) |
+| **P3** dữ liệu người dùng bất khả xâm phạm | 20 trận đã lưu phải **mở và xem lại** được y nguyên; trận lưu bằng **v6** phải **đấu lại** y nguyên, trận lưu bằng **v5** thì không — chúng đã mất nút ấy ở spec 006 và spec 007 không lấy thêm gì nữa (AC-45.2, và ghi chú sửa ở mục 1) |
 | **P6** mỗi lát tự chạy được | Đây là lý do spec 007 chỉ lấy nền chuyển động, và là lý do nó dùng lại mô hình xác suất của engine cũ để có một trận chạy được ngay |
 | **P7** tệp sao lưu mở lại được | Thêm trường chế độ vào bản ghi trận; tệp cũ không có trường ấy vẫn phải nhập được |
 | **P10** không lặng lẽ cắt bớt | Giải bằng cách **không lưu vị trí** (AC-45.4), nên không có gì để cắt |
@@ -367,15 +579,27 @@ nhất. Mọi AC dưới đây PHẢI còn đúng khi spec 007 đóng.
 
 **Những gì của spec 005 và 006 được giữ, và phần duy nhất bị bỏ**
 
-- **Giữ nguyên toàn bộ spec 005**: nội suy có đường cong và lớp dao động **vẫn cần**, vì mốc
-  0,5–1 giây của engine mới là 1–2 mốc mỗi giây và mắt người sẽ thấy giật nếu không nội suy
-  xuống 60 khung/giây.
+- **Giữ nguyên toàn bộ spec 005**: nội suy có đường cong và lớp dao động **vẫn cần** — nhưng
+  **không phải vì lý do ghi ở bản Clarified**, và chỗ sai ấy để lại đây có chủ ý.
+
+  > **Lý lẽ cũ SAI, phát hiện khi lập plan ngày 2026-11-22.** Bản Clarified viết "mốc 0,5–1
+  > giây của engine mới là 1–2 mốc mỗi giây". Câu ấy **nhầm giây TRẬN với giây THẬT**. Ở mức
+  > chậm nhất đang có — 2000ms một phút trận — một giây trận dài **33,3 ms thật**, tức **30
+  > mốc mỗi giây thật**. Ở mức Chậm (1000ms) là **60 mốc mỗi giây thật**: đúng một mốc cho
+  > mỗi khung hình, **không còn gì để nội suy**. Ở mức Thường (200ms) là 300 mốc mỗi giây —
+  > tức phải **bỏ bốn trên năm mốc**.
+  >
+  > Vấn đề thật vì thế là **chiều ngược lại**: không phải thiếu mốc mà **thừa mốc**. Lớp
+  > nội suy vẫn được giữ, nhưng vai trò của nó đổi — từ "vẽ thêm giữa hai mốc thưa" thành
+  > "chọn và làm mượt giữa những mốc dày". Plan phải viết rõ điều đó, vì nếu nối dây theo
+  > lý lẽ cũ thì ở mức Thường trở lên engine sẽ tính ra bốn phần năm số mốc **không ai nhìn
+  > thấy**.
 - **Giữ phần vẽ của spec 006**: bóng trong chân người giữ bóng, vòng sáng, phép kẹp thủ môn,
   nghiêng khối theo bóng và theo vai trò.
 - **Bỏ phần SUY RA của spec 006**: dựng mốc trung gian từ đường bóng, và đoán ai đang giữ
   bóng từ danh sách người tham gia. Engine mới nói thẳng cả hai (AC-37.6), nên để hai nguồn
   cùng tồn tại là mời một lớp lỗi rất khó thấy. Phần bỏ này **chỉ áp dụng cho chế độ liên
-  tục**: chế độ hiện tại vẫn cần lớp suy ra, vì engine v5 không nói ai giữ bóng.
+  tục**: chế độ hiện tại vẫn cần lớp suy ra, vì engine **v6** không nói ai giữ bóng.
 
 ---
 
@@ -386,7 +610,7 @@ mười hai — lần đầu trong sáu spec.
 
 | # | Câu hỏi | Quyết định | Cái giá đã nói trước khi chốt |
 |---|---|---|---|
-| 1 | Engine mới thay thế hay song song? 20 trận đã lưu ra sao? | **Song song.** Engine hiện tại và 20 trận đã lưu giữ nguyên, đấu lại y nguyên. Engine mới là lối vào thứ hai | Hai engine cùng sống, hai bảng thống kê khác nhau cho cùng một đội, và mọi tính năng sau phải chọn làm cho bên nào. Tiền lệ: hiến pháp 3.0 đã cho hai vòng lặp chơi sống song song |
+| 1 | Engine mới thay thế hay song song? 20 trận đã lưu ra sao? | **Song song.** Engine hiện tại và 20 trận đã lưu giữ nguyên, đấu lại y nguyên. Engine mới là lối vào thứ hai. ⚠️ *(Bản ghi của quyết định ngày 2026-11-19, giữ nguyên lời lúc đó. Nửa sau đã được **sửa 2026-11-23**: trận lưu bằng v5 chỉ mở và xem lại được, không đấu lại được — xem ghi chú ở mục 1 và nhật ký hàng 25.)* | Hai engine cùng sống, hai bảng thống kê khác nhau cho cùng một đội, và mọi tính năng sau phải chọn làm cho bên nào. Tiền lệ: hiến pháp 3.0 đã cho hai vòng lặp chơi sống song song |
 | 2 | 21 mục chẻ thế nào? 007 làm gì trước? | **Nền chuyển động trước.** 007 = US-37 + US-38 (+ US-45). Luật IFAB → 008; chiến thuật, thể lực, mục đích → 009; nhịp trận, sự không hoàn hảo, thống kê → 010 | Chưa có luật mới nào, bảng thống kê chưa đổi. Lý do nền phải đi trước: việt vị và tình huống cố định **không dựng được** khi chưa có toạ độ mét |
 | 3 | Ngân sách hiệu năng xung đột hiến pháp (< 3 giây một trận nhưng < 79 ms nếu tính theo mùa) | **Hai mức chi tiết, một engine.** Một engine, một kết quả, P1 nguyên vẹn | Câu "trận tồn tại ở mọi thời điểm" chỉ đúng một phần: AC-37.1 đi kèm AC-37.7 |
 | 4 | Mức thưa là bao nhiêu? | **1 giây** ở phần thường, **0,5 giây** ở tình huống quan trọng. ~5.400 mốc một trận | Ở 1 giây, một người chạy 6 m/s đi được 6 m giữa hai mốc — đủ gần để không bỏ sót một cú đổi hướng. Ở 2 giây là 12 m, và một cú đổi hướng gấp ở giữa sẽ bị nội suy làm phẳng |
@@ -450,7 +674,10 @@ Bóng chỉ lăn 55–60 phút. Thời gian từng loại bóng chết; đội d
 Chạy chậm về sau pha tấn công thất bại. Hàng thủ lệch nhau 1–3 m. Người nhận điều chỉnh
 0,5–2 m; 5–10% khống chế hỏng, bóng bật 1–3 m. Cú sút trúng đích phần lớn về giữa khung.
 Trọng tài cũng sai. Đội vừa thủng lưới dâng cao 5–10 phút. Cường độ không đều, có giai đoạn
-ép sân 5–10 phút. Thống kê cả trận bám mức thật: bàn 2–3, sút 20–30, phạm lỗi 20–28, vàng
+ép sân 5–10 phút. Thống kê cả trận bám mức thật, **tính trung bình trên một lượng trận đủ
+lớn** chứ không phải trần cứng của từng trận (nguyên văn mục 6 của `ban-mo-ta-goc.md`: "bàn
+thắng: **trung bình** 2–3 (0 bàn và 5+ bàn đều có thể nhưng hiếm)"): bàn 2–3, sút 20–30,
+phạm lỗi 20–28, vàng
 3–5, đỏ 0–1, góc 8–12, việt vị 2–6, ném biên 40–50; chuyền 350–650 mỗi đội với 75–90% chính
 xác; xG cho mọi cú sút; đội mạnh thắng nhiều hơn nhưng không phải luôn luôn. Kể trận theo
 từng đoạn 15 phút với tóm tắt 3–5 câu, nhật ký, khung hình chi tiết và khối trạng thái đủ để
@@ -517,7 +744,84 @@ bóng phải có một mục đích gọi tên được từ danh mục mục 11
 
 ## 13. Bước tiếp theo
 
-Mục 8 đã rỗng, nên cổng chặn của hiến pháp mục 5 đã mở. Chạy `/plan`.
+Mục 8 đã rỗng, nên cổng chặn của hiến pháp mục 5 đã mở. `plan.md` viết xong **2026-11-23**
+(18 quyết định D117–D134, 14 rủi ro R51–R64, bảy lát Phase 53–59), và **tám câu** plan không
+tự quyết đã được người dùng trả lời trong cùng ngày — xem mục 15. Chạy `/tasks`.
 
-Trước khi code: **đóng spec 006** (T608 và Phase 52, bỏ Phase 50), rồi cắt nhánh
-`007-continuous-match-engine`.
+Spec 006 đã đóng và nhánh `007-continuous-match-engine` đã cắt từ `main` tại `7e1b065`.
+
+
+---
+
+## 14. Nhật ký làm rõ — bổ sung 2026-11-22 (phát hiện khi lập `/plan`)
+
+Khảo sát code trước khi viết `plan.md` tìm ra **bốn chỗ spec thiếu hoặc sai tới mức không
+lập plan được**, cộng hai chỗ sửa kèm. Người dùng chốt cả bốn trong cùng một lượt.
+
+| # | Chỗ hỏng | Đo được | Quyết định |
+|---|---|---|---|
+| 13 | **Không AC nào nói sân 5 người trông ra sao.** Trận chạy được 5–11 người và 20–90 phút, cả hai là trường thật của bản ghi; nhưng AC-37.1/37.2 chỉ định nghĩa hình học của sân 11 | `CAC_QUAN_SO` = 11…5, `CAC_THOI_LUONG` = 20…90 | **Chế độ liên tục chỉ cho sân 11** → AC-45.8 mới |
+| 14 | **AC-45.5 và AC-45.6 trỏ vào một tài liệu không có trong repo** — "mục 7b và mục 15 của bản mô tả gốc" | Bản 21 mục chưa từng được lưu vào `specs/` | **Lưu vào repo** thành `ban-mo-ta-goc.md`, AC trỏ vào đó |
+| 15 | **AC-45.3 có thể đỏ vì lấy mẫu chứ không vì mô hình sai** | Repo đã đo nhiễu **12 điểm phần trăm ở 60 mã**, lớn hơn ngưỡng 10 của chính AC | **Nới lên 200 mã**, và ghi rõ AC là hợp đồng **tạm** có ngày hết hạn là spec 010 |
+| 16 | **AC-38.8 không kiểm được từ tệp xuất**: độ cong do lớp nội suy ở tầng ui sinh ra, mà engine bị cấm import tầng ấy | `src/engine/boundaries.test.ts` quét mọi file engine | **Chấp nhận AC-38.8 là ngoại lệ** của AC-45.6, canh bằng phép kiểm thuần ở lớp vẽ |
+
+**Hai chỗ sửa kèm, không phải hỏi vì chúng không đổi ý định của ai:**
+
+- **AC-45.4 thiếu bốn trường.** Danh sách "phải lưu" bỏ sót `quanSo`, `thoiLuong`,
+  `sanTrungLap` và `doiCuaNguoiDung` — cả bốn đều đổi kết quả trận, nên thiếu chúng là sinh
+  lại ra một trận khác. Kèm theo, AC-45.4 chỉ khả thi nếu **can thiệp giữ độ phân giải
+  phút**: hôm nay `CanThiep` mang số phút nguyên và áp vào đầu phút kế tiếp (D30b của spec
+  001), còn chế độ liên tục có 60 mốc mỗi phút — cho can thiệp mang mốc giây là làm bản ghi
+  đổi hình dạng **và** làm sinh lại lệch khi người dùng bấm giữa phút.
+- **Lý lẽ của mục 10 sai.** "Mốc 0,5–1 giây là 1–2 mốc mỗi giây" nhầm **giây trận** với
+  **giây thật**: ở mức Chậm, một giây trận dài 16,7 ms thật nên mốc tới **60 lần mỗi giây
+  thật** — đúng một mốc một khung hình, không còn gì để nội suy. Vấn đề thật là **thừa mốc**,
+  không phải thiếu. Quyết định "giữ nguyên spec 005" vẫn đứng, nhưng vì một lý do khác.
+
+**Và một điều phải nói ra dù không ai hỏi:** với người bật **giảm chuyển động**, spec 007
+không mang lại gì. Lớp nội suy và lớp dao động đều tắt cho họ, nên họ nhận đúng kiểu nhảy
+mốc mà spec 005 và 006 sinh ra để chữa — chỉ là dày hơn 60 lần. Plan phải ghi điều này,
+không phải một dòng bảng để tick.
+
+---
+
+## 15. Nhật ký làm rõ — bổ sung 2026-11-23 (tám câu `plan.md` không tự quyết)
+
+`plan.md` chốt 18 quyết định thiết kế nhưng **từ chối tự trả lời tám câu**, vì mỗi câu đổi một
+điều spec chưa nói. Người dùng trả lời cả tám trong hai lượt ngày 2026-11-23, **cả tám theo
+phương án được khuyến nghị**. Ba câu trong số đó sinh ra AC mới (AC-45.9, AC-45.10, AC-45.11),
+một câu sửa số của AC-38.10, bốn câu còn lại chốt mà **không** đổi AC nào.
+
+| # | Câu hỏi | Quyết định | Spec đổi gì |
+|---|---|---|---|
+| 17 | **"Bóng chết" nghĩa là gì, và 20 giây một pha chia thế nào** (engine chỉ sinh 1,92 hành động mỗi chuỗi nên phần dư phải đi đâu đó) | **Để bốn con số trong `plan.md`, KHÔNG thành AC.** Phép kiểm chỉ khẳng định **tính nhất quán** (tổng thời lượng mỗi phút khớp 60 giây), không khẳng định giá trị | **Không đổi.** Lý do: mức thật "bóng chỉ lăn 55–60 phút" là nguyên văn phạm vi spec 010, và spec 008 sẽ **thay** định nghĩa này khi mang luật IFAB vào. Cái giá đã nói: bốn số không có AC nào canh |
+| 18 | **Ngân sách kích thước tệp xuất, và nó có vào hiến pháp không** | **11 MB, chỉ trong spec 007.** Không bump hiến pháp | **AC-45.11 mới** + một câu ở mục 6. Hiến pháp **không** đổi, nên spec 008–010 không bị ràng vào con số đo trên hình dạng dữ liệu hôm nay |
+| 19 | **Bán kính điểm cầu thủ ở chế độ liên tục** | **Giữ 2,6** (người dùng vừa xin thu 3,4 → 2,6 ở T627) | **Không đổi.** Cái giá đã nói: hai người tranh chấp vẽ thành hai đĩa chồng **71–89%**; bất biến "không hai điểm chồng khít" phải được phát biểu lại theo **đúng chữ của AC-15.2** chứ không theo cách đo hôm nay — việc của `plan.md` R58, không phải của spec |
+| 20 | **Chiều ma sát sân ướt — bản mô tả gốc tự nói ngược ở mục 10 và mục 21** | **Sân ướt thì bóng đi XA hơn** (chiều mục 21, đúng chiều AC-38.7 đang viết). Độ dài cỏ **không** vào spec 007 | **AC-38.7 không đổi**; mục 9 ghi lại xác nhận. `ban-mo-ta-goc.md` **giữ nguyên cả hai câu của người dùng** và chỉ nhận một **ghi chú phán xử** có ngày — tài liệu ấy là *lời của họ*, nên tôi không sửa lời |
+| 21 | **Người bật giảm chuyển động thấy gì ở chế độ liên tục** (AC-31.1 nói "không nội suy, không dao động" — nó không nói "ít chuyển động hơn") | **Đồng hồ mốc chạy, chỉ tắt nội suy và dao động** | **AC-45.9 mới.** Nó nói thẳng chỗ **tệ hơn hôm nay**: đường chuyền dài thành bước nhảy ~26 đơn vị, gấp 3,3 lần bước nhảy lớn nhất của người |
+| 22 | **AC-38.10 đòi một con số không dựng nổi** (15–25 m mâu thuẫn số học với AC-38.1/38.2, thiếu 1,55 m ở ca thuận lợi nhất) | **Nới dải thành 15–35 m**, giữ phép kiểm **tuyệt đối** | **AC-38.10 sửa số.** Hai mệnh đề còn lại của AC không đổi, `plan.md` D133 là chủ sở hữu |
+| 23 | **Phép kiểm AC-45.3 tốn 400 trận — trong `npm test` mặc định hay chạy theo yêu cầu?** | **Trong `npm test` mặc định.** AC-45.3 là lưới duy nhất canh "hai chế độ ra cùng một kết quả", tức canh P1 | **Không đổi.** Cái giá đã nói: suite có thể từ ~27 giây lên ~68 giây ở nhánh xấu nhất — file này một mình thêm 46–54% |
+| 24 | **Chữ "tua" ở mục 4 bước 3 nghĩa là gì** (không AC nào định nghĩa nó) | **Tua TỚI thôi** — đổi mức tốc độ và *Chạy hết trận*. **Không** tua ngược, **không** thanh thời gian | **AC-45.10 mới** + mục 4 bước 3 viết lại. Cái giá: xem lại một pha vừa trôi qua thì phải chạy lại cả trận |
+
+| 25 | **AC-38.10 vẫn không dựng nổi, lần này ở vị trí THẬT** (đo T716: 749/113.460 mốc ngoài dải 15–35 m; dải thật [5,1; 40,3] m) | **Tách thành ĐÍCH và ĐỘ TRỄ**, hai mệnh đề **tuyệt đối**, và **giữ nguyên con số 15–35 m** — không nới dải lần thứ hai | **AC-38.10 viết lại thành bốn mệnh đề**: (a) **đích** cách bóng 15–35 m — đúng 100% theo cấu trúc; (b) và (c) như cũ; **(d) mới** — vị trí thật lệch khỏi đích không quá **20 m**. ⚠️ 20 m chỉ dư **0,13 m** so với phép đo, nên **T720 phải đo lại** khi bóng có vật lý thật |
+
+| 26 | **Mệnh đề (d) vừa thêm hôm qua đã vỡ ngay khi bóng có vật lý thật** (đo T726: 46,48 m so với lề 20 m) | **Đổi neo sang chỗ pha bóng sắp tới, và nới lề lên 50 m** — giữ phép kiểm tuyệt đối, không bỏ mệnh đề | **AC-38.10 (d) sửa số** 20 → 50. Lý do không nhỏ hơn được là **số học của lưới thời gian**: mỗi hành động 2 giây, hai tâm vùng cách tới 84 m, trọng tài đi được 18 m — sàn ~33 m dù neo vào đâu. ⚠️ Cái giá: (d) nay chỉ bắt được "điểm trọng tài chết hẳn hoặc bay loạn" |
+
+**Tổng AC sau lượt này: 30** (US-37: 8, US-38: 11, US-45: 11). `plan.md` mục 6 phải phủ 30/30.
+
+### Hai chỗ lạc hậu — người dùng cho sửa, 2026-11-23
+
+`plan.md` mục 11 nêu hai chỗ spec nói sai so với code mà plan **không** tự sửa, vì sửa chúng
+đổi **lập luận** của spec chứ không phải sổ sách. Người dùng cho sửa trong cùng ngày:
+
+| # | Chỗ lạc hậu | Sự thật trên code | Đã sửa thành |
+|---|---|---|---|
+| 25 | Bốn chỗ viết "Engine v5", và câu "20 trận đã lưu **đấu lại** y nguyên". ⚠️ Danh sách bốn chỗ của `plan.md` mục 11 **thiếu**: soát chéo sau khi sửa tìm thêm **ba chỗ** mang cùng lời hứa mà không mang chữ "v5" — hàng **P3 của mục 10** (nơi mở đầu bằng "Mọi AC dưới đây PHẢI còn đúng khi spec 007 đóng", nên nó là yêu cầu **còn sống** chứ không phải lịch sử), hàng tình huống biên "engine đã đổi kể từ đó" (nói "chuyển động có thể khác" trong khi thật ra **đấu lại bị từ chối**), và quyết định 1 của nhật ký 2026-11-19. Cả ba đã xử | `PHIEN_BAN_ENGINE = 6` (`tran.ts:1316`) từ `f537d7d`; `lyDoKhongDauLai` trả `'khac-phien-ban-engine'` khi phiên bản khác (`matchRepo.ts:202`) | Engine hiện tại là **v6**. Trận lưu bằng v5 **mở và xem lại được** nhưng **không đấu lại được** — chúng đã mất nút ấy **một lần** ở spec 006, và spec 007 từ chối trả giá đó lần thứ hai. Lời hứa đúng nằm ở **AC-45.2**, vốn đã viết "bằng engine **hiện tại**" |
+| 26 | Cảnh báo của AC-45.3 ghim vào **3,95 bàn một trận** của v5 | Đo lại 2026-11-23, 200 mã × 4 hạt giống, sân trung lập: hai đội bằng nhau **2,495–2,870**; **A15 vs B10** (cặp phép kiểm thật sự dùng) **3,110–3,390** | Cảnh báo **giữ lại, viết lại bằng số của v6**. Nó **chưa** hết hiệu lực: ở đúng cặp đấu của phép kiểm, v6 **vẫn trên** dải 2–3 của spec 010, nên spec 010 vẫn phải phá AC-45.3 — chỉ là khoảng cách co từ ~0,95 bàn xuống ~0,2–0,4 bàn |
+
+> **Và một chỗ `plan.md` tự sai, đã sửa cùng lúc.** Mục 11 của plan viết v6 đo được "**2,475
+> bàn một trận** — đã nằm trong dải 2–3", rồi kết luận hợp đồng tạm của AC-45.3 "đã hết hạn
+> sớm". Con số ấy **không dựng lại được** và kết luận ấy **sai**: 2,475 là mức của hai đội
+> **bằng nhau**, còn phép kiểm AC-45.3 dùng cặp **lệch chỉ số** A15 vs B10 theo D131, và ở
+> cặp ấy cả bốn mẫu đều **trên 3**. Đây đúng là loại lỗi mà chính plan đã đặt lệnh cấm số 3
+> để chặn: trích một con số mà không kèm lệnh dựng lại được và điều kiện đo.

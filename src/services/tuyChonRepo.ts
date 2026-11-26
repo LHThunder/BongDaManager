@@ -119,3 +119,53 @@ export async function datCheDo(cheDo: CheDo): Promise<void> {
     throw chuanHoaLoiLuuTru(loi)
   }
 }
+
+/*
+  Góc nhìn sân (T772, spec 011, AC-47.4).
+
+  Đi đúng con đường của `docCheDo` / `datCheDo` ngay trên, kể cả cách xử lý
+  lỗi và cách kiểm GIÁ TRỊ chứ không chỉ kiểu.
+
+  ⛔ **KHÔNG nhét góc nhìn vào `cheDoMoPhong` của bản ghi trận** (rủi ro R61).
+  Đó là chế độ MÔ PHỎNG — một thuộc tính của trận đấu, đi vào tệp sao lưu và
+  quyết định engine nào chạy. Góc nhìn là tuỳ chọn HIỂN THỊ của người dùng, và
+  nó không được phép làm một trận đã lưu đọc ra khác đi. `backupSchema.ts:264`
+  ràng `z.enum(['co-dien','lien-tuc'])`, và `backupService.test.ts:913` đã lấy
+  đúng giá trị `'ba-chieu'` làm ví dụ chế độ lạ phải bị từ chối — tức phép kiểm
+  ấy sẽ ĐỎ nếu ai đó đi đường này.
+*/
+
+const KHOA_GOC_NHIN_SAN = 'gocNhinSan'
+
+/** Hai góc nhìn sân: sân phẳng nhìn từ trên, và sa bàn nhìn xiên. */
+export type GocNhinSan = 'phang' | 'sa-ban'
+
+/**
+ * Mặc định **sân phẳng**: sa bàn là lối xem thứ hai, không thay thế lối cũ.
+ *
+ * Sân 2D là chủ sở hữu của hàng chục AC đã đóng ở spec 002/004/005/006, nên
+ * người chưa bấm gì phải thấy đúng thứ họ vẫn thấy.
+ */
+export const GOC_NHIN_SAN_MAC_DINH: GocNhinSan = 'phang'
+
+export async function docGocNhinSan(): Promise<GocNhinSan> {
+  try {
+    const db = await moDb()
+    const hang = await db.get('meta', KHOA_GOC_NHIN_SAN)
+    return hang?.value === 'phang' || hang?.value === 'sa-ban'
+      ? hang.value
+      : GOC_NHIN_SAN_MAC_DINH
+  } catch (loi) {
+    void loi
+    return GOC_NHIN_SAN_MAC_DINH
+  }
+}
+
+export async function datGocNhinSan(gocNhin: GocNhinSan): Promise<void> {
+  try {
+    const db = await moDb()
+    await db.put('meta', { key: KHOA_GOC_NHIN_SAN, value: gocNhin })
+  } catch (loi) {
+    throw chuanHoaLoiLuuTru(loi)
+  }
+}

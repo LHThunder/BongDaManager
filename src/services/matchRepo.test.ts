@@ -9,7 +9,18 @@ import {
   taoTran,
   type TrangThaiTran,
 } from '../engine/tran'
-import { DB_NAME, dongDb, type AnhChupDoi, type TranDaLuu } from '../storage/db'
+import {
+  DB_NAME,
+  DB_VERSION,
+  dongDb,
+  type AnhChupDoi,
+  type TranDaLuu,
+} from '../storage/db'
+import {
+  chayHetTranLienTuc,
+  PHIEN_BAN_ENGINE_LIEN_TUC,
+  taoTranLienTuc,
+} from '../engine/lienTuc/tranLienTuc'
 import * as matchRepo from './matchRepo'
 
 /*
@@ -378,5 +389,152 @@ describe('quân số và thời lượng của trận đã lưu', () => {
     const cac = await matchRepo.danhSach()
     expect(cac[0].quanSo).toBe(5)
     expect(cac[0].thoiLuong).toBe(20)
+  })
+})
+
+/*
+  Chế độ mô phỏng đi qua lớp lưu trữ (T708, D122, AC-45.1 + P7).
+
+  Phép kiểm xương sống là cái mang chữ BẪY: một bản ghi CÓ `quanSo` và
+  `thoiLuong` nhưng KHÔNG có chế độ — tức bản ghi của spec 002 tới 006 — vẫn
+  phải đọc ra `'co-dien'`. Nó là phép kiểm duy nhất bắt được cái bẫy ở đường rẽ
+  sớm của `dienMacDinh`: nếu đường ấy chỉ hỏi hai trường thì bản ghi kiểu này
+  trả về sớm với chế độ vẫn `undefined`, và cả ứng dụng lại phải tự đoán.
+*/
+describe('chế độ mô phỏng trong bản ghi (T708, AC-45.1)', () => {
+  it('DB_VERSION giữ nguyên 3 — thêm trường tuỳ chọn, không migration', () => {
+    expect(DB_VERSION).toBe(3)
+  })
+
+  it('bản ghi không có chế độ đọc ra co-dien', () => {
+    const cu = tranThu(0)
+    expect(cu.cheDoMoPhong, 'fixture phải là bản ghi kiểu CŨ').toBeUndefined()
+    expect(matchRepo.cheDoCua(cu)).toBe('co-dien')
+  })
+
+  it('bản ghi có chế độ đọc ra đúng chế độ ấy', () => {
+    for (const cheDo of ['co-dien', 'lien-tuc'] as const) {
+      const tran: TranDaLuu = { ...tranThu(0), cheDoMoPhong: cheDo }
+      expect(matchRepo.cheDoCua(tran), cheDo).toBe(cheDo)
+    }
+  })
+
+  it('BẪY: bản ghi CÓ quanSo và thoiLuong mà KHÔNG có chế độ vẫn được điền', async () => {
+    const cu = tranThu(1)
+    expect(cu.quanSo).not.toBeUndefined()
+    expect(cu.thoiLuong).not.toBeUndefined()
+    expect(cu.cheDoMoPhong).toBeUndefined()
+
+    await matchRepo.luu(cu)
+
+    const daDoc = await matchRepo.doc(cu.id)
+    expect(daDoc?.cheDoMoPhong, 'đường rẽ sớm của dienMacDinh đã bỏ sót').toBe(
+      'co-dien',
+    )
+
+    const ds = await matchRepo.danhSach()
+    const nhe = ds.find((t) => t.id === cu.id)
+    expect(nhe?.cheDoMoPhong).toBe('co-dien')
+  })
+
+  it('bản ghi liên tục lưu rồi đọc lại vẫn là liên tục', async () => {
+    const moi: TranDaLuu = { ...tranThu(2), cheDoMoPhong: 'lien-tuc' }
+    await matchRepo.luu(moi)
+    expect((await matchRepo.doc(moi.id))?.cheDoMoPhong).toBe('lien-tuc')
+    expect(matchRepo.cheDoCua((await matchRepo.doc(moi.id))!)).toBe('lien-tuc')
+  })
+
+  it('tomTatCua mang chế độ sang phần nhẹ', () => {
+    const moi: TranDaLuu = { ...tranThu(3), cheDoMoPhong: 'lien-tuc' }
+    expect(matchRepo.tomTatCua(moi).cheDoMoPhong).toBe('lien-tuc')
+    expect(matchRepo.tomTatCua(tranThu(3)).cheDoMoPhong).toBeUndefined()
+  })
+
+  it('hai chế độ mang HAI số phiên bản engine riêng', () => {
+    /*
+      Đây là chỗ giữ cho 20 trận đã lưu bằng v6 không mất nút đấu lại lần thứ
+      hai: `lyDoKhongDauLai` so `tran.phienBanEngine` với số của CHẾ ĐỘ của
+      chính trận ấy, không với một số dùng chung.
+    */
+    expect(matchRepo.phienBanEngineHienTaiCua('co-dien')).toBe(6)
+    expect(matchRepo.phienBanEngineHienTaiCua('lien-tuc')).toBe(101)
+    expect(matchRepo.phienBanEngineHienTaiCua('lien-tuc')).not.toBe(
+      matchRepo.phienBanEngineHienTaiCua('co-dien'),
+    )
+  })
+
+  it('và một trận v6 đã lưu vẫn ĐẤU LẠI ĐƯỢC ở chế độ của nó', () => {
+    const cu = tranThu(4)
+    expect(cu.phienBanEngine).toBe(6)
+    expect(
+      matchRepo.lyDoKhongDauLai(
+        matchRepo.tomTatCua(cu),
+        matchRepo.phienBanEngineHienTaiCua(matchRepo.cheDoCua(cu)),
+        () => true,
+      ),
+    ).toBeNull()
+  })
+})
+
+/*
+  Một trận LIÊN TỤC đã lưu vẫn đấu lại được (T709 phần 3, AC-45.4, D122).
+
+  Đây là ca đã ĐỎ khi được viết ra, và nó là lý do `taoTranLienTuc` phải tự
+  đóng dấu số phiên bản của mình. Trước khi sửa: `taoTranLienTuc` gọi `taoTran`
+  rồi chỉ đè `hatGiong`, nên `phienBanEngine` của trận liên tục **vẫn là 6**;
+  còn `phienBanEngineHienTaiCua('lien-tuc')` trả **101** và `lyDoKhongDauLai`
+  so bằng `!==`. Hệ quả: MỌI trận liên tục vừa lưu xong là mất ngay nút đấu
+  lại — đúng thứ mà hai số phiên bản riêng của T708 sinh ra để tránh.
+*/
+describe('trận liên tục đã lưu vẫn ĐẤU LẠI ĐƯỢC (T709, AC-45.4)', () => {
+  /** Một trận liên tục chạy hết, đóng thành bản ghi. */
+  function tranLienTucDaLuu(i: number): TranDaLuu {
+    const ma = MA_TRAN_CO_DINH[i % MA_TRAN_CO_DINH.length]
+    const lt = chayHetTranLienTuc(
+      taoTranLienTuc({ ...cauHinhMau(ma), cheDoMoPhong: 'lien-tuc' }),
+    )
+    return {
+      ...tranDaLuu(lt.tran, `lt-${String(i).padStart(3, "0")}`, 2_000 + i),
+      cheDoMoPhong: 'lien-tuc',
+    }
+  }
+
+  it('trạng thái của trận liên tục mang số 101, không phải 6', () => {
+    const ban = tranLienTucDaLuu(0)
+    expect(ban.phienBanEngine).toBe(PHIEN_BAN_ENGINE_LIEN_TUC)
+  })
+
+  it('và lyDoKhongDauLai trả null — nút đấu lại CÒN', () => {
+    const ban = tranLienTucDaLuu(1)
+    expect(
+      matchRepo.lyDoKhongDauLai(
+        matchRepo.tomTatCua(ban),
+        matchRepo.phienBanEngineHienTaiCua(matchRepo.cheDoCua(ban)),
+        () => true,
+      ),
+    ).toBeNull()
+  })
+
+  /*
+    Ca chống tầm thường: hai số KHÔNG được hoán đổi cho nhau. Nếu một ngày
+    `taoTran` cũng trả 101 thì hai ca trên vẫn xanh mà cả cơ chế đã hỏng.
+  */
+  it('trận cổ điển vẫn mang 6, và hai chế độ KHÔNG chéo nhau', () => {
+    const coDien = tranThu(0)
+    expect(coDien.phienBanEngine).toBe(6)
+    expect(
+      matchRepo.lyDoKhongDauLai(
+        matchRepo.tomTatCua(coDien),
+        matchRepo.phienBanEngineHienTaiCua('lien-tuc'),
+        () => true,
+      ),
+    ).toBe('khac-phien-ban-engine')
+    expect(
+      matchRepo.lyDoKhongDauLai(
+        matchRepo.tomTatCua(tranLienTucDaLuu(2)),
+        matchRepo.phienBanEngineHienTaiCua('co-dien'),
+        () => true,
+      ),
+    ).toBe('khac-phien-ban-engine')
   })
 })

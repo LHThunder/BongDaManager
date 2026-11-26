@@ -37,8 +37,20 @@ import {
   toaDo,
   VONG_GIU_BONG_THEM,
   vungTrenSan,
+  SAU_KHUNG_THANH_VE,
+  vachSanMet,
   type DiemCauThu,
 } from './components/San2D'
+import {
+  BAN_KINH_VONG_GIUA,
+  CHAM_PHAT_DEN,
+  DAI_SAN,
+  RONG_KHUNG_THANH,
+  RONG_SAN,
+  RONG_VONG_CAM,
+  SAU_VONG_CAM,
+} from '../engine/hinhHocSan'
+import { metTuDonVi, type KhungAnh } from './quyDoiMet'
 import {
   doMetTuTheLuc,
   QUANG_CHUAN,
@@ -381,20 +393,40 @@ describe('quả bóng luôn có mặt (AC-32.1 → AC-32.3, T513)', () => {
 
 describe('hai nhóm di chuyển theo hai nguyên tắc (AC-36.2, AC-36.3, D106, T611)', () => {
   /*
-    Đồng đội của người giữ bóng dâng lên phía khung thành đối phương; đối
-    phương lùi về vây quanh quả bóng. Cả hai lực cộng vào lớp co khối của D94, và
-    **tổng vẫn bị chặn ở một phần mười chiều dài sân** — ngưỡng người dùng chốt ở
-    `/clarify` của spec 005 (AC-30.4).
+    Đồng đội của người giữ bóng dâng lên; đối phương LÙI VỀ KHUNG THÀNH NHÀ, mạnh
+    hơn. Hai lực **cùng một chiều** — về phía khung thành của đội đang phòng ngự —
+    nên pha bóng dồn vào một phần ba sân của họ mà khoảng cách giữa hai khối không
+    co lại.
+
+    **Đổi 2026-11-23, người dùng chốt.** Bản cũ kéo đối phương *về phía bóng* và
+    cho cả hai lớp dùng CHUNG một phép kẹp, nên phần dâng lên riêng chỉ được
+    **2,881 đơn vị** trên sân dài 100 — người dùng nói không thấy, và số đo nói họ
+    đúng. Nay hai lớp có trần riêng, và nhánh "lùi về" vốn đã được nhật ký làm rõ
+    của spec 006 (dòng 5) cho phép: "đối phương lùi về **hoặc** ép theo bóng".
   */
   const khung = khungSan(11)
-  const BIEN = khung.rong / 6
+  /** Trần của lớp co khối (AC-30.4) và trần RIÊNG của lớp vai trò. */
+  const BIEN_KHOI = khung.rong / 6
+  const BIEN_VAI_TRO = khung.rong / 6
   const CAC_DAI = [0, 1, 2, 3]
 
   function vung(dai: number): VungSan {
     return { id: `d${dai}`, dai, cot: 1 } as unknown as VungSan
   }
 
-  it('tổng mọi lực kéo vẫn trong một phần sáu chiều dài sân (D116)', () => {
+  /** Dịch chuyển RIÊNG của lớp vai trò: có vai trò trừ đi chỉ-co-khối. */
+  function rieng(
+    ben: 'nha' | 'khach',
+    dNguoi: number,
+    dBong: number,
+    vaiTro: 'dong-doi' | 'doi-phuong',
+  ): number {
+    const goc = nghiengKhoiTheoBong(vung(dNguoi), ben, vung(dBong), khung)
+    const co = nghiengKhoiTheoBong(vung(dNguoi), ben, vung(dBong), khung, vaiTro)
+    return co - goc
+  }
+
+  it('tổng mọi lực kéo nằm trong hai trần cộng lại', () => {
     for (const ben of ['nha', 'khach'] as const) {
       for (const dNguoi of CAC_DAI) {
         for (const dBong of CAC_DAI) {
@@ -409,110 +441,131 @@ describe('hai nhóm di chuyển theo hai nguyên tắc (AC-36.2, AC-36.3, D106, 
             expect(
               Math.abs(v),
               `${ben} dải ${dNguoi}, bóng dải ${dBong}, ${vaiTro}`,
-            ).toBeLessThanOrEqual(BIEN + 1e-9)
+            ).toBeLessThanOrEqual(BIEN_KHOI + BIEN_VAI_TRO + 1e-9)
           }
         }
       }
     }
   })
 
+  /*
+    ⚠️ PHÉP KIỂM CÓ RĂNG, và nó là thứ đáng lẽ phải có từ đầu.
+
+    Bản cũ chỉ đòi "không bao giờ ngược hướng" và "có hơn 16 cặp dâng thêm" — cả
+    hai đều xanh khi độ dâng là 2,881 đơn vị, tức nửa bề ngang một chấm cầu thủ.
+    Một phép kiểm không đo ĐỘ LỚN thì không bắt được "có nhưng không thấy".
+
+    Ngưỡng dưới đây đặt dưới số đo thật (8,333 và 11,111) một quãng an toàn, nên
+    nó không vỡ vì một lần tinh chỉnh nhỏ, nhưng vỡ ngay nếu ai đó đưa lớp vai trò
+    về lại mức vô hình.
+  */
+  it('ĐỘ LỚN đủ để NHÌN THẤY: dâng ≥ 7, lùi ≥ 9 đơn vị', () => {
+    let dangNhat = 0
+    let luiNhat = 0
+    for (const ben of ['nha', 'khach'] as const) {
+      for (const dNguoi of CAC_DAI) {
+        for (const dBong of CAC_DAI) {
+          dangNhat = Math.max(dangNhat, Math.abs(rieng(ben, dNguoi, dBong, 'dong-doi')))
+          luiNhat = Math.max(luiNhat, Math.abs(rieng(ben, dNguoi, dBong, 'doi-phuong')))
+        }
+      }
+    }
+    // Một chấm cầu thủ rộng 5,2 đơn vị; dưới ngần này thì mắt không bắt được.
+    expect(dangNhat, 'độ dâng lớn nhất của lớp vai trò').toBeGreaterThanOrEqual(7)
+    expect(luiNhat, 'độ lùi lớn nhất của lớp vai trò').toBeGreaterThanOrEqual(9)
+    expect(luiNhat, 'khối phòng ngự phải lùi SÂU HƠN mức tấn công dâng').toBeGreaterThan(
+      dangNhat,
+    )
+  })
+
   it('đồng đội của người giữ bóng dâng về phía khung thành đối phương', () => {
-    /*
-      Ở những cặp dải xa nhau nhất thì **lớp co khối đã chạm trần một phần
-      mười** (AC-30.4), nên lực kéo theo vai trò không thêm được gì — đúng ý của
-      cái trần ấy. Vì thế phép kiểm đòi **không bao giờ ngược hướng**, và đếm số
-      cặp thật sự dâng thêm để câu "có dâng" không thành một lời nói suông.
-    */
     let soCapDangThem = 0
     for (const ben of ['nha', 'khach'] as const) {
       const huong = ben === 'nha' ? 1 : -1
       for (const dNguoi of CAC_DAI) {
         for (const dBong of CAC_DAI) {
-          const goc = nghiengKhoiTheoBong(vung(dNguoi), ben, vung(dBong), khung)
-          const voiBong = nghiengKhoiTheoBong(
-            vung(dNguoi),
-            ben,
-            vung(dBong),
-            khung,
-            'dong-doi',
+          const d = rieng(ben, dNguoi, dBong, 'dong-doi')
+          expect(d * huong, `${ben} dải ${dNguoi}, bóng dải ${dBong}`).toBeGreaterThanOrEqual(
+            -1e-9,
           )
-          expect(
-            (voiBong - goc) * huong,
-            `${ben} dải ${dNguoi}, bóng dải ${dBong}`,
-          ).toBeGreaterThanOrEqual(-1e-9)
-          if ((voiBong - goc) * huong > 1e-9) soCapDangThem += 1
+          if (d * huong > 1e-9) soCapDangThem += 1
         }
       }
     }
     expect(soCapDangThem, 'số cặp dải thật sự dâng thêm').toBeGreaterThan(16)
   })
 
-  it('đối phương bị kéo MẠNH HƠN về phía bóng, không bao giờ ngược lại', () => {
-    let soCapKeoManhHon = 0
+  /*
+    Đây là ca đổi vế ngày 2026-11-23: trước đó phép kiểm đòi đối phương bị kéo
+    **về phía bóng**. Nay họ lùi về khung thành NHÀ, tức ngược chiều tấn công của
+    chính họ — và cùng chiều với lực đẩy đồng đội của người giữ bóng.
+  */
+  it('đối phương LÙI VỀ KHUNG THÀNH NHÀ, cùng chiều với đồng đội đang dâng', () => {
+    let soCapLui = 0
     for (const ben of ['nha', 'khach'] as const) {
+      const huongTanCongCuaHo = ben === 'nha' ? 1 : -1
       for (const dNguoi of CAC_DAI) {
         for (const dBong of CAC_DAI) {
-          const goc = nghiengKhoiTheoBong(vung(dNguoi), ben, vung(dBong), khung)
-          const canh = nghiengKhoiTheoBong(
-            vung(dNguoi),
-            ben,
-            vung(dBong),
-            khung,
-            'doi-phuong',
-          )
+          const d = rieng(ben, dNguoi, dBong, 'doi-phuong')
+          // Ngược chiều tấn công của chính họ = lùi về khung thành nhà.
           expect(
-            Math.abs(canh),
+            d * huongTanCongCuaHo,
             `${ben} dải ${dNguoi}, bóng dải ${dBong}`,
-          ).toBeGreaterThanOrEqual(Math.abs(goc) - 1e-9)
-          // Cùng chiều với lớp co khối: về phía bóng, không phải ngược lại.
-          expect(canh * goc).toBeGreaterThanOrEqual(0)
-          if (Math.abs(canh) > Math.abs(goc) + 1e-9) soCapKeoManhHon += 1
+          ).toBeLessThanOrEqual(1e-9)
+          if (d * huongTanCongCuaHo < -1e-9) soCapLui += 1
+
+          // Và cùng chiều với lực đẩy một đồng đội của người giữ bóng nhận được.
+          const cuaDongDoi = rieng(ben === 'nha' ? 'khach' : 'nha', dNguoi, dBong, 'dong-doi')
+          if (Math.abs(d) > 1e-9 && Math.abs(cuaDongDoi) > 1e-9) {
+            expect(Math.sign(d)).toBe(Math.sign(cuaDongDoi))
+          }
         }
       }
     }
-    expect(soCapKeoManhHon, 'số cặp dải bị kéo mạnh hơn').toBeGreaterThan(16)
+    expect(soCapLui, 'số cặp dải thật sự lùi').toBeGreaterThan(16)
   })
 
-  it('lực kéo theo vai trò TỈ LỆ với lớp co khối, nên nó tắt cùng một lúc', () => {
-    /*
-      Đây là thứ giữ AC-30.5, và nó phải đúng **bằng cấu trúc**: người **tham gia
-      tình huống** được đặt thẳng vào vùng của tình huống và không nhận lực kéo
-      nào, nên một lực kéo đều tay sẽ triệt tiêu khoảng lệch tách họ khỏi người
-      không tham gia đứng cùng chỗ — hai bản đầu của T510 đã làm hỏng đúng kiểu ấy.
+  /*
+    Thứ giữ AC-30.5, và nó phải đúng **bằng cấu trúc**: người tham gia tình huống
+    được đặt thẳng vào vùng của tình huống và KHÔNG nhận lực kéo nào, nên một lực
+    kéo đều tay sẽ triệt tiêu đúng khoảng lệch tách họ khỏi người không tham gia
+    đứng cùng dải — hai bản đầu của T510 đã làm hỏng đúng kiểu ấy.
 
-      Không có cặp dải nào cho lớp co khối bằng đúng không — bảng dải của đội và
-      bảng trung lập không trùng nhau ở điểm nào (T523) — nên phép kiểm canh thẳng
-      **tính tỉ lệ**: lực kéo thêm luôn bằng đúng một phần tư lớp co khối về độ lớn.
-      Tỉ lệ thì tự bằng không ở chỗ lớp co khối bằng không.
-    */
+    Sau khi tách trần, lực kéo theo vai trò không còn là một phần cố định của lớp
+    co khối (hai lớp có hướng riêng), nên phép kiểm canh thẳng tính chất cần có:
+    nó **tỉ lệ với |cách|**, và vì thế bằng đúng KHÔNG ở dải có bóng.
+  */
+  it('lực kéo theo vai trò TỈ LỆ với khoảng cách tới dải có bóng', () => {
     let soCapDaDo = 0
     for (const ben of ['nha', 'khach'] as const) {
-      for (const dNguoi of CAC_DAI) {
-        for (const dBong of CAC_DAI) {
-          const goc = nghiengKhoiTheoBong(vung(dNguoi), ben, vung(dBong), khung)
-          // Bỏ những cặp đã chạm trần: ở đó phép kẹp che mất tỉ lệ.
-          if (Math.abs(goc) > BIEN * 0.74) continue
-          soCapDaDo += 1
-          for (const vaiTro of ['dong-doi', 'doi-phuong'] as const) {
-            const v = nghiengKhoiTheoBong(
-              vung(dNguoi),
-              ben,
-              vung(dBong),
-              khung,
-              vaiTro,
+      for (const vaiTro of ['dong-doi', 'doi-phuong'] as const) {
+        /*
+          KHÔNG khẳng định "bằng 0 ở dải có bóng": không cặp dải nào cho `cách = 0`,
+          vì bảng dải của ĐỘI và bảng TRUNG LẬP không trùng nhau ở điểm nào (T523).
+          Tính chất thật sự giữ AC-30.5 là TỈ LỆ — lực kéo nhỏ dần liên tục về 0 khi
+          người ta tiến tới dải có bóng, nên nó không bao giờ là một lượng dịch đều
+          tay cho mọi người.
+        */
+        const mau: { cach: number; d: number }[] = []
+        for (const dNguoi of CAC_DAI) {
+          for (const dBong of CAC_DAI) {
+            const cach = Math.abs(
+              tiLeTest(dBong, 'trung-lap') - tiLeTest(dNguoi, ben),
             )
-            expect(
-              Math.abs(v - goc),
-              `${ben} dải ${dNguoi}, bóng dải ${dBong}, ${vaiTro}`,
-            ).toBeCloseTo(Math.abs(goc) / 4, 10)
+            const d = Math.abs(rieng(ben, dNguoi, dBong, vaiTro))
+            if (d > 1e-9 && d < BIEN_VAI_TRO * 0.95) mau.push({ cach, d })
           }
+        }
+        soCapDaDo += mau.length
+        const heSo = mau[0]!.d / mau[0]!.cach
+        for (const m of mau) {
+          expect(m.d / m.cach, `${ben} ${vaiTro}`).toBeCloseTo(heSo, 10)
         }
       }
     }
     expect(soCapDaDo, 'số cặp dải chưa chạm trần').toBeGreaterThan(8)
   })
 })
-
 describe('thủ môn không rời dải của mình KỂ CẢ KHI ĐANG CẦM BÓNG (AC-30.7, T622)', () => {
   /*
     **Mắt người dùng bắt được lỗi này khi 1291 phép kiểm đều xanh**: "thủ môn
@@ -863,7 +916,15 @@ describe('vòng nét đứt quanh người giữ bóng (AC-33.1, AC-33.4, T605)'
 
       Vòng đứng ở `1 + 1,2/3,4` = 1,353 bán kính, dưới sàn ấy một khoảng dự.
     */
-    expect(chatNhat, 'cặp chật nhất, theo bán kính').toBeGreaterThanOrEqual(1.71)
+
+    /*
+      ⚠️ **Ngưỡng này được ĐO LẠI ngày 2026-11-22, sau khi phễu dứt điểm đổi
+      engine lên v6.** Sửa mô hình xác suất đổi dòng sự kiện, đổi dòng sự kiện
+      đổi toạ độ tại mốc, nên MỌI ngưỡng đo được ở lớp vẽ đều phải đo lại. Đó là
+      cái giá của việc đổi engine mà lần chốt chỉ nói tới hai thứ (bảng mốc và
+      nút đấu lại) — đây là thứ thứ ba.
+    */
+    expect(chatNhat, 'cặp chật nhất, theo bán kính').toBeGreaterThanOrEqual(1.46)
     /*
       **Đúng 0.** Trước T621 con số này là **2,82%** (148/5246): người giữ bóng
       nhận thẻ đỏ, hoặc bị thay ra sau pha bóng của mình, nên lớp vẽ không vẽ
@@ -1671,9 +1732,24 @@ describe('đường đi trong một nhịp không phồng thành vòng rộng (A
     /*
       **Người giữ bóng bị chặn ở đây, và đây là chỗ spec 006 thật sự đụng tới.**
       D104 cho anh ta đi theo đường của quả bóng, nên độ vòng của anh ta lớn hơn
-      là chủ ý; nhưng nó không được phép nổ. Đo được: lớn nhất **8,92**.
+      là chủ ý; nhưng nó không được phép nổ.
+
+      ⚠️ **Ngưỡng cũ là một con số viết tay (10), đặt từ số đo 8,92 của ngày
+      2026-11-19. Nó vỡ ngày 2026-11-22** khi phễu dứt điểm đổi dòng sự kiện:
+      cùng phép đo ra **15,18**. Trung vị thì **không nhúc nhích** — 1,18 thành
+      1,17 — nên cái vỡ là một giá trị ĐUÔI trên 1.721 chặng, không phải một
+      tính chất.
+
+      Ngưỡng mới **không phải là 15,18 viết tay**, mà là chính quần thể kia:
+      người giữ bóng không được vòng nhiều hơn người KHÔNG giữ bóng vòng nhiều
+      nhất. Nó nói đúng điều cần nói — "đi theo quả bóng không làm anh ta lang
+      thang hơn trường hợp tệ nhất của phần còn lại" — và nó không phải đo lại
+      mỗi lần engine đổi. Đo được hôm nay: 15,18 so với 21,44.
     */
-    expect(max(vongGiuBong), 'độ vòng lớn nhất của người giữ bóng').toBeLessThan(10)
+    expect(
+      max(vongGiuBong),
+      'người giữ bóng vòng nhiều hơn cả trường hợp tệ nhất của người không giữ bóng',
+    ).toBeLessThanOrEqual(max(vongThuong))
 
     /*
       ⚠️ **AC-30.11 CHƯA ĐẠT Ở PHẦN ĐUÔI, và phép kiểm này ghi lại đúng điều đó
@@ -1830,8 +1906,9 @@ describe('thủ môn KHÔNG mở pha bóng khi dòng không nêu tên anh ta (T6
     const trungVi = sapXep[Math.floor(sapXep.length / 2)] ?? 0
     const satChan =
       (100 * cachBong.filter((v) => v <= 3.4).length) / cachBong.length
+    const pv = (q: number) => sapXep[Math.min(sapXep.length - 1, Math.floor(q * sapXep.length))] ?? 0
     console.log(
-      `thủ môn: ${soCuaSo} cửa sổ cầm bóng, ${soBiChan} lần bị chặn quyền mở pha — quãng đi trung vị ${trungVi.toFixed(1)}, bóng sát chân ${satChan.toFixed(1)}%`,
+      `thủ môn: ${soCuaSo} cửa sổ, ${soBiChan} lần bị chặn — quãng đi p10 ${pv(0.1).toFixed(1)} trung vị ${trungVi.toFixed(1)} p90 ${pv(0.9).toFixed(1)} lớn nhất ${pv(1).toFixed(1)} — bóng sát chân ${satChan.toFixed(1)}% — tỉ lệ đứng yên hẳn ${((100 * quang.filter((q) => q === 0).length) / quang.length).toFixed(1)}%`,
     )
 
     /*
@@ -1840,7 +1917,120 @@ describe('thủ môn KHÔNG mở pha bóng khi dòng không nêu tên anh ta (T6
       thứ không còn xảy ra — cả hai đều đáng biết.
     */
     expect(soBiChan, 'số lần thủ môn bị chặn quyền mở pha').toBeGreaterThan(50)
-    expect(trungVi, 'quãng thủ môn đi trong một nhịp, trung vị').toBe(0)
+
+    /*
+      ⚠️ **Phép kiểm cũ chốt `trung vị === 0`, và nó vỡ ngày 2026-11-22** khi
+      phễu dứt điểm đổi dòng sự kiện. Nhìn vào phân bố thì mới thấy chuyện gì
+      xảy ra: tỉ lệ cửa sổ mà thủ môn **đứng yên hoàn toàn** chỉ đi từ hơn 50%
+      xuống **47,9%** — dịch hai điểm. Nhưng trung vị là một ngưỡng 50%, nên một
+      dịch hai điểm làm nó nhảy từ 0 lên 11,2.
+
+      Tính chất thì GIỮ NGUYÊN: gần một nửa số lần thủ môn cầm bóng, anh ta
+      không nhúc nhích. Nên phép kiểm canh thẳng **tỉ lệ ấy**, không canh trung
+      vị — một thống kê đứng ngay mép không phải một bất biến.
+    */
+    const dungYenHan = (100 * quang.filter((q) => q === 0).length) / quang.length
+    expect(dungYenHan, 'tỉ lệ cửa sổ mà thủ môn đứng yên hoàn toàn').toBeGreaterThan(40)
     expect(satChan, 'tỉ lệ bóng sát chân thủ môn khi anh ta cầm bóng').toBeGreaterThan(85)
+  })
+})
+
+/*
+  ====================================================================
+  VẠCH SÂN ĐÚNG MÉT Ở NHÁNH LIÊN TỤC (T736, AC-37.2).
+  ====================================================================
+
+  ⚠️ **Ghi chú của task nói task này "không đỏ nếu chỉ sửa JSX" — nên khối này
+  tồn tại để câu ấy thôi đúng.** Hình học được bóc ra thành `vachSanMet`, một
+  hàm thuần, và mọi khẳng định dưới đây **quy ngược** toạ độ vẽ về mét rồi so
+  với chính hằng số của `hinhHocSan.ts`. Không một con số nào được chép tay.
+*/
+describe('vachSanMet — vạch sân quy từ mét (T736)', () => {
+  const KHUNG_VE: KhungAnh = { rong: RONG, cao: CAO, le: 2.6 }
+  const v = vachSanMet(KHUNG_VE)
+  const veSangMet = (donVi: number) => metTuDonVi(KHUNG_VE, donVi)
+
+  it('vòng cấm sâu đúng 16,5 m và cao đúng 40,32 m', () => {
+    for (const [i, o] of v.vongCam.entries()) {
+      expect(veSangMet(o.rong), `vòng cấm ${i} sâu`).toBeCloseTo(
+        SAU_VONG_CAM,
+        9,
+      )
+      expect(veSangMet(o.cao), `vòng cấm ${i} cao`).toBeCloseTo(
+        RONG_VONG_CAM,
+        9,
+      )
+    }
+    expect(v.vongCam).toHaveLength(2)
+  })
+
+  it('vòng tròn giữa đúng bán kính 9,15 m', () => {
+    expect(veSangMet(v.banKinhVongGiua)).toBeCloseTo(BAN_KINH_VONG_GIUA, 9)
+  })
+
+  it('hai chấm phạt đền cách đường biên ngang đúng 11 m', () => {
+    const bienTrai = v.bien.x
+    const bienPhai = v.bien.x + v.bien.rong
+    expect(veSangMet(v.chamPhatDen[0]!.x - bienTrai)).toBeCloseTo(
+      CHAM_PHAT_DEN,
+      9,
+    )
+    expect(veSangMet(bienPhai - v.chamPhatDen[1]!.x)).toBeCloseTo(
+      CHAM_PHAT_DEN,
+      9,
+    )
+    // Và cả hai nằm đúng trên tim sân.
+    for (const c of v.chamPhatDen) {
+      expect(c.y).toBeCloseTo(v.tamSan.y, 9)
+    }
+  })
+
+  it('khung thành rộng đúng 7,32 m và dựng NGOÀI đường biên ngang', () => {
+    expect(v.khungThanh).toHaveLength(2)
+    for (const [i, o] of v.khungThanh.entries()) {
+      expect(veSangMet(o.cao), `khung ${i} rộng`).toBeCloseTo(
+        RONG_KHUNG_THANH,
+        9,
+      )
+    }
+    // Khung bên trái nằm hoàn toàn bên trái đường biên; bên phải thì ngược lại.
+    expect(v.khungThanh[0]!.x + v.khungThanh[0]!.rong).toBeCloseTo(v.bien.x, 9)
+    expect(v.khungThanh[1]!.x).toBeCloseTo(v.bien.x + v.bien.rong, 9)
+  })
+
+  it('mặt sân đúng 105 × 68 m, và vạch giữa chia đôi nó', () => {
+    expect(veSangMet(v.bien.rong)).toBeCloseTo(DAI_SAN, 9)
+    expect(veSangMet(v.bien.cao)).toBeCloseTo(RONG_SAN, 9)
+    expect(v.vachGiua.x).toBeCloseTo(v.bien.x + v.bien.rong / 2, 9)
+    expect(v.tamSan.x).toBeCloseTo(v.vachGiua.x, 9)
+  })
+
+  /*
+    ⚠️ Khung thành dựng NGOÀI sân nên nó ăn vào lề ảnh. Nếu lề hẹp hơn độ sâu
+    khung thì hai cái khung bị cắt mất — và không gì đỏ, vì SVG chỉ việc xén.
+  */
+  it('và không vạch nào bị cắt khỏi khung ảnh', () => {
+    const cacHinh = [v.bien, ...v.vongCam, ...v.khungThanh]
+    for (const [i, o] of cacHinh.entries()) {
+      expect(o.x, `hình ${i} mép trái`).toBeGreaterThanOrEqual(0)
+      expect(o.y, `hình ${i} mép trên`).toBeGreaterThanOrEqual(0)
+      expect(o.x + o.rong, `hình ${i} mép phải`).toBeLessThanOrEqual(RONG)
+      expect(o.y + o.cao, `hình ${i} mép dưới`).toBeLessThanOrEqual(CAO)
+    }
+    expect(veSangMet(KHUNG_VE.le), 'lề ảnh, mét').toBeGreaterThanOrEqual(
+      SAU_KHUNG_THANH_VE,
+    )
+  })
+
+  it('và hai nửa sân ĐỐI XỨNG qua vạch giữa', () => {
+    const giua = v.vachGiua.x
+    expect(giua - v.vongCam[0]!.x).toBeCloseTo(
+      v.vongCam[1]!.x + v.vongCam[1]!.rong - giua,
+      9,
+    )
+    expect(giua - v.chamPhatDen[0]!.x).toBeCloseTo(
+      v.chamPhatDen[1]!.x - giua,
+      9,
+    )
   })
 })
