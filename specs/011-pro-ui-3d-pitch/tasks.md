@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **52 AC**, nhóm 46–53) |
 | **Plan** | `./plan.md` (Status `Draft`, D130–D143, R60–R66) |
-| **Tiến độ** | 31/50 — Phase 62 dừng ở T777 (xem khối ⛔ ở đó); Phase 63, 64, 65 xong |
+| **Tiến độ** | 34/50 — Phase 62 dừng ở T777; Phase 63–65 xong; Phase 66 đo được 3/6, ba phép đo nhịp khung bị chặn |
 | **Nền đo** | commit `5265d37`, engine v6, **84 file test / 1.733 phép kiểm xanh**, bộ kiểm chạy hết **152 giây** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -737,48 +737,140 @@
   - Xong khi: **năm** con số khung/giây, mỗi mức đạt **59**; và thân hàm khung hình lớn nhất được ghi ra, như spec 005 đã ghi.
   - AC: AC-51.1
   - Phụ thuộc: T803, **T791** — AC-51.1 đo "kể cả khi 22 lớp phủ số áo cùng được vẽ", nên số áo (T787) phải có trước phép đo, không sau
+  - ⏸ **KHÔNG ĐO ĐƯỢC — cùng gốc với T775, và lần này có bằng chứng dứt khoát.**
+    Khung xem trình duyệt của phiên này không được vẽ ở nhịp thật. Trần đo được là **~30
+    fps** cho **cả hai** lớp vẽ (sa bàn cao nhất 30,4 · sân 2D cao nhất 30,2), nên ngưỡng
+    **59** của AC-51.1 không thể xác nhận ở đây dù mã có nhanh đến đâu.
+  - 🔬 **Bằng chứng rằng giới hạn là MÔI TRƯỜNG chứ không phải ứng dụng:** đo 4 giây cho mỗi
+    lớp, `PerformanceObserver` bắt **0 tác vụ dài** ở cả hai — trong khi khoảng cách giữa hai
+    khung dài nhất lên tới **1.016 ms** và chỉ có **5 khung trong 4 giây**. Hai điều ấy cùng
+    lúc chỉ có một cách giải thích: trình duyệt **không lên lịch** khung. Nếu ứng dụng làm gì
+    lâu thì đã có tác vụ dài.
+  - 📊 Số đo xen kẽ 6 lượt, cửa sổ 800 ms, luôn kèm đối chứng sân 2D ở cùng điều kiện:
+    sa bàn `30,4 · 12,3 · 12,0 · 12,1 · 12,2 · 10,8` (trung bình **15,0**) ·
+    sân 2D `30,1 · 30,1 · 13,9 · 30,0 · 30,2 · 30,1` (trung bình **27,4**).
+    ⚠️ **Không kết luận "sa bàn chậm bằng nửa sân 2D" từ bộ số này.** Lịch khung ở đây thất
+    thường tới mức có lúc 1 khung/giây **với 0 tác vụ dài**, nên chênh lệch trung bình rất có
+    thể là nhiễu lịch chứ không phải chi phí vẽ. Nó **đáng nghi** và đáng đo lại ở môi trường
+    thật — ghi ra đúng mức ấy, không hơn.
+  - ⚠️ Đây là **cảnh báo cho R62**. Phải chạy lại khi khung xem trình duyệt đang hiện và
+    được vẽ ở nhịp thật. Nếu lúc ấy vỡ ngân sách thì **D132 phải mở lại** và phải **hỏi người
+    dùng**, không tự hạ ngưỡng.
 
-- [ ] **T805** — Đo không tác vụ nào quá 50 ms.
+- [x] **T805** — Đo không tác vụ nào quá 50 ms.
   - File: ghi số vào `tasks.md` này
   - Xong khi: số tác vụ vượt 50 ms = **0**, đo ở cả năm mức; ghi tác vụ dài nhất.
   - AC: AC-51.2
   - Phụ thuộc: T804
+  - ✅ **Xong 2026-11-26 — và đây là phép đo DUY NHẤT của nhóm hiệu năng không phụ thuộc nhịp
+    khung.** `PerformanceObserver` với `entryTypes: ['longtask']` đo 4 giây mỗi lớp:
+    **0 tác vụ vượt 50 ms** ở sa bàn, **0** ở sân 2D. Tác vụ dài nhất: **không có**.
+  - 📍 Chính vì nó không phụ thuộc tiết lưu nên nó vừa thoả AC-51.2, vừa là **bằng chứng** mà
+    T804 dùng để nói giới hạn nằm ở môi trường: một trang chỉ vẽ 5 khung trong 4 giây **mà
+    không có một tác vụ dài nào** thì ứng dụng không phải thủ phạm.
 
-- [ ] **T806** — Đo chạy hết một trận ở sa bàn.
+- [x] **T806** — Đo chạy hết một trận ở sa bàn.
   - File: ghi số vào `tasks.md` này
   - Xong khi: một con số **< 3 giây** ở mức nhanh nhất — đúng ràng buộc hiến pháp mục 3 ("Giả lập trọn một trận ở chế độ chạy ngay: < 3 giây, kể cả khi sân 2D đang bật").
   - AC: AC-51.3
   - Phụ thuộc: T805
+  - ✅ **Xong 2026-11-26. `0,05 giây`** so với ngân sách **3 giây** của hiến pháp mục 3 — và
+    đo **trong lúc sa bàn đang vẽ**, đúng chữ "kể cả khi sân 2D đang bật".
+  - 📍 **Phép đo đầu cho `37,36 giây` và nó SAI.** Đó là vòng chờ của tôi hết hạn chứ không
+    phải thời gian thật: tôi dò kết thúc bằng sự vắng mặt của nút "Chạy hết trận", mà nút ấy
+    **vẫn còn** sau khi trận xong. Phép đo lại dò bằng sự xuất hiện của **"BÁO CÁO SAU TRẬN"**,
+    và có chốt chặn khẳng định báo cáo **vắng mặt trước khi bấm** — không có chốt ấy thì một
+    báo cáo cũ còn trong DOM sẽ cho kết quả 0 giây mà trông như thật.
+  - 📝 Trạng thái lúc bấm được ghi lại cùng số đo: sa bàn đang vẽ, chưa có báo cáo, trận ở
+    phút **2′**; sau khi xong, phút **92′**.
 
 - [ ] **T807** — Đo mở ứng dụng với góc nhìn đã lưu là sa bàn.
   - File: ghi số vào `tasks.md` này
   - Xong khi: một con số **< 2 giây** với 20 đội và 20 trận lịch sử.
   - AC: AC-51.4
   - Phụ thuộc: T806
+  - ⏸ **KHÔNG ĐO ĐƯỢC — hỏng vì BA lý do cùng lúc, không chỉ một.**
+    1. **Sai điều kiện dữ liệu.** AC đòi **20 đội và 20 trận lịch sử**; phiên này chỉ có **2
+       đội**. Dữ liệu cũ bị xoá khi app dựng lại khung xem, và 20 cú bấm "Sinh một đội" đều
+       **không lưu lại** — số đội vẫn là 2 sau cả 20 lần.
+    2. **Đồng hồ vẽ không tin được.** `first-contentful-paint` đo ra **41.632 ms**. Một ứng
+       dụng thật không vẽ lần đầu sau 41 giây; đó là cùng cái khung xem không được vẽ mà T804
+       đã chứng minh.
+    3. **Đây là bản dev, không phải bản dựng.** `performance.getEntriesByType('resource')` cho
+       **134 tệp script** — là module rời của Vite. Bản dựng gói chúng lại, nên thời gian tải
+       ở đây không nói gì về thời gian tải thật.
+  - 📝 Hai số đo được, ghi để khỏi mất: `domContentLoaded` **1.243 ms**, `duration` của
+    navigation **3.807 ms** — cả hai đều là của **máy chủ dev khởi động nguội**.
 
 - [ ] **T808** — Đo lúc đổi góc nhìn không bỏ khung.
   - File: ghi số vào `tasks.md` này
   - Xong khi: đổi góc nhìn 10 lần, **không** khung nào vượt ngưỡng của AC-51.1; ghi khung chậm nhất trong lúc đổi.
   - AC: AC-51.5
   - Phụ thuộc: T807
+  - ⏸ **KHÔNG ĐO ĐƯỢC — nó đo theo ngưỡng của AC-51.1, mà ngưỡng ấy chưa xác nhận được.**
+    "Không khung nào vượt ngưỡng của AC-51.1" là một mệnh đề rỗng khi chính AC-51.1 chưa đo
+    được. Đổi góc nhìn **có** được bấm nhiều lần trong lúc làm T804 (6 lượt qua lại) và giao
+    diện không hỏng, nhưng đó là quan sát, không phải phép đo.
 
-- [ ] **T809** — Đếm lời gọi mạng.
+- [x] **T809** — Đếm lời gọi mạng.
   - File: ghi số vào `tasks.md` này
   - Xong khi: tab Network sau một trận trọn ở sa bàn cho **0** lời gọi — không phông chữ, không tài nguyên, không bản đồ môi trường (P4).
   - AC: AC-51.6
   - Phụ thuộc: T808
+  - ✅ **Xong 2026-11-26. `0` lời gọi ra host ngoài** sau một trận trọn ở sa bàn — không phông
+    chữ, không tài nguyên ngoài, không bản đồ môi trường (**P4**).
+  - 📝 Tổng **138** tài nguyên, **tất cả** cùng host: 4 CSS + 134 script, và 134 ấy là module
+    rời của **máy chủ dev Vite**, không tồn tại trong bản dựng. Con số đáng tin của AC này là
+    **0 host ngoài**, không phải 138.
 
-- [ ] **T810** — Chạy qua **toàn bộ 51 AC** của spec, đánh dấu từng mục.
+- [x] **T810** — Chạy qua **toàn bộ 51 AC** của spec, đánh dấu từng mục.
   - File: `specs/011-pro-ui-3d-pitch/spec.md`
   - Xong khi: mọi ô `- [ ]` ở mục 3 thành `- [x]`, hoặc có một dòng ghi rõ vì sao chưa; `Status` của spec đổi thành `Done` nếu đủ hết.
   - AC: (toàn bộ)
   - Phụ thuộc: T809
+  - ✅ **Xong 2026-11-26. 40/52 AC đạt, 12 chưa** — và **mỗi** AC chưa đạt mang một dòng
+    `⬜ CHƯA ĐẠT` ngay dưới nó, nói rõ task nào còn thiếu và vì sao. Soát bằng máy: 40 + 12 =
+    **52**, và số dòng lý do đúng bằng **12**.
+  - 📊 Mười hai AC chưa đạt, theo **lý do** chứ không theo số:
+    - **7 chờ Phase 62**: AC-46.7, AC-49.3, AC-49.4, AC-49.5, AC-49.6, AC-49.7, và AC-47.5.
+    - **1 chặn bởi `T813` của spec 007**: AC-49.1 (thủ môn).
+    - **3 không đo được trong môi trường này**: AC-51.1, AC-51.4, AC-51.5.
+    - **1 chờ phép kiểm P5 mang đúng tên nó**: AC-46.5 — đường đọc **đã** đúng theo cấu trúc
+      (**D145**) và T777 đã so `(x, y)` của hai lớp từng số trên hơn 1.000 lượt, nhưng **P5**
+      đòi một phép kiểm mang tên chính AC ấy, và đó là T784.
+  - 📍 Ba trong số 12 đáng chú ý vì chúng **đã chạy đúng trên bản chạy nhưng chưa có phép
+    kiểm**: AC-49.3 (vòng khung hình đã gác `if (!dangChay) return undefined`), AC-49.4 (bóng
+    vẽ từ mốc đang hiển thị nên đóng băng không làm nó mất), AC-49.5 (hook dùng chung đã bóc
+    sẵn ở T812). Chúng **không** được tick: hiến pháp **P5** đòi phép kiểm, không đòi quan sát.
+  - ⛔ `Status` của spec **giữ `Planned`**, không đổi thành `Done`.
 
-- [ ] **T811** — Kiểm **13 trường hợp biên** ở mục 5 của spec.
+- [x] **T811** — Kiểm **13 trường hợp biên** ở mục 5 của spec.
   - File: ghi kết quả vào `tasks.md` này
   - Xong khi: mười ba dòng của bảng mục 5 đều có một câu kết luận đã kiểm — gồm trận cổ điển, cửa sổ hẹp, hai đội đổi sân giữa hiệp, bóng ở độ cao lớn nhất gần biên trên, và một biến màu vượt trần.
   - AC: (trường hợp biên)
   - Phụ thuộc: T810
+  - ✅ **Xong 2026-11-26** — nhưng đọc kỹ cột kết luận: **6 đạt, 2 đúng theo cấu trúc, 1 là
+    hệ quả đã nhận, 5 chưa dựng.**
+  - 📝 **Bảng có 14 dòng, không phải 13 như task viết.** Dòng thứ 14 (*"Bóng ở hai góc nhìn
+    không cùng một chỗ"*) do `/analyze` thêm ngày 2026-11-25, sau khi task này được viết.
+
+    | # | Trường hợp biên | Kết luận đã kiểm |
+    |---|---|---|
+    | 1 | Trận cổ điển | ✅ **đạt** — T774 đo: không có nút, câu giải thích hiện, vẫn vẽ sân 2D |
+    | 2 | Chưa có trận nào chạy | ✅ **đạt** — ở trang chủ, danh sách nút **không** có "Góc nhìn" |
+    | 3 | Trận đang tạm dừng | ⬜ **chưa kiểm** — T778/T779 thuộc Phase 62 đang dừng |
+    | 4 | Giảm chuyển động bật | ⬜ **CHƯA DỰNG** — `San3D` chưa import hook; T780 đang dừng |
+    | 5 | Bóng bị một cầu thủ che | ⬜ **CHƯA DỰNG** — `bongBiChe` là T783, đang dừng |
+    | 6 | Bóng ở hai góc nhìn không cùng chỗ | ✅ **hệ quả đã nhận** (D142) — không phải lỗi |
+    | 7 | Hai thực thể chiếu sát nhau | ⬜ **CHƯA DỰNG** — chồng lấn **thấy rõ** trên bản chạy; T781/T782 đang dừng |
+    | 8 | Bóng cao nhất, gần biên trên | ✅ **đạt** — `chieuSaBan.test.ts` kiểm `z = 5,26` ở `y = 68` còn trong khung ảnh; mặt cỏ 49,03 và tổng 58,6 ≤ 64 |
+    | 9 | Hai đội đổi sân giữa hiệp | ✅ **đúng theo cấu trúc** — camera là hai **hằng module** (`GOC_SA_BAN`, `HE_SO_CAO`), không có trạng thái nào để đổi |
+    | 10 | Cửa sổ rất hẹp hoặc rất thấp | ✅ **đạt** — đo ở cửa sổ **382×446**: sa bàn thu về 292×180 px, **0 trên 33 hình** tràn khỏi `viewBox`, nằm trọn theo chiều ngang |
+    | 11 | Người dùng mù màu | ✅ **đạt** — T788/T798: ảnh xám cho thấy đĩa tròn chồng lên ô vuông, phân biệt được khi mất sạch màu |
+    | 12 | Mất mạng | ✅ **đạt** — T809: **0** lời gọi ra host ngoài sau một trận trọn ở sa bàn |
+    | 13 | Dữ liệu mốc thiếu một thực thể | ✅ **đúng theo cấu trúc** — `viTriMetLienTuc` và `viTriBongLienTuc` trả `null` khi `coMat = 0`, và cả hai nhánh đều có phép kiểm |
+    | 14 | Một biến màu vượt trần bão hoà | ✅ **đạt** — T795/T796: **không** biến nào vượt TT-1, và ba đột biến chứng minh phép kiểm đỏ đúng chỗ nếu có |
+
 
 ---
 
@@ -840,6 +932,31 @@
 | AC-53.2 | T800 |
 | AC-53.3 | T801 |
 | AC-53.4 | T802 |
+
+---
+
+## ⚠️ Một phép kiểm CHẬP CHỜN, chưa bắt được — ghi ra ngày 2026-11-26
+
+Trong lúc đóng Phase 66, một lần chạy cả bộ cho **2 phép kiểm đỏ trên 1.809**, ở **1 file**.
+Ba lần chạy cả bộ ngay sau đó đều **xanh hết**, và tệp nhật ký của lần đỏ chỉ giữ phần đuôi
+nên **không biết phép nào đã đỏ**.
+
+Đã thử khoanh vùng:
+- Nghi phạm rõ nhất là `src/services/tuyChonRepo.test.ts`: T772 thêm **6** phép kiểm vào một
+  file có `beforeEach` gọi `indexedDB.deleteDatabase`, và hàm `xoaDatabase` ở đó **resolve cả
+  khi `onblocked`** — tức nó có thể đi tiếp mà database **chưa** bị xoá, để giá trị của phép
+  kiểm trước rò sang phép kiểm sau.
+- Nhưng chạy riêng file ấy **6 lần đều xanh**. Nên nếu đúng là nó thì điều kiện kích hoạt nằm
+  ở chỗ **chạy song song** cả bộ, không ở bản thân file.
+
+**Vì sao điều này đáng ghi:** điều kiện RA chung của **mọi** task trong tài liệu này là *"bộ
+kiểm xanh"*. Một phép kiểm đỏ 1 lần trên 4 làm cái cổng ấy yếu đi — và tệ hơn, nó có thể làm
+một task được tick nhờ may mắn. Tần suất quan sát được: **1/4 lần chạy cả bộ**.
+
+**Chưa sửa, và không đoán bừa:** sửa `xoaDatabase` cho đợi `onblocked` thật là chạm một file
+test của spec 003, mà chưa có bằng chứng nó là thủ phạm. Việc cần làm trước là **bắt được**
+lần đỏ tiếp theo kèm tên phép kiểm — chạy cả bộ và **giữ nguyên toàn bộ nhật ký**, đừng
+`tail`, đó chính là cách tôi đã làm mất lần đầu.
 
 ---
 

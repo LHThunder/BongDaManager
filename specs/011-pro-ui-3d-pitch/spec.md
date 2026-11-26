@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **ID** | `011-pro-ui-3d-pitch` |
-| **Status** | Planned |
+| **Status** | **Planned** — **40/52 AC đạt** (T810, 2026-11-26). 12 AC chưa đạt đều có dòng lý do tại chỗ: 7 chờ Phase 62, 1 chặn bởi `T813` của spec 007, 3 không đo được trong môi trường này, 1 chờ phép kiểm P5 mang đúng tên nó. **Chưa `Done`.** |
 | **Created** | 2026-11-25 |
 | **Clarified** | 2026-11-25 — **15 quyết định**, xem mục 10 (quyết định 15 đến từ `/analyze`) |
 | **Planned** | 2026-11-25 — `./plan.md`, 13 quyết định D130–D142, 7 rủi ro R60–R66 |
@@ -172,27 +172,29 @@ Là một **người xem trận**, tôi muốn **nhìn ra quả bóng đang ở 
 
 **Acceptance criteria:**
 
-- [ ] AC-46.1 — KHI quả bóng ở độ cao 1 m THÌ nó PHẢI vẽ cách mặt sân một quãng **ít nhất
+- [x] AC-46.1 — KHI quả bóng ở độ cao 1 m THÌ nó PHẢI vẽ cách mặt sân một quãng **ít nhất
       bằng một bán kính của chính nó**; KHI ở độ cao 5,26 m THÌ đỉnh PHẢI nằm **trong khung
       ảnh**, không bị cắt.
-- [ ] AC-46.2 — KHI quả bóng đang ở trên không THÌ PHẢI có **một dấu chỉ điểm chiếu của nó
+- [x] AC-46.2 — KHI quả bóng đang ở trên không THÌ PHẢI có **một dấu chỉ điểm chiếu của nó
       xuống mặt sân**, để người xem biết nó đang ở trên chỗ nào chứ không chỉ biết nó cao.
-- [ ] AC-46.3 — KHI độ cao của bóng đổi giữa hai mốc THÌ quãng vẽ trên màn hình PHẢI đổi theo
+- [x] AC-46.3 — KHI độ cao của bóng đổi giữa hai mốc THÌ quãng vẽ trên màn hình PHẢI đổi theo
       **cùng chiều**: cao hơn thì vẽ cao hơn, không bao giờ ngược.
-- [ ] AC-46.4 — KHI một mốc mang trạng thái `danh_dau` THÌ quả bóng PHẢI ở độ cao của đầu
+- [x] AC-46.4 — KHI một mốc mang trạng thái `danh_dau` THÌ quả bóng PHẢI ở độ cao của đầu
       người, không phải dưới chân — con số cụ thể lấy từ chính dữ liệu mốc, không do giao
       diện tự đặt.
 - [ ] AC-46.5 — KHI xem cùng một mốc ở hai góc nhìn THÌ vị trí mặt sân `(x, y)` của **22 cầu
       thủ** PHẢI khớp nhau **tuyệt đối**: lớp 3D chỉ thêm `z`, và **không dịch một cầu thủ nào**
       vì bất kỳ lý do hiển thị nào. ⚠️ **Quả bóng KHÔNG thuộc AC này** — xem AC-46.8.
-- [ ] AC-46.8 — KHI quả bóng được vẽ ở góc nhìn 3D THÌ `x`, `y` và `z` của nó PHẢI đến từ
+      > ⬜ **CHƯA ĐẠT (T810, 2026-11-26):** phép kiểm **P5** của nó là **T784**, nằm trong Phase 62 đang dừng. Bản thân đường đọc đã đúng theo cấu trúc (**D145**) và T777 đã so `(x, y)` của hai lớp từng số trên >1.000 lượt — nhưng P5 đòi một phép kiểm mang đúng tên AC này.
+- [x] AC-46.8 — KHI quả bóng được vẽ ở góc nhìn 3D THÌ `x`, `y` và `z` của nó PHẢI đến từ
       **cùng một mốc của engine**, không trộn nguồn.
-- [ ] AC-46.6 — KHI hệ số phóng đại độ cao được dùng THÌ nó PHẢI tồn tại ở **đúng một chỗ**
+- [x] AC-46.6 — KHI hệ số phóng đại độ cao được dùng THÌ nó PHẢI tồn tại ở **đúng một chỗ**
       trong mã, và PHẢI nói được cho người dùng rằng độ cao đã được phóng đại — không để ai
       tưởng sa bàn đúng tỉ lệ cả ba trục.
 - [ ] AC-46.7 — KHI quả bóng bị một thực thể khác che ở góc nhìn chéo THÌ nó PHẢI **vẫn thấy
       được** (vẽ trên cùng), và PHẢI có một dấu hiệu nói rằng nó đang ở **phía sau** thứ che
       nó, để lớp 3D không nói dối về độ sâu.
+      > ⬜ **CHƯA ĐẠT (T810, 2026-11-26):** **T783** (`bongBiChe` + dấu hiệu bị che) nằm trong Phase 62 đang dừng.
 
 ### US-2: Đổi qua lại hai góc nhìn
 
@@ -201,19 +203,20 @@ sa bàn khi muốn thấy độ cao và dùng sân phẳng khi muốn đếm ng�
 
 **Acceptance criteria:**
 
-- [ ] AC-47.1 — KHI đang xem một trận có dữ liệu liên tục THÌ PHẢI có một cách đổi góc nhìn
+- [x] AC-47.1 — KHI đang xem một trận có dữ liệu liên tục THÌ PHẢI có một cách đổi góc nhìn
       **nhìn thấy được**, nói rõ đang ở góc nhìn nào.
-- [ ] AC-47.2 — KHI đổi góc nhìn giữa lúc trận đang chạy THÌ trận PHẢI **tiếp tục chạy, không
+- [x] AC-47.2 — KHI đổi góc nhìn giữa lúc trận đang chạy THÌ trận PHẢI **tiếp tục chạy, không
       nhảy phút, không mất một mốc nào**, và đồng hồ không lùi. *(Mệnh đề "không giật" đã được
       gỡ ngày 2026-11-25: nó không kiểm chứng được bằng quan sát. Phần đo được của nó nằm ở
       **AC-51.5**, nơi có một ngưỡng khung hình thật.)*
-- [ ] AC-47.3 — KHI đổi góc nhìn rồi đổi về THÌ sân 2D PHẢI trở lại **đúng hành vi như chưa
+- [x] AC-47.3 — KHI đổi góc nhìn rồi đổi về THÌ sân 2D PHẢI trở lại **đúng hành vi như chưa
       từng đổi**: không mất nội suy, không mất dao động chờ, không mất người giữ bóng.
-- [ ] AC-47.4 — KHI người dùng đã chọn một góc nhìn và mở lại ứng dụng THÌ lựa chọn ấy PHẢI
+- [x] AC-47.4 — KHI người dùng đã chọn một góc nhìn và mở lại ứng dụng THÌ lựa chọn ấy PHẢI
       được giữ.
 - [ ] AC-47.5 — KHI đổi góc nhìn THÌ kết quả trận, dòng tường thuật và mọi con số PHẢI không
       đổi một ký tự nào (hiến pháp P2).
-- [ ] AC-47.6 — KHI trận đang chạy bằng engine cổ điển (không có dữ liệu liên tục) THÌ cách
+      > ⬜ **CHƯA ĐẠT (T810, 2026-11-26):** phép kiểm **P5** của nó là **T785**, trong Phase 62 đang dừng. T802 đã ghim vân tay dòng sự kiện, nhưng đó là cho AC-53.4, không phải cho việc **đổi góc nhìn giữa trận**.
+- [x] AC-47.6 — KHI trận đang chạy bằng engine cổ điển (không có dữ liệu liên tục) THÌ cách
       đổi góc nhìn PHẢI **không xuất hiện**, và PHẢI có một chỗ nói được vì sao, để người dùng
       không phải tự đoán vì sao nó có lúc có lúc không.
 
@@ -224,23 +227,23 @@ bảy spec làm**, để **tin rằng con số nào rực nhất là con số qu
 
 **Acceptance criteria:**
 
-- [ ] AC-48.1 — KHI mở tài liệu hệ thống thiết kế THÌ mỗi màu trong bảng PHẢI có **tên, giá
+- [x] AC-48.1 — KHI mở tài liệu hệ thống thiết kế THÌ mỗi màu trong bảng PHẢI có **tên, giá
       trị, nghĩa, và chỗ được phép dùng**; một màu không có cả bốn thứ là một dòng chưa xong.
-- [ ] AC-48.2 — KHI một màu được xếp vào tầng **tín hiệu** THÌ nó PHẢI **chỉ** xuất hiện ở
+- [x] AC-48.2 — KHI một màu được xếp vào tầng **tín hiệu** THÌ nó PHẢI **chỉ** xuất hiện ở
       giao diện và lớp phủ, không bao giờ ở nền trang trí — và điều này PHẢI kiểm được bằng
       một phép kiểm, không bằng mắt.
-- [ ] AC-48.3 — KHI so một mảng trang trí với một mảng mang thông tin THÌ mảng mang thông tin
+- [x] AC-48.3 — KHI so một mảng trang trí với một mảng mang thông tin THÌ mảng mang thông tin
       PHẢI có độ bão hoà **cao hơn**, để thứ rực nhất trên màn hình luôn là thông tin.
-- [ ] AC-48.4 — KHI đọc tài liệu hệ thống thiết kế THÌ PHẢI có một **bảng cặp màu dễ lẫn**,
+- [x] AC-48.4 — KHI đọc tài liệu hệ thống thiết kế THÌ PHẢI có một **bảng cặp màu dễ lẫn**,
       mỗi dòng ghi: lẫn với kiểu mù màu nào, và **cue phụ bắt buộc** là gì (hình dạng, chuyển
       động, icon hoặc chữ).
-- [ ] AC-48.5 — KHI chụp màn hình xem trận và chuyển sang đen trắng THÌ mọi thông tin quyết
+- [x] AC-48.5 — KHI chụp màn hình xem trận và chuyển sang đen trắng THÌ mọi thông tin quyết
       định PHẢI còn đọc được.
-- [ ] AC-48.6 — KHI cỡ chữ, khoảng cách hoặc độ dày đường kẻ được dùng trên màn hình xem trận
+- [x] AC-48.6 — KHI cỡ chữ, khoảng cách hoặc độ dày đường kẻ được dùng trên màn hình xem trận
       THÌ nó PHẢI là một bậc trong thang đã ghi của tài liệu, không phải một con số rời.
-- [ ] AC-48.7 — KHI xem màn hình xem trận THÌ PHẢI có **một thứ bậc rõ**: đọc được ngay cái
+- [x] AC-48.7 — KHI xem màn hình xem trận THÌ PHẢI có **một thứ bậc rõ**: đọc được ngay cái
       gì là chính và cái gì là phụ, không phải năm khối ngang hàng nhau.
-- [ ] AC-48.8 — KHI 42 biến màu hiện có được soát lại theo trần bão hoà mới THÌ mọi biến vượt
+- [x] AC-48.8 — KHI 42 biến màu hiện có được soát lại theo trần bão hoà mới THÌ mọi biến vượt
       trần PHẢI được chỉnh, và tương phản chữ PHẢI được **đo lại** ở cả hai chủ đề sau khi
       chỉnh.
 
@@ -288,7 +291,8 @@ hỏng điều gì**, để **không phải kiểm lại bằng mắt từ đầ
       > để spec 011 đặt ngưỡng 32 m rồi gọi đó là phép kiểm. Spec 011 **MUST NOT** thêm kẹp ở
       > lớp vẽ: `viTriVeLienTuc` đã cố ý tắt đúng phép kẹp ấy. AC này **mở** cho tới khi T813
       > xong.
-- [ ] AC-49.2 — KHI hai góc nhìn hiển thị **cùng một mốc** THÌ vị trí mà lớp 3D đọc ra PHẢI
+      > ⬜ **CHƯA ĐẠT (T810, 2026-11-26):** ⛔ **chặn bởi `T813` của spec 007** — engine kẹp ĐÍCH chứ không kẹp VỊ TRÍ, thủ môn ra khỏi một phần ba sân ở 2,06% số mốc, lệch tối đa **31,72 m**. Spec 011 chỉ đọc engine và **không được** kẹp lại ở lớp vẽ.
+- [x] AC-49.2 — KHI hai góc nhìn hiển thị **cùng một mốc** THÌ vị trí mà lớp 3D đọc ra PHẢI
       bằng **từng số** với vị trí mà lớp 2D đọc ra, cho **mọi cầu thủ có mặt**.
       > 📍 **AC này đã được THU HẸP ngày 2026-11-25.** Bản đầu đọc lại AC-30.8: *"hàng phòng
       > ngự của một đội PHẢI đứng giữa tiền đạo đối phương và khung thành của mình"*. Đo thật
@@ -315,26 +319,31 @@ hỏng điều gì**, để **không phải kiểm lại bằng mắt từ đầ
 
 - [ ] AC-49.3 — KHI trận đang **tạm dừng** ở góc nhìn 3D THÌ **mọi chuyển động PHẢI dừng
       hẳn**, kể cả dao động chờ (AC-28.5 đọc lại).
+      > ⬜ **CHƯA ĐẠT (T810, 2026-11-26):** **T778** nằm trong Phase 62 đang dừng. Vòng khung hình của `San3D` **đã** gác `if (!dangChay) return undefined`, nhưng chưa có phép kiểm mang tên AC này.
 - [ ] AC-49.4 — KHI trận đang tạm dừng hoặc đã kết thúc ở góc nhìn 3D THÌ quả bóng PHẢI **vẫn
       có mặt**, ở đúng độ cao của mốc ấy (AC-32.7 đọc lại).
+      > ⬜ **CHƯA ĐẠT (T810, 2026-11-26):** **T779** nằm trong Phase 62 đang dừng. `San3D` **đã** vẽ bóng từ mốc đang hiển thị nên đóng băng không làm nó mất, nhưng chưa được kiểm.
 - [ ] AC-49.5 — KHI hệ điều hành bật **giảm chuyển động** THÌ góc nhìn 3D PHẢI không nội suy và
       không có chuyển động chờ, mà vẫn hiển thị đúng vị trí **và đúng độ cao** tại từng mốc
       (AC-31.1 đọc lại).
+      > ⬜ **CHƯA ĐẠT (T810, 2026-11-26):** **T780** nằm trong Phase 62 đang dừng. Hook dùng chung **đã** bóc sẵn ở T812; việc còn lại là `San3D` import và tôn trọng nó.
 
 **Nhóm 3 — thuộc hình trên màn hình, cần định nghĩa mới:**
 
 - [ ] AC-49.6 — KHI hai thực thể chiếu thành hai hình sát nhau trên màn hình THÌ người xem
       PHẢI vẫn **phân biệt được** là hai, không phải một — đo **sau khi chiếu**, không đo bằng
       mét trên mặt sân, vì đó mới là điều AC-30.5 thật sự hứa.
+      > ⬜ **CHƯA ĐẠT (T810, 2026-11-26):** **T781** (`phanBietDuoc`) nằm trong Phase 62 đang dừng.
 - [ ] AC-49.7 — KHI hai hình sát nhau được tách ra THÌ việc tách PHẢI làm bằng **viền**, không
       bằng cách dịch thực thể: AC-46.5 đứng tuyệt đối, và viền không được đọc nhầm thành một
       trạng thái của cầu thủ.
+      > ⬜ **CHƯA ĐẠT (T810, 2026-11-26):** **T782** (tách bằng viền) nằm trong Phase 62 đang dừng. Chồng lấn giữa các đĩa **thấy rõ** trên bản chạy — đây là AC chưa đạt có hệ quả nhìn được.
 
 **Toàn cục:**
 
-- [ ] AC-49.8 — KHI sân 2D được xem sau khi spec 011 xong THÌ **mọi AC đã đóng** của spec 002,
+- [x] AC-49.8 — KHI sân 2D được xem sau khi spec 011 xong THÌ **mọi AC đã đóng** của spec 002,
       004, 005, 006 PHẢI còn xanh, không một AC nào bị sửa câu chữ để vừa với lớp mới.
-- [ ] AC-49.9 — KHI góc nhìn 3D được thêm vào THÌ phép kiểm ranh giới tầng PHẢI còn xanh:
+- [x] AC-49.9 — KHI góc nhìn 3D được thêm vào THÌ phép kiểm ranh giới tầng PHẢI còn xanh:
       không file nào của `src/engine/` import tầng giao diện, và `src/engine/` không có một
       dòng nào thay đổi.
 
@@ -345,17 +354,17 @@ Là một **người dùng không dùng chuột hoặc không phân biệt đư�
 
 **Acceptance criteria:**
 
-- [ ] AC-50.1 — KHI chỉ dùng bàn phím THÌ cách đổi góc nhìn PHẢI tới được, nhận được tiêu điểm
+- [x] AC-50.1 — KHI chỉ dùng bàn phím THÌ cách đổi góc nhìn PHẢI tới được, nhận được tiêu điểm
       **nhìn thấy được**, và kích hoạt được.
-- [ ] AC-50.2 — KHI đo tương phản của mọi chữ ở cả hai chủ đề sáng và tối THÌ nó PHẢI đạt tối
+- [x] AC-50.2 — KHI đo tương phản của mọi chữ ở cả hai chủ đề sáng và tối THÌ nó PHẢI đạt tối
       thiểu **4,5:1** (hiến pháp P9).
-- [ ] AC-50.3 — KHI hai đội được phân biệt ở góc nhìn 3D THÌ PHẢI có **thêm ít nhất một kênh
+- [x] AC-50.3 — KHI hai đội được phân biệt ở góc nhìn 3D THÌ PHẢI có **thêm ít nhất một kênh
       ngoài màu** (hình dạng, hoa văn hoặc chữ), đủ để đọc trong ảnh đen trắng.
-- [ ] AC-50.4 — KHI một chuỗi mới xuất hiện ở giao diện THÌ nó PHẢI có **đủ cả bản tiếng Việt
+- [x] AC-50.4 — KHI một chuỗi mới xuất hiện ở giao diện THÌ nó PHẢI có **đủ cả bản tiếng Việt
       và tiếng Anh trong cùng commit** (hiến pháp P8), và không chuỗi nào rơi về khoá thô.
-- [ ] AC-50.5 — KHI một người dùng trình đọc màn hình gặp góc nhìn 3D THÌ nó PHẢI tự giới thiệu
+- [x] AC-50.5 — KHI một người dùng trình đọc màn hình gặp góc nhìn 3D THÌ nó PHẢI tự giới thiệu
       được nó là gì và đang hiển thị gì ở mức tóm tắt, chứ không im lặng.
-- [ ] AC-50.6 — KHI số áo được hiển thị ở góc nhìn 3D THÌ nó PHẢI là **lớp phủ cỡ cố định**,
+- [x] AC-50.6 — KHI số áo được hiển thị ở góc nhìn 3D THÌ nó PHẢI là **lớp phủ cỡ cố định**,
       luôn quay mặt về người xem, đọc được như nhau ở đầu gần và đầu xa — để AC-15.1 (đếm được
       điểm) đứng được ở lớp mới.
 
@@ -368,16 +377,19 @@ vẫn chạy mượt như hôm nay**.
 
 - [ ] AC-51.1 — KHI trận chạy ở góc nhìn 3D ở **cả năm mức tốc độ** THÌ mỗi khung vẽ PHẢI gọn
       trong một nhịp, đạt **59 khung/giây** — kể cả khi 22 lớp phủ số áo cùng được vẽ.
-- [ ] AC-51.2 — KHI trận chạy ở góc nhìn 3D THÌ KHÔNG tác vụ nào được quá **50 ms**.
-- [ ] AC-51.3 — KHI chạy hết một trận ở góc nhìn 3D THÌ PHẢI xong trong **dưới 3 giây** ở mức
+      > ⬜ **CHƯA ĐẠT (T810, 2026-11-26):** ⏸ **không đo được trong môi trường này.** Khung xem trình duyệt không được vẽ ở nhịp thật: trần đo được ~30 fps cho **cả hai** lớp, và có lúc 5 khung trong 4 giây **với 0 tác vụ dài** — tức trình duyệt không lên lịch khung, không phải ứng dụng chậm. Xem T804.
+- [x] AC-51.2 — KHI trận chạy ở góc nhìn 3D THÌ KHÔNG tác vụ nào được quá **50 ms**.
+- [x] AC-51.3 — KHI chạy hết một trận ở góc nhìn 3D THÌ PHẢI xong trong **dưới 3 giây** ở mức
       nhanh nhất.
 - [ ] AC-51.4 — KHI mở ứng dụng THÌ PHẢI xong trong **dưới 2 giây**, kể cả khi góc nhìn đã lưu
       là 3D.
+      > ⬜ **CHƯA ĐẠT (T810, 2026-11-26):** ⏸ **không đo được**, hỏng vì ba lý do cùng lúc: chỉ có 2 đội thay vì 20, `first-contentful-paint` đo ra 41.632 ms (bất khả thi), và đây là bản dev tải 134 module rời. Xem T807.
 - [ ] AC-51.5 — KHI đổi góc nhìn THÌ KHÔNG được có một khung nào bị bỏ quá ngưỡng của AC-51.1
       trong lúc đổi.
-- [ ] AC-51.6 — KHI ứng dụng chạy THÌ KHÔNG có một lời gọi mạng nào phát ra cho việc vẽ (hiến
+      > ⬜ **CHƯA ĐẠT (T810, 2026-11-26):** ⏸ **không đo được** vì nó đo theo ngưỡng của AC-51.1, mà ngưỡng ấy chưa xác nhận được. Xem T808.
+- [x] AC-51.6 — KHI ứng dụng chạy THÌ KHÔNG có một lời gọi mạng nào phát ra cho việc vẽ (hiến
       pháp P4) — không phông chữ, không tài nguyên, không bản đồ môi trường.
-- [ ] AC-51.7 — KHI spec 011 xong THÌ danh sách phụ thuộc PHẢI **không thêm một dòng nào** so
+- [x] AC-51.7 — KHI spec 011 xong THÌ danh sách phụ thuộc PHẢI **không thêm một dòng nào** so
       với trước.
 
 ### US-7: Hiến pháp được sửa đúng cách, không bị vi phạm lặng lẽ
@@ -387,13 +399,13 @@ Là một **người đọc hồ sơ dự án sau này**, tôi muốn **biết v
 
 **Acceptance criteria:**
 
-- [ ] AC-52.1 — KHI spec 011 bắt đầu được thực thi THÌ hiến pháp PHẢI đã lên **4.0.0**, với
+- [x] AC-52.1 — KHI spec 011 bắt đầu được thực thi THÌ hiến pháp PHẢI đã lên **4.0.0**, với
       dòng "Đồ hoạ 3D; mọi hiển thị sân là 2D dạng điểm" đã gỡ khỏi Non-goals.
-- [ ] AC-52.2 — KHI đọc Changelog của hiến pháp THÌ PHẢI có một dòng 4.0.0 nói rõ: gỡ cái gì,
+- [x] AC-52.2 — KHI đọc Changelog của hiến pháp THÌ PHẢI có một dòng 4.0.0 nói rõ: gỡ cái gì,
       vì sao là MAJOR, và kéo theo những mục nào.
-- [ ] AC-52.3 — KHI đọc hiến pháp 4.0.0 THÌ nó PHẢI nói rõ non-goals của spec 001 **không bị
+- [x] AC-52.3 — KHI đọc hiến pháp 4.0.0 THÌ nó PHẢI nói rõ non-goals của spec 001 **không bị
       sửa ngược**, và spec 011 dẫn về mục 1 — đúng khuôn mục 1 đã đặt cho lần 3.0.0.
-- [ ] AC-52.4 — KHI đọc hiến pháp 4.0.0 THÌ non-goal "bản cho điện thoại và máy tính bảng" và
+- [x] AC-52.4 — KHI đọc hiến pháp 4.0.0 THÌ non-goal "bản cho điện thoại và máy tính bảng" và
       non-goal "ngôn ngữ thứ ba" PHẢI còn nguyên: lần này chỉ gỡ đúng một dòng.
 
 ### US-8: Sân 2D được làm đẹp lại, không bị làm lại
@@ -406,14 +418,14 @@ như một trận đấu mà vẫn đọc được đúng như hôm nay**.
 
 **Acceptance criteria:**
 
-- [ ] AC-53.1 — KHI sân 2D được chỉnh lại diện mạo THÌ nó PHẢI đi theo hệ thống thiết kế: màu
+- [x] AC-53.1 — KHI sân 2D được chỉnh lại diện mạo THÌ nó PHẢI đi theo hệ thống thiết kế: màu
       cỏ, độ dày vạch sân, màu áo hai đội, kiểu điểm cầu thủ đều là giá trị trong thang đã ghi.
-- [ ] AC-53.2 — KHI sân 2D được chỉnh lại diện mạo THÌ **mọi AC đã đóng** của spec 002, 004,
+- [x] AC-53.2 — KHI sân 2D được chỉnh lại diện mạo THÌ **mọi AC đã đóng** của spec 002, 004,
       005, 006 PHẢI còn xanh, và **không một con số hành vi nào** đổi: bán kính điểm, khoảng
       giãn, biên độ dao động, ngưỡng nội suy giữ nguyên giá trị hoặc đổi kèm một AC mới nói rõ.
-- [ ] AC-53.3 — KHI sân 2D được chỉnh lại diện mạo THÌ số áo PHẢI còn đếm được và đọc được
+- [x] AC-53.3 — KHI sân 2D được chỉnh lại diện mạo THÌ số áo PHẢI còn đếm được và đọc được
       đúng như trước (AC-15.1), và tương phản PHẢI được đo lại ở cả hai chủ đề.
-- [ ] AC-53.4 — KHI sân 2D được chỉnh lại diện mạo THÌ KHÔNG con số nào của trận đổi (hiến
+- [x] AC-53.4 — KHI sân 2D được chỉnh lại diện mạo THÌ KHÔNG con số nào của trận đổi (hiến
       pháp P2): cùng mã trận cho cùng kết quả và cùng từng dòng tường thuật.
 
 ---
