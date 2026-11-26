@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **ID** | `011-pro-ui-3d-pitch` |
-| **Status** | **Planned** — **49/52 AC đạt** sau khi Phase 62 xong ngày 2026-11-26. **Ba AC còn lại đều là phép đo nhịp khung** (AC-51.1, AC-51.4, AC-51.5) và chúng không thực hiện được trong môi trường của phiên này, không phải vì thiếu việc. **Chưa `Done`** — và sẽ chỉ `Done` khi ba con số ấy đo được ở một môi trường vẽ khung thật. |
+| **Status** | **Planned** — **49/52 AC đạt**. AC-49.6 và AC-49.7 bị gỡ tích rồi **tích lại cùng ngày 2026-11-26**, sau khi `T814` và `T815` của spec 007 kéo số cặp đè từ **7,27% xuống 0,041%** và người dùng **xem lại rồi phán đạt** (`T760`). **Ba AC còn lại đều là phép đo nhịp khung** (51.1, 51.4, 51.5) và chúng không thực hiện được trong môi trường của phiên này. **Chưa `Done`** — và sẽ chỉ `Done` khi ba con số ấy đo được ở một môi trường vẽ khung thật. |
 | **Created** | 2026-11-25 |
 | **Clarified** | 2026-11-25 — **15 quyết định**, xem mục 10 (quyết định 15 đến từ `/analyze`) |
 | **Planned** | 2026-11-25 — `./plan.md`, 13 quyết định D130–D142, 7 rủi ro R60–R66 |
@@ -338,11 +338,33 @@ hỏng điều gì**, để **không phải kiểm lại bằng mắt từ đầ
 - [x] AC-49.6 — KHI hai thực thể chiếu thành hai hình sát nhau trên màn hình THÌ người xem
       PHẢI vẫn **phân biệt được** là hai, không phải một — đo **sau khi chiếu**, không đo bằng
       mét trên mặt sân, vì đó mới là điều AC-30.5 thật sự hứa.
-      > ✅ **ĐẠT (Phase 62, 2026-11-26):** T781 — `phanBietDuoc` cộng 5 phép kiểm, ngưỡng **một bán kính** lấy lại từ `san2D.test.ts:173` của spec 002, đo **sau khi chiếu**.
+      > 🔴 **TÔI ĐÃ TÍCH SAI, VÀ GỠ LẠI NGÀY 2026-11-26.** Phase 62 tích AC này vì *hàm*
+      > `phanBietDuoc` tồn tại và có 5 phép kiểm — chứ không phải vì **hành vi** đúng. Người
+      > dùng xem trọn một trận ở **T760** của spec 007 và nói ngay: *"tôi thấy bị đè lên nhau"*.
+      > Đo lại trên 1.135 mốc của 5 mã trận: **19.294 trên 262.185 cặp (~7,4%)** không phân
+      > biệt được, và **100% số mốc** có ít nhất một cặp đè. Sân 2D cũng vậy (19.482 cặp) — nên
+      > đây là chuyện **chung**, không phải lỗi của sa bàn.
+      > Chủ nợ là **spec 007**, task `T814`. Spec 011 **không chữa được**: dịch người ở
+      > lớp vẽ là vỡ **AC-46.5**.
+      > ⏳ **`T814` XONG NGÀY 2026-11-26, và số đo đã đổi hẳn: 7,27% → 0,041% số cặp,
+      > 100% → 8,8% số mốc, đĩa chạm mép 9,53% → 0,75%.** Nguyên nhân thật không phải `tachChen` (nó giữ đúng 2,0 m) mà
+      > là **lưới 12 vùng chỉ phát 8 điểm đích cho 22 người** — 22 trong 231 cặp nhắm đúng
+      > một điểm. Đã có phép kiểm mang đúng tên AC này ở `batBienSaBan.test.ts`, đo **sau khi
+      > chiếu**, trên 1.336.690 cặp.
+      > ✅ **TÍCH LẠI NGÀY 2026-11-26, và lần này bằng ĐÚNG thứ đáng tích bằng:** người
+      > dùng xem lại chính mã trận `88CWDYCZ75` sau `T814` + `T815` và **phán đạt** (`T760`
+      > của spec 007). Phép kiểm ở dưới là **dây bẫy**, không phải bằng chứng — bằng chứng
+      > là con mắt đã bác AC này lần đầu.
 - [x] AC-49.7 — KHI hai hình sát nhau được tách ra THÌ việc tách PHẢI làm bằng **viền**, không
       bằng cách dịch thực thể: AC-46.5 đứng tuyệt đối, và viền không được đọc nhầm thành một
       trạng thái của cầu thủ.
-      > ✅ **ĐẠT (Phase 62, 2026-11-26):** T782 — viền **đã thường trực** từ T788/T799, không bật/tắt theo trạng thái (**R65**). Không thêm một dòng mã nào, và nói rõ vì sao.
+      > 🔴 **GỠ TÍCH NGÀY 2026-11-26, cùng lý do với AC-49.6.** Viền **đúng là** thường
+      > trực và **đúng là** không được bật/tắt theo trạng thái (**R65** vẫn đứng). Nhưng điều
+      > kiện thật của AC này là *"hai cầu thủ đứng khít nhau vẫn đếm ra hai"*, và số đo nói
+      > không: 7,4% số cặp vẫn đè. Viền là điều kiện **cần**, không phải **đủ**.
+      > ✅ **TÍCH LẠI NGÀY 2026-11-26** cùng AC-49.6: `T814` + `T815` xong, và người dùng
+      > xem lại rồi **phán đạt** (`T760`). Viền là điều kiện **cần**; điều kiện **đủ** là
+      > chỗ đứng, và nó đã tới.
 
 **Toàn cục:**
 
@@ -351,6 +373,13 @@ hỏng điều gì**, để **không phải kiểm lại bằng mắt từ đầ
 - [x] AC-49.9 — KHI góc nhìn 3D được thêm vào THÌ phép kiểm ranh giới tầng PHẢI còn xanh:
       không file nào của `src/engine/` import tầng giao diện, và `src/engine/` không có một
       dòng nào thay đổi.
+      > ⚠️ **ĐỌC KỸ CHỮ NÀY, VÌ NÓ ĐÃ HẾT ĐÚNG THEO NGHĨA HẸP NHẤT.** `src/engine/` **có**
+      > đổi ngày 2026-11-26 — `T813` nối `kepDichThuMon`, và `T814` thêm `choDungDoiHinhMet`.
+      > Cả hai là task của **spec 007**, do người dùng yêu cầu làm, **không** phải việc của
+      > spec 011; spec 011 vẫn chưa sửa một dòng engine nào. Mệnh đề thật mà AC này canh —
+      > `boundaries.test.ts` xanh, không file engine nào import tầng giao diện — **còn
+      > nguyên**. Giữ tích, nhưng ghi lại ở đây để không ai đọc câu trên rồi tưởng engine chưa
+      > ai chạm tới.
 
 ### US-5: Dùng được bằng bàn phím, và không chỉ dựa màu
 

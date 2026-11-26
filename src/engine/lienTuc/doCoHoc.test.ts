@@ -161,10 +161,76 @@ describe('phép đo CÓ MẪU THẬT — chống rỗng (T742, AC-45.6)', () => 
     `sosanh.*` và vân tay dòng sự kiện của spec 011 đều xanh qua thay đổi này.
     Đúng như hiến pháp nói: vùng là đơn vị **QUYẾT ĐỊNH**, lớp liên tục chỉ
     **DIỄN**. Nên T813 **không** chạm P2 — điều mà chính lời T813 đã đoán sai.
+
+    ════════════════════════════════════════════════════════════════════
+    ⚠️⚠️ VÀ RỒI **T814** NGÀY CÙNG HÔM ẤY GỠ 95% MÓN NỢ NÀY.
+
+    Chú thích trên kia nêu **hai nguồn có tên** của chênh lệch vận tốc ↔ dịch
+    chuyển, và nguồn thứ nhất là *"`tachChen` đẩy người ra khỏi nhau SAU phép
+    bước"*. T814 tìm ra **vì sao** nó đẩy nhiều đến thế: lưới 12 vùng chỉ phát
+    **8 điểm đích cho 22 người**, nên 22 trong 231 cặp nhắm **đúng một điểm** và
+    bị xô ra mỗi mốc, cả trận. `choDungDoiHinhMet` giãn họ ra, và:
+
+      tổng vi phạm         1.613 → 77      ← bớt 95,2%
+      AC-38.2(tăng)          259 → 3
+      AC-38.2(giảm)           12 → 0       ← sạch hẳn
+      AC-38.3(i)             443 → 4
+      AC-38.3(ii)            862 → 26
+      AC-38.4(ngang) đếm       7 → 0       ← sạch hẳn
+      AC-38.11                 7 → 1
+      AC-38.1(i)              12 → 34      ← TỆ HƠN, gần gấp ba
+      AC-38.1(ii)             11 → 9
+      AC-38.4(lùi) soMau     180 → 21      ← mẫu thưa đi 9 lần
+      AC-38.4(ngang) soMau 1.423 → 2.363
+      năm mã  1.606/1.678/1.557/1.615/1.705 → 77/101/57/78/90
+
+    📌 Bảng trên đã đi qua **ba** bản trong một ngày, và tổng vi phạm đứng yên
+    ở **77** cả ba lần:
+
+    | | giãn 3,5 m | giãn 6,0 m | **+ T815** |
+    |---|---|---|---|
+    | tổng | 77 | 77 | **77** |
+    | AC-38.1(i) | 15 | 34 | **33** |
+    | AC-38.2(tăng) | 2 | 3 | **4** |
+    | AC-38.2(giảm) | 1 | 0 | **0** |
+    | AC-38.3(i) | 13 | 4 | **5** |
+    | AC-38.3(ii) | 37 | 26 | **25** |
+    | AC-38.11 | 0 | 1 | **1** |
+    | soMau lùi | 22 | 21 | **22** |
+
+    Nói cách khác: **`T815` gần như không chạm món nợ cơ học.** Nó đổi *chỗ
+    đứng*, không đổi *cách bước*. Chỗ đổi lớn nằm ở `T814` và ở việc giãn
+    6,0 m, không ở đây.
+
+    📌 **Ba con số đi ngược, và tôi không gộp chúng vào lời khoe.**
+    `AC-38.1(i)` tăng **12 → 34** — hơn gấp đôi, và nó xấu đi thêm khi giãn từ
+    3,5 m lên 6,0 m (15 → 34). Người đứng rời nhau thì quãng phải chạy về phía
+    bóng **dài hơn**, nên tốc độ đo trên dịch chuyển chạm trần nhiều hơn; và
+    những cú xô `tachChen` còn lại không còn cặp nào nằm sẵn trên tường 2,0 m
+    để chia bớt. `AC-38.11` đi từ 0 lên **1**. Và `AC-38.4(lùi)` chỉ còn 21
+    mẫu — xem chú thích tại chỗ của nó.
+
+    📍 **Dòng sự kiện lại KHÔNG đổi một ký tự**, lần thứ hai trong một ngày:
+    1.828 phép kiểm còn lại xanh nguyên, kể cả vân tay `batBienSaBan.test.ts`.
+    Vị trí mét không vào bản ghi trận (**AC-45.4**), nên không trận đã lưu nào
+    đổi. **P2 nguyên vẹn.**
   */
-  it('AC-38.4 có mẫu ở CẢ HAI vế, dù vế lùi thưa', () => {
-    expect(KQ.soMau['AC-38.4(lùi)']).toBe(180)
-    expect(KQ.soMau['AC-38.4(ngang)']).toBe(1423)
+  it('AC-38.4 có mẫu ở CẢ HAI vế, dù vế lùi THƯA ĐI 9 LẦN sau T814', () => {
+    /*
+      ⚠️ **180 → 21, và con số cũ phần lớn là RÁC.** Vế "lùi" đếm những mốc một
+      người di chuyển ngược hướng thân mình. Trước T814, hai mươi hai cặp người
+      đứng chung một điểm đích và bị `tachChen` xô qua xô lại mỗi mốc — những
+      cú xô ấy **trông như** chạy lùi với phép đo dựa trên dịch chuyển. Gỡ chỗ
+      đứng trùng đi thì 159 trong 180 mẫu biến mất cùng với chúng.
+
+      📌 Nhưng 22 mẫu là **thưa**, và chú thích đầu `describe` này đã rào trước:
+      *"một vế chỉ chạm tới vài chục lần thì xanh hay đỏ đều là ngẫu nhiên"*.
+      Nên phép chống rỗng ở đây hôm nay **yếu hơn hôm qua** — nó vẫn chứng minh
+      vế ấy có người đo, nhưng không còn chứng minh được bao nhiêu. Ghi thành
+      món nợ có tên ở `T814` của `tasks.md` chứ không lặng lẽ đổi số.
+    */
+    expect(KQ.soMau['AC-38.4(lùi)']).toBe(22)
+    expect(KQ.soMau['AC-38.4(ngang)']).toBe(2423)
   })
 })
 
@@ -234,27 +300,35 @@ describe('MÓN NỢ đo được hôm nay — phép đo này KHÔNG xanh (T742)'
     cho người dùng kèm con số, không tự sửa và cũng không tự nới ngưỡng.
   */
 
-  it('5.980 hàng mỏng, 16 tình huống dày, 1.606 vi phạm', () => {
+  it('5.980 hàng mỏng, 16 tình huống dày, 77 vi phạm', () => {
     expect(TEP.moc.hang.length).toBe(5980)
     expect(TEP.tinh_huong.length).toBe(16)
-    expect(KQ.viPham.length).toBe(1613)
+    expect(KQ.viPham.length).toBe(77)
   })
 
   it('AC-38.1 và AC-38.2: vỡ khi đo trên DỊCH CHUYỂN, dù vận tốc đúng trần', () => {
-    expect(DEM.get('AC-38.1(i)')).toBe(12)
-    expect(DEM.get('AC-38.1(ii)')).toBe(11)
-    expect(DEM.get('AC-38.2(tăng)')).toBe(259)
-    expect(DEM.get('AC-38.2(giảm)')).toBe(12)
+    expect(DEM.get('AC-38.1(i)')).toBe(33)
+    expect(DEM.get('AC-38.1(ii)')).toBe(9)
+    expect(DEM.get('AC-38.2(tăng)')).toBe(4)
+    expect(DEM.get('AC-38.2(giảm)') ?? 0).toBe(0)
   })
 
   it('AC-38.3: cả hai vế đỏ ở độ phân giải MỐC', () => {
-    expect(DEM.get('AC-38.3(i)')).toBe(443)
-    expect(DEM.get('AC-38.3(ii)')).toBe(862)
+    expect(DEM.get('AC-38.3(i)')).toBe(5)
+    expect(DEM.get('AC-38.3(ii)')).toBe(25)
   })
 
-  it('AC-38.4(ngang) và AC-38.11: năm mốc mỗi vế, không hơn', () => {
-    expect(DEM.get('AC-38.4(ngang)')).toBe(7)
-    expect(DEM.get('AC-38.11')).toBe(7)
+  it('AC-38.4(ngang) sạch hẳn, AC-38.11 còn đúng MỘT mốc', () => {
+    /*
+      Hai vế này đo lệch giữa hướng thân người và hướng di chuyển, và gần như
+      mọi mốc lệch trước T814 đều là cú xô của `tachChen` trên những cặp đứng
+      trùng điểm đích: `AC-38.4(ngang)` 7 → **0**.
+
+      `AC-38.11` thì 7 → 0 ở bản giãn **3,5 m**, rồi **0 → 1** khi giãn lên
+      **6,0 m**. Một mốc trên 27.012 mẫu. Nêu ra chứ không làm tròn xuống.
+    */
+    expect(DEM.get('AC-38.4(ngang)') ?? 0).toBe(0)
+    expect(DEM.get('AC-38.11') ?? 0).toBe(1)
   })
 
   it('và tổng số vi phạm đúng bằng tổng từng vế — không vế nào bị đếm hai lần', () => {
@@ -265,14 +339,15 @@ describe('MÓN NỢ đo được hôm nay — phép đo này KHÔNG xanh (T742)'
 
   /*
     Món nợ **không** là chuyện của riêng một mã trận: đo trên 5 mã cho
-    1.606 / 1.678 / 1.557 / 1.615 / 1.705. Phép kiểm chỉ canh **bậc độ lớn** của
-    dải ấy, vì khẳng định năm con số chính xác là buộc phép kiểm chạy 5 trận
-    đầy đủ (≈2 giây) mỗi lần ai đó chạy bộ test.
+    **77 / 101 / 57 / 78 / 90** (trước T814: 1.606 / 1.678 / 1.557 / 1.615 /
+    1.705). Phép kiểm chỉ canh **bậc độ lớn** của dải ấy, vì khẳng định năm con
+    số chính xác là buộc phép kiểm chạy 5 trận đầy đủ (≈3 giây) mỗi lần ai đó
+    chạy bộ test.
   */
-  it('và nó ổn định quanh 1.600 trên một mã thứ hai, không phải chuyện của một mã', () => {
+  it('và nó ổn định quanh 100 trên một mã thứ hai, không phải chuyện của một mã', () => {
     const khac = doCoHoc(dungTepXuat(cauHinhMau(MA_TRAN_CO_DINH[1]!)))
-    expect(khac.viPham.length).toBeGreaterThan(1400)
-    expect(khac.viPham.length).toBeLessThan(1900)
+    expect(khac.viPham.length).toBeGreaterThan(40)
+    expect(khac.viPham.length).toBeLessThan(200)
   })
 })
 

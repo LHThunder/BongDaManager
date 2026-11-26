@@ -24,7 +24,12 @@ import {
   type Diem,
   type TrangThaiCoHoc,
 } from './coHoc'
-import { choDungMet, dichNguoiKhongBong, tamVungMet } from './viTriMet'
+import {
+  choDungDoiHinhMet,
+  dichNguoiKhongBong,
+  phanDichCuaO,
+  tamVungMet,
+} from './viTriMet'
 import {
   buocTiep,
   type CauHinhTran,
@@ -403,10 +408,13 @@ function coHocXuatPhat(tran: TrangThaiTran): readonly TrangThaiCoHoc[] {
   const ra: TrangThaiCoHoc[] = []
   for (const ben of ['nha', 'khach'] as const) {
     const doiHinh = doiHinhTrenSan(tran.ben[ben])
+    const cacCho = choDungDoiHinhMet(
+      Array.from({ length: 11 }, (_, o) => doiHinh[o]?.viTriO ?? 'GK'),
+      ben,
+    )
     for (let o = 0; o < 11; o += 1) {
-      const v = doiHinh[o]
-      const cho = v
-        ? choDungMet(v.viTriO, ben)
+      const cho = doiHinh[o]
+        ? cacCho[o]!
         : { x: ben === 'nha' ? 1 : DAI_SAN_TAM * 2 - 1, y: TAM_Y }
       ra.push(dung(cho.x, cho.y, ben === 'nha' ? 0 : 180))
     }
@@ -590,11 +598,19 @@ export function buocPhutLienTuc(ttVao: TrangThaiLienTuc): MotPhutLienTuc {
   const thuMonCuaO: (BenSan | null)[] = []
   for (const ben of ['nha', 'khach'] as const) {
     const doiHinh = doiHinhTrenSan(tranSau.ben[ben])
+    /*
+      Đích GIÃN CÁCH của cả đội hình một lượt (T814), không từng ô một: hai
+      người cùng vùng phải biết nhau mới giãn được. Ô trống nhận `'GK'` để
+      danh sách luôn dài 11 — chỗ đứng của nó bị bỏ ngay dòng dưới, chỉ
+      `coMat` mới nói ai còn trên sân.
+    */
+    const cacCho = choDungDoiHinhMet(
+      Array.from({ length: 11 }, (_, o) => doiHinh[o]?.viTriO ?? 'GK'),
+      ben,
+    )
     for (let o = 0; o < 11; o += 1) {
       const v = doiHinh[o]
-      choDung.push(
-        v ? choDungMet(v.viTriO, ben) : { x: TAM_X, y: TAM_Y },
-      )
+      choDung.push(v ? cacCho[o]! : { x: TAM_X, y: TAM_Y })
       thuMonCuaO.push(v && v.viTriO === 'GK' ? ben : null)
     }
   }
@@ -744,7 +760,11 @@ export function buocPhutLienTuc(ttVao: TrangThaiLienTuc): MotPhutLienTuc {
       const dichThoi =
         o === nguoiGiu
           ? dBong
-          : dichNguoiKhongBong(choDung[o] ?? { x: TAM_X, y: TAM_Y }, dBong)
+          : dichNguoiKhongBong(
+              choDung[o] ?? { x: TAM_X, y: TAM_Y },
+              dBong,
+              phanDichCuaO(o),
+            )
       /*
         KẸP ĐÍCH CỦA THỦ MÔN (T813) — chỗ phép kẹp đáng lẽ phải được gọi từ đầu.
 

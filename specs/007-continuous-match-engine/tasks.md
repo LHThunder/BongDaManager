@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **30 AC**) |
 | **Plan** | `./plan.md` (Status `Approved`, D117–D134, R51–R64) |
-| **Tiến độ** | 40/51 — T813 thêm ngày 2026-11-25 và xong ngày 2026-11-26 |
+| **Tiến độ** | 43/53 — T813, **T814**, **T815** và **T760** xong 2026-11-26. T814 gỡ **95%** món nợ cơ học của `T742` (1.613 → 77 vi phạm) như một hệ quả phụ; T815 phá cái lưới ô vuông của đội hình; `T760` — cổng nghiệm thu của người dùng — **đạt ở lượt xem thứ hai** |
 | **Nền đo** | commit `5c652eb`, engine v6, **1.304 test xanh / 63 file test** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -2135,6 +2135,195 @@ học đo **trên chính tệp ấy**.
     tại chỗ. Hai trong chín là **tốt lên**: `AC-38.1(i)` 15 → 12 và
     `AC-38.1(ii)` 12 → 11. Bộ kiểm đầy đủ: **86 file / 1.809 phép kiểm xanh**.
 
+- [x] **T814** — Cầu thủ đè lên nhau trên đường liên tục. *(Thêm **và xong** 2026-11-26 từ phán quyết `T760`.)*
+  - File: `src/engine/lienTuc/coHoc.ts` (`tachChen`), `src/engine/lienTuc/coHoc.test.ts`
+  - **Phát hiện:** người dùng xem trọn một trận ở `T760` và nói *"tôi thấy bị đè lên nhau"*.
+    Đo bằng máy trên **1.135 mốc** của 5 mã trận, dùng `phanBietDuoc` của spec 011 với ngưỡng
+    **một bán kính** (chính ngưỡng `san2D.test.ts:173` đã dùng cho AC-15.2 từ spec 002):
+
+    | | Sa bàn | Sân 2D |
+    |---|---|---|
+    | Mốc có ít nhất một cặp đè | **100%** | **100%** |
+    | Cặp đè / tổng cặp | 19.294 | 19.482 / 262.185 (**~7,4%**) |
+    | Cặp gần trùng khít (< ½ bán kính) | 0 | — |
+
+  - 📍 **Sân 2D tệ y hệt sa bàn**, nên đây **không** phải lỗi của lớp vẽ 3D. Và nó là một lỗ
+    hổng **cùng loại với `T813`**: `san2D.test.ts` canh "không chồng khít" trên bố cục **cổ
+    điển** tại các mốc sự kiện, còn **đường liên tục thì không phép kiểm nào canh**. `tachChen`
+    có chạy, nhưng nó tách theo **mét** và rõ ràng chưa đủ.
+  - ⛔ **Spec 011 KHÔNG chữa được chỗ này.** Dịch người ở lớp vẽ là vỡ **AC-46.5** (hai góc
+    nhìn phải khớp `(x, y)` từng số) và làm hình nói khác engine. Đã gỡ tích **AC-49.6** và
+    **AC-49.7** của spec 011 vì chúng dựa vào điều này.
+  - Xong khi: đo lại đúng bộ 1.135 mốc trên cho **≤ 1%** số cặp đè và **≤ 20%** số mốc có cặp
+    đè; `coHoc.test.ts` có một phép kiểm **chống rỗng** (số cặp đã so > 200.000); và **P1 còn
+    nguyên** — cùng mã trận vẫn cho cùng dòng sự kiện từng ký tự.
+  - ⚠️ Sửa `tachChen` **đổi vị trí người**, nên nó có thể đổi con số trận. Phải đo lại chín bộ
+    đếm của `doCoHoc.test.ts` và nói rõ trong commit, đúng như `T813` đã làm.
+  - ✅ **XONG 2026-11-26 — nhưng NGUYÊN NHÂN KHÔNG PHẢI THỨ TASK NÀY VIẾT.**
+    Lời task ở trên nói *"tachChen tách theo mét và rõ ràng chưa đủ"*. Sai. `tachChen` giữ
+    đúng 2,0 m, không hụt một milimét. Lỗi nằm **trước** nó, ở chỗ phát đích:
+
+    > **Lưới 12 vùng chỉ phát 8 ĐIỂM ĐÍCH cho 22 NGƯỜI.**
+
+    | điểm | số người cùng nhắm |
+    |---|---|
+    | `36,8 ; 34,0` | **4** — hai `DC` nhà và hai `MC` khách |
+    | `68,3 ; 34,0` | **4** — hai `MC` nhà và hai `DC` khách |
+    | `10,5 ; 34,0` | **3** — `GK` nhà và hai `ST` khách |
+    | `94,5 ; 34,0` | **3** — hai `ST` nhà và `GK` khách |
+    | bốn điểm cánh | **2** mỗi điểm |
+
+    **22 trong 231 cặp (9,5%) nhắm đúng một điểm**, và phép đo trên 6.789.700 cặp cho
+    **9,53%** số cặp có đĩa chồng nhau — trùng tới hai chữ số thập phân, vì là **cùng một tập
+    cặp**. Đó là **cả hai** câu người dùng nói, từ **một** nguyên nhân: cùng đích thì
+    `tachChen` xô họ ra rồi để họ đứng **đúng** trên tường 2,0 m (phân vị 1% của khoảng cách =
+    2,000 m, **6,23%** số cặp nằm ngay trên tường), và cùng đích **cộng** cùng phép cơ học thì
+    hai người dịch **y hệt nhau** từng mốc — họ không chỉ gần nhau, họ là **một khối**.
+  - **Cách sửa:** `choDungDoiHinhMet` trong `src/engine/lienTuc/viTriMet.ts` — người thứ `i`
+    trong nhóm `k` người cùng vùng lệch `(i − (k−1)/2) × 10 m` theo trục ngang, và mỗi bên lùi
+    **`6,0 m`** về sân mình (bốn điểm giữa sân bị hai bên cùng nhắm vì dải 1 của nhà là dải 2
+    của khách). Hai nơi gọi: `coHocXuatPhat` và vòng dựng `choDung` của `buocPhutLienTuc`.
+    ⚠️ **`3,5 m` → `6,0 m` là quyết định của MẮT, không của phép đo.** Bản `3,5 m` làm **mọi**
+    phép kiểm xanh — 7 m qua ngưỡng đếm-ra-hai (6,01 m) — nhưng người dùng xem bản chạy và
+    thấy **11 cặp khiêu vũ**: 7 m chỉ hơn **một** đường kính đĩa đúng 1 cm, nên mỗi cầu thủ
+    nhà đứng dính một cầu thủ khách suốt trận. `6,0 m` cho **12 m**, tức **hai** đường kính.
+    Người dùng chốt ngày 2026-11-26 sau khi xem.
+    ⛔ **Không** thêm vai trò, pha, hay chỉ số nào — nó chỉ làm một việc: **không đặt hai người
+    lên cùng một điểm**. Khối phòng ngự, hai tuyến, pressing vẫn là **US-40 của spec 009**.
+  - **Số đo sau khi sửa**, đúng bộ mẫu cũ:
+
+    | | trước | giãn 3,5 m | giãn **6,0 m** |
+    |---|---|---|---|
+    | cặp không phân biệt được | **7,27%** | 0,073% | **0,041%** |
+    | mốc có cặp như vậy | **100%** | 15,6% | **8,8%** |
+    | **đĩa chạm mép nhau** | 9,53% | 3,95% | **0,75%** |
+    | phân vị 1% của khoảng cách | 2,000 m | 5,25 m | **7,50 m** |
+    | cặp nằm đúng trên tường 2,0 m | 6,23% | 0,02% | **0,01%** |
+
+    📌 Cột đáng nhìn nhất là **đĩa chạm mép** — `9,53% → 0,75%`, bớt **13 lần** — vì đó là
+    thứ người xem thật sự thấy. Hai vế của điều kiện ra (`≤ 1%` số cặp, `≤ 20%` số mốc) đều
+    đạt với biên hơn hai lần. Phép kiểm ở `src/ui/batBienSaBan.test.ts` (1.336.690 cặp, trên
+    ngưỡng chống rỗng 200.000) và 7 phép kiểm đơn vị ở `viTriMet.test.ts`, trong đó **một
+    phép chống rỗng** khẳng định hàm **cũ** trùng đúng 8 điểm — không có nó thì cả khối xanh
+    mà chẳng chứng minh gì.
+  - ⚠️ **HAI NGƯỠNG TÔI CÔNG BỐ KHÔNG ĐỘC LẬP VỚI NHAU — lỗi của tôi khi đặt chúng.** Một
+    mốc có **231 cặp**, nên `0,1%` số cặp đã cho ~20% số mốc; tức `1%` số cặp tương đương
+    ~**90%** số mốc, chứ không 20%. Vế **mốc** chặt hơn vế **cặp** gần mười lần, và nó mới là
+    vế thật sự ràng.
+    📍 Ở bản `3,5 m` điều đó từng đau: vế mốc đo ra **15,6% / 18,7% / 20,1% / 25,0%** tuỳ mẫu,
+    tức **bước qua lại** đường 20%, và phép kiểm chỉ xanh nhờ mẫu nào được chọn — tôi đã nói
+    thẳng điều ấy với người dùng thay vì để yên. Ở bản `6,0 m` nó hết chông chênh:
+    **8,8% / 9,0% / 10,9% / 10,2%** trên cùng bốn mẫu ấy. Dải nằm trong 20% với biên **hơn hai
+    lần**, và không mẫu nào tới gần đường. Đó là khác biệt thật giữa hai bản, không phải một
+    mẫu may mắn.
+  - 💰 **HỆ QUẢ PHỤ LỚN NHẤT: món nợ cơ học của `T742` rụng 95%.** Chú thích của
+    `doCoHoc.test.ts` nêu hai nguồn có tên của chênh lệch vận tốc ↔ dịch chuyển, nguồn thứ nhất
+    là *"tachChen đẩy người ra sau phép bước"*. Gỡ chỗ đứng trùng đi:
+
+    ```
+    tổng vi phạm         1.613 → 77      (năm mã: 1.606/1.678/1.557/1.615/1.705 → 77/114/56/66/95)
+    AC-38.2(tăng)          259 → 3        AC-38.3(i)    443 → 4
+    AC-38.2(giảm)           12 → 0        AC-38.3(ii)   862 → 26
+    AC-38.4(ngang) đếm       7 → 0        AC-38.11        7 → 1
+    AC-38.1(i)              12 → 34      ← TỆ HƠN        AC-38.1(ii)  11 → 9
+    ```
+    ⚠️ **`AC-38.1(i)` là chỗ xấu đi, và giãn rộng làm nó xấu thêm: 12 → 15 (bản 3,5 m) → 34
+    (bản 6,0 m).** Người đứng rời nhau thì quãng phải chạy về phía bóng **dài hơn**, nên tốc
+    độ đo trên **dịch chuyển** chạm trần nhiều hơn. Tổng vi phạm vẫn là 77 ở cả hai bản — việc
+    giãn rộng **dồn** món nợ còn lại sang một vế chứ không tạo thêm nợ.
+  - ⚠️ **MỘT MÓN NỢ MỚI, NÊU RA CHỨ KHÔNG TỰ SỬA:** `soMau` của vế `AC-38.4(lùi)` tụt
+    **180 → 21**. Phần lớn 180 mẫu cũ là **rác** — những cú xô của `tachChen` trông như chạy
+    lùi với phép đo dựa trên dịch chuyển. Nhưng 22 mẫu là **thưa**, và chính `doCoHoc.test.ts`
+    đã rào *"một vế chỉ chạm tới vài chục lần thì xanh hay đỏ đều là ngẫu nhiên"*. Nên phép
+    chống rỗng của vế ấy **yếu hơn hôm qua**. Chưa mở task riêng: nó thuộc `T742`, và nên gộp
+    vào lần ai đó mở lại `T742`.
+  - 📍 **P2 nguyên vẹn, lần thứ hai trong một ngày.** 1.834 phép kiểm xanh, kể cả vân tay dòng
+    sự kiện của spec 011. Vị trí mét **không vào bản ghi trận** (AC-45.4), nên **không trận đã
+    lưu nào đổi**. Lời cảnh báo của chính task này (*"có thể đổi con số trận"*) không thành sự
+    thật — cùng lý do T813 cũng không: vùng là đơn vị **QUYẾT ĐỊNH**, lớp liên tục chỉ **DIỄN**.
+  - AC: AC-30.5 (của spec 005) đọc lại ở engine liên tục; gỡ chặn AC-49.6/49.7 của spec 011
+  - Phụ thuộc: —
+
+- [x] **T815** — Cả đội hình trượt cùng nhau như một khối. *(Thêm **và xong** 2026-11-26 từ phán quyết `T760`.)*
+  - File: `src/engine/lienTuc/viTriMet.ts` (`dichNguoiKhongBong`), phép kiểm cạnh nó
+  - **Phát hiện:** cùng lượt xem ấy, người dùng nói *"di chuyển của cầu thủ quá máy móc và
+    dính liền đến nhau"*.
+  - **Số đo, và hãy đọc kèm cảnh báo về nó:** tỉ lệ phần dịch chuyển **chung** của 22 người
+    trên tổng chuyển động giữa hai mốc liên tiếp — p50 **0,19**, p90 **0,72**. Tức cứ mười
+    khung thì có một khung mà **72%** chuyển động là cả khối trượt cùng hướng.
+    ⚠️ Thước đo này là **của tôi và còn thô** — nó ủng hộ điều người dùng thấy, nhưng không
+    phải một chỉ số đã được ai công nhận. Task này nên bắt đầu bằng việc **chọn một thước đo
+    tốt hơn**, không phải bằng việc tin con số trên.
+  - 📍 Nguyên nhân khoanh được: `dichNguoiKhongBong(choDung[o], dBong)` đưa **mọi** người
+    không giữ bóng về phía bóng theo cùng một phép, lấy chỗ đứng sơ đồ làm neo — nên cả khối
+    tịnh tiến. Không có thành phần riêng cho từng người (vai trò, thể lực, độ trễ phản ứng).
+  - ⚠️ **Đây là lõi hành vi đội hình.** Chạm vào là **đổi mọi trận đã lưu**, tức chạm **P2** —
+    khác hẳn `T813`, nơi dòng sự kiện không đổi một ký tự. Phải nói rõ điều đó trước khi làm,
+    và `lyDoKhongDauLai` phải nói được.
+  - 🔴 **ĐO LẠI SAU `T814` NGÀY 2026-11-26, VÀ THƯỚC ĐO ĐI NGƯỢC:** p50 **0,19 → 0,41**,
+    p90 **0,72 → 0,92** (17.415 mẫu, mọi cặp mốc liên tiếp của 5 mã).
+    📌 Và đó **không** phải một hồi quy — nó là bằng chứng rằng **thước đo sai**, đúng điều
+    cảnh báo ở trên đã nói trước. Trước T814, 22 cặp dính nhau bị `tachChen` xô ngược chiều mỗi
+    mốc; những cú xô ấy là **tán xạ ngẫu nhiên** và chúng phình **mẫu số**. Gỡ chúng đi thì
+    chuyển động còn lại gọn hơn, và một thước đo lấy tán xạ làm mẫu số đọc ra **tệ hơn** khi
+    hình **tốt hơn**. Số đo cũ (0,19 / 0,72) vì thế bị **rút lại**, không dùng làm mốc so.
+  - 📌 Nguyên nhân thật thì **không đổi và vẫn còn đó**: `dichNguoiKhongBong` dùng **một**
+    hệ số `0,25` cho cả 22 người, nên đội hình là một phép **co đều** về phía bóng. Việc đầu
+    tiên của task này vẫn là **chọn một thước đo khác** — và nó phải là thước đo không lấy tán
+    xạ của một lỗi khác làm mẫu số.
+  - Xong khi: có một thước đo được chốt, một số đo trước/sau, và **người dùng xem lại rồi
+    phán** — chính `T760` là cổng của việc này, không phải một phép kiểm.
+  - ✅ **XONG 2026-11-26. Và thước đo mới KHÔNG phải một phép đo — nó là ĐẠI SỐ.**
+    Với một hệ số `p` duy nhất cho cả 22 người:
+
+    > `đích_i = (1 − p)·chỗ_i + p·bóng`  ⟹  `Δđích_i = p·Δbóng`, **giống hệt nhau với mọi i**
+
+    Hai mươi hai vectơ dịch chuyển **bằng nhau từng số**. Trường đích không *trông như* một
+    khối — nó **là** một phép tịnh tiến cứng, chứng minh bằng hai dòng. Đó là lý do thước đo
+    cũ (lấy tán xạ làm mẫu số) sai ngay từ cách đặt: nó đi đo một thứ đã chứng minh được.
+  - 📐 **Hai thước đo đã chốt:**
+    1. **Độ tản mạn của trường đích** — lệch chuẩn của 22 vectơ `Δđích` chia độ dài trung bình.
+       Mô hình một-hệ-số cho **đúng 0**; sau T815 nó bằng **hệ số biến thiên của dãy `p`** =
+       **0,1434**. Một con số **đóng**, không phụ thuộc mã trận nào.
+    2. **Số ô lưới** — trung bình số giá trị `x` khác nhau (làm tròn 0,5 m) trong 22 vị trí, và
+       số giá trị `y`. Trước T815: **9,15 / 22** và **5,56 / 22** — quá nửa số người đứng chung
+       toạ độ với ai đó. Đó chính là cái lưới ô vuông nhìn thấy trên bản chạy.
+  - **Cách sửa:** `phanDichCuaO(o)` trong `viTriMet.ts` — dãy tỉ-lệ-vàng rải 11 ô đều trên dải
+    `0,25 ± 0,06`, **trung bình đúng bằng `PHAN_DICH_THEO_BONG` cũ** (có một phép kiểm mang
+    đúng tên điều đó: dãy thô lệch tâm ở 0,4538 chứ không 0,5, không trừ đi thì cả hai đội lùi
+    sâu thêm). Hai đội dùng **cùng** dãy (`o % 11`). Không tiêu một lần rút ngẫu nhiên nào —
+    tiêu một lần rút là đổi **dòng sự kiện**.
+  - **Số đo, và biên độ chọn từ một đường đánh đổi chứ không từ cảm tính:**
+
+    | biên độ | lưới `x` | lưới `y` | cặp đè | mốc có cặp đè |
+    |---|---|---|---|---|
+    | **0** *(trước T815)* | 9,15 | 5,56 | 0,041% | **8,8%** |
+    | 0,04 | 18,49 | 9,52 | 0,041% | 8,9% |
+    | **0,06** ← chọn | **18,85** | **9,97** | **0,041%** | **9,0%** |
+    | 0,08 | 19,16 | 10,10 | 0,047% | 10,1% |
+    | 0,10 | 19,73 | 10,18 | 0,077% | **16,2%** |
+
+    Giãn dải rộng ra thì lưới vỡ tốt hơn **nhưng người đè nhau trở lại** — hai hệ số khác nhau
+    thì chỗ đứng trượt qua nhau. `0,06` lấy gần hết phần lưới vỡ được mà **không mất một phần
+    nghìn nào** của `T814`. `0,10` đổi thêm 0,9 giá trị `x` lấy **16,2%**, tức đẩy phép đo về
+    đúng vùng chông chênh quanh ngưỡng 20% mà bản giãn 3,5 m đã mắc.
+  - ⚠️ **THỨ T815 KHÔNG CHỮA, và phải nói ra:** 22 vectơ dịch chuyển vẫn **song song** — chỉ
+    khác độ dài. Đội hình nay **co giãn** theo bóng thay vì **trượt cứng**, nhưng không ai đi
+    hướng riêng của mình. Hướng riêng cần **độ trễ phản ứng** hoặc **vai trò**, và cả hai là
+    **US-40 của spec 009**. Lưới `y` cũng bão hoà quanh **10 / 22** ở mọi biên độ, vì ba tâm
+    cột chỉ có ba giá trị `y` để bắt đầu.
+  - ⚠️ **Và dãy `p` KHÔNG mang nghĩa chiến thuật nào.** Ai bám bóng nhiều hơn ai là việc chưa
+    ai quyết; đây chỉ là một dãy rải đều, tất định. Một trùng hợp được ghi lại để không ai đọc
+    ngược: ô 0 là **thủ môn** và nhận hệ số **thấp nhất** (0,1955), vì `frac(0·φ) = 0` luôn ở
+    đáy dải — tôi không thiết kế điều đó.
+  - 📍 **Món nợ cơ học gần như không nhúc nhích:** tổng vi phạm vẫn **77** (năm mã
+    77/101/57/78/90), AC-38.1(i) 34→33, AC-38.3(ii) 26→25. T815 đổi **chỗ đứng**, không đổi
+    **cách bước**. **P2 nguyên vẹn**, 1.841 phép kiểm xanh kể cả vân tay dòng sự kiện.
+  - 📌 Task này vẫn chỉ **đóng một nửa**: điều kiện ra của nó nói *"người dùng xem lại rồi
+    phán"*, và cổng ấy là **`T760`**.
+  - AC: (chất lượng chuyển động — chưa có AC nào mang đúng tên nó)
+  - Phụ thuộc: —
+
 - [ ] **T754** [P] — Bốn món nợ văn bản
   - File: `src/engine/vung.ts` (chú thích D23, dòng 4-18), `src/engine/suKien.ts` (dòng 88),
     `src/ui/components/San2D.tsx` (chú thích sàn, quanh dòng 862-881), `src/ui/san2D.test.ts`
@@ -2166,7 +2355,26 @@ giải để người dùng quyết.
 
 ## Phase 59 — Lớp kiểm cuối của DoD
 
-- [ ] **T760** — Người dùng xem **trọn một trận** và phán
+- [x] **T760** — Người dùng xem **trọn một trận** và phán
+  - 🔴 **ĐÃ XEM NGÀY 2026-11-26 — VÀ KHÔNG ĐẠT.** Người dùng xem một trận liên tục ở góc nhìn
+    sa bàn và nêu **hai** điều: *"tôi thấy bị đè lên nhau"* và *"di chuyển của cầu thủ quá máy
+    móc và dính liền đến nhau"*.
+  - 📍 **Cả hai đều đúng, và cả hai đều lọt qua 1.825 phép kiểm.** Đã đo lại thành số và mở
+    **`T814`** (đè nhau: 7,4% số cặp, 100% số mốc) và **`T815`** (dính khối: p90 = 0,72).
+  - ✅ `T814` **xong cùng ngày**, hai nhịp: bản `3,5 m` (7,27% → 0,073% số cặp) rồi bản
+    `6,0 m` sau khi người dùng xem và thấy *"11 cặp khiêu vũ"* — **0,041%** số cặp,
+    100% → **8,8%** số mốc, đĩa chạm mép 9,53% → **0,75%**.
+  - ✅ `T815` **cũng xong cùng ngày**: lưới ô vuông **9,15 → 18,85** giá trị `x` và
+    **5,56 → 9,97** giá trị `y` trên 22 người, mà không mất một phần nghìn nào của `T814`.
+  - 📌 **Nên task này nay chỉ chờ ĐÚNG MỘT THỨ: người dùng xem lại và phán.** Hai món nợ nó
+    chỉ ra đều đã trả; thứ chưa có là con mắt đã bác chúng lần đầu.
+  - ✅ **XEM LẠI NGÀY 2026-11-26 — VÀ ĐẠT.** Người dùng xem lại chính mã trận `88CWDYCZ75`
+    ở góc nhìn sa bàn sau `T814` + `T815` và **phán đạt**. Task đóng.
+  - 📌 **Đây là một cổng NGƯỜI, và nó đã làm đúng việc của nó.** Hai lỗi người dùng chỉ ra
+    lọt qua **1.825** phép kiểm — không phép kiểm nào trong số đó sai, chúng chỉ không ai
+    canh hai điều ấy. Bài học ghi lại cho task sau: một bộ phép kiểm xanh **không** thay
+    được một lượt xem, và một AC nói về **hành vi** thì không được tích bằng sự tồn tại của
+    một **hàm**. Cả `AC-49.6` lẫn `AC-49.7` của spec 011 đã phải gỡ tích đúng vì lỗi ấy.
   - File: — (không chạm file nào; kết quả ghi vào `spec.md` mục 7)
   - Xong khi: người dùng đã xem trọn một trận ở chế độ liên tục, ở **ít nhất ba** mức tốc độ,
     **bật và tắt** giảm chuyển động, và nói ra được **ba câu họ nói ở mục 1 của spec** còn đúng

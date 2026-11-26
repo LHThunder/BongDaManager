@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **52 AC**, nhóm 46–53) |
 | **Plan** | `./plan.md` (Status `Draft`, D130–D143, R60–R66) |
-| **Tiến độ** | 46/50 — Phase 60–65 xong; Phase 66 đo được 3/6. Bốn task còn lại đều là **phép đo nhịp khung** không thực hiện được trong môi trường này |
+| **Tiến độ** | 46/50 — T782 bị gỡ tích rồi **tích lại** ngày 2026-11-26: `T814` và `T815` của spec 007 gỡ chặn nó, và người dùng xem lại rồi phán đạt (`T760`). Bốn task còn lại đều là phép đo nhịp khung, không thực hiện được trong môi trường này |
 | **Nền đo** | commit `5265d37`, engine v6, **84 file test / 1.733 phép kiểm xanh**, bộ kiểm chạy hết **152 giây** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -417,7 +417,17 @@
   - Xong khi: hai cầu thủ đứng khít nhau vẫn **đếm ra hai**; và không một thực thể nào bị dịch — phép kiểm AC-46.5 ở T784 là lưới gác điều đó.
   - AC: AC-49.7
   - Phụ thuộc: T781
-  - ✅ **Xong 2026-11-26 — và KHÔNG thêm một dòng mã nào.** Viền **đã thường trực** từ T788
+  - 🔴 **GỠ TÍCH NGÀY 2026-11-26.** Người dùng xem trọn một trận ở `T760` của spec 007 và
+    nói: *"tôi thấy bị đè lên nhau"*. Đo lại: **7,4% số cặp** (19.294/262.185) không phân biệt
+    được, **100% số mốc** có ít nhất một cặp đè — và sân 2D cũng thế. Điều kiện ra của task
+    này là *"hai cầu thủ đứng khít nhau vẫn đếm ra hai"*, và nó **không đạt**.
+    📌 Phần kết luận dưới đây **vẫn đúng** và không bị rút lại: viền là điều kiện **cần**,
+    chỉ là không **đủ**. Chữa phải ở `T814` của spec 007.
+    ✅ **TÍCH LẠI 2026-11-26.** `T814` kéo 7,27% → **0,041%** số cặp, 100% → **8,8%** số
+    mốc, đĩa chạm mép 9,53% → **0,75%**; `T815` phá lưới ô vuông 9,15 → **18,85** giá trị `x`.
+    Nguyên nhân thật là **8 điểm đích cho 22 người**, không phải `tachChen`. Và người dùng
+    **xem lại rồi phán đạt** (`T760`) — đó mới là thứ tích lại task này, không phải phép kiểm.
+  - ~~Xong 2026-11-26 — và KHÔNG thêm một dòng mã nào.~~ Viền **đã thường trực** từ T788
     và T799: cả `<circle>` của chủ nhà lẫn `<rect>` của khách đều mang `stroke={n.ao.chu}`
     `strokeWidth={0.3}` **không điều kiện**, và màu viền phái sinh từ chính màu áo qua
     `nenDamBaoTuongPhan` nên nó đạt 4,5:1 với nền của mình.
