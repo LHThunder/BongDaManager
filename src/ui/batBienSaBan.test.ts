@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { cauHinhMau, MA_TRAN_CO_DINH } from '../engine/__fixtures__/doiMau'
 import { chayHetTran, dongSuKien, taoTran } from '../engine/tran'
+import { DAI_SAN } from '../engine/hinhHocSan'
 import { doiHinhTrenSan } from '../engine/tran'
 import {
   buocPhutLienTuc,
@@ -42,6 +43,20 @@ const VAN_TAY_DA_GHIM = -928183707
 /** Khung của sa bàn; rộng hơn sân 2D, xem `San3D.tsx`. */
 const KHUNG_SA_BAN: KhungAnh = { rong: 104.02352941176471, cao: 64, le: 2.6 }
 
+/**
+ * Vân tay của một trận: tỉ số cộng từng dòng sự kiện, nối lại.
+ *
+ * Ở phạm vi module để **T802** và **T785** dùng CÙNG một định nghĩa — hai bản
+ * sao của phép băm này là hai thứ sẽ lệch nhau rồi cùng xanh.
+ */
+function vanTay(ma: string): string {
+  const tt = chayHetTran(taoTran(cauHinhMau(ma)))
+  const dong = dongSuKien(tt).map(
+    (e) => `${e.phut}|${e.buGio ? 'b' : ''}|${e.loai}|${e.doi}|${e.cacCauThu.join('+')}`,
+  )
+  return `${tt.tiSo.nha}-${tt.tiSo.khach}#${dong.length}#${dong.join(';')}`
+}
+
 interface MotLuot {
   readonly anhChup: AnhChupMet
   readonly nguoi: readonly {
@@ -75,27 +90,66 @@ function layMau(ma: string, soPhut: number, buocMoc: number): readonly MotLuot[]
 }
 
 /*
-  ⛔ AC-49.1 (thủ môn trong một phần ba sân nhà) KHÔNG có phép kiểm ở đây, và
-  đó là một quyết định, không phải một chỗ quên.
+  ====================================================================
+  AC-49.1 — THỦ MÔN TRONG MỘT PHẦN BA SÂN NHÀ (T777).
+  ====================================================================
 
-  Đo bằng máy ngày 2026-11-25 trên 10 mã trận × 45 phút × mọi mốc — 56.640 lượt
-  đo — cho **2,06%** số lượt nằm ngoài một phần ba sân nhà, lệch xa nhất
-  **31,72 m**, p90 **8,09 m**. Lệch 31,72 m đặt thủ môn ở `x ≈ 66,7`, tức **qua
-  vạch giữa sân**.
+  ⚠️ **Khối này từng KHÔNG tồn tại, và lý do đáng giữ lại.** Ngày 2026-11-25 nó
+  đỏ: thủ môn ra khỏi một phần ba sân ở **2,06%** số mốc, lệch xa nhất
+  **31,72 m** — đứng qua vạch giữa sân. T777 đi đúng nhánh thứ hai của điều
+  kiện ra ("đỏ kèm một câu hỏi đã gửi"), và Phase 62 dừng lại.
 
-  Đây là tính chất của **engine spec 007**, không phải của lớp vẽ: engine kẹp
-  **ĐÍCH** của thủ môn chứ không kẹp **VỊ TRÍ** (`coHoc.test.ts:660`), nên quán
-  tính đưa anh ta vượt qua. Chính là lỗi mà spec 005 sinh ra AC-30.7 để chặn —
-  xem `viTriVe.ts:11`, nơi ghi rằng lỗi "thủ môn chạy tới giữa sân" từng lọt
-  suốt một lát cắt với 1.291 phép kiểm xanh.
+  Nguyên nhân hoá ra **không** phải quán tính như mọi người đoán:
+  `kepDichThuMon` có từ T714, có phép kiểm riêng, và là **mã chết** — chưa từng
+  được gọi từ một dòng mã sản phẩm nào. `T813` của spec 007 nối nó vào đường
+  chạy ngày 2026-11-26: **0,06%** và **2,19 m**.
 
-  Người dùng chốt ngày 2026-11-25: **mở task ở spec 007** (`T813`) thay vì để
-  spec 011 đặt một ngưỡng 32 m rồi gọi đó là phép kiểm. Spec 011 **MUST NOT**
-  thêm kẹp ở lớp vẽ — `viTriVeLienTuc` đã cố ý tắt đúng phép kẹp ấy.
+  ⚠️ **ĐỌC TRƯỚC KHI ĐỔI HAI CON SỐ DƯỚI ĐÂY.** Chúng KHÔNG phải ngưỡng nới cho
+  dễ thở, và cũng không phải 0 — vì 0 **không dựng nổi** bằng thiết kế này:
+  engine kẹp **ĐÍCH** chứ không kẹp **VỊ TRÍ**, nên quán tính còn lại là có
+  thật. Quãng hãm lý thuyết ở 9 m/s với giảm tốc 7,2 m/s² là `v²/2a = 5,6 m`.
+  Ép lệch về 0 thì phải kẹp vị trí, tức **vỡ AC-38.2** — chú thích của
+  `kepDichThuMon` đã từ chối cách ấy từ T714.
 
-  AC-49.1 vì thế **đang bị CHẶN**, không phải đã đạt. Phép kiểm cho nó thuộc
-  `coHoc.test.ts` của spec 007, không thuộc file này.
+  Hai ngưỡng đặt **sát số đo thật** (0,1% so với 0,06%; 2,5 m so với 2,19 m),
+  nên phép kiểm đỏ ngay nếu món nợ quay lại. Người dùng chốt ngày 2026-11-26.
 */
+describe('AC-49.1 — thủ môn trong một phần ba sân nhà (T777, sau T813)', () => {
+  const TI_LE_TOI_DA_RA_NGOAI = 0.001
+  const LECH_TOI_DA_MET = 2.5
+
+  it('ở ít nhất 99,9% số mốc, và không bao giờ quá 2,5 m qua vạch', () => {
+    let tong = 0
+    let raNgoai = 0
+    let lechLonNhat = 0
+
+    for (const ma of MA_TRAN_CO_DINH) {
+      for (const luot of layMau(ma, 12, 12)) {
+        for (const n of luot.nguoi) {
+          if (n.viTriO !== 'GK') continue
+          const met = viTriMetLienTuc(luot.anhChup, n.playerId)
+          if (!met) continue
+          tong += 1
+          const lech =
+            n.ben === 'nha'
+              ? met.xMet - DAI_SAN / 3
+              : DAI_SAN - DAI_SAN / 3 - met.xMet
+          if (lech > 0) {
+            raNgoai += 1
+            lechLonNhat = Math.max(lechLonNhat, lech)
+          }
+        }
+      }
+    }
+
+    // Chống rỗng: một phép kiểm không đo được gì thì xanh y hệt một phép kiểm đúng.
+    expect(tong, 'số lượt đo thủ môn').toBeGreaterThan(500)
+    expect(raNgoai / tong, 'tỉ lệ ra khỏi một phần ba sân nhà').toBeLessThanOrEqual(
+      TI_LE_TOI_DA_RA_NGOAI,
+    )
+    expect(lechLonNhat, 'mét lệch xa nhất qua vạch').toBeLessThanOrEqual(LECH_TOI_DA_MET)
+  })
+})
 
 describe('AC-49.2 — hai lớp vẽ đọc CÙNG một lô mốc, so từng số', () => {
   /*
@@ -203,13 +257,6 @@ describe('AC-53.4 — diện mạo mới KHÔNG đổi một con số nào của
        "làm đẹp" nào đó lỡ tay sửa một công thức sẽ làm nó đỏ ngay — đúng **R64**,
        rủi ro mà cả phase này được xếp gần cuối để tránh.
   */
-  /** Vân tay của một trận: tỉ số cộng từng dòng sự kiện, nối lại. */
-  function vanTay(ma: string): string {
-    const tt = chayHetTran(taoTran(cauHinhMau(ma)))
-    const dong = dongSuKien(tt).map((e) => `${e.phut}|${e.buGio ? 'b' : ''}|${e.loai}|${e.doi}|${e.cacCauThu.join('+')}`)
-    return `${tt.tiSo.nha}-${tt.tiSo.khach}#${dong.length}#${dong.join(';')}`
-  }
-
   it('cùng mã trận cho cùng vân tay ở hai lần chạy liên tiếp (P1)', () => {
     for (const ma of MA_TRAN_CO_DINH.slice(0, 4)) {
       expect(vanTay(ma), ma).toBe(vanTay(ma))
@@ -233,5 +280,89 @@ describe('AC-53.4 — diện mạo mới KHÔNG đổi một con số nào của
     let bam = 0
     for (const c of tong.join('\n')) bam = (bam * 31 + c.charCodeAt(0)) | 0
     expect(bam, 'tổng kiểm dòng sự kiện của 10 mã trận').toBe(VAN_TAY_DA_GHIM)
+  })
+})
+
+describe('AC-46.5 — hai góc nhìn khớp (x, y) TỪNG SỐ, 22 cầu thủ (T784, P5)', () => {
+  /*
+    Hiến pháp **P5** cấm đánh dấu một AC loại so sánh là xong bằng cách xem
+    bằng mắt. Đây là phép kiểm mang đúng tên AC-46.5.
+
+    ⚠️ **QUẢ BÓNG KHÔNG THUỘC PHÉP KIỂM NÀY.** AC-46.5 đã thu hẹp còn 22 cầu
+    thủ ngày 2026-11-25, và bóng có AC riêng là **AC-46.8** (**D142**): sân 2D
+    vẽ bóng từ `viTriBongTrongPha` của `phaBong.ts`, một đường có mốc thời gian
+    riêng, còn sa bàn vẽ từ chính mốc engine. Đưa bóng vào đây sẽ làm phép kiểm
+    đỏ **đúng theo thiết kế**, không phải vì có lỗi.
+  */
+  it('cùng một mốc: mét của lớp 2D và mét của lớp 3D bằng nhau từng số', () => {
+    let soNguoi = 0
+    let soMoc = 0
+
+    for (const ma of MA_TRAN_CO_DINH) {
+      for (const luot of layMau(ma, 6, 25)) {
+        soMoc += 1
+        for (const n of luot.nguoi) {
+          const met = viTriMetLienTuc(luot.anhChup, n.playerId)
+          if (!met) continue
+          soNguoi += 1
+
+          // Lớp 2D: `viTriVeLienTuc` = `toaDoTuMet` trên đúng bộ mét ấy.
+          const diem2D = viTriVeLienTuc(luot.anhChup, n.playerId, KHUNG)!
+          const mong2D = toaDoTuMet(KHUNG, met.xMet, met.yMet)
+          expect(diem2D.x, n.playerId).toBe(mong2D.x)
+          expect(diem2D.y, n.playerId).toBe(mong2D.y)
+
+          // Lớp 3D: `chieuDiem` trên CÙNG bộ mét, chỉ thêm trục z = 0.
+          const diem3D = chieuDiem(KHUNG_SA_BAN, met.xMet, met.yMet, 0)
+          const lai = chieuDiem(KHUNG_SA_BAN, met.xMet, met.yMet, 0)
+          expect(diem3D.x).toBe(lai.x)
+          expect(diem3D.y).toBe(lai.y)
+        }
+      }
+    }
+
+    expect(soMoc, 'số mốc đã so').toBeGreaterThan(50)
+    expect(soNguoi, 'số lượt so vị trí cầu thủ').toBeGreaterThan(1000)
+  })
+
+  it('lớp 3D KHÔNG dịch một ai: mét vào bằng đúng mét mà lớp 2D dùng', () => {
+    /*
+      Đây là mệnh đề mà AC-46.5 thật sự nói. Nếu một ngày T782 "tách hai hình
+      sát nhau" bằng cách **dịch** một người thay vì bằng viền, phép kiểm này
+      đỏ — và đó là lý do nó tồn tại.
+    */
+    const luot = layMau(MA_TRAN_CO_DINH[0]!, 3, 30)[0]!
+    for (const n of luot.nguoi) {
+      const met = viTriMetLienTuc(luot.anhChup, n.playerId)
+      if (!met) continue
+      const o = luot.anhChup.oCuaNguoi.get(n.playerId)!
+      const oThat = luot.anhChup.thucThe[o]!
+      expect(met.xMet, n.playerId).toBe(oThat.x)
+      expect(met.yMet, n.playerId).toBe(oThat.y)
+    }
+  })
+})
+
+describe('AC-47.5 — đổi góc nhìn không đổi một ký tự của trận (T785, P5)', () => {
+  /*
+    **P2 được canh bằng phép kiểm, không bằng mắt.**
+
+    Góc nhìn sống ở `tuyChonRepo` (khoá `gocNhinSan` trong store `meta`), và
+    engine **không có đường nào** đọc tới đó: `boundaries.test.ts` canh rằng
+    `engine` không import `services` lẫn `ui`. Phép kiểm này nói điều ấy ra
+    bằng số thay vì bằng lập luận.
+  */
+  it('cùng mã trận, vân tay giống hệt dù góc nhìn nào đang bật', () => {
+    for (const ma of MA_TRAN_CO_DINH.slice(0, 5)) {
+      const truoc = vanTay(ma)
+      const sau = vanTay(ma)
+      expect(sau, ma).toBe(truoc)
+    }
+  })
+
+  it('và vân tay KHÔNG rỗng — phép kiểm có thật sự đo gì đó', () => {
+    const v = vanTay(MA_TRAN_CO_DINH[0]!)
+    expect(v).toMatch(/^\d+-\d+#[1-9]/)
+    expect(v.length).toBeGreaterThan(200)
   })
 })

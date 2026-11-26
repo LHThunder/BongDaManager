@@ -1,12 +1,14 @@
 import { useEffect, useReducer, useRef, type ComponentProps } from 'react'
 import { useChuoi } from '../../hooks/useNgonNgu'
 import {
+  bongBiChe,
   chieuDiem,
   chieuMatSan,
   thuTuDoSau,
   tiSaBan,
   viTriBongLienTuc,
 } from '../chieuSaBan'
+import { useGiamChuyenDong } from '../giamChuyenDong'
 import { anhChupTuLo, mocVeTaiThoiDiem } from '../mocVe'
 import { viTriMetLienTuc, type AnhChupMet } from '../viTriVe'
 import { nenDamBaoTuongPhan } from '../../domain/colors'
@@ -114,6 +116,18 @@ export function San3D({
   soAo,
 }: Props) {
   const { SAN_2D } = useChuoi()
+  /*
+    GIẢM CHUYỂN ĐỘNG (T780, AC-49.5).
+
+    Import từ `src/ui/giamChuyenDong.ts` — **không nhân bản**. T812 bóc hook ra
+    khỏi `San2D.tsx` đúng để chỗ này dùng được nó. Giảm chuyển động là yêu cầu
+    accessibility của **P9**, không phải tuỳ chọn trang trí, và hai nguồn cho
+    một hành vi là cách chắc nhất để một nguồn lệch đi mà không ai thấy.
+
+    File này KHÔNG được hỏi thẳng trình duyệt về tuỳ chọn ấy: hook là nguồn
+    duy nhất, và điều đó kiểm được bằng cách đếm tên API trong file này.
+  */
+  const giamChuyenDong = useGiamChuyenDong()
   const v = chieuMatSan(KHUNG)
 
   const [, veLai] = useReducer((n: number) => n + 1, 0)
@@ -140,6 +154,13 @@ export function San3D({
   useEffect(() => {
     // Tạm dừng thì KHÔNG chạy một vòng khung hình nào (AC-49.3, T778 canh điều này).
     if (!dangChay) return undefined
+    /*
+      Giảm chuyển động cũng dừng hẳn vòng (AC-49.5). Sa bàn **không nội suy**
+      gì cả — nó vẽ thẳng mốc engine phát — nên "không trôi" ở đây nghĩa là
+      không chạy vòng khung hình; ảnh chụp vẫn được dựng trong lúc render từ
+      `chiSoRef`, nên vị trí **và độ cao** tại mốc ấy vẫn đúng.
+    */
+    if (giamChuyenDong) return undefined
 
     let yeuCau = 0
     const buoc = () => {
@@ -167,7 +188,7 @@ export function San3D({
     }
     yeuCau = requestAnimationFrame(buoc)
     return () => cancelAnimationFrame(yeuCau)
-  }, [dangChay])
+  }, [dangChay, giamChuyenDong])
 
   /*
     Ảnh chụp để vẽ. Vòng khung hình ghi vào `anhChupRef`, nhưng vòng ấy **chỉ
@@ -242,6 +263,10 @@ export function San3D({
     const n = nguoi[i]
     return n ? [n] : []
   })
+
+  /** Có ai đứng trước quả bóng không (T783) — quyết định vòng nét đứt dưới kia. */
+  const biChe =
+    bong !== null && bongBiChe(bong.chieu, nguoi.map((n) => n.diem), BAN_KINH_NGUOI)
 
   return (
     <svg
@@ -391,6 +416,26 @@ export function San3D({
               fill="none"
               stroke="var(--co-vien)"
               strokeWidth={0.4}
+            />
+          )}
+          {/*
+            BÓNG VẼ SAU CÙNG NÊN LUÔN THẤY ĐƯỢC — nhưng vẽ đè mà không nói gì
+            là để lớp 3D **nói dối về độ sâu** (T783, AC-46.7, D135). Khi có ai
+            đứng trước nó, quả bóng mang thêm một **vòng nét đứt**: nó vẫn ở
+            trên cùng, và người xem vẫn biết nó đang ở phía sau.
+
+            Nét đứt là kênh **hình**, không phải màu — đọc được cả trong ảnh
+            đen trắng, đúng P9.
+          */}
+          {biChe && (
+            <circle
+              cx={bong.chieu.x}
+              cy={bong.chieu.y}
+              r={BAN_KINH_BONG * 1.9}
+              fill="none"
+              stroke="var(--co-vien)"
+              strokeWidth={0.4}
+              strokeDasharray="1.2 1.0"
             />
           )}
           <circle

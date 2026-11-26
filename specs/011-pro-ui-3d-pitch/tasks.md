@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **52 AC**, nhóm 46–53) |
 | **Plan** | `./plan.md` (Status `Draft`, D130–D143, R60–R66) |
-| **Tiến độ** | 34/50 — Phase 62 dừng ở T777; Phase 63–65 xong; Phase 66 đo được 3/6, ba phép đo nhịp khung bị chặn |
+| **Tiến độ** | 46/50 — Phase 60–65 xong; Phase 66 đo được 3/6. Bốn task còn lại đều là **phép đo nhịp khung** không thực hiện được trong môi trường này |
 | **Nền đo** | commit `5265d37`, engine v6, **84 file test / 1.733 phép kiểm xanh**, bộ kiểm chạy hết **152 giây** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -317,7 +317,7 @@
 
 > Ba nhóm bất biến của `spec.md` US-4, cộng hai phép kiểm **P5** mà hiến pháp đòi.
 
-- [ ] **T777** — Nhóm **dữ liệu**: khẳng định hai bất biến đúng sẵn.
+- [x] **T777** — Nhóm **dữ liệu**: khẳng định hai bất biến đúng sẵn.
   - File: `src/ui/batBienSaBan.test.ts` (**mới**)
   - Nội dung: trên `AnhChupMet` thật của một trận — thủ môn luôn trong **một phần ba sân của đội mình** (AC-30.7 đọc lại), hàng phòng ngự đứng **giữa tiền đạo đối phương và khung thành mình** (AC-30.8 đọc lại). Hai cái này đúng sẵn vì hai lớp đọc **cùng một lô mốc**; phép kiểm ở đây là để nói điều đó ra, không để sửa gì.
   - ⚠️ **Nếu phép kiểm thủ môn ĐỎ thì đó là câu hỏi của spec 007, không phải chỗ spec 011 tự sửa.** `/analyze` tìm ra engine kẹp **ĐÍCH** của thủ môn, không kẹp **vị trí**: `coHoc.test.ts:660` ghi *"Kẹp **ĐÍCH** của thủ môn (T714, AC-30.7 của spec 005)"*. Đà có thể vượt đích. Spec 011 **không được** thêm một phép kẹp ở lớp vẽ để che — `viTriVeLienTuc` đã cố ý tắt đúng phép kẹp ấy. Dừng và **hỏi người dùng**.
@@ -345,73 +345,149 @@
     (`hinhSan`) — nguồn vị trí khác hẳn — nên đây không phải lỗi hồi quy của spec 011. AC-49.2
     nay nói điều thật sự đúng và thật sự thuộc spec 011: hai lớp vẽ đứng trên **một** đường đọc.
 
-> ## ⛔ Phase 62 DỪNG Ở T777
-> T778 phụ thuộc T777, nên cả chuỗi T778 → T786 chưa bắt đầu. Người dùng chốt ngày 2026-11-25:
-> mở task ở spec 007 và **quyết sau** khi nào sửa. Phase 63–66 **không** phụ thuộc Phase 62,
-> nên chúng chạy được nếu muốn đi tiếp mà chưa động tới engine.
+> ## ✅ Phase 62 ĐÃ XONG ngày 2026-11-26, sau khi `T813` của spec 007 gỡ chặn
+> Phase này từng dừng ở T777 vì thủ môn chạy qua vạch giữa sân. `T813` tìm ra nguyên nhân
+> thật — `kepDichThuMon` là **mã chết, chưa từng được gọi** — và nối nó vào: **2,06% → 0,06%**,
+> **31,72 m → 2,19 m**. Toàn bộ chuỗi T777 → T786 chạy tiếp ngay sau đó.
+>
+> 📝 **Phase 62 chạm đúng bốn file**, và **không file nào là `San2D.tsx`**:
+> `chieuSaBan.ts`, `chieuSaBan.test.ts`, `San3D.tsx`, `batBienSaBan.test.ts`.
 
-- [ ] **T778** — Nhóm **hành vi**: tạm dừng thì đóng băng hẳn.
+- [x] **T778** — Nhóm **hành vi**: tạm dừng thì đóng băng hẳn.
   - File: `src/ui/components/San3D.tsx`
   - Nội dung: `dangChay === false` thì **không chạy vòng khung hình nào**, kể cả dao động chờ.
   - Xong khi: tạm dừng giữa một đường bóng, mọi thứ đứng; mở công cụ hiệu năng thấy **không** có khung vẽ nào phát ra khi đang tạm dừng.
   - AC: AC-49.3
   - Phụ thuộc: T777
+  - ✅ **Xong 2026-11-26**, đo trên bản chạy: lúc chạy, chuỗi toạ độ của mọi hình **đổi**
+    giữa hai lần chụp; lúc tạm dừng, chuỗi ấy **giống hệt** suốt 1,2 giây. Vòng khung hình
+    đứng hẳn, không còn dao động chờ nào.
+  - 📝 Mã đã đúng từ T767 (`if (!dangChay) return undefined`); task này là **kiểm chứng**,
+    không phải sửa. Hiến pháp mục 4 nói test giao diện không bắt buộc — nó được xác nhận
+    bằng cách bấm thử, và đây là lần bấm thử ấy.
 
-- [ ] **T779** — Nhóm **hành vi**: bóng vẫn có mặt khi tạm dừng và khi hết trận.
+- [x] **T779** — Nhóm **hành vi**: bóng vẫn có mặt khi tạm dừng và khi hết trận.
   - File: `src/ui/components/San3D.tsx`
   - Nội dung: bóng vẽ từ **mốc đang hiển thị**, không từ một trạng thái riêng — nên đóng băng không làm nó mất.
   - Xong khi: tạm dừng giữa một quả tạt, bóng còn **trên không** đúng độ cao của mốc ấy; hết trận, bóng vẫn còn trên sân.
   - AC: AC-49.4
   - Phụ thuộc: T778
+  - ✅ **Xong 2026-11-26.** Tạm dừng giữa trận: bóng còn mặt. Chạy hết trận tới phút **91′**:
+    bóng **vẫn trên sân**, và vẫn đủ **22** hình người.
+  - 📝 Đúng theo cấu trúc chứ không nhờ canh: bóng vẽ từ **mốc đang hiển thị** (`anhChupRef`
+    hoặc `chiSoRef` lúc render), không từ một trạng thái riêng — nên đóng băng không thể làm
+    nó biến mất.
 
-- [ ] **T780** — Nhóm **hành vi**: tôn trọng giảm chuyển động.
+- [x] **T780** — Nhóm **hành vi**: tôn trọng giảm chuyển động.
   - File: `src/ui/components/San3D.tsx`
   - Nội dung: **import `useGiamChuyenDong` từ `src/ui/giamChuyenDong.ts`** (T812) — không nhân bản; không nội suy, không chuyển động chờ, vị trí **và độ cao** tại từng mốc vẫn đúng.
   - Xong khi: bật giảm chuyển động của hệ điều hành, chạy lại — sa bàn nhảy theo mốc, không trôi; độ cao bóng ở mỗi mốc vẫn đúng; `grep -c "matchMedia" src/ui/components/San3D.tsx` = **0** (hook là nguồn duy nhất).
   - AC: AC-49.5
   - Phụ thuộc: T779, **T812**
+  - ✅ **Xong 2026-11-26.** `San3D` nay `import { useGiamChuyenDong } from '../giamChuyenDong'`
+    — **không nhân bản**, đúng lý do T812 bóc hook ra. Vòng khung hình dừng hẳn khi giảm
+    chuyển động bật, cùng một đường với lúc tạm dừng (T778 đã chứng minh đường ấy dừng thật).
+  - ✅ File này **không hỏi thẳng trình duyệt** về tuỳ chọn ấy: đếm tên API trong
+    `San3D.tsx` ra **0**. Hook là nguồn duy nhất.
+  - 📝 Sa bàn **không nội suy** gì cả — nó vẽ thẳng mốc engine phát — nên "không trôi" ở đây
+    nghĩa là không chạy vòng, và vị trí **và độ cao** tại từng mốc vẫn đúng.
+  - ⚠️ Lần viết đầu, chính câu chú thích của tôi nhắc tên API ấy, nên phép đếm ra **1** thay
+    vì 0 — đúng cái bẫy tự quy chiếu đã gặp ở điều kiện RA của T763. Đã sửa câu chữ.
 
-- [ ] **T781** — Nhóm **hình**: thêm `phanBietDuoc` và phép kiểm.
+- [x] **T781** — Nhóm **hình**: thêm `phanBietDuoc` và phép kiểm.
   - File: `src/ui/chieuSaBan.ts`, `src/ui/chieuSaBan.test.ts`
   - Nội dung: `phanBietDuoc(a, b, banKinh): boolean`, đo **sau khi chiếu** (đơn vị viewBox), không đo bằng mét trên mặt sân — đó mới là điều AC-30.5 thật sự hứa.
   - Xong khi: phép kiểm xanh ở ba ca biên: trùng khít, cách đúng một bán kính, cách hai bán kính.
   - AC: AC-49.6
   - Phụ thuộc: T780
+  - ✅ **Xong 2026-11-26.** `phanBietDuoc(a, b, banKinh)` trong `chieuSaBan.ts`, 5 phép kiểm:
+    trùng khít → `false`; cách **đúng một bán kính** → `true` (và nhích vào trong một phần tỉ
+    → `false`, để biết biên nằm đúng chỗ); cách hai bán kính → `true`; đo theo **khoảng cách
+    thật** chứ không theo từng trục.
+  - 📍 **Ngưỡng một bán kính KHÔNG phải con số tôi bịa.** `san2D.test.ts:173` đã dùng đúng nó
+    cho AC-15.2 từ spec 002, kèm số đo *"chỗ chật nhất luôn là 1,18 bán kính"*. Dùng lại là
+    giữ **một** thước đo cho cả hai lớp vẽ.
+  - ✅ Có một phép kiểm nói rõ **vì sao phải đo sau khi chiếu**: hai người cách nhau 3 m theo
+    chiều sâu, sau phép chiếu khoảng ấy co lại đúng `×sin 50°`. Đo bằng mét thì thấy họ tách
+    nhau; đo trên màn hình thì chưa chắc.
 
-- [ ] **T782** — Nhóm **hình**: tách hai hình sát nhau bằng **viền**, không dịch ai.
+- [x] **T782** — Nhóm **hình**: tách hai hình sát nhau bằng **viền**, không dịch ai.
   - File: `src/ui/components/San3D.tsx`
   - Nội dung: D134. Viền là thuộc tính **thường trực của mọi hình**, không bật/tắt theo trạng thái — **R65**: một viền bật/tắt sẽ bị đọc nhầm thành thẻ, kiệt sức hay sai vị trí.
   - Xong khi: hai cầu thủ đứng khít nhau vẫn **đếm ra hai**; và không một thực thể nào bị dịch — phép kiểm AC-46.5 ở T784 là lưới gác điều đó.
   - AC: AC-49.7
   - Phụ thuộc: T781
+  - ✅ **Xong 2026-11-26 — và KHÔNG thêm một dòng mã nào.** Viền **đã thường trực** từ T788
+    và T799: cả `<circle>` của chủ nhà lẫn `<rect>` của khách đều mang `stroke={n.ao.chu}`
+    `strokeWidth={0.3}` **không điều kiện**, và màu viền phái sinh từ chính màu áo qua
+    `nenDamBaoTuongPhan` nên nó đạt 4,5:1 với nền của mình.
+  - ⛔ **Thêm một viền "tách" bật/tắt chính là thứ R65 cấm.** R65 nói viền là tín hiệu hình
+    dễ bị đọc nhầm thành trạng thái cầu thủ; một viền *đôi khi* xuất hiện **là** một tín
+    hiệu, dù người viết không định thế. Nên cách đúng ở đây là **không làm gì thêm**, và nói
+    ra vì sao — chứ không phải viết thêm mã cho có.
+  - ✅ **Không ai bị dịch**, và điều đó có lưới gác: phép kiểm thứ hai của T784 khẳng định
+    `viTriMetLienTuc` trả về **đúng** `thucThe[o].x/y`, nên một phép dịch ở lớp vẽ sẽ lộ.
 
-- [ ] **T783** — Bóng bị che: `bongBiChe` + bóng vẽ sau cùng + dấu hiệu.
+- [x] **T783** — Bóng bị che: `bongBiChe` + bóng vẽ sau cùng + dấu hiệu.
   - File: `src/ui/chieuSaBan.ts`, `src/ui/chieuSaBan.test.ts`, `src/ui/components/San3D.tsx`
   - Nội dung: D135 — bóng vẽ **sau tất cả** nên luôn thấy được, **cộng** một dấu hiệu khi có thực thể nằm trước nó theo độ sâu, để lớp 3D không nói dối về độ sâu.
   - Xong khi: cho một cầu thủ đi ngang trước bóng — bóng vẫn thấy, và có dấu hiệu nói nó ở **phía sau**; phép kiểm `bongBiChe` xanh.
   - AC: AC-46.7
   - Phụ thuộc: T782
+  - ✅ **Xong 2026-11-26.** `bongBiChe(bong, cacHinh, banKinh)` cộng 6 phép kiểm, và một
+    **vòng nét đứt** quanh quả bóng khi có ai đứng trước nó. Bắt được trên bản chạy sau 15
+    mẫu.
+  - 📍 "Đứng trước" nghĩa là **gần người xem hơn**, tức `y` vẽ **lớn hơn** — chiều sâu đi lên
+    trên màn hình nên gần là ở dưới. Có một phép kiểm riêng cho ca ngược: người ở **xa** hơn
+    mà chồng hình thì **không** che.
+  - 📍 Nét đứt là kênh **hình**, không phải màu, nên nó đọc được trong ảnh đen trắng (**P9**).
+    Bóng vẫn vẽ sau cùng nên vẫn luôn thấy được (**D135**) — dấu hiệu chỉ thêm thông tin
+    về độ sâu, không che bóng đi.
 
-- [ ] **T784** — **Phép kiểm P5** cho AC-46.5: hai góc nhìn khớp `(x, y)` từng số.
+- [x] **T784** — **Phép kiểm P5** cho AC-46.5: hai góc nhìn khớp `(x, y)` từng số.
   - File: `src/ui/batBienSaBan.test.ts`
   - Nội dung: cùng một `AnhChupMet` → `(x, y)` mà `San2D` dùng và `(x, y)` mà `San3D` đưa vào `chieuDiem` **bằng nhau từng số**, cho **22 cầu thủ**. Hiến pháp **P5** cấm đánh dấu AC loại này là xong bằng cách xem bằng mắt.
   - ⚠️ **Quả bóng KHÔNG thuộc phép kiểm này** — AC-46.5 đã thu hẹp còn 22 cầu thủ ngày 2026-11-25, và bóng có AC riêng là **AC-46.8** (**D142**). Đưa bóng vào đây sẽ làm phép kiểm đỏ **đúng theo thiết kế**, không phải vì có lỗi.
   - Xong khi: phép kiểm xanh trên ≥ 10 mã trận; và thử thêm một phép dịch nhỏ vào T782 làm nó **đỏ** (đột biến bằng tay, rồi hoàn lại).
   - AC: AC-46.5
   - Phụ thuộc: T783
+  - ✅ **Xong 2026-11-26.** Hai phép kiểm **P5** mang đúng tên AC-46.5, trên **10 mã trận**:
+    hơn **1.000** lượt so vị trí, mét của lớp 2D và mét của lớp 3D bằng nhau **từng số**.
+  - ✅ **Phép thử đột biến**: thêm một phép dịch **5 cm** vào `viTriMetLienTuc` làm nó **đỏ**;
+    hoàn lại thì xanh. Nếu một ngày T782 "tách hai hình" bằng cách dịch người thay vì bằng
+    viền, phép kiểm này đỏ — đó là lý do nó tồn tại.
+  - ⚠️ **Quả bóng KHÔNG thuộc phép kiểm này**, đúng như task dặn: AC-46.5 thu hẹp còn 22 cầu
+    thủ, và bóng có AC riêng là **AC-46.8** (**D142**).
 
-- [ ] **T785** — **Phép kiểm P5** cho AC-47.5: đổi góc nhìn không đổi một ký tự của trận.
+- [x] **T785** — **Phép kiểm P5** cho AC-47.5: đổi góc nhìn không đổi một ký tự của trận.
   - File: `src/ui/batBienSaBan.test.ts`
   - Nội dung: cùng mã trận chạy hai lần, lần hai có đổi góc nhìn giữa trận → **diff dòng sự kiện rỗng**, tỉ số bằng nhau. Đây là **P2** được canh bằng phép kiểm.
   - Xong khi: phép kiểm xanh; diff rỗng từng ký tự.
   - AC: AC-47.5
   - Phụ thuộc: T784
+  - ✅ **Xong 2026-11-26.** Phép kiểm **P5** cho AC-47.5: cùng mã trận cho **vân tay giống
+    hệt**, trên 5 mã trận; cộng một phép chống rỗng khẳng định vân tay không rỗng và dài hơn
+    200 ký tự.
+  - 📍 Hàm `vanTay` được **nâng lên phạm vi module** để T802 và T785 dùng **cùng một** định
+    nghĩa. Hai bản sao của một phép băm là hai thứ sẽ lệch nhau rồi cùng xanh.
+  - 📍 Góc nhìn sống ở `tuyChonRepo` (khoá `gocNhinSan` trong store `meta`), và engine
+    **không có đường nào** đọc tới đó — `boundaries.test.ts` canh rằng `engine` không import
+    `services` lẫn `ui`. Phép kiểm nói điều ấy ra bằng số thay vì bằng lập luận.
 
-- [ ] **T786** — Chốt hai bất biến toàn cục của phase.
+- [x] **T786** — Chốt hai bất biến toàn cục của phase.
   - File: — (chỉ chạy lệnh)
   - Xong khi: `npx vitest run` xanh với **≥ 1.733** phép kiểm (AC-49.8); `git diff --stat src/engine` **rỗng** (AC-49.9); và `San2D.tsx` **không đổi thêm một dòng nào so với sau T812** — Phase 62 không được chạm sân 2D. ⚠️ Mốc so là **sau T812**, không phải nền đo `5265d37`: T812 đã bóc hook giảm chuyển động ra khỏi file ấy (**D143**).
   - AC: AC-49.8, AC-49.9
   - Phụ thuộc: T785
+  - ✅ **Xong 2026-11-26.** `npx vitest run`: **86 file / 1.825 phép kiểm xanh** (nền 1.733).
+    `git diff --stat src/engine` **rỗng**.
+  - ✅ **Phase 62 không chạm `San2D.tsx`**: nó sửa đúng bốn file — `chieuSaBan.ts`,
+    `chieuSaBan.test.ts`, `San3D.tsx`, `batBienSaBan.test.ts`.
+  - ⚠️ **Mốc so của điều kiện RA này đã lạc hậu, và đó là do thứ tự chạy.** Task viết "`San2D`
+    không đổi thêm một dòng nào **so với sau T812**". Nhưng Phase 62 bị chặn nên Phase 63–65
+    chạy trước, và **T799 của Phase 65 có quyền sửa `San2D`** — nó trả hai món nợ tương phản.
+    Mệnh đề còn đúng là mệnh đề mà điều kiện ấy muốn nói: **Phase 62 không chạm sân 2D**, và
+    đó là điều đã kiểm ở trên.
 
 ---
 

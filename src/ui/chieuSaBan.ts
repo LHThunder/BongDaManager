@@ -298,3 +298,49 @@ export function thuTuDoSau(diem: readonly ToaDoVe[]): readonly number[] {
     .sort((a, b) => a.y - b.y || a.i - b.i)
     .map((o) => o.i)
 }
+
+/*
+  ====================================================================
+  PHÂN BIỆT ĐƯỢC HAI HÌNH SÁT NHAU (T781, AC-49.6).
+  ====================================================================
+
+  Đo **SAU KHI CHIẾU**, bằng đơn vị viewBox — không đo bằng mét trên mặt sân.
+  Đó mới là điều AC-30.5 thật sự hứa: *"KHÔNG hai điểm nào được nằm khít lên
+  nhau tới mức người xem chỉ thấy một"*. Người xem nhìn màn hình, không nhìn
+  mặt sân; và phép chiếu dẹt chiều sâu đi `sin 50°`, nên hai người cách nhau
+  5 m theo chiều sâu chỉ còn cách **3,8 m** trên hình.
+
+  Ngưỡng **một bán kính** không phải con số mới: `san2D.test.ts:173` đã dùng
+  đúng nó cho AC-15.2 từ spec 002, kèm số đo "chỗ chật nhất luôn là 1,18 bán
+  kính". Dùng lại là giữ một thước đo cho cả hai lớp vẽ.
+*/
+
+/** Hai hình tâm `a` và `b`, bán kính `banKinh`, có đọc ra là HAI không. */
+export function phanBietDuoc(a: ToaDoVe, b: ToaDoVe, banKinh: number): boolean {
+  return Math.hypot(a.x - b.x, a.y - b.y) >= banKinh
+}
+
+/*
+  ====================================================================
+  QUẢ BÓNG BỊ CHE (T783, AC-46.7, quyết định D135).
+  ====================================================================
+
+  D135: bóng vẽ **sau tất cả** nên nó luôn thấy được. Nhưng vẽ đè lên mà không
+  nói gì là để lớp 3D **nói dối về độ sâu** — người xem tưởng bóng ở trước một
+  cầu thủ trong khi nó ở sau lưng anh ta.
+
+  Nên hàm này trả lời câu "có ai đứng TRƯỚC quả bóng không", để nơi vẽ kèm một
+  dấu hiệu. Đứng trước nghĩa là **gần người xem hơn**, tức `y` vẽ LỚN hơn —
+  chiều sâu đi lên trên màn hình, nên gần là ở dưới.
+*/
+
+/** Có thực thể nào che quả bóng không: vừa gần người xem hơn, vừa chồng hình. */
+export function bongBiChe(
+  bong: ToaDoVe,
+  cacHinh: readonly ToaDoVe[],
+  banKinh: number,
+): boolean {
+  return cacHinh.some(
+    (h) => h.y > bong.y && !phanBietDuoc(h, bong, banKinh),
+  )
+}
