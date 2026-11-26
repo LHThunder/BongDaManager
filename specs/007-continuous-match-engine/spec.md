@@ -543,27 +543,33 @@ Lời `T761` nói "bốn chỗ"; `grep` cho **năm**. Kiểm cả năm:
 | `useNgonNgu.ts:50` — đọc ngôn ngữ + bảng màu từ đĩa khi mở | AC-20.8 | ✅ bấm *Tối*, **tải lại trang**, `data-che-do` vẫn là `toi` |
 | `useNgonNgu.ts:68` — đặt `data-che-do` lên `<html>` | AC-20.7, AC-20.9 | ✅ bấm *Tối* → thuộc tính xuất hiện và nền đổi sang `rgb(14,21,18)` **không tải lại trang** |
 
-**3. Nhãn thời tiết — 🔴 KHÔNG ĐẠT. Nó hiện ở CẢ HAI chế độ.**
+**3. Nhãn thời tiết — 🔴 ĐỎ LÚC KIỂM, ✅ ĐẠT SAU KHI SỬA.**
 
-| chế độ | nhãn |
-|---|---|
-| liên tục | *"Điều kiện: mưa, gió 6,3 m/s chéo sân"* — ✅ đúng như mong đợi |
-| theo phút | *"Điều kiện: mưa, gió 2,1 m/s dọc sân"* — 🔴 **không được hiện, mà vẫn hiện** |
+Lượt kiểm bắt được nhãn hiện ở **cả hai** chế độ:
 
-📍 Nguyên nhân rõ ràng và không cần đoán: `TrangTran.tsx:416` là `{dieuKien && (…)}`, và
-`dieuKien` chỉ phụ thuộc `tran.maTran` — **không có một điều kiện chế độ nào**. Mã trận nào cũng
-sinh ra thời tiết, nên nhãn nào cũng hiện.
+| chế độ | lúc kiểm | sau khi sửa |
+|---|---|---|
+| liên tục | *"Điều kiện: mưa, gió 6,3 m/s chéo sân"* ✅ | *"Điều kiện: sân ẩm, gió 4,9 m/s chéo sân"*, **hiện từ phút 0** ✅ |
+| theo phút | *"Điều kiện: mưa, gió 2,1 m/s dọc sân"* 🔴 | **không còn nhãn** ✅ (mã trận và sân 2D vẫn nguyên) |
 
-⚠️ **Hai cách đọc, và tôi không tự chọn thay người dùng:**
-- **Giao diện sai.** Câu 11 của nhật ký làm rõ nói thời tiết *"trong 007 chỉ ảnh hưởng vật lý
-  bóng"*, mà vật lý bóng chỉ chạy ở chế độ liên tục. Vậy ở chế độ phút nhãn ấy **hứa một ảnh
-  hưởng không tồn tại**. Chữa: thêm điều kiện chế độ vào `TrangTran.tsx:416`.
-- **Lời `T761` sai.** Thời tiết dẫn xuất tất định từ mã trận ở **mọi** trận (AC-38.9), nên có
-  thể lập luận rằng nó là một tính chất của trận chứ không của chế độ, và hiện ở cả hai là đúng.
+📍 Nguyên nhân không cần đoán: `TrangTran.tsx:416` là `{dieuKien && (…)}`, và `dieuKien` chỉ
+phụ thuộc `tran.maTran` — **không có một điều kiện chế độ nào**. Mã trận nào cũng sinh ra thời
+tiết, nên nhãn nào cũng hiện.
 
-**Không AC nào phân xử chỗ này** — mệnh đề "không hiện ở chế độ phút" chỉ tồn tại trong lời
-`T761`, không trong một AC nào của spec 001–007. Nên đây là **một câu hỏi cho người dùng**, và
-nó được ghi ở đây thay vì được sửa im hoặc được bỏ qua im.
+⚠️ **Không AC nào phân xử chỗ này, nên nó được HỎI chứ không tự sửa.** Mệnh đề "không hiện ở
+chế độ phút" chỉ tồn tại trong lời `T761`; `AC-38.9` thì nói thời tiết dẫn xuất tất định từ mã
+trận ở **mọi** trận. Hai cách đọc đều đứng được:
+- **Giao diện sai** — câu 11 của nhật ký làm rõ nói thời tiết *"trong 007 chỉ ảnh hưởng vật lý
+  bóng"*, mà vật lý bóng chỉ chạy ở chế độ liên tục; ở chế độ phút nhãn ấy **hứa một ảnh hưởng
+  không tồn tại**.
+- **Lời `T761` sai** — thời tiết là tính chất của **trận**, không của chế độ.
+
+**Người dùng chốt ngày 2026-11-26: ẩn ở chế độ theo phút.** Sửa bằng một điều kiện, dùng lại
+`lienTuc` — đúng thẻ phân biệt mà nút đổi góc nhìn dùng — chứ không gọi `cheDoCuaTrangThai` lần
+thứ hai. Kiểm lại bằng mắt ở **cả hai** chế độ sau khi sửa: cột phải của bảng trên.
+📌 Chỗ này **vẫn không có phép kiểm tự động nào canh**, và không thể có chừng nào `vitest` còn
+chạy `environment: 'node'` với `include` chỉ nhận `.test.ts`. Nó ở lại trong danh sách kiểm tay
+này, không được tick ở đâu khác.
 
 **4. Nhóm radio chọn chế độ, bằng bàn phím + lý do khoá đọc được (P9) — ✅ ĐẠT.**
 
@@ -577,8 +583,10 @@ nó được ghi ở đây thay vì được sửa im hoặc được bỏ qua i
   người; trận này đang là sân 7. Hình học sân và cơ học chuyển động của chế độ ấy đều là số của
   sân 11."* — không dựa màu, đọc được bằng trình đọc màn hình. **AC-45.8** đạt phần giao diện.
 
-**Kết luận:** 3/4 mục đạt. Mục 3 **chưa đạt** và đang chờ người dùng phân xử; mục 1 đạt nhưng
-**sửa lại ba con số sai** trong chú thích mô tả món nợ của chính nó.
+**Kết luận:** **4/4 mục đạt** sau khi sửa mục 3. Lượt kiểm này trả về ba thứ mà 1.841 phép
+kiểm không trả về được: một **lỗi thật** (nhãn thời tiết, đã sửa), **ba con số sai** trong chú
+thích mô tả món nợ vạch sân (đã sửa), và một chỗ **đếm thiếu** (năm chỗ `useEffect`, lời task
+viết bốn).
 
 ---
 

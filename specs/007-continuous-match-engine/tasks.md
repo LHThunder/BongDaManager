@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **30 AC**) |
 | **Plan** | `./plan.md` (Status `Approved`, D117–D134, R51–R64) |
-| **Tiến độ** | 44/53 — T813, **T814**, **T815**, **T760** và **T761** xong 2026-11-26. T814 gỡ **95%** món nợ cơ học của `T742` (1.613 → 77 vi phạm); T815 phá cái lưới ô vuông của đội hình; `T760` đạt ở lượt xem thứ hai; `T761` kiểm bằng mắt **3/4 mục đạt** và tìm ra một lỗi nhãn thời tiết đang chờ người dùng phân xử |
+| **Tiến độ** | 44/53 — T813, **T814**, **T815**, **T760** và **T761** xong 2026-11-26. T814 gỡ **95%** món nợ cơ học của `T742` (1.613 → 77 vi phạm); T815 phá cái lưới ô vuông của đội hình; `T760` đạt ở lượt xem thứ hai; `T761` kiểm bằng mắt **4/4 mục đạt** sau khi sửa lỗi nhãn thời tiết mà chính nó tìm ra |
 | **Nền đo** | commit `5c652eb`, engine v6, **1.304 test xanh / 63 file test** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -2390,8 +2390,10 @@ giải để người dùng quyết.
     `useEffect`** (`src/hooks` có 7 file, **0 test**); nhãn thời tiết **hiện** ở chế độ liên tục
     và **không hiện** ở chế độ phút; nhóm radio chọn chế độ đi được **bằng bàn phím** với lý do
     khoá đọc được (P9).
-  - ✅ **XONG 2026-11-26 — 3/4 mục đạt, và lượt kiểm này TÌM RA HAI THỨ.** Kết quả đầy đủ ghi
-    ở `spec.md` **mục 7b**, đọc bằng DOM trên bản chạy thật chứ không bằng ảnh chụp.
+  - ✅ **XONG 2026-11-26 — 4/4 mục đạt, và lượt kiểm này TÌM RA BA THỨ** mà 1.841 phép kiểm
+    không trả về được: một **lỗi thật** (nhãn thời tiết), **ba con số sai** trong chú thích món
+    nợ vạch sân, và một chỗ **đếm thiếu** (năm `useEffect`, lời task viết bốn). Kết quả đầy đủ
+    ghi ở `spec.md` **mục 7b**, đọc bằng DOM trên bản chạy thật chứ không bằng ảnh chụp.
     - **Mục 1 (nhánh JSX vạch sân) ✅** — cả hai nhánh vẽ. Và phép đo **sửa lại ba con số sai**
       trong chú thích `San2D.tsx:133`: lệch lớn nhất là **19,7%** (cao vòng cấm), không phải
       *"30%"*; vòng tròn giữa thực ra gần đúng (**+1,1%**). Cả cột "thật" lẫn hai con số ước
@@ -2400,12 +2402,14 @@ giải để người dùng quyết.
     - **Mục 2 (nối dây `useEffect`) ✅** — nhưng có **NĂM** chỗ chứ không phải bốn như lời task
       viết. Kiểm cả năm, cả năm chạy: banner lưu trữ bền, vòng đồng hồ, lưu trận khi kết thúc,
       đọc bảng màu từ đĩa khi mở, đặt `data-che-do` không tải lại trang.
-    - **Mục 3 (nhãn thời tiết) 🔴 KHÔNG ĐẠT** — nó hiện ở **cả hai** chế độ.
-      `TrangTran.tsx:416` là `{dieuKien && …}`, không có một điều kiện chế độ nào.
-      ⚠️ **Không AC nào phân xử chỗ này**: mệnh đề "không hiện ở chế độ phút" chỉ tồn tại trong
-      lời `T761`. Hoặc giao diện sai (thời tiết chỉ ảnh hưởng vật lý bóng, mà vật lý bóng chỉ
-      chạy ở chế độ liên tục — câu 11 của nhật ký), hoặc lời task sai (AC-38.9 nói thời tiết là
-      của **mọi** trận). **Đã hỏi người dùng, chưa tự sửa.**
+    - **Mục 3 (nhãn thời tiết) 🔴 đỏ lúc kiểm → ✅ ĐẠT sau khi sửa** — nó từng hiện ở **cả
+      hai** chế độ, vì `TrangTran.tsx:416` là `{dieuKien && …}` không có một điều kiện chế độ
+      nào.
+      ⚠️ **Không AC nào phân xử chỗ này**, nên nó được **hỏi** chứ không tự sửa: mệnh đề "không
+      hiện ở chế độ phút" chỉ tồn tại trong lời `T761`, còn `AC-38.9` nói thời tiết là của
+      **mọi** trận. **Người dùng chốt: ẩn ở chế độ theo phút.** Sửa bằng một điều kiện dùng lại
+      `lienTuc` (một thẻ, một nguồn). Kiểm lại bằng mắt: chế độ phút **không còn nhãn** mà mã
+      trận và sân 2D vẫn nguyên; chế độ liên tục **vẫn có nhãn từ phút 0**.
     - **Mục 4 (bàn phím + lý do khoá, P9) ✅** — `Down` thật sự chuyển lựa chọn **và** tiêu
       điểm; quân số 7 làm ô `lien-tuc` thành `disabled` kèm một `role="status"` nói rõ vì sao
       bằng chữ. **AC-45.8** đạt phần giao diện.

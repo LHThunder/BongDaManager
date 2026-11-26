@@ -412,8 +412,24 @@ export function TrangTran({ onRoiTran }: Props) {
         Điều kiện trận đứng cạnh MÃ TRẬN, không treo lên sân 2D (quyết định
         D130): nó dẫn xuất từ mã trận nên nó thuộc về chỗ của mã trận, và
         `San2D` đã gần 2.000 dòng.
+
+        ⚠️ **CHỈ hiện ở chế độ LIÊN TỤC (T761, người dùng chốt 2026-11-26).**
+        Bản đầu viết `{dieuKien && …}` và nhãn hiện ở **cả hai** chế độ. Thời
+        tiết và gió trong spec 007 **chỉ tác động vào vật lý bóng** (câu 11 của
+        nhật ký làm rõ), mà vật lý bóng chỉ chạy ở chế độ liên tục — nên ở chế
+        độ theo phút nhãn ấy **hứa một ảnh hưởng không tồn tại**.
+
+        📌 Không AC nào phán chỗ này: mệnh đề "không hiện ở chế độ phút" chỉ có
+        trong lời `T761`, và `AC-38.9` thì nói thời tiết dẫn xuất từ mã trận ở
+        **mọi** trận. Hai cách đọc đều đứng được, nên nó được **hỏi** chứ không
+        tự sửa. Người dùng chọn ẩn.
+
+        Dùng lại `lienTuc` — cùng một thẻ phân biệt mà nút đổi góc nhìn dùng —
+        chứ không gọi `cheDoCuaTrangThai` lần thứ hai: một thẻ, một nguồn.
+        `dieuKien` vẫn được tính ở chế độ phút (hook phải chạy không điều kiện);
+        nó là một phép băm thuần và không ai đọc, nên cái giá là 0.
       */}
-      {dieuKien && (
+      {lienTuc && dieuKien && (
         <p className="text-center text-xs text-chu-phu">
           {TRAN_DAU.nhanDieuKien}: {TRAN_DAU.thoiTiet[dieuKien.thoiTiet]},{' '}
           {dieuKien.tocDoGio < NGUONG_GIO_LANG
