@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **52 AC**, nhóm 46–53) |
 | **Plan** | `./plan.md` (Status `Draft`, D130–D143, R60–R66) |
-| **Tiến độ** | 46/50 — Phase 60–65 xong; Phase 66 đo được 3/6. Bốn task còn lại đều là **phép đo nhịp khung** không thực hiện được trong môi trường này |
+| **Tiến độ** | 45/50 — **T782 bị gỡ tích ngày 2026-11-26** sau phán quyết T760 của người dùng; bốn task còn lại là phép đo nhịp khung |
 | **Nền đo** | commit `5265d37`, engine v6, **84 file test / 1.733 phép kiểm xanh**, bộ kiểm chạy hết **152 giây** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -411,13 +411,19 @@
     chiều sâu, sau phép chiếu khoảng ấy co lại đúng `×sin 50°`. Đo bằng mét thì thấy họ tách
     nhau; đo trên màn hình thì chưa chắc.
 
-- [x] **T782** — Nhóm **hình**: tách hai hình sát nhau bằng **viền**, không dịch ai.
+- [ ] **T782** — Nhóm **hình**: tách hai hình sát nhau bằng **viền**, không dịch ai.
   - File: `src/ui/components/San3D.tsx`
   - Nội dung: D134. Viền là thuộc tính **thường trực của mọi hình**, không bật/tắt theo trạng thái — **R65**: một viền bật/tắt sẽ bị đọc nhầm thành thẻ, kiệt sức hay sai vị trí.
   - Xong khi: hai cầu thủ đứng khít nhau vẫn **đếm ra hai**; và không một thực thể nào bị dịch — phép kiểm AC-46.5 ở T784 là lưới gác điều đó.
   - AC: AC-49.7
   - Phụ thuộc: T781
-  - ✅ **Xong 2026-11-26 — và KHÔNG thêm một dòng mã nào.** Viền **đã thường trực** từ T788
+  - 🔴 **GỠ TÍCH NGÀY 2026-11-26.** Người dùng xem trọn một trận ở `T760` của spec 007 và
+    nói: *"tôi thấy bị đè lên nhau"*. Đo lại: **7,4% số cặp** (19.294/262.185) không phân biệt
+    được, **100% số mốc** có ít nhất một cặp đè — và sân 2D cũng thế. Điều kiện ra của task
+    này là *"hai cầu thủ đứng khít nhau vẫn đếm ra hai"*, và nó **không đạt**.
+    📌 Phần kết luận dưới đây **vẫn đúng** và không bị rút lại: viền là điều kiện **cần**,
+    chỉ là không **đủ**. Chữa phải ở `T814` của spec 007.
+  - ~~Xong 2026-11-26 — và KHÔNG thêm một dòng mã nào.~~ Viền **đã thường trực** từ T788
     và T799: cả `<circle>` của chủ nhà lẫn `<rect>` của khách đều mang `stroke={n.ao.chu}`
     `strokeWidth={0.3}` **không điều kiện**, và màu viền phái sinh từ chính màu áo qua
     `nenDamBaoTuongPhan` nên nó đạt 4,5:1 với nền của mình.

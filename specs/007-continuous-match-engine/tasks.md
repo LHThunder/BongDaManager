@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **30 AC**) |
 | **Plan** | `./plan.md` (Status `Approved`, D117–D134, R51–R64) |
-| **Tiến độ** | 40/51 — T813 thêm ngày 2026-11-25 và xong ngày 2026-11-26 |
+| **Tiến độ** | 40/53 — T813 xong 2026-11-26; **T814 và T815 thêm cùng ngày** từ phán quyết `T760` của người dùng |
 | **Nền đo** | commit `5c652eb`, engine v6, **1.304 test xanh / 63 file test** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -2135,6 +2135,54 @@ học đo **trên chính tệp ấy**.
     tại chỗ. Hai trong chín là **tốt lên**: `AC-38.1(i)` 15 → 12 và
     `AC-38.1(ii)` 12 → 11. Bộ kiểm đầy đủ: **86 file / 1.809 phép kiểm xanh**.
 
+- [ ] **T814** — Cầu thủ đè lên nhau trên đường liên tục. *(Thêm 2026-11-26 từ phán quyết `T760`.)*
+  - File: `src/engine/lienTuc/coHoc.ts` (`tachChen`), `src/engine/lienTuc/coHoc.test.ts`
+  - **Phát hiện:** người dùng xem trọn một trận ở `T760` và nói *"tôi thấy bị đè lên nhau"*.
+    Đo bằng máy trên **1.135 mốc** của 5 mã trận, dùng `phanBietDuoc` của spec 011 với ngưỡng
+    **một bán kính** (chính ngưỡng `san2D.test.ts:173` đã dùng cho AC-15.2 từ spec 002):
+
+    | | Sa bàn | Sân 2D |
+    |---|---|---|
+    | Mốc có ít nhất một cặp đè | **100%** | **100%** |
+    | Cặp đè / tổng cặp | 19.294 | 19.482 / 262.185 (**~7,4%**) |
+    | Cặp gần trùng khít (< ½ bán kính) | 0 | — |
+
+  - 📍 **Sân 2D tệ y hệt sa bàn**, nên đây **không** phải lỗi của lớp vẽ 3D. Và nó là một lỗ
+    hổng **cùng loại với `T813`**: `san2D.test.ts` canh "không chồng khít" trên bố cục **cổ
+    điển** tại các mốc sự kiện, còn **đường liên tục thì không phép kiểm nào canh**. `tachChen`
+    có chạy, nhưng nó tách theo **mét** và rõ ràng chưa đủ.
+  - ⛔ **Spec 011 KHÔNG chữa được chỗ này.** Dịch người ở lớp vẽ là vỡ **AC-46.5** (hai góc
+    nhìn phải khớp `(x, y)` từng số) và làm hình nói khác engine. Đã gỡ tích **AC-49.6** và
+    **AC-49.7** của spec 011 vì chúng dựa vào điều này.
+  - Xong khi: đo lại đúng bộ 1.135 mốc trên cho **≤ 1%** số cặp đè và **≤ 20%** số mốc có cặp
+    đè; `coHoc.test.ts` có một phép kiểm **chống rỗng** (số cặp đã so > 200.000); và **P1 còn
+    nguyên** — cùng mã trận vẫn cho cùng dòng sự kiện từng ký tự.
+  - ⚠️ Sửa `tachChen` **đổi vị trí người**, nên nó có thể đổi con số trận. Phải đo lại chín bộ
+    đếm của `doCoHoc.test.ts` và nói rõ trong commit, đúng như `T813` đã làm.
+  - AC: AC-30.5 (của spec 005) đọc lại ở engine liên tục; gỡ chặn AC-49.6/49.7 của spec 011
+  - Phụ thuộc: —
+
+- [ ] **T815** — Cả đội hình trượt cùng nhau như một khối. *(Thêm 2026-11-26 từ phán quyết `T760`.)*
+  - File: `src/engine/lienTuc/viTriMet.ts` (`dichNguoiKhongBong`), phép kiểm cạnh nó
+  - **Phát hiện:** cùng lượt xem ấy, người dùng nói *"di chuyển của cầu thủ quá máy móc và
+    dính liền đến nhau"*.
+  - **Số đo, và hãy đọc kèm cảnh báo về nó:** tỉ lệ phần dịch chuyển **chung** của 22 người
+    trên tổng chuyển động giữa hai mốc liên tiếp — p50 **0,19**, p90 **0,72**. Tức cứ mười
+    khung thì có một khung mà **72%** chuyển động là cả khối trượt cùng hướng.
+    ⚠️ Thước đo này là **của tôi và còn thô** — nó ủng hộ điều người dùng thấy, nhưng không
+    phải một chỉ số đã được ai công nhận. Task này nên bắt đầu bằng việc **chọn một thước đo
+    tốt hơn**, không phải bằng việc tin con số trên.
+  - 📍 Nguyên nhân khoanh được: `dichNguoiKhongBong(choDung[o], dBong)` đưa **mọi** người
+    không giữ bóng về phía bóng theo cùng một phép, lấy chỗ đứng sơ đồ làm neo — nên cả khối
+    tịnh tiến. Không có thành phần riêng cho từng người (vai trò, thể lực, độ trễ phản ứng).
+  - ⚠️ **Đây là lõi hành vi đội hình.** Chạm vào là **đổi mọi trận đã lưu**, tức chạm **P2** —
+    khác hẳn `T813`, nơi dòng sự kiện không đổi một ký tự. Phải nói rõ điều đó trước khi làm,
+    và `lyDoKhongDauLai` phải nói được.
+  - Xong khi: có một thước đo được chốt, một số đo trước/sau, và **người dùng xem lại rồi
+    phán** — chính `T760` là cổng của việc này, không phải một phép kiểm.
+  - AC: (chất lượng chuyển động — chưa có AC nào mang đúng tên nó)
+  - Phụ thuộc: —
+
 - [ ] **T754** [P] — Bốn món nợ văn bản
   - File: `src/engine/vung.ts` (chú thích D23, dòng 4-18), `src/engine/suKien.ts` (dòng 88),
     `src/ui/components/San2D.tsx` (chú thích sàn, quanh dòng 862-881), `src/ui/san2D.test.ts`
@@ -2167,6 +2215,13 @@ giải để người dùng quyết.
 ## Phase 59 — Lớp kiểm cuối của DoD
 
 - [ ] **T760** — Người dùng xem **trọn một trận** và phán
+  - 🔴 **ĐÃ XEM NGÀY 2026-11-26 — VÀ KHÔNG ĐẠT.** Người dùng xem một trận liên tục ở góc nhìn
+    sa bàn và nêu **hai** điều: *"tôi thấy bị đè lên nhau"* và *"di chuyển của cầu thủ quá máy
+    móc và dính liền đến nhau"*.
+  - 📍 **Cả hai đều đúng, và cả hai đều lọt qua 1.825 phép kiểm.** Đã đo lại thành số và mở
+    **`T814`** (đè nhau: 7,4% số cặp, 100% số mốc) và **`T815`** (dính khối: p90 = 0,72).
+  - 📌 Task này **giữ nguyên chưa tick**: nó là cổng nghiệm thu của người dùng, và người dùng
+    đã phán là chưa được. Nó chỉ xong khi `T814` và `T815` xong rồi người dùng xem lại.
   - File: — (không chạm file nào; kết quả ghi vào `spec.md` mục 7)
   - Xong khi: người dùng đã xem trọn một trận ở chế độ liên tục, ở **ít nhất ba** mức tốc độ,
     **bật và tắt** giảm chuyển động, và nói ra được **ba câu họ nói ở mục 1 của spec** còn đúng
