@@ -1,9 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import { DAI_SAN, RONG_SAN, trongSan } from '../hinhHocSan'
 import { CAC_COT, CAC_DAI, layVung, vungCuaViTri } from '../vung'
+import type { PositionId } from '../../domain/types'
 import {
+  choDungDoiHinhMet,
   choDungMet,
   dichNguoiKhongBong,
+  GIAN_TRONG_VUNG,
+  LUI_VE_SAN_MINH,
   PHAN_DICH_THEO_BONG,
   tamVungMet,
   TI_LE_DAI_MET,
@@ -97,5 +101,112 @@ describe('dichNguoiKhongBong — kéo TỈ LỆ, không kéo đều tay (T725)',
     const gan = dichNguoiKhongBong({ x: 45, y: 34 }, bong)
     const xa = dichNguoiKhongBong({ x: 5, y: 34 }, bong)
     expect(gan.x - 45).toBeLessThan(xa.x - 5)
+  })
+})
+
+/*
+  ====================================================================
+  KHÔNG HAI NGƯỜI CÙNG MỘT ĐIỂM ĐÍCH (T814).
+  ====================================================================
+
+  Lưới 12 vùng phát **8 điểm đích cho 22 người** trên đội hình mẫu, nên 22 trong
+  231 cặp nhắm **đúng một điểm** và dính nhau cả trận. Chú thích trên
+  `choDungDoiHinhMet` trong `viTriMet.ts` có bảng đo đầy đủ; đây là phép kiểm.
+*/
+describe('choDungDoiHinhMet — giãn người cùng vùng (T814)', () => {
+  const DOI_HINH_4_4_2: readonly PositionId[] = [
+    'GK',
+    'DL',
+    'DC',
+    'DC',
+    'DR',
+    'ML',
+    'MC',
+    'MC',
+    'MR',
+    'ST',
+    'ST',
+  ]
+
+  it('không hai người nào cùng một điểm, cả hai bên cùng lúc', () => {
+    const cac = [
+      ...choDungDoiHinhMet(DOI_HINH_4_4_2, 'nha'),
+      ...choDungDoiHinhMet(DOI_HINH_4_4_2, 'khach'),
+    ]
+    expect(cac).toHaveLength(22)
+    const khoa = new Set(cac.map((d) => `${d.x.toFixed(6)},${d.y.toFixed(6)}`))
+    expect(khoa.size).toBe(22)
+  })
+
+  it('và cách nhau hơn MỘT BÁN KÍNH ĐĨA VẼ — 3,01 m của sân 2D', () => {
+    /*
+      ⚠️ CHÍNH ngưỡng của AC-49.6, viết lại ở đây bằng mét để phép kiểm engine
+      không phải `import` một hằng số của lớp vẽ: bán kính `2,6` đơn vị chia
+      hệ số `min(94,8/105 ; 58,8/68) = 0,864706`.
+
+      Đây là phép kiểm đáng giá nhất trong khối: nó không chỉ đòi "khác nhau"
+      mà đòi **khác đủ để đếm ra hai**. Trước T814 nó đỏ ở 22 cặp.
+    */
+    const BAN_KINH_MET = 2.6 / 0.864706
+    const cac = [
+      ...choDungDoiHinhMet(DOI_HINH_4_4_2, 'nha'),
+      ...choDungDoiHinhMet(DOI_HINH_4_4_2, 'khach'),
+    ]
+    let ganNhat = Infinity
+    for (let i = 0; i < cac.length; i += 1) {
+      for (let j = i + 1; j < cac.length; j += 1) {
+        const d = Math.hypot(cac[i]!.x - cac[j]!.x, cac[i]!.y - cac[j]!.y)
+        if (d < ganNhat) ganNhat = d
+      }
+    }
+    expect(ganNhat).toBeGreaterThan(BAN_KINH_MET)
+    // Và nêu luôn con số, để một hồi quy về sát ngưỡng cũng thành đỏ.
+    expect(ganNhat).toBeCloseTo(7, 5)
+  })
+
+  it('mọi điểm nằm TRONG sân', () => {
+    for (const ben of ['nha', 'khach'] as const) {
+      for (const d of choDungDoiHinhMet(DOI_HINH_4_4_2, ben)) {
+        expect(trongSan(d.x, d.y), `${ben} ${d.x},${d.y}`).toBe(true)
+      }
+    }
+  })
+
+  it('tất định: cùng đầu vào cho cùng đầu ra (P1)', () => {
+    expect(choDungDoiHinhMet(DOI_HINH_4_4_2, 'nha')).toEqual(
+      choDungDoiHinhMet(DOI_HINH_4_4_2, 'nha'),
+    )
+  })
+
+  it('nhóm MỘT người không lệch ngang — đội hình không bị xô vì hàm này có mặt', () => {
+    /*
+      Thủ môn là người duy nhất trong vùng của anh ta ở đội hình mẫu, nên `y`
+      của anh ta phải bằng ĐÚNG `y` của tâm vùng. Chỉ `x` lùi về sân mình.
+    */
+    const goc = choDungMet('GK', 'nha')
+    const moi = choDungDoiHinhMet(DOI_HINH_4_4_2, 'nha')[0]!
+    expect(moi.y).toBe(goc.y)
+    expect(moi.x).toBe(goc.x - LUI_VE_SAN_MINH)
+  })
+
+  it('hai người cùng vùng lệch ĐÚNG GIAN_TRONG_VUNG, đối xứng quanh tâm', () => {
+    const moi = choDungDoiHinhMet(DOI_HINH_4_4_2, 'nha')
+    const hai = [moi[2]!, moi[3]!] // hai DC
+    const tam = choDungMet('DC', 'nha')
+    expect(hai[1]!.y - hai[0]!.y).toBeCloseTo(GIAN_TRONG_VUNG, 10)
+    expect((hai[0]!.y + hai[1]!.y) / 2).toBeCloseTo(tam.y, 10)
+  })
+
+  it('⚠️ CHỐNG RỖNG: trên đội hình mẫu, choDungMet CÓ trùng điểm thật', () => {
+    /*
+      Nếu lưới vùng vốn đã phát 22 điểm khác nhau thì mọi phép kiểm trên kia
+      xanh mà không chứng minh gì. Khẳng định ngược: hàm CŨ trùng, đúng 8 điểm.
+    */
+    const cu = [
+      ...DOI_HINH_4_4_2.map((v) => choDungMet(v, 'nha')),
+      ...DOI_HINH_4_4_2.map((v) => choDungMet(v, 'khach')),
+    ]
+    const khoa = new Set(cu.map((d) => `${d.x.toFixed(6)},${d.y.toFixed(6)}`))
+    expect(khoa.size).toBe(8)
   })
 })

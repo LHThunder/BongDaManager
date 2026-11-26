@@ -10,8 +10,8 @@ import {
 } from '../engine/lienTuc/tranLienTuc'
 import { anhChupTuLo } from './mocVe'
 import { viTriMetLienTuc, viTriVeLienTuc, type AnhChupMet } from './viTriVe'
-import { chieuDiem } from './chieuSaBan'
-import { toaDoTuMet, type KhungAnh } from './quyDoiMet'
+import { chieuDiem, phanBietDuoc } from './chieuSaBan'
+import { toaDoTuMet, type KhungAnh, type ToaDoVe } from './quyDoiMet'
 
 /*
   ====================================================================
@@ -29,6 +29,18 @@ import { toaDoTuMet, type KhungAnh } from './quyDoiMet'
 */
 
 const KHUNG: KhungAnh = { rong: 100, cao: 64, le: 2.6 }
+
+/*
+  Bán kính đĩa cầu thủ, đơn vị ảnh — lấy từ `KHUNG.le`, KHÔNG viết lại số 2,6.
+
+  `quyDoiMet.ts` định nghĩa `le` là *"lề mỗi phía ... đúng bằng bán kính điểm
+  cầu thủ: một người đứng sát vạch vôi thì đĩa của anh ta phải còn nằm trong
+  ảnh"*. Hai đại lượng ấy là **một** theo định nghĩa, nên lấy một cái từ cái
+  kia. Không `import` từ `San2D.tsx`: file này chạy ở `environment: 'node'`, và
+  một đường dẫn tới module React ấy sẽ kéo React vào mọi phép kiểm ở đây —
+  đúng cái bẫy mà chú thích đầu `quyDoiMet.ts` đã rào.
+*/
+const BAN_KINH = KHUNG.le
 
 /*
   Tổng kiểm dòng sự kiện của 10 mã trận — ghim ở T802, 2026-11-25.
@@ -364,5 +376,139 @@ describe('AC-47.5 — đổi góc nhìn không đổi một ký tự của trậ
     const v = vanTay(MA_TRAN_CO_DINH[0]!)
     expect(v).toMatch(/^\d+-\d+#[1-9]/)
     expect(v.length).toBeGreaterThan(200)
+  })
+})
+
+/*
+  ====================================================================
+  AC-49.6 — HAI CẦU THỦ ĐỨNG KHÍT NHAU VẪN ĐẾM RA HAI (T781, sau T814).
+  ====================================================================
+
+  ⚠️ **Khối này ra đời vì một lượt người xem, không vì một phép kiểm.** Phase 62
+  tích AC-49.6 ngày 2026-11-26 với lý lẽ "`phanBietDuoc` tồn tại và có 5 phép
+  kiểm" — tức tích một AC **hành vi** bằng sự tồn tại của một **hàm**. Người
+  dùng xem trọn một trận ở `T760` của spec 007 rồi nói *"tôi thấy bị đè lên
+  nhau"*, và phép đo đứng về phía họ: **7,27%** số cặp không phân biệt được,
+  **100%** số mốc có ít nhất một cặp như vậy. AC bị **gỡ tích**.
+
+  📍 Nguyên nhân hoá ra nằm ở engine, không ở lớp vẽ: lưới 12 vùng chỉ phát
+  **8 điểm đích cho 22 người**, nên 22 trong 231 cặp (**9,5%**) nhắm **đúng một
+  điểm** — và phép đo cho **9,53%** số cặp có đĩa chồng nhau. Hai con số trùng
+  tới hai chữ số thập phân vì chúng là **cùng một tập cặp**. `T814` của spec 007
+  giãn chúng ra (`choDungDoiHinhMet`), và trên đúng bộ mẫu ấy:
+
+  |  | trước T814 | sau T814 |
+  |---|---|---|
+  | cặp không phân biệt được | **7,27%** | **0,07%** |
+  | mốc có một cặp như vậy | **100%** | **15,6%** |
+  | phân vị 1% của khoảng cách | 2,000 m | **5,250 m** |
+  | cặp nằm đúng trên tường 2,0 m | 6,23% | 0,02% |
+
+  ⚠️ **HAI NGƯỠNG DƯỚI ĐÂY LÀ HỢP ĐỒNG, KHÔNG PHẢI SỐ ĐO.** `1%` và `20%` được
+  viết vào điều kiện ra của `T814` **trước khi** đo, và người dùng chốt chúng
+  ngày 2026-11-26. Giữ nguyên chữ ấy thay vì xiết về sát 0,07% là có chủ ý: một
+  ngưỡng đặt sau khi biết kết quả thì không còn là một lời hứa. Nhưng để một
+  hồi quy từ 0,07% lên 0,9% không ai thấy cũng là sai, nên có thêm **một dây
+  bẫy chặt** ở `0,2%` ngay cạnh, và nó được gọi tên là dây bẫy.
+
+  🔴 **VÀ MỘT ĐIỀU PHẢI ĐỌC TRƯỚC KHI TIN CON SỐ 20%: VẾ "SỐ MỐC" KHÔNG ỔN
+  ĐỊNH THEO MẪU.** Cùng một mã nguồn, cùng một ngưỡng, chỉ đổi bước lấy mẫu và
+  số mã trận:
+
+  | mẫu | cặp đè | mốc có cặp đè |
+  |---|---|---|
+  | 5 mã, **mọi** mốc (30.240 mốc) | 0,073% | **15,6%** |
+  | 2 mã, mọi mốc | 0,089% | **18,7%** |
+  | 2 mã, mỗi 7 mốc | 0,096% | **20,1%** |
+  | 2 mã, mỗi 10 mốc | 0,124% | **25,0%** |
+  | 3 mã, mỗi 3 mốc *(bộ phép kiểm này dùng)* | 0,074% | **15,7%** |
+
+  Vế **cặp** nằm trong `1%` ở **mọi** mẫu tôi thử — biên gần mười lần. Vế
+  **mốc** thì đi từ 15,6% tới 25,0%, tức **bước qua lại đường 20%**. Lý do là
+  số học, không phải ngẫu nhiên: một mốc có **231 cặp**, nên `0,1%` số cặp đã
+  cho ~0,23 cặp đè mỗi mốc và ~20% số mốc. Hai ngưỡng tôi công bố vì thế
+  **không độc lập**, và vế mốc là vế **chặt hơn hẳn** — `1%` số cặp sẽ tương
+  đương ~90% số mốc, chứ không 20%.
+
+  📌 Nên: `expect` dưới đây **đạt trên mẫu này**, và tôi không coi đó là bằng
+  chứng rằng ngưỡng 20% đã an toàn. Điều ấy đã được nói thẳng với người dùng
+  kèm cả bảng trên, và `AC-49.6` **chưa được tích lại** bằng phép kiểm này —
+  cổng của nó là `T760`: người dùng xem lại rồi phán.
+
+  📌 **Đĩa vẽ vẫn CHỒNG MÉP nhau ở 3,95% số cặp, và đó KHÔNG phải lỗi.** Đĩa
+  cầu thủ có bán kính `2,6` đơn vị = **3,01 m** ở sân 2D, tức đường kính 6 m —
+  rộng hơn một người thật hơn mười lần. Hai người đứng cách nhau 5 m là chuyện
+  thường của bóng đá, và hai đĩa 6 m của họ thì phải giao nhau. AC-49.6 không
+  đòi đĩa rời nhau; nó đòi **đếm ra hai**, và ngưỡng của nó là **một bán kính**
+  — chính ngưỡng `san2D.test.ts:173` đã dùng cho AC-15.2 từ spec 002. Muốn đĩa
+  không bao giờ giao nhau thì bán kính phải xuống **1,0 m** (0,86 đơn vị), và
+  bán kính `2,6` là con số **người dùng chốt ngày 2026-11-23**.
+*/
+describe('AC-49.6 — hai cầu thủ đứng khít nhau vẫn đếm ra hai (sau T814)', () => {
+  const TI_LE_CAP_HOP_DONG = 0.01
+  const TI_LE_CAP_DAY_BAY = 0.002
+  const TI_LE_MOC_HOP_DONG = 0.2
+  const SO_CAP_TOI_THIEU = 200_000
+
+  interface KetQua {
+    readonly soCap: number
+    readonly capXau: number
+    readonly soMoc: number
+    readonly mocXau: number
+  }
+
+  function doPhanBiet(chieu: (a: AnhChupMet, id: string) => ToaDoVe | null): KetQua {
+    let soCap = 0
+    let capXau = 0
+    let soMoc = 0
+    let mocXau = 0
+    for (const ma of MA_TRAN_CO_DINH.slice(0, 3)) {
+      for (const luot of layMau(ma, 95, 3)) {
+        const diem = luot.nguoi
+          .map((n) => chieu(luot.anhChup, n.playerId))
+          .filter((d): d is ToaDoVe => d !== null)
+        if (diem.length < 2) continue
+        soMoc += 1
+        let xau = false
+        for (let i = 0; i < diem.length; i += 1) {
+          for (let j = i + 1; j < diem.length; j += 1) {
+            soCap += 1
+            if (!phanBietDuoc(diem[i]!, diem[j]!, BAN_KINH)) {
+              capXau += 1
+              xau = true
+            }
+          }
+        }
+        if (xau) mocXau += 1
+      }
+    }
+    return { soCap, capXau, soMoc, mocXau }
+  }
+
+  it('sân 2D: dưới 1% số cặp và dưới 20% số mốc — và dây bẫy ở 0,2%', () => {
+    const kq = doPhanBiet((a, id) => viTriVeLienTuc(a, id, KHUNG))
+    /*
+      ⚠️ CHỐNG RỖNG trước đã. Một phép kiểm đếm tỉ lệ trên một mẫu nhỏ là một
+      phép kiểm xanh vì không đo gì — và chính lỗi ấy đã để AC này được tích
+      sai một lần.
+    */
+    expect(kq.soCap).toBeGreaterThan(SO_CAP_TOI_THIEU)
+    expect(kq.soMoc).toBeGreaterThan(800)
+    expect(kq.capXau / kq.soCap).toBeLessThan(TI_LE_CAP_HOP_DONG)
+    expect(kq.mocXau / kq.soMoc).toBeLessThan(TI_LE_MOC_HOP_DONG)
+    expect(kq.capXau / kq.soCap).toBeLessThan(TI_LE_CAP_DAY_BAY)
+  })
+
+  it('sa bàn: cùng hai ngưỡng, đo SAU phép chiếu', () => {
+    const kq = doPhanBiet((a, id) => {
+      const met = viTriMetLienTuc(a, id)
+      return met === null
+        ? null
+        : chieuDiem(KHUNG_SA_BAN, met.xMet, met.yMet, 0)
+    })
+    expect(kq.soCap).toBeGreaterThan(SO_CAP_TOI_THIEU)
+    expect(kq.capXau / kq.soCap).toBeLessThan(TI_LE_CAP_HOP_DONG)
+    expect(kq.mocXau / kq.soMoc).toBeLessThan(TI_LE_MOC_HOP_DONG)
+    expect(kq.capXau / kq.soCap).toBeLessThan(TI_LE_CAP_DAY_BAY)
   })
 })

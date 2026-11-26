@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **52 AC**, nhóm 46–53) |
 | **Plan** | `./plan.md` (Status `Draft`, D130–D143, R60–R66) |
-| **Tiến độ** | 45/50 — **T782 bị gỡ tích ngày 2026-11-26** sau phán quyết T760 của người dùng; bốn task còn lại là phép đo nhịp khung |
+| **Tiến độ** | 45/50 — T782 bị gỡ tích ngày 2026-11-26 sau phán quyết T760; `T814` của spec 007 **đã gỡ chặn nó cùng ngày** (0,07% số cặp), nhưng nó chờ người dùng xem lại. Bốn task còn lại là phép đo nhịp khung |
 | **Nền đo** | commit `5265d37`, engine v6, **84 file test / 1.733 phép kiểm xanh**, bộ kiểm chạy hết **152 giây** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -423,6 +423,9 @@
     này là *"hai cầu thủ đứng khít nhau vẫn đếm ra hai"*, và nó **không đạt**.
     📌 Phần kết luận dưới đây **vẫn đúng** và không bị rút lại: viền là điều kiện **cần**,
     chỉ là không **đủ**. Chữa phải ở `T814` của spec 007.
+    ⏳ **`T814` xong 2026-11-26**: 7,27% → **0,07%** số cặp, 100% → **15,6%** số mốc. Nguyên
+    nhân thật là **8 điểm đích cho 22 người**, không phải `tachChen`. Task này **chờ người dùng
+    xem lại** (`T760`) — không tự tích lại bằng một phép kiểm.
   - ~~Xong 2026-11-26 — và KHÔNG thêm một dòng mã nào.~~ Viền **đã thường trực** từ T788
     và T799: cả `<circle>` của chủ nhà lẫn `<rect>` của khách đều mang `stroke={n.ao.chu}`
     `strokeWidth={0.3}` **không điều kiện**, và màu viền phái sinh từ chính màu áo qua

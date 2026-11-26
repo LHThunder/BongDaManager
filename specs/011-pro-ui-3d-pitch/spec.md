@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **ID** | `011-pro-ui-3d-pitch` |
-| **Status** | **Planned** — **47/52 AC đạt**. Ba AC là phép đo nhịp khung (51.1, 51.4, 51.5) chờ một môi trường vẽ khung thật; **hai AC (49.6, 49.7) bị GỠ TÍCH ngày 2026-11-26** sau khi người dùng xem trọn một trận ở `T760` và thấy cầu thủ đè lên nhau — đo lại cho **7,4% số cặp**, và chủ nợ là `T814` của spec 007. **Chưa `Done`.** |
+| **Status** | **Planned** — **47/52 AC đạt**. Ba AC là phép đo nhịp khung (51.1, 51.4, 51.5) chờ một môi trường vẽ khung thật. Hai AC (49.6, 49.7) bị gỡ tích ngày 2026-11-26 sau phán quyết `T760`; `T814` của spec 007 **xong cùng ngày** và kéo số đo từ **7,27% xuống 0,07%** số cặp, nhưng hai AC ấy **chờ người dùng xem lại** chứ không chờ phép kiểm. **Chưa `Done`.** |
 | **Created** | 2026-11-25 |
 | **Clarified** | 2026-11-25 — **15 quyết định**, xem mục 10 (quyết định 15 đến từ `/analyze`) |
 | **Planned** | 2026-11-25 — `./plan.md`, 13 quyết định D130–D142, 7 rủi ro R60–R66 |
@@ -344,8 +344,15 @@ hỏng điều gì**, để **không phải kiểm lại bằng mắt từ đầ
       > Đo lại trên 1.135 mốc của 5 mã trận: **19.294 trên 262.185 cặp (~7,4%)** không phân
       > biệt được, và **100% số mốc** có ít nhất một cặp đè. Sân 2D cũng vậy (19.482 cặp) — nên
       > đây là chuyện **chung**, không phải lỗi của sa bàn.
-      > Chủ nợ là **spec 007**, task `T814`: `tachChen` tách theo **mét**, và không ai canh
-      > đường liên tục. Spec 011 **không chữa được**: dịch người ở lớp vẽ là vỡ **AC-46.5**.
+      > Chủ nợ là **spec 007**, task `T814`. Spec 011 **không chữa được**: dịch người ở
+      > lớp vẽ là vỡ **AC-46.5**.
+      > ⏳ **`T814` XONG NGÀY 2026-11-26, và số đo đã đổi hẳn: 7,27% → 0,07% số cặp,
+      > 100% → 15,6% số mốc.** Nguyên nhân thật không phải `tachChen` (nó giữ đúng 2,0 m) mà
+      > là **lưới 12 vùng chỉ phát 8 điểm đích cho 22 người** — 22 trong 231 cặp nhắm đúng
+      > một điểm. Đã có phép kiểm mang đúng tên AC này ở `batBienSaBan.test.ts`, đo **sau khi
+      > chiếu**, trên 1.336.690 cặp.
+      > 📌 **Vẫn CHƯA tích**, và có chủ ý: cổng của AC này là **`T760`** — người dùng xem lại
+      > rồi phán. Tích nó bằng một phép kiểm là lặp lại **đúng** lỗi đã phải gỡ tích một lần.
 - [ ] AC-49.7 — KHI hai hình sát nhau được tách ra THÌ việc tách PHẢI làm bằng **viền**, không
       bằng cách dịch thực thể: AC-46.5 đứng tuyệt đối, và viền không được đọc nhầm thành một
       trạng thái của cầu thủ.
@@ -353,7 +360,8 @@ hỏng điều gì**, để **không phải kiểm lại bằng mắt từ đầ
       > trực và **đúng là** không được bật/tắt theo trạng thái (**R65** vẫn đứng). Nhưng điều
       > kiện thật của AC này là *"hai cầu thủ đứng khít nhau vẫn đếm ra hai"*, và số đo nói
       > không: 7,4% số cặp vẫn đè. Viền là điều kiện **cần**, không phải **đủ**.
-      > Chờ `T814` của spec 007.
+      > ⏳ **`T814` xong 2026-11-26** — 0,07% số cặp. Điều kiện **đủ** nay có vẻ đã tới, nhưng
+      > AC này **chờ `T760`** như AC-49.6, không chờ một phép kiểm.
 
 **Toàn cục:**
 
@@ -362,6 +370,13 @@ hỏng điều gì**, để **không phải kiểm lại bằng mắt từ đầ
 - [x] AC-49.9 — KHI góc nhìn 3D được thêm vào THÌ phép kiểm ranh giới tầng PHẢI còn xanh:
       không file nào của `src/engine/` import tầng giao diện, và `src/engine/` không có một
       dòng nào thay đổi.
+      > ⚠️ **ĐỌC KỸ CHỮ NÀY, VÌ NÓ ĐÃ HẾT ĐÚNG THEO NGHĨA HẸP NHẤT.** `src/engine/` **có**
+      > đổi ngày 2026-11-26 — `T813` nối `kepDichThuMon`, và `T814` thêm `choDungDoiHinhMet`.
+      > Cả hai là task của **spec 007**, do người dùng yêu cầu làm, **không** phải việc của
+      > spec 011; spec 011 vẫn chưa sửa một dòng engine nào. Mệnh đề thật mà AC này canh —
+      > `boundaries.test.ts` xanh, không file engine nào import tầng giao diện — **còn
+      > nguyên**. Giữ tích, nhưng ghi lại ở đây để không ai đọc câu trên rồi tưởng engine chưa
+      > ai chạm tới.
 
 ### US-5: Dùng được bằng bàn phím, và không chỉ dựa màu
 

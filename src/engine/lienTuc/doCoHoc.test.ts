@@ -161,10 +161,56 @@ describe('phép đo CÓ MẪU THẬT — chống rỗng (T742, AC-45.6)', () => 
     `sosanh.*` và vân tay dòng sự kiện của spec 011 đều xanh qua thay đổi này.
     Đúng như hiến pháp nói: vùng là đơn vị **QUYẾT ĐỊNH**, lớp liên tục chỉ
     **DIỄN**. Nên T813 **không** chạm P2 — điều mà chính lời T813 đã đoán sai.
+
+    ════════════════════════════════════════════════════════════════════
+    ⚠️⚠️ VÀ RỒI **T814** NGÀY CÙNG HÔM ẤY GỠ 95% MÓN NỢ NÀY.
+
+    Chú thích trên kia nêu **hai nguồn có tên** của chênh lệch vận tốc ↔ dịch
+    chuyển, và nguồn thứ nhất là *"`tachChen` đẩy người ra khỏi nhau SAU phép
+    bước"*. T814 tìm ra **vì sao** nó đẩy nhiều đến thế: lưới 12 vùng chỉ phát
+    **8 điểm đích cho 22 người**, nên 22 trong 231 cặp nhắm **đúng một điểm** và
+    bị xô ra mỗi mốc, cả trận. `choDungDoiHinhMet` giãn họ ra, và:
+
+      tổng vi phạm         1.613 → 77      ← bớt 95,2%
+      AC-38.2(tăng)          259 → 2
+      AC-38.2(giảm)           12 → 1
+      AC-38.3(i)             443 → 13
+      AC-38.3(ii)            862 → 37
+      AC-38.4(ngang) đếm       7 → 0       ← sạch hẳn
+      AC-38.11                 7 → 0       ← sạch hẳn
+      AC-38.1(i)              12 → 15      ← TỆ HƠN, thêm 3
+      AC-38.1(ii)             11 → 9
+      AC-38.4(lùi) soMau     180 → 22      ← mẫu thưa đi 8 lần
+      AC-38.4(ngang) soMau 1.423 → 2.353
+      năm mã  1.606/1.678/1.557/1.615/1.705 → 77/136/60/68/90
+
+    📌 **Hai con số đi ngược, và tôi không gộp chúng vào lời khoe.**
+    `AC-38.1(i)` tăng 12 → 15: người đứng rời nhau thì `tachChen` xô ít hơn
+    nhưng xô **mạnh hơn** ở những lần còn lại, vì không còn cặp nào đã nằm sẵn
+    trên tường 2,0 m để chia bớt cú đẩy. Và `AC-38.4(lùi)` chỉ còn 22 mẫu —
+    xem chú thích tại chỗ của nó.
+
+    📍 **Dòng sự kiện lại KHÔNG đổi một ký tự**, lần thứ hai trong một ngày:
+    1.819 phép kiểm còn lại xanh nguyên, kể cả vân tay `batBienSaBan.test.ts`.
+    Vị trí mét không vào bản ghi trận (**AC-45.4**), nên không trận đã lưu nào
+    đổi. **P2 nguyên vẹn.**
   */
-  it('AC-38.4 có mẫu ở CẢ HAI vế, dù vế lùi thưa', () => {
-    expect(KQ.soMau['AC-38.4(lùi)']).toBe(180)
-    expect(KQ.soMau['AC-38.4(ngang)']).toBe(1423)
+  it('AC-38.4 có mẫu ở CẢ HAI vế, dù vế lùi THƯA ĐI 8 LẦN sau T814', () => {
+    /*
+      ⚠️ **180 → 22, và con số cũ phần lớn là RÁC.** Vế "lùi" đếm những mốc một
+      người di chuyển ngược hướng thân mình. Trước T814, hai mươi hai cặp người
+      đứng chung một điểm đích và bị `tachChen` xô qua xô lại mỗi mốc — những
+      cú xô ấy **trông như** chạy lùi với phép đo dựa trên dịch chuyển. Gỡ chỗ
+      đứng trùng đi thì 158 trong 180 mẫu biến mất cùng với chúng.
+
+      📌 Nhưng 22 mẫu là **thưa**, và chú thích đầu `describe` này đã rào trước:
+      *"một vế chỉ chạm tới vài chục lần thì xanh hay đỏ đều là ngẫu nhiên"*.
+      Nên phép chống rỗng ở đây hôm nay **yếu hơn hôm qua** — nó vẫn chứng minh
+      vế ấy có người đo, nhưng không còn chứng minh được bao nhiêu. Ghi thành
+      món nợ có tên ở `T814` của `tasks.md` chứ không lặng lẽ đổi số.
+    */
+    expect(KQ.soMau['AC-38.4(lùi)']).toBe(22)
+    expect(KQ.soMau['AC-38.4(ngang)']).toBe(2353)
   })
 })
 
@@ -234,27 +280,32 @@ describe('MÓN NỢ đo được hôm nay — phép đo này KHÔNG xanh (T742)'
     cho người dùng kèm con số, không tự sửa và cũng không tự nới ngưỡng.
   */
 
-  it('5.980 hàng mỏng, 16 tình huống dày, 1.606 vi phạm', () => {
+  it('5.980 hàng mỏng, 16 tình huống dày, 77 vi phạm', () => {
     expect(TEP.moc.hang.length).toBe(5980)
     expect(TEP.tinh_huong.length).toBe(16)
-    expect(KQ.viPham.length).toBe(1613)
+    expect(KQ.viPham.length).toBe(77)
   })
 
   it('AC-38.1 và AC-38.2: vỡ khi đo trên DỊCH CHUYỂN, dù vận tốc đúng trần', () => {
-    expect(DEM.get('AC-38.1(i)')).toBe(12)
-    expect(DEM.get('AC-38.1(ii)')).toBe(11)
-    expect(DEM.get('AC-38.2(tăng)')).toBe(259)
-    expect(DEM.get('AC-38.2(giảm)')).toBe(12)
+    expect(DEM.get('AC-38.1(i)')).toBe(15)
+    expect(DEM.get('AC-38.1(ii)')).toBe(9)
+    expect(DEM.get('AC-38.2(tăng)')).toBe(2)
+    expect(DEM.get('AC-38.2(giảm)')).toBe(1)
   })
 
   it('AC-38.3: cả hai vế đỏ ở độ phân giải MỐC', () => {
-    expect(DEM.get('AC-38.3(i)')).toBe(443)
-    expect(DEM.get('AC-38.3(ii)')).toBe(862)
+    expect(DEM.get('AC-38.3(i)')).toBe(13)
+    expect(DEM.get('AC-38.3(ii)')).toBe(37)
   })
 
-  it('AC-38.4(ngang) và AC-38.11: năm mốc mỗi vế, không hơn', () => {
-    expect(DEM.get('AC-38.4(ngang)')).toBe(7)
-    expect(DEM.get('AC-38.11')).toBe(7)
+  it('AC-38.4(ngang) và AC-38.11: KHÔNG CÒN MỐC NÀO sau T814', () => {
+    /*
+      Hai vế này **sạch hẳn** (7 → 0 mỗi vế). Chúng đo lệch giữa hướng thân
+      người và hướng di chuyển; mọi mốc lệch còn lại hôm qua đều là cú xô của
+      `tachChen` trên những cặp đứng trùng điểm đích.
+    */
+    expect(DEM.get('AC-38.4(ngang)') ?? 0).toBe(0)
+    expect(DEM.get('AC-38.11') ?? 0).toBe(0)
   })
 
   it('và tổng số vi phạm đúng bằng tổng từng vế — không vế nào bị đếm hai lần', () => {
@@ -265,14 +316,15 @@ describe('MÓN NỢ đo được hôm nay — phép đo này KHÔNG xanh (T742)'
 
   /*
     Món nợ **không** là chuyện của riêng một mã trận: đo trên 5 mã cho
-    1.606 / 1.678 / 1.557 / 1.615 / 1.705. Phép kiểm chỉ canh **bậc độ lớn** của
-    dải ấy, vì khẳng định năm con số chính xác là buộc phép kiểm chạy 5 trận
-    đầy đủ (≈2 giây) mỗi lần ai đó chạy bộ test.
+    **77 / 136 / 60 / 68 / 90** (trước T814: 1.606 / 1.678 / 1.557 / 1.615 /
+    1.705). Phép kiểm chỉ canh **bậc độ lớn** của dải ấy, vì khẳng định năm con
+    số chính xác là buộc phép kiểm chạy 5 trận đầy đủ (≈3 giây) mỗi lần ai đó
+    chạy bộ test.
   */
-  it('và nó ổn định quanh 1.600 trên một mã thứ hai, không phải chuyện của một mã', () => {
+  it('và nó ổn định quanh 100 trên một mã thứ hai, không phải chuyện của một mã', () => {
     const khac = doCoHoc(dungTepXuat(cauHinhMau(MA_TRAN_CO_DINH[1]!)))
-    expect(khac.viPham.length).toBeGreaterThan(1400)
-    expect(khac.viPham.length).toBeLessThan(1900)
+    expect(khac.viPham.length).toBeGreaterThan(40)
+    expect(khac.viPham.length).toBeLessThan(200)
   })
 })
 
