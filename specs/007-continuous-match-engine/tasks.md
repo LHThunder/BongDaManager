@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **30 AC**) |
 | **Plan** | `./plan.md` (Status `Approved`, D117–D134, R51–R64) |
-| **Tiến độ** | 42/53 — T813, **T814** và **T815** xong 2026-11-26. T814 gỡ **95%** món nợ cơ học của `T742` (1.613 → 77 vi phạm) như một hệ quả phụ; T815 phá cái lưới ô vuông của đội hình. `T760` còn chờ người dùng xem lại |
+| **Tiến độ** | 43/53 — T813, **T814**, **T815** và **T760** xong 2026-11-26. T814 gỡ **95%** món nợ cơ học của `T742` (1.613 → 77 vi phạm) như một hệ quả phụ; T815 phá cái lưới ô vuông của đội hình; `T760` — cổng nghiệm thu của người dùng — **đạt ở lượt xem thứ hai** |
 | **Nền đo** | commit `5c652eb`, engine v6, **1.304 test xanh / 63 file test** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -2355,7 +2355,7 @@ giải để người dùng quyết.
 
 ## Phase 59 — Lớp kiểm cuối của DoD
 
-- [ ] **T760** — Người dùng xem **trọn một trận** và phán
+- [x] **T760** — Người dùng xem **trọn một trận** và phán
   - 🔴 **ĐÃ XEM NGÀY 2026-11-26 — VÀ KHÔNG ĐẠT.** Người dùng xem một trận liên tục ở góc nhìn
     sa bàn và nêu **hai** điều: *"tôi thấy bị đè lên nhau"* và *"di chuyển của cầu thủ quá máy
     móc và dính liền đến nhau"*.
@@ -2368,8 +2368,13 @@ giải để người dùng quyết.
     **5,56 → 9,97** giá trị `y` trên 22 người, mà không mất một phần nghìn nào của `T814`.
   - 📌 **Nên task này nay chỉ chờ ĐÚNG MỘT THỨ: người dùng xem lại và phán.** Hai món nợ nó
     chỉ ra đều đã trả; thứ chưa có là con mắt đã bác chúng lần đầu.
-  - 📌 Task này **giữ nguyên chưa tick**: nó là cổng nghiệm thu của người dùng, và người dùng
-    đã phán là chưa được. Nó chỉ xong khi `T814` và `T815` xong rồi người dùng xem lại.
+  - ✅ **XEM LẠI NGÀY 2026-11-26 — VÀ ĐẠT.** Người dùng xem lại chính mã trận `88CWDYCZ75`
+    ở góc nhìn sa bàn sau `T814` + `T815` và **phán đạt**. Task đóng.
+  - 📌 **Đây là một cổng NGƯỜI, và nó đã làm đúng việc của nó.** Hai lỗi người dùng chỉ ra
+    lọt qua **1.825** phép kiểm — không phép kiểm nào trong số đó sai, chúng chỉ không ai
+    canh hai điều ấy. Bài học ghi lại cho task sau: một bộ phép kiểm xanh **không** thay
+    được một lượt xem, và một AC nói về **hành vi** thì không được tích bằng sự tồn tại của
+    một **hàm**. Cả `AC-49.6` lẫn `AC-49.7` của spec 011 đã phải gỡ tích đúng vì lỗi ấy.
   - File: — (không chạm file nào; kết quả ghi vào `spec.md` mục 7)
   - Xong khi: người dùng đã xem trọn một trận ở chế độ liên tục, ở **ít nhất ba** mức tốc độ,
     **bật và tắt** giảm chuyển động, và nói ra được **ba câu họ nói ở mục 1 của spec** còn đúng

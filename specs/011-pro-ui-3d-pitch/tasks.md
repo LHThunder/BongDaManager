@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **52 AC**, nhóm 46–53) |
 | **Plan** | `./plan.md` (Status `Draft`, D130–D143, R60–R66) |
-| **Tiến độ** | 45/50 — T782 bị gỡ tích ngày 2026-11-26 sau phán quyết T760; `T814` của spec 007 **đã gỡ chặn nó cùng ngày** (0,041% số cặp), nhưng nó chờ người dùng xem lại. Bốn task còn lại là phép đo nhịp khung |
+| **Tiến độ** | 46/50 — T782 bị gỡ tích rồi **tích lại** ngày 2026-11-26: `T814` và `T815` của spec 007 gỡ chặn nó, và người dùng xem lại rồi phán đạt (`T760`). Bốn task còn lại đều là phép đo nhịp khung, không thực hiện được trong môi trường này |
 | **Nền đo** | commit `5265d37`, engine v6, **84 file test / 1.733 phép kiểm xanh**, bộ kiểm chạy hết **152 giây** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -411,7 +411,7 @@
     chiều sâu, sau phép chiếu khoảng ấy co lại đúng `×sin 50°`. Đo bằng mét thì thấy họ tách
     nhau; đo trên màn hình thì chưa chắc.
 
-- [ ] **T782** — Nhóm **hình**: tách hai hình sát nhau bằng **viền**, không dịch ai.
+- [x] **T782** — Nhóm **hình**: tách hai hình sát nhau bằng **viền**, không dịch ai.
   - File: `src/ui/components/San3D.tsx`
   - Nội dung: D134. Viền là thuộc tính **thường trực của mọi hình**, không bật/tắt theo trạng thái — **R65**: một viền bật/tắt sẽ bị đọc nhầm thành thẻ, kiệt sức hay sai vị trí.
   - Xong khi: hai cầu thủ đứng khít nhau vẫn **đếm ra hai**; và không một thực thể nào bị dịch — phép kiểm AC-46.5 ở T784 là lưới gác điều đó.
@@ -423,10 +423,10 @@
     này là *"hai cầu thủ đứng khít nhau vẫn đếm ra hai"*, và nó **không đạt**.
     📌 Phần kết luận dưới đây **vẫn đúng** và không bị rút lại: viền là điều kiện **cần**,
     chỉ là không **đủ**. Chữa phải ở `T814` của spec 007.
-    ⏳ **`T814` xong 2026-11-26**: 7,27% → **0,041%** số cặp, 100% → **8,8%** số mốc, và
-    đĩa chạm mép 9,53% → **0,75%**. Nguyên
-    nhân thật là **8 điểm đích cho 22 người**, không phải `tachChen`. Task này **chờ người dùng
-    xem lại** (`T760`) — không tự tích lại bằng một phép kiểm.
+    ✅ **TÍCH LẠI 2026-11-26.** `T814` kéo 7,27% → **0,041%** số cặp, 100% → **8,8%** số
+    mốc, đĩa chạm mép 9,53% → **0,75%**; `T815` phá lưới ô vuông 9,15 → **18,85** giá trị `x`.
+    Nguyên nhân thật là **8 điểm đích cho 22 người**, không phải `tachChen`. Và người dùng
+    **xem lại rồi phán đạt** (`T760`) — đó mới là thứ tích lại task này, không phải phép kiểm.
   - ~~Xong 2026-11-26 — và KHÔNG thêm một dòng mã nào.~~ Viền **đã thường trực** từ T788
     và T799: cả `<circle>` của chủ nhà lẫn `<rect>` của khách đều mang `stroke={n.ao.chu}`
     `strokeWidth={0.3}` **không điều kiện**, và màu viền phái sinh từ chính màu áo qua

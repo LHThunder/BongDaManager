@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **ID** | `011-pro-ui-3d-pitch` |
-| **Status** | **Planned** — **47/52 AC đạt**. Ba AC là phép đo nhịp khung (51.1, 51.4, 51.5) chờ một môi trường vẽ khung thật. Hai AC (49.6, 49.7) bị gỡ tích ngày 2026-11-26 sau phán quyết `T760`; `T814` của spec 007 **xong cùng ngày** và kéo số đo từ **7,27% xuống 0,041%** số cặp, nhưng hai AC ấy **chờ người dùng xem lại** chứ không chờ phép kiểm. **Chưa `Done`.** |
+| **Status** | **Planned** — **49/52 AC đạt**. AC-49.6 và AC-49.7 bị gỡ tích rồi **tích lại cùng ngày 2026-11-26**, sau khi `T814` và `T815` của spec 007 kéo số cặp đè từ **7,27% xuống 0,041%** và người dùng **xem lại rồi phán đạt** (`T760`). **Ba AC còn lại đều là phép đo nhịp khung** (51.1, 51.4, 51.5) và chúng không thực hiện được trong môi trường của phiên này. **Chưa `Done`** — và sẽ chỉ `Done` khi ba con số ấy đo được ở một môi trường vẽ khung thật. |
 | **Created** | 2026-11-25 |
 | **Clarified** | 2026-11-25 — **15 quyết định**, xem mục 10 (quyết định 15 đến từ `/analyze`) |
 | **Planned** | 2026-11-25 — `./plan.md`, 13 quyết định D130–D142, 7 rủi ro R60–R66 |
@@ -335,7 +335,7 @@ hỏng điều gì**, để **không phải kiểm lại bằng mắt từ đầ
 
 **Nhóm 3 — thuộc hình trên màn hình, cần định nghĩa mới:**
 
-- [ ] AC-49.6 — KHI hai thực thể chiếu thành hai hình sát nhau trên màn hình THÌ người xem
+- [x] AC-49.6 — KHI hai thực thể chiếu thành hai hình sát nhau trên màn hình THÌ người xem
       PHẢI vẫn **phân biệt được** là hai, không phải một — đo **sau khi chiếu**, không đo bằng
       mét trên mặt sân, vì đó mới là điều AC-30.5 thật sự hứa.
       > 🔴 **TÔI ĐÃ TÍCH SAI, VÀ GỠ LẠI NGÀY 2026-11-26.** Phase 62 tích AC này vì *hàm*
@@ -351,17 +351,20 @@ hỏng điều gì**, để **không phải kiểm lại bằng mắt từ đầ
       > là **lưới 12 vùng chỉ phát 8 điểm đích cho 22 người** — 22 trong 231 cặp nhắm đúng
       > một điểm. Đã có phép kiểm mang đúng tên AC này ở `batBienSaBan.test.ts`, đo **sau khi
       > chiếu**, trên 1.336.690 cặp.
-      > 📌 **Vẫn CHƯA tích**, và có chủ ý: cổng của AC này là **`T760`** — người dùng xem lại
-      > rồi phán. Tích nó bằng một phép kiểm là lặp lại **đúng** lỗi đã phải gỡ tích một lần.
-- [ ] AC-49.7 — KHI hai hình sát nhau được tách ra THÌ việc tách PHẢI làm bằng **viền**, không
+      > ✅ **TÍCH LẠI NGÀY 2026-11-26, và lần này bằng ĐÚNG thứ đáng tích bằng:** người
+      > dùng xem lại chính mã trận `88CWDYCZ75` sau `T814` + `T815` và **phán đạt** (`T760`
+      > của spec 007). Phép kiểm ở dưới là **dây bẫy**, không phải bằng chứng — bằng chứng
+      > là con mắt đã bác AC này lần đầu.
+- [x] AC-49.7 — KHI hai hình sát nhau được tách ra THÌ việc tách PHẢI làm bằng **viền**, không
       bằng cách dịch thực thể: AC-46.5 đứng tuyệt đối, và viền không được đọc nhầm thành một
       trạng thái của cầu thủ.
       > 🔴 **GỠ TÍCH NGÀY 2026-11-26, cùng lý do với AC-49.6.** Viền **đúng là** thường
       > trực và **đúng là** không được bật/tắt theo trạng thái (**R65** vẫn đứng). Nhưng điều
       > kiện thật của AC này là *"hai cầu thủ đứng khít nhau vẫn đếm ra hai"*, và số đo nói
       > không: 7,4% số cặp vẫn đè. Viền là điều kiện **cần**, không phải **đủ**.
-      > ⏳ **`T814` xong 2026-11-26** — 0,041% số cặp. Điều kiện **đủ** nay có vẻ đã tới,
-      > nhưng AC này **chờ `T760`** như AC-49.6, không chờ một phép kiểm.
+      > ✅ **TÍCH LẠI NGÀY 2026-11-26** cùng AC-49.6: `T814` + `T815` xong, và người dùng
+      > xem lại rồi **phán đạt** (`T760`). Viền là điều kiện **cần**; điều kiện **đủ** là
+      > chỗ đứng, và nó đã tới.
 
 **Toàn cục:**
 
