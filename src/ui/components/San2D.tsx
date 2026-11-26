@@ -131,12 +131,22 @@ export interface VachSan {
   ====================================================================
 
   ⚠️ **Nhánh theo PHÚT vẽ vạch sân bằng TỈ LỆ ƯỚC, và nó ở lại — thành một món
-  nợ CÓ TÊN, không sửa im.** Ba con số của nó lệch thật:
+  nợ CÓ TÊN, không sửa im.** Ba con số của nó, **đo trên bản chạy** ngày
+  2026-11-26 (T761), trên khung `100×64` của sân 11 người:
 
-    - vòng tròn giữa `cao / 8` → **7,6 đơn vị**, trong khi 9,15 m là **8,7**;
-    - vòng cấm sâu `rộng × 0,12` → **12 đơn vị**, trong khi 16,5 m là **15,7**;
-    - vòng cấm cao `cao × 0,4375` → **26,7 đơn vị**, trong khi 40,32 m là
-      **38,4** — lệch **30%**.
+    - vòng tròn giữa `cao / 8` → **8,00 đơn vị**, trong khi 9,15 m là **7,91**
+      — lệch **+1,1%**, tức chỗ này gần như đúng;
+    - vòng cấm sâu `rộng × 0,12` → **12,00**, trong khi 16,5 m là **14,27** —
+      lệch **−15,9%**;
+    - vòng cấm cao `cao × 0,4375` → **28,00**, trong khi 40,32 m là **34,86** —
+      lệch **−19,7%**, và đây là chỗ lệch nhất.
+
+  📌 **Ba con số trên vừa được SỬA LẠI.** Bản trước của chú thích này viết
+  7,6 / 12 / 26,7 so với 8,7 / 15,7 / 38,4 và kết luận *"lệch 30%"* — cả cột
+  "thật" lẫn hai con số ước đều tính bằng một hệ số khác `TI_LE_MET = 0,864706`,
+  và không ai đo lại vì `environment: 'node'` không vẽ được JSX. `T761` đọc
+  thẳng toạ độ trên DOM của bản chạy. Món nợ vẫn có thật, chỉ **nhỏ hơn** lời
+  mô tả cũ.
 
   Lý do để nguyên: khung của chế độ phút **co theo quân số** (AC-15.6), và sân
   5 người không có một kích thước mét nào để quy đổi — `hinhHocSan.ts` chỉ nói

@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **30 AC**) |
 | **Plan** | `./plan.md` (Status `Approved`, D117–D134, R51–R64) |
-| **Tiến độ** | 43/53 — T813, **T814**, **T815** và **T760** xong 2026-11-26. T814 gỡ **95%** món nợ cơ học của `T742` (1.613 → 77 vi phạm) như một hệ quả phụ; T815 phá cái lưới ô vuông của đội hình; `T760` — cổng nghiệm thu của người dùng — **đạt ở lượt xem thứ hai** |
+| **Tiến độ** | 44/53 — T813, **T814**, **T815**, **T760** và **T761** xong 2026-11-26. T814 gỡ **95%** món nợ cơ học của `T742` (1.613 → 77 vi phạm); T815 phá cái lưới ô vuông của đội hình; `T760` đạt ở lượt xem thứ hai; `T761` kiểm bằng mắt **3/4 mục đạt** và tìm ra một lỗi nhãn thời tiết đang chờ người dùng phân xử |
 | **Nền đo** | commit `5c652eb`, engine v6, **1.304 test xanh / 63 file test** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -2384,12 +2384,33 @@ giải để người dùng quyết.
   - Ghi chú: đây là lớp kiểm **duy nhất** bắt được những lỗi mà 1.304 phép kiểm không thấy —
     tiền lệ T518 của spec 005 (bốn lỗi) và T617 của spec 006 (ba lỗi).
 
-- [ ] **T761** — Danh sách kiểm bằng mắt cho đúng chỗ `environment: node` không với tới
+- [x] **T761** — Danh sách kiểm bằng mắt cho đúng chỗ `environment: node` không với tới
   - File: — (kết quả ghi vào `spec.md` mục 7)
   - Xong khi: bốn mục đã kiểm bằng mắt và ghi kết quả — nhánh JSX vạch sân; **bốn chỗ nối dây
     `useEffect`** (`src/hooks` có 7 file, **0 test**); nhãn thời tiết **hiện** ở chế độ liên tục
     và **không hiện** ở chế độ phút; nhóm radio chọn chế độ đi được **bằng bàn phím** với lý do
     khoá đọc được (P9).
+  - ✅ **XONG 2026-11-26 — 3/4 mục đạt, và lượt kiểm này TÌM RA HAI THỨ.** Kết quả đầy đủ ghi
+    ở `spec.md` **mục 7b**, đọc bằng DOM trên bản chạy thật chứ không bằng ảnh chụp.
+    - **Mục 1 (nhánh JSX vạch sân) ✅** — cả hai nhánh vẽ. Và phép đo **sửa lại ba con số sai**
+      trong chú thích `San2D.tsx:133`: lệch lớn nhất là **19,7%** (cao vòng cấm), không phải
+      *"30%"*; vòng tròn giữa thực ra gần đúng (**+1,1%**). Cả cột "thật" lẫn hai con số ước
+      của chú thích cũ đều tính bằng một hệ số khác `TI_LE_MET`. Chú thích đã được sửa.
+      `x(0 m) = 4,603` — cái răng của **D121** — hiện đúng trên màn hình.
+    - **Mục 2 (nối dây `useEffect`) ✅** — nhưng có **NĂM** chỗ chứ không phải bốn như lời task
+      viết. Kiểm cả năm, cả năm chạy: banner lưu trữ bền, vòng đồng hồ, lưu trận khi kết thúc,
+      đọc bảng màu từ đĩa khi mở, đặt `data-che-do` không tải lại trang.
+    - **Mục 3 (nhãn thời tiết) 🔴 KHÔNG ĐẠT** — nó hiện ở **cả hai** chế độ.
+      `TrangTran.tsx:416` là `{dieuKien && …}`, không có một điều kiện chế độ nào.
+      ⚠️ **Không AC nào phân xử chỗ này**: mệnh đề "không hiện ở chế độ phút" chỉ tồn tại trong
+      lời `T761`. Hoặc giao diện sai (thời tiết chỉ ảnh hưởng vật lý bóng, mà vật lý bóng chỉ
+      chạy ở chế độ liên tục — câu 11 của nhật ký), hoặc lời task sai (AC-38.9 nói thời tiết là
+      của **mọi** trận). **Đã hỏi người dùng, chưa tự sửa.**
+    - **Mục 4 (bàn phím + lý do khoá, P9) ✅** — `Down` thật sự chuyển lựa chọn **và** tiêu
+      điểm; quân số 7 làm ô `lien-tuc` thành `disabled` kèm một `role="status"` nói rõ vì sao
+      bằng chữ. **AC-45.8** đạt phần giao diện.
+      📌 Phép thử đầu của tôi bắn một `KeyboardEvent` dựng bằng JavaScript rồi kết luận
+      *"không chạy"* — **sai**, sự kiện không đáng tin thì trình duyệt bỏ qua hành vi mặc định.
   - AC: AC-45.1 (phần giao diện), AC-45.8 (phần giao diện), AC-31.4, P9
   - Phụ thuộc: T760
 

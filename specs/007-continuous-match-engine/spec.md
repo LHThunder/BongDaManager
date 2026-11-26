@@ -501,6 +501,85 @@ thay vì phải tin**.
       không còn đúng nữa — lớp kiểm cuối, như T518 của spec 005 và T617 của spec 006
 - [ ] Ứng dụng chạy trọn luồng mục 4 từ đầu tới cuối, ở **cả hai chế độ** (P6)
 
+### 7b. Danh sách kiểm BẰNG MẮT — chỗ `environment: node` không với tới (T761)
+
+`vitest.config.ts` đặt `environment: 'node'` và `include: ['src/**/*.test.ts']` — **không**
+`.test.tsx`, **không** jsdom. Nên mọi nhánh JSX và mọi `useEffect` của `src/hooks` nằm **ngoài**
+tầm 1.841 phép kiểm. `plan.md` mục P9 đã khai thẳng: *"không một test nào canh phần này — nó là
+kiểm bằng tay"*. Dưới đây là lượt kiểm ấy, chạy ngày **2026-11-26** trên bản dựng thật ở
+`localhost:5173`, đọc bằng DOM chứ không bằng ảnh chụp.
+
+**1. Nhánh JSX vạch sân — ✅ CẢ HAI NHÁNH VẼ, và phép đo sửa lại ba con số của chính chú thích.**
+
+`San2D.tsx:2100` là một nhánh `{lienTuc ? … : …}`. Đo toạ độ thật của hai nhánh trên khung
+`100×64` của sân 11 người:
+
+| | nhánh **phút** (ước) | nhánh **liên tục** (mét thật) | lệch |
+|---|---|---|---|
+| vòng tròn giữa, bán kính | **8,00** | **7,91** (= 9,15 m × 0,864706) | **+1,1%** |
+| vòng cấm, sâu | **12,00** | **14,27** (= 16,5 m) | **−15,9%** |
+| vòng cấm, cao | **28,00** | **34,86** (= 40,32 m) | **−19,7%** |
+| biên sân | 96 × 60 tại (2; 2) | **90,79 × 58,80 tại (4,60; 2,60)** | — |
+| số hình trong nhóm | 5 | **10** | — |
+
+⚠️ **Ba con số trong chú thích `San2D.tsx:133-139` SAI, và lượt kiểm này là thứ tìm ra.** Chú
+thích nói vòng tròn giữa ước ra **7,6** (đo được **8,00**), vòng cấm sâu **12** (đúng), vòng cấm
+cao **26,7** (đo được **28,00**), và nói ba giá trị **thật** là 8,7 / 15,7 / 38,4 (đo được
+**7,91 / 14,27 / 34,86** — chú thích đã nhân với một hệ số khác `0,864706`). Kết luận *"lệch
+30%"* vì thế cũng quá tay: lệch lớn nhất thật là **19,7%** ở chiều cao vòng cấm.
+📌 **Món nợ vẫn có thật và vẫn giữ nguyên lý do để nguyên** (khung chế độ phút co theo quân số,
+và `hinhHocSan.ts` chỉ biết sân 11). Chỉ ba con số mô tả nó được sửa lại cho đúng.
+Và `x(0 m) = 4,603` — cái "răng" của **D121** — hiện đúng trên màn hình: `4,60`.
+
+**2. Các chỗ nối dây `useEffect` của `src/hooks` — ✅ ĐỦ, nhưng có NĂM chứ không phải bốn.**
+
+Lời `T761` nói "bốn chỗ"; `grep` cho **năm**. Kiểm cả năm:
+
+| chỗ | AC | quan sát được |
+|---|---|---|
+| `useBackup.ts:30` — hỏi lưu trữ bền khi mở app | AC-4.9 | ✅ `navigator.storage.persisted()` trả `false`, và đúng lúc ấy một `role="status"` hiện câu *"Trình duyệt không đánh dấu dữ liệu của ứng dụng là lưu trữ bền…"* |
+| `useMatch.ts:358` — vòng đồng hồ, **một** vòng cho hai chế độ | AC-37.7 | ✅ phút đi 25′ → 28′ trong 2,5 giây ở mức *Thường* |
+| `useMatch.ts:441` — lưu trận khi nó kết thúc | AC-11.7 | ✅ chạy hết một trận liên tục mã `3X6DNTGV2V`: nó đứng **đầu** danh sách lịch sử ngay sau đó, và danh sách giữ đúng **20** dòng |
+| `useNgonNgu.ts:50` — đọc ngôn ngữ + bảng màu từ đĩa khi mở | AC-20.8 | ✅ bấm *Tối*, **tải lại trang**, `data-che-do` vẫn là `toi` |
+| `useNgonNgu.ts:68` — đặt `data-che-do` lên `<html>` | AC-20.7, AC-20.9 | ✅ bấm *Tối* → thuộc tính xuất hiện và nền đổi sang `rgb(14,21,18)` **không tải lại trang** |
+
+**3. Nhãn thời tiết — 🔴 KHÔNG ĐẠT. Nó hiện ở CẢ HAI chế độ.**
+
+| chế độ | nhãn |
+|---|---|
+| liên tục | *"Điều kiện: mưa, gió 6,3 m/s chéo sân"* — ✅ đúng như mong đợi |
+| theo phút | *"Điều kiện: mưa, gió 2,1 m/s dọc sân"* — 🔴 **không được hiện, mà vẫn hiện** |
+
+📍 Nguyên nhân rõ ràng và không cần đoán: `TrangTran.tsx:416` là `{dieuKien && (…)}`, và
+`dieuKien` chỉ phụ thuộc `tran.maTran` — **không có một điều kiện chế độ nào**. Mã trận nào cũng
+sinh ra thời tiết, nên nhãn nào cũng hiện.
+
+⚠️ **Hai cách đọc, và tôi không tự chọn thay người dùng:**
+- **Giao diện sai.** Câu 11 của nhật ký làm rõ nói thời tiết *"trong 007 chỉ ảnh hưởng vật lý
+  bóng"*, mà vật lý bóng chỉ chạy ở chế độ liên tục. Vậy ở chế độ phút nhãn ấy **hứa một ảnh
+  hưởng không tồn tại**. Chữa: thêm điều kiện chế độ vào `TrangTran.tsx:416`.
+- **Lời `T761` sai.** Thời tiết dẫn xuất tất định từ mã trận ở **mọi** trận (AC-38.9), nên có
+  thể lập luận rằng nó là một tính chất của trận chứ không của chế độ, và hiện ở cả hai là đúng.
+
+**Không AC nào phân xử chỗ này** — mệnh đề "không hiện ở chế độ phút" chỉ tồn tại trong lời
+`T761`, không trong một AC nào của spec 001–007. Nên đây là **một câu hỏi cho người dùng**, và
+nó được ghi ở đây thay vì được sửa im hoặc được bỏ qua im.
+
+**4. Nhóm radio chọn chế độ, bằng bàn phím + lý do khoá đọc được (P9) — ✅ ĐẠT.**
+
+- Phím mũi tên **chạy thật**: đặt tiêu điểm vào ô `co-dien`, nhấn `Down` → ô `lien-tuc` được
+  chọn **và** nhận tiêu điểm. (Phép thử đầu tiên của tôi bắn một `KeyboardEvent` dựng bằng
+  JavaScript và kết luận *"không chạy"* — **sai**: sự kiện không đáng tin thì trình duyệt không
+  chạy hành vi mặc định. Phải bấm phím thật mới đo được.)
+- Nhóm có `role="radiogroup"` và `aria-labelledby` trỏ đúng nhãn *"Chế độ mô phỏng"*.
+- **Khoá có nói vì sao, bằng CHỮ:** đặt quân số về **7**, ô `lien-tuc` thành `disabled`, lựa
+  chọn rơi về `co-dien`, và một `role="status"` hiện: *"Chế độ liên tục chỉ chạy được ở sân 11
+  người; trận này đang là sân 7. Hình học sân và cơ học chuyển động của chế độ ấy đều là số của
+  sân 11."* — không dựa màu, đọc được bằng trình đọc màn hình. **AC-45.8** đạt phần giao diện.
+
+**Kết luận:** 3/4 mục đạt. Mục 3 **chưa đạt** và đang chờ người dùng phân xử; mục 1 đạt nhưng
+**sửa lại ba con số sai** trong chú thích mô tả món nợ của chính nó.
+
 ---
 
 ## 8. Câu hỏi mở
