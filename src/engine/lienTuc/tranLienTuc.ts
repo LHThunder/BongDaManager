@@ -1,5 +1,5 @@
 import type { LoaiHanhDong } from '../chuoiBong'
-import { TAM_X, TAM_Y } from '../hinhHocSan'
+import { TAM_X, TAM_Y, type BenSan } from '../hinhHocSan'
 import {
   dieuKienTuMaTran,
   gioCoAnVaoDuongBong,
@@ -17,6 +17,7 @@ import {
 } from './vatLyBong'
 import {
   buocCoHoc,
+  kepDichThuMon,
   tachChen,
   TRAN_TOC_DO_TUYET_DOI,
   viTriTrongTai,
@@ -579,6 +580,14 @@ export function buocPhutLienTuc(ttVao: TrangThaiLienTuc): MotPhutLienTuc {
     vì `coMat` mới là thứ nói anh ta còn trên sân hay không.
   */
   const choDung: Diem[] = []
+  /*
+    Ô nào là THỦ MÔN, và của bên nào — `null` với mọi ô còn lại (T813).
+
+    Dựng trong **chính vòng lặp** dựng `choDung`, từ **cùng** `doiHinhTrenSan`,
+    nên hai mảng không thể lệch chỉ số. Đó là điều kiện để `kepDichThuMon` kẹp
+    đúng người: kẹp nhầm ô là nhốt một tiền đạo vào vòng cấm nhà mình.
+  */
+  const thuMonCuaO: (BenSan | null)[] = []
   for (const ben of ['nha', 'khach'] as const) {
     const doiHinh = doiHinhTrenSan(tranSau.ben[ben])
     for (let o = 0; o < 11; o += 1) {
@@ -586,6 +595,7 @@ export function buocPhutLienTuc(ttVao: TrangThaiLienTuc): MotPhutLienTuc {
       choDung.push(
         v ? choDungMet(v.viTriO, ben) : { x: TAM_X, y: TAM_Y },
       )
+      thuMonCuaO.push(v && v.viTriO === 'GK' ? ben : null)
     }
   }
 
@@ -731,10 +741,34 @@ export function buocPhutLienTuc(ttVao: TrangThaiLienTuc): MotPhutLienTuc {
         return buocCoHoc(tt, dichTrongTai, TRAN_TOC_DO_TUYET_DOI, dt)
       }
       if (o >= SO_NGUOI_TREN_SAN) return tt
-      const dich =
+      const dichThoi =
         o === nguoiGiu
           ? dBong
           : dichNguoiKhongBong(choDung[o] ?? { x: TAM_X, y: TAM_Y }, dBong)
+      /*
+        KẸP ĐÍCH CỦA THỦ MÔN (T813) — chỗ phép kẹp đáng lẽ phải được gọi từ đầu.
+
+        `kepDichThuMon` có từ **T714**, có phép kiểm riêng ở `coHoc.test.ts:669`,
+        và chú thích của nó lập luận kỹ vì sao phải kẹp **ĐÍCH** chứ không kẹp
+        **VỊ TRÍ**. Nhưng `grep` ngày 2026-11-26 cho thấy nó **chưa từng được
+        gọi từ một dòng mã sản phẩm nào** — nó là mã chết, chỉ file test của
+        chính nó nhắc tới. Hệ quả đo được trên 56.640 lượt: thủ môn ra khỏi một
+        phần ba sân nhà ở **2,06%** số mốc, lệch xa nhất **31,72 m**, tức đứng
+        qua vạch giữa sân.
+
+        Vì sao đây **không** phải cách sửa mà `T813` của `tasks.md` đề xuất:
+        task ấy viết *"kẹp VỊ TRÍ thủ môn trong engine"*. Làm thế sẽ **vỡ
+        AC-38.2** — chú thích của `kepDichThuMon` đã nói trước điều đó: kẹp vị
+        trí là để anh ta chạy ra rồi **giật** về, một bước dịch không qua phép
+        kẹp gia tốc, và trên hình trông như teleport. Lỗi không nằm ở việc chọn
+        sai kiểu kẹp; nó nằm ở việc **không kẹp gì cả**.
+
+        Kẹp áp cả khi thủ môn **đang giữ bóng**: AC-30.7 nói "kể cả khi dòng
+        tường thuật liệt kê anh ta là người tham gia một tình huống ở vùng
+        khác", và `san2D.test.ts` đã có một phép kiểm mang đúng tên điều đó.
+      */
+      const benThuMon = thuMonCuaO[o]
+      const dich = benThuMon ? kepDichThuMon(dichThoi, benThuMon) : dichThoi
       return buocCoHoc(tt, dich, TRAN_TOC_DO_TUYET_DOI, dt)
     })
 

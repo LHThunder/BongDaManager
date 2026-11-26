@@ -5,7 +5,9 @@ import {
   HE_SO_CAO,
   chieuDiem,
   chieuMatSan,
+  bongBiChe,
   doCaoVe,
+  phanBietDuoc,
   thuTuDoSau,
   tiSaBan,
   viTriBongLienTuc,
@@ -477,5 +479,80 @@ describe('HE_SO_CAO sống ở ĐÚNG MỘT chỗ (T791, AC-46.6, D133)', () => 
     for (const f of ['/ngonNgu/vi.ts', '/ngonNgu/en.ts']) {
       expect(chiCode(nguonCua(f)), f).not.toMatch(/[×x]\s*3\b/)
     }
+  })
+})
+
+describe('phanBietDuoc — hai hình sát nhau vẫn đọc ra là HAI (T781, AC-49.6)', () => {
+  const R = 2.6
+
+  it('trùng khít thì KHÔNG phân biệt được', () => {
+    expect(phanBietDuoc({ x: 50, y: 30 }, { x: 50, y: 30 }, R)).toBe(false)
+  })
+
+  it('cách đúng MỘT bán kính thì phân biệt được — đây là biên', () => {
+    expect(phanBietDuoc({ x: 50, y: 30 }, { x: 50 + R, y: 30 }, R)).toBe(true)
+    // Và nhích vào trong một chút thì không.
+    expect(phanBietDuoc({ x: 50, y: 30 }, { x: 50 + R - 1e-9, y: 30 }, R)).toBe(false)
+  })
+
+  it('cách HAI bán kính — hai hình chỉ chạm nhau — thì hiển nhiên phân biệt được', () => {
+    expect(phanBietDuoc({ x: 50, y: 30 }, { x: 50 + 2 * R, y: 30 }, R)).toBe(true)
+  })
+
+  it('đo theo khoảng cách THẬT, không theo từng trục', () => {
+    // Lệch chéo: mỗi trục chỉ 0,75R nhưng khoảng cách là 1,06R.
+    const cheo = 0.75 * R
+    expect(Math.hypot(cheo, cheo)).toBeGreaterThan(R)
+    expect(phanBietDuoc({ x: 50, y: 30 }, { x: 50 + cheo, y: 30 + cheo }, R)).toBe(true)
+  })
+
+  it('ĐO SAU KHI CHIẾU: hai người cách nhau theo chiều sâu bị dẹt lại', () => {
+    /*
+      Đây là lý do AC-49.6 nói "đo sau khi chiếu". Hai người cách nhau 3 m theo
+      chiều sâu trên mặt sân; sau phép chiếu khoảng ấy co lại còn `×sin 50°`.
+      Đo bằng mét thì thấy họ tách nhau, đo trên màn hình thì chưa chắc.
+    */
+    const a = chieuDiem(KHUNG, TAM_X, TAM_Y, 0)
+    const b = chieuDiem(KHUNG, TAM_X, TAM_Y + 3, 0)
+    const khoangMet = 3 * tiSaBan(KHUNG)
+    const khoangChieu = Math.hypot(a.x - b.x, a.y - b.y)
+    expect(khoangChieu).toBeLessThan(khoangMet)
+    expect(khoangChieu / khoangMet).toBeCloseTo(Math.sin((GOC_SA_BAN * Math.PI) / 180), 10)
+  })
+})
+
+describe('bongBiChe — lớp 3D không nói dối về độ sâu (T783, AC-46.7, D135)', () => {
+  const R = 2.6
+  const BONG = { x: 50, y: 30 }
+
+  it('không ai gần hơn thì bóng không bị che', () => {
+    expect(bongBiChe(BONG, [{ x: 50, y: 20 }], R)).toBe(false)
+  })
+
+  it('người ở XA hơn mà chồng hình cũng KHÔNG che — bóng ở trước anh ta', () => {
+    // `y` vẽ nhỏ hơn = ở xa hơn. Chồng khít nhưng nằm sau.
+    expect(bongBiChe(BONG, [{ x: 50, y: 29 }], R)).toBe(false)
+  })
+
+  it('người GẦN hơn và chồng hình thì che', () => {
+    expect(bongBiChe(BONG, [{ x: 50, y: 31 }], R)).toBe(true)
+  })
+
+  it('người gần hơn nhưng ĐỨNG XA về bên cạnh thì không che', () => {
+    expect(bongBiChe(BONG, [{ x: 50 + 3 * R, y: 31 }], R)).toBe(false)
+  })
+
+  it('một người trong đám đông đủ để bị che', () => {
+    const dam = [
+      { x: 10, y: 50 },
+      { x: 50, y: 29 },
+      { x: 50.5, y: 31 },
+      { x: 90, y: 10 },
+    ]
+    expect(bongBiChe(BONG, dam, R)).toBe(true)
+  })
+
+  it('danh sách rỗng thì không bị che', () => {
+    expect(bongBiChe(BONG, [], R)).toBe(false)
   })
 })

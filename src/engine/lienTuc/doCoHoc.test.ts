@@ -128,9 +128,43 @@ describe('phép đo CÓ MẪU THẬT — chống rỗng (T742, AC-45.6)', () => 
     expect(KQ.soMau['AC-38.9']).toBe(1)
   })
 
+  /*
+    ⚠️ NĂM CON SỐ GHIM TRONG FILE NÀY ĐÃ ĐỔI NGÀY 2026-11-26, DO **T813**.
+
+    T813 nối `kepDichThuMon` vào đường chạy của engine. Trước đó hàm ấy là
+    **mã chết**: nó có từ T714, có phép kiểm riêng ở `coHoc.test.ts:669`, nhưng
+    `grep` cho thấy **không một dòng mã sản phẩm nào gọi nó** — nên đích của
+    thủ môn chưa từng bị kẹp, và anh ta ra khỏi một phần ba sân ở 2,06% số mốc,
+    lệch xa nhất **31,72 m**. Sau khi nối: **0,06%** và **2,19 m**.
+
+    Quỹ đạo thủ môn đổi thì các bộ đếm cơ học đổi theo. **CHÍN** con số, lấy từ
+    `git diff` chứ không từ trí nhớ:
+
+      AC-38.4(ngang) soMau   1421 → 1423
+      tổng vi phạm           1606 → 1613
+      AC-38.1(i)               15 → 12   ← TỐT LÊN, bớt 3
+      AC-38.1(ii)              12 → 11   ← TỐT LÊN, bớt 1
+      AC-38.2(tăng)           255 → 259
+      AC-38.2(giảm)            11 → 12
+      AC-38.3(ii)             860 → 862
+      AC-38.4(ngang) đếm        5 →  7
+      AC-38.11                  5 →  7
+
+    📝 Chín chứ không năm: `vitest` dừng ở assertion ĐẦU TIÊN hỏng trong mỗi
+    khối `it`, nên mỗi lượt chạy chỉ lộ ra một con số mới. Lượt đầu báo 5 chỗ,
+    và phải chạy thêm bốn lượt nữa mới thấy hết. Giữa chừng tôi còn tưởng các
+    bộ đếm này **bất định** — chúng không bất định; hai thông báo lỗi trông
+    giống nhau trong `grep` thuộc về hai assertion khác nhau, và tôi gộp chúng
+    làm một. Soát bằng `git diff` mới ra đủ chín.
+
+    📍 **Dòng sự kiện và tỉ số KHÔNG đổi một ký tự.** `taiLap`, `phatLai`,
+    `sosanh.*` và vân tay dòng sự kiện của spec 011 đều xanh qua thay đổi này.
+    Đúng như hiến pháp nói: vùng là đơn vị **QUYẾT ĐỊNH**, lớp liên tục chỉ
+    **DIỄN**. Nên T813 **không** chạm P2 — điều mà chính lời T813 đã đoán sai.
+  */
   it('AC-38.4 có mẫu ở CẢ HAI vế, dù vế lùi thưa', () => {
     expect(KQ.soMau['AC-38.4(lùi)']).toBe(180)
-    expect(KQ.soMau['AC-38.4(ngang)']).toBe(1421)
+    expect(KQ.soMau['AC-38.4(ngang)']).toBe(1423)
   })
 })
 
@@ -203,24 +237,24 @@ describe('MÓN NỢ đo được hôm nay — phép đo này KHÔNG xanh (T742)'
   it('5.980 hàng mỏng, 16 tình huống dày, 1.606 vi phạm', () => {
     expect(TEP.moc.hang.length).toBe(5980)
     expect(TEP.tinh_huong.length).toBe(16)
-    expect(KQ.viPham.length).toBe(1606)
+    expect(KQ.viPham.length).toBe(1613)
   })
 
   it('AC-38.1 và AC-38.2: vỡ khi đo trên DỊCH CHUYỂN, dù vận tốc đúng trần', () => {
-    expect(DEM.get('AC-38.1(i)')).toBe(15)
-    expect(DEM.get('AC-38.1(ii)')).toBe(12)
-    expect(DEM.get('AC-38.2(tăng)')).toBe(255)
-    expect(DEM.get('AC-38.2(giảm)')).toBe(11)
+    expect(DEM.get('AC-38.1(i)')).toBe(12)
+    expect(DEM.get('AC-38.1(ii)')).toBe(11)
+    expect(DEM.get('AC-38.2(tăng)')).toBe(259)
+    expect(DEM.get('AC-38.2(giảm)')).toBe(12)
   })
 
   it('AC-38.3: cả hai vế đỏ ở độ phân giải MỐC', () => {
     expect(DEM.get('AC-38.3(i)')).toBe(443)
-    expect(DEM.get('AC-38.3(ii)')).toBe(860)
+    expect(DEM.get('AC-38.3(ii)')).toBe(862)
   })
 
   it('AC-38.4(ngang) và AC-38.11: năm mốc mỗi vế, không hơn', () => {
-    expect(DEM.get('AC-38.4(ngang)')).toBe(5)
-    expect(DEM.get('AC-38.11')).toBe(5)
+    expect(DEM.get('AC-38.4(ngang)')).toBe(7)
+    expect(DEM.get('AC-38.11')).toBe(7)
   })
 
   it('và tổng số vi phạm đúng bằng tổng từng vế — không vế nào bị đếm hai lần', () => {

@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **ID** | `011-pro-ui-3d-pitch` |
-| **Status** | **Planned** — **40/52 AC đạt** (T810, 2026-11-26). 12 AC chưa đạt đều có dòng lý do tại chỗ: 7 chờ Phase 62, 1 chặn bởi `T813` của spec 007, 3 không đo được trong môi trường này, 1 chờ phép kiểm P5 mang đúng tên nó. **Chưa `Done`.** |
+| **Status** | **Planned** — **49/52 AC đạt** sau khi Phase 62 xong ngày 2026-11-26. **Ba AC còn lại đều là phép đo nhịp khung** (AC-51.1, AC-51.4, AC-51.5) và chúng không thực hiện được trong môi trường của phiên này, không phải vì thiếu việc. **Chưa `Done`** — và sẽ chỉ `Done` khi ba con số ấy đo được ở một môi trường vẽ khung thật. |
 | **Created** | 2026-11-25 |
 | **Clarified** | 2026-11-25 — **15 quyết định**, xem mục 10 (quyết định 15 đến từ `/analyze`) |
 | **Planned** | 2026-11-25 — `./plan.md`, 13 quyết định D130–D142, 7 rủi ro R60–R66 |
@@ -182,19 +182,19 @@ Là một **người xem trận**, tôi muốn **nhìn ra quả bóng đang ở 
 - [x] AC-46.4 — KHI một mốc mang trạng thái `danh_dau` THÌ quả bóng PHẢI ở độ cao của đầu
       người, không phải dưới chân — con số cụ thể lấy từ chính dữ liệu mốc, không do giao
       diện tự đặt.
-- [ ] AC-46.5 — KHI xem cùng một mốc ở hai góc nhìn THÌ vị trí mặt sân `(x, y)` của **22 cầu
+- [x] AC-46.5 — KHI xem cùng một mốc ở hai góc nhìn THÌ vị trí mặt sân `(x, y)` của **22 cầu
       thủ** PHẢI khớp nhau **tuyệt đối**: lớp 3D chỉ thêm `z`, và **không dịch một cầu thủ nào**
       vì bất kỳ lý do hiển thị nào. ⚠️ **Quả bóng KHÔNG thuộc AC này** — xem AC-46.8.
-      > ⬜ **CHƯA ĐẠT (T810, 2026-11-26):** phép kiểm **P5** của nó là **T784**, nằm trong Phase 62 đang dừng. Bản thân đường đọc đã đúng theo cấu trúc (**D145**) và T777 đã so `(x, y)` của hai lớp từng số trên >1.000 lượt — nhưng P5 đòi một phép kiểm mang đúng tên AC này.
+      > ✅ **ĐẠT (Phase 62, 2026-11-26):** T784 — hai phép kiểm **P5** trên 10 mã trận, hơn 1.000 lượt so vị trí, bằng nhau **từng số**; cộng một phép thử đột biến (dịch 5 cm → đỏ).
 - [x] AC-46.8 — KHI quả bóng được vẽ ở góc nhìn 3D THÌ `x`, `y` và `z` của nó PHẢI đến từ
       **cùng một mốc của engine**, không trộn nguồn.
 - [x] AC-46.6 — KHI hệ số phóng đại độ cao được dùng THÌ nó PHẢI tồn tại ở **đúng một chỗ**
       trong mã, và PHẢI nói được cho người dùng rằng độ cao đã được phóng đại — không để ai
       tưởng sa bàn đúng tỉ lệ cả ba trục.
-- [ ] AC-46.7 — KHI quả bóng bị một thực thể khác che ở góc nhìn chéo THÌ nó PHẢI **vẫn thấy
+- [x] AC-46.7 — KHI quả bóng bị một thực thể khác che ở góc nhìn chéo THÌ nó PHẢI **vẫn thấy
       được** (vẽ trên cùng), và PHẢI có một dấu hiệu nói rằng nó đang ở **phía sau** thứ che
       nó, để lớp 3D không nói dối về độ sâu.
-      > ⬜ **CHƯA ĐẠT (T810, 2026-11-26):** **T783** (`bongBiChe` + dấu hiệu bị che) nằm trong Phase 62 đang dừng.
+      > ✅ **ĐẠT (Phase 62, 2026-11-26):** T783 — `bongBiChe` cộng 6 phép kiểm, và một **vòng nét đứt** quanh bóng khi có ai đứng trước. Bắt được trên bản chạy.
 
 ### US-2: Đổi qua lại hai góc nhìn
 
@@ -213,9 +213,9 @@ sa bàn khi muốn thấy độ cao và dùng sân phẳng khi muốn đếm ng�
       từng đổi**: không mất nội suy, không mất dao động chờ, không mất người giữ bóng.
 - [x] AC-47.4 — KHI người dùng đã chọn một góc nhìn và mở lại ứng dụng THÌ lựa chọn ấy PHẢI
       được giữ.
-- [ ] AC-47.5 — KHI đổi góc nhìn THÌ kết quả trận, dòng tường thuật và mọi con số PHẢI không
+- [x] AC-47.5 — KHI đổi góc nhìn THÌ kết quả trận, dòng tường thuật và mọi con số PHẢI không
       đổi một ký tự nào (hiến pháp P2).
-      > ⬜ **CHƯA ĐẠT (T810, 2026-11-26):** phép kiểm **P5** của nó là **T785**, trong Phase 62 đang dừng. T802 đã ghim vân tay dòng sự kiện, nhưng đó là cho AC-53.4, không phải cho việc **đổi góc nhìn giữa trận**.
+      > ✅ **ĐẠT (Phase 62, 2026-11-26):** T785 — phép kiểm **P5**: cùng mã trận cho vân tay giống hệt trên 5 mã, cộng một phép chống rỗng.
 - [x] AC-47.6 — KHI trận đang chạy bằng engine cổ điển (không có dữ liệu liên tục) THÌ cách
       đổi góc nhìn PHẢI **không xuất hiện**, và PHẢI có một chỗ nói được vì sao, để người dùng
       không phải tự đoán vì sao nó có lúc có lúc không.
@@ -266,7 +266,7 @@ hỏng điều gì**, để **không phải kiểm lại bằng mắt từ đầ
 > phương án dưới đây. **Không con số nào bị hạ lặng lẽ** — cả hai món nợ đều được gọi tên và
 > trả về đúng chủ của nó là **spec 007**.
 
-- [ ] ⛔ AC-49.1 — **ĐANG BỊ CHẶN bởi `T813` của spec 007.** KHI trận đang chạy ở góc nhìn 3D
+- [x] AC-49.1 — **ĐÃ GỠ CHẶN: `T813` của spec 007 xong ngày 2026-11-26.** KHI trận đang chạy ở góc nhìn 3D
       THÌ thủ môn PHẢI luôn nằm trong **một phần ba sân của đội mình** (AC-30.7 đọc lại).
       > 📍 **Hai lần đo, và lần đầu tôi đã đưa người dùng một con số sai — sửa công khai.**
       > Lần một (3 mã trận × 20 phút, lấy mỗi mốc thứ 10): 0,96% và lệch tối đa 2,01 m. Trên số
@@ -289,9 +289,14 @@ hỏng điều gì**, để **không phải kiểm lại bằng mắt từ đầ
       >
       > Người dùng chốt trên số đo đúng ngày **2026-11-25**: **mở `T813` ở spec 007**, thay vì
       > để spec 011 đặt ngưỡng 32 m rồi gọi đó là phép kiểm. Spec 011 **MUST NOT** thêm kẹp ở
-      > lớp vẽ: `viTriVeLienTuc` đã cố ý tắt đúng phép kẹp ấy. AC này **mở** cho tới khi T813
-      > xong.
-      > ⬜ **CHƯA ĐẠT (T810, 2026-11-26):** ⛔ **chặn bởi `T813` của spec 007** — engine kẹp ĐÍCH chứ không kẹp VỊ TRÍ, thủ môn ra khỏi một phần ba sân ở 2,06% số mốc, lệch tối đa **31,72 m**. Spec 011 chỉ đọc engine và **không được** kẹp lại ở lớp vẽ.
+      > lớp vẽ: `viTriVeLienTuc` đã cố ý tắt đúng phép kẹp ấy.
+      >
+      > ✅ **T813 xong ngày 2026-11-26**, và nguyên nhân hoá ra khác hẳn: `kepDichThuMon` là
+      > **mã chết** — có từ T714, có phép kiểm riêng, nhưng **chưa từng được gọi**. Nối nó vào
+      > đường chạy cho **2,06% → 0,06%** và **31,72 m → 2,19 m**. Ngưỡng của AC này nay là
+      > **≥ 99,9% số mốc** và **≤ 2,5 m** — đặt sát số đo, vì 0 không dựng nổi: quãng hãm lý
+      > thuyết ở 9 m/s là **5,6 m**, và ép về 0 thì phải kẹp vị trí, tức vỡ **AC-38.2**.
+      > ✅ **ĐÃ GỠ — `T813` của spec 007 xong ngày 2026-11-26.** Và nguyên nhân **không** phải thứ ai cũng đoán: `kepDichThuMon` có từ T714, có phép kiểm riêng, nhưng là **mã chết** — chưa từng được gọi từ một dòng mã sản phẩm nào, nên đích của thủ môn chưa từng bị kẹp gì cả. Nối nó vào đường chạy: **2,06% → 0,06%**, **31,72 m → 2,19 m**. Spec 011 không kẹp lại ở lớp vẽ, và không cần.
 - [x] AC-49.2 — KHI hai góc nhìn hiển thị **cùng một mốc** THÌ vị trí mà lớp 3D đọc ra PHẢI
       bằng **từng số** với vị trí mà lớp 2D đọc ra, cho **mọi cầu thủ có mặt**.
       > 📍 **AC này đã được THU HẸP ngày 2026-11-25.** Bản đầu đọc lại AC-30.8: *"hàng phòng
@@ -317,27 +322,27 @@ hỏng điều gì**, để **không phải kiểm lại bằng mắt từ đầ
 
 **Nhóm 2 — thuộc hành vi, phải làm lại ở lớp mới:**
 
-- [ ] AC-49.3 — KHI trận đang **tạm dừng** ở góc nhìn 3D THÌ **mọi chuyển động PHẢI dừng
+- [x] AC-49.3 — KHI trận đang **tạm dừng** ở góc nhìn 3D THÌ **mọi chuyển động PHẢI dừng
       hẳn**, kể cả dao động chờ (AC-28.5 đọc lại).
-      > ⬜ **CHƯA ĐẠT (T810, 2026-11-26):** **T778** nằm trong Phase 62 đang dừng. Vòng khung hình của `San3D` **đã** gác `if (!dangChay) return undefined`, nhưng chưa có phép kiểm mang tên AC này.
-- [ ] AC-49.4 — KHI trận đang tạm dừng hoặc đã kết thúc ở góc nhìn 3D THÌ quả bóng PHẢI **vẫn
+      > ✅ **ĐẠT (Phase 62, 2026-11-26):** T778 — đo trên bản chạy: chạy thì toạ độ đổi, tạm dừng thì **giống hệt** suốt 1,2 giây.
+- [x] AC-49.4 — KHI trận đang tạm dừng hoặc đã kết thúc ở góc nhìn 3D THÌ quả bóng PHẢI **vẫn
       có mặt**, ở đúng độ cao của mốc ấy (AC-32.7 đọc lại).
-      > ⬜ **CHƯA ĐẠT (T810, 2026-11-26):** **T779** nằm trong Phase 62 đang dừng. `San3D` **đã** vẽ bóng từ mốc đang hiển thị nên đóng băng không làm nó mất, nhưng chưa được kiểm.
-- [ ] AC-49.5 — KHI hệ điều hành bật **giảm chuyển động** THÌ góc nhìn 3D PHẢI không nội suy và
+      > ✅ **ĐẠT (Phase 62, 2026-11-26):** T779 — tạm dừng: bóng còn mặt. Hết trận ở phút 91′: bóng **vẫn trên sân**, đủ 22 hình người.
+- [x] AC-49.5 — KHI hệ điều hành bật **giảm chuyển động** THÌ góc nhìn 3D PHẢI không nội suy và
       không có chuyển động chờ, mà vẫn hiển thị đúng vị trí **và đúng độ cao** tại từng mốc
       (AC-31.1 đọc lại).
-      > ⬜ **CHƯA ĐẠT (T810, 2026-11-26):** **T780** nằm trong Phase 62 đang dừng. Hook dùng chung **đã** bóc sẵn ở T812; việc còn lại là `San3D` import và tôn trọng nó.
+      > ✅ **ĐẠT (Phase 62, 2026-11-26):** T780 — `San3D` import `useGiamChuyenDong` dùng chung (không nhân bản), và **không** hỏi thẳng trình duyệt.
 
 **Nhóm 3 — thuộc hình trên màn hình, cần định nghĩa mới:**
 
-- [ ] AC-49.6 — KHI hai thực thể chiếu thành hai hình sát nhau trên màn hình THÌ người xem
+- [x] AC-49.6 — KHI hai thực thể chiếu thành hai hình sát nhau trên màn hình THÌ người xem
       PHẢI vẫn **phân biệt được** là hai, không phải một — đo **sau khi chiếu**, không đo bằng
       mét trên mặt sân, vì đó mới là điều AC-30.5 thật sự hứa.
-      > ⬜ **CHƯA ĐẠT (T810, 2026-11-26):** **T781** (`phanBietDuoc`) nằm trong Phase 62 đang dừng.
-- [ ] AC-49.7 — KHI hai hình sát nhau được tách ra THÌ việc tách PHẢI làm bằng **viền**, không
+      > ✅ **ĐẠT (Phase 62, 2026-11-26):** T781 — `phanBietDuoc` cộng 5 phép kiểm, ngưỡng **một bán kính** lấy lại từ `san2D.test.ts:173` của spec 002, đo **sau khi chiếu**.
+- [x] AC-49.7 — KHI hai hình sát nhau được tách ra THÌ việc tách PHẢI làm bằng **viền**, không
       bằng cách dịch thực thể: AC-46.5 đứng tuyệt đối, và viền không được đọc nhầm thành một
       trạng thái của cầu thủ.
-      > ⬜ **CHƯA ĐẠT (T810, 2026-11-26):** **T782** (tách bằng viền) nằm trong Phase 62 đang dừng. Chồng lấn giữa các đĩa **thấy rõ** trên bản chạy — đây là AC chưa đạt có hệ quả nhìn được.
+      > ✅ **ĐẠT (Phase 62, 2026-11-26):** T782 — viền **đã thường trực** từ T788/T799, không bật/tắt theo trạng thái (**R65**). Không thêm một dòng mã nào, và nói rõ vì sao.
 
 **Toàn cục:**
 
