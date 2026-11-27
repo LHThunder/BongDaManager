@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **ID** | `007-continuous-match-engine` |
-| **Status** | **Planned** — **24/30 AC đạt** (bảng đóng spec ở **mục 7c**, T762, 2026-11-27; `AC-45.3` và `AC-45.11` đóng ngay sau đó bằng T744/T745/T750/T751). Sáu AC còn lại: **năm** thuộc món nợ `T742` (đo trên **dịch chuyển**; trên **vận tốc thật** mô hình sạch hoàn toàn), và **`AC-45.6`** — bốn vế có `soMau = 0` trên tệp, cần khai lại ngoại lệ hoặc chờ spec 008. **Không `Done`**, và sẽ chỉ `Done` khi cả 30 AC đạt. |
+| **Status** | **Planned** — **25/30 AC đạt** (bảng đóng spec ở **mục 7c**, T762, 2026-11-27). **Năm AC còn lại là MỘT món nợ duy nhất — `T742`**: AC-38.1, 38.2, 38.3, 38.4 và 38.11 đo trên **dịch chuyển** của tệp; trên **vận tốc thật** mô hình sạch hoàn toàn, và nguồn còn lại là **lưới mốc 1 giây với tích phân 0,5 giây**. **Không `Done`**, và sẽ chỉ `Done` khi cả 30 AC đạt. |
 | **Created** | 2026-11-19 |
 | **Clarified** | 2026-11-19, bổ sung 2026-11-22 và **2026-11-23** khi lập plan (mục 14 và 15) |
 | **Branch** | `007-continuous-match-engine` — **đã cắt** từ `main` tại `7e1b065` |
@@ -344,9 +344,12 @@ thay vì phải tin**.
   > liệu **không tồn tại trong repo** — bản 21 mục người dùng dán trong hội thoại. Người
   > dùng chọn lưu nó thay vì để tôi tự định nghĩa một schema, để **lời của họ** là hợp đồng.
   > Hệ quả: đổi định dạng tệp xuất là đổi **cả tài liệu ấy**, không chỉ đổi code.
-- [ ] AC-45.6 — KHI tệp xuất ở AC-45.5 có trong tay THÌ mọi phép kiểm cơ học của US-38
+- [x] AC-45.6 — KHI tệp xuất ở AC-45.5 có trong tay THÌ mọi phép kiểm cơ học của US-38
       PHẢI chạy được **trên chính tệp ấy** — không phải dựng một bản đo riêng mỗi lần muốn
-      kiểm một con số, như đã phải làm suốt spec 005 và 006. **Ngoại lệ: AC-38.8.**
+      kiểm một con số, như đã phải làm suốt spec 005 và 006. **Ngoại lệ: một danh sách
+      ĐÓNG, có tên, mỗi món một lý do và một chủ** — `AC-38.8`; `AC-38.5` vế *đánh đầu*;
+      `AC-38.6` cả hai vế; `AC-38.7`; `AC-38.10` vế *(a)* và *(b)*. Danh sách ấy PHẢI được
+      canh bằng máy: một vế mới rơi về **0 mẫu** mà không được khai PHẢI làm bộ kiểm đỏ.
 
   > **Vì sao AC-38.8 là ngoại lệ, chốt 2026-11-22.** Tệp xuất chứa vị trí **tại từng mốc**;
   > độ cong là chuyện **giữa hai mốc**, và nó do lớp nội suy ở tầng giao diện sinh ra
@@ -359,6 +362,39 @@ thay vì phải tin**.
   > Người dùng chọn đường thứ ba: **tám AC cơ học khác của US-38 kiểm được từ tệp, riêng
   > AC-38.8 canh bằng phép kiểm thuần ở lớp vẽ** — đúng cách spec 006 đã làm ba lần với
   > những thứ `environment: 'node'` không nhìn tới.
+  >
+  > ---
+  >
+  > ⚠️ **NGOẠI LỆ ĐƯỢC KHAI LẠI NGÀY 2026-11-27, VÀ ĐÂY LÀ LẦN ĐẦU MỘT AC CỦA SPEC 001–007
+  > BỊ SỬA CÂU CHỮ TRONG CẢ ĐỢT LÀM VIỆC NÀY.** Người dùng chốt sau khi `T762` đo ra sự
+  > thật: AC cho **đúng một** ngoại lệ, nhưng thực tế có **sáu** vế không chạy trên tệp —
+  > và cả sáu đã được khai trong mã từ trước, ở `VE_CHUA_CO_MAU` và
+  > `VE_KHONG_DO_DUOC_TU_TEP`. Lệch nằm ở **câu chữ của AC**, không ở công trình.
+  >
+  > Năm món thêm vào, kèm số đo trên 5 mã `MAU_RONG`:
+  >
+  > - **`AC-38.6` (cả hai vế)** — tệp có **9.058 cặp mốc liên tiếp mà `nguoi_giu = -1`**, và
+  >   trong **cả 9.058 cặp ấy quả bóng dịch 0,000 m**. Trạng thái "không ai giữ" trong tệp
+  >   **luôn là bóng chết**, không bao giờ là bóng đang bay: đường chuyền được **trao tay**
+  >   giữa hai mốc của lưới 1 giây. Chủ: **spec 008** (bóng lăn tự do, luật IFAB).
+  > - **`AC-38.7`** — cùng gốc ấy: ma sát chỉ có việc khi có quả bóng không ai điều khiển
+  >   đang lăn. Chủ: **spec 008**. *(Đã khai từ T742.)*
+  > - **`AC-38.5` vế đánh đầu** — **0 / 3.254** khung dày có `z > 0`. Bóng bổng **có thật**,
+  >   nó chỉ không rơi vào một cửa sổ tình huống, vì `laTinhHuongQuanTrong` chọn theo **loại
+  >   sự kiện** và quả tạt không nằm trong bốn toán hạng ấy. Chủ: **spec 007**, và nó là vế
+  >   **tự đúng theo cấu trúc** nên mất ít nhất trong năm món.
+  > - **`AC-38.10` (a) và (b)** — tệp chứa **vị trí thật**, không chứa **đích** của trọng tài
+  >   lẫn **đoạn thẳng** người giữ → người nhận. Dựng lại hai thứ ấy từ tệp là **chạy lại
+  >   engine**, và một phép đo tự dựng lại đầu vào của mô hình rồi so với đầu ra của chính nó
+  >   thì không bác được gì. Chủ: **spec 007**, canh ở mức hàm thuần. *(Đã khai từ T742.)*
+  >
+  > **Cái giá, nói trước khi chốt:** sửa câu chữ của một AC cho khớp thứ đã xây là đúng việc
+  > mà cả đợt này đã từ chối làm — nó **giảm sức ràng** của AC. Thứ bù lại là chữ cuối của
+  > AC mới: danh sách ngoại lệ **đóng và canh bằng máy**. `doCoHoc.test.ts` so tập vế có
+  > `soMau = 0` với **`VE_CHUA_CO_MAU`** bằng một đẳng thức hai chiều, nên một vế mới rơi về
+  > rỗng sẽ **đỏ** thay vì lặng lẽ nhập đàn. Trước hôm nay, bốn tên ấy nằm trong một mảng
+  > **viết tay ngay trong thân `it`** còn hằng kia chỉ có một tên — hai danh sách cho cùng
+  > một sự thật, và chúng **đã** lệch.
 - [x] AC-45.7 — KHI chế độ liên tục đang chạy THÌ mọi tính ngẫu nhiên PHẢI đến từ mã trận;
       PHẢI không có nguồn ngẫu nhiên hay nguồn thời gian toàn cục nào trong engine (P1).
 - [x] AC-45.8 — KHI người dùng chọn **quân số khác 11** THÌ chế độ liên tục PHẢI bị **khoá**,
@@ -545,22 +581,22 @@ mình khi lập bảng này, lấy thẳng từ điều kiện ra của `T762`:
 | AC-45.3 200 mã, hai chế độ | ✅ ĐẠT *(2026-11-27)* | `sosanh.haiCheDo.test.ts` — **200 mã, cả hai chế độ**. Cổ điển **174-17-9** (87,0%, +2,255), liên tục **180-15-5** (90,0%, +2,520): lệch **0,265 bàn** / **3,0 điểm phần trăm**, trần 0,5 / 10. Cộng một phép chống rỗng (200 trận thật, 633 và 698 bàn) |
 | AC-45.4 không lưu vị trí, sinh lại được | ✅ ĐẠT | `tran.test.ts`, `matchRepo.test.ts`, `doCoHoc.test.ts` |
 | AC-45.5 tệp JSON đúng mục 7b + 15 | ✅ ĐẠT | `tepXuat.test.ts`, `nhatKy.test.ts`; hai khoá `hanh_dong`/`muc_dich` mang `null` — **nợ có tên** của spec **009** |
-| **AC-45.6** mọi phép kiểm US-38 chạy trên tệp | 🔴 **CHƯA ĐẠT** | AC cho **đúng một** ngoại lệ (AC-38.8), nhưng đo được **bốn vế nữa** không chạy trên tệp: `38.5(đánh đầu)`, `38.6(dải)`, `38.6(thời gian bay)`, `38.7` — **0 mẫu trên cả 10 mã**. Hai vế `38.10(a)(b)` cũng vậy. Chủ: **spec 007** (khai lại ngoại lệ) hoặc **spec 008** (bóng lăn tự do) |
+| AC-45.6 mọi phép kiểm US-38 chạy trên tệp | ✅ ĐẠT *(2026-11-27, sau khi **khai lại ngoại lệ**)* | AC cũ cho **đúng một** ngoại lệ trong khi thực tế có **sáu** — cả sáu đã khai sẵn trong mã. Người dùng chốt khai lại, và đổi lấy một chữ mới: danh sách ngoại lệ **đóng và canh bằng máy**. `doCoHoc.test.ts` so tập vế `soMau = 0` với `VE_CHUA_CO_MAU` bằng **đẳng thức hai chiều** |
 | AC-45.7 ngẫu nhiên chỉ từ mã trận | ✅ ĐẠT | `hatGiong.test.ts`, `dieuKien.test.ts`, `boundaries.test.ts` chặn `Math.random`/`Date.now` |
 | AC-45.8 khoá chế độ khi quân số ≠ 11 | ✅ ĐẠT | `batDau.test.ts`; và `T761` thấy tận mắt ô radio `disabled` kèm một `role="status"` nói rõ vì sao |
 | AC-45.9 giảm chuyển động: toạ độ trùng mốc | ✅ ĐẠT | `viTriVe.test.ts` |
 | AC-45.10 chỉ tua TỚI | ✅ ĐẠT | `tuaToi.test.ts` — 3 `describe`, gồm hai phép **chứng minh phép kiểm đỏ được** |
 | AC-45.11 tệp ≤ 11.000.000 byte | ✅ ĐẠT *(2026-11-27)* | `tepXuat.test.ts` — **ca xấu trong 20 mã: 5.332.429 byte**, dư **51,5%**; đo bằng `TextEncoder().byteLength` trên chính chuỗi sẽ ghi, **không ước từ số mốc**. Cộng một **ca ngược**: nhân bản khối dày 3 lần → 13.212.940 byte, vượt 20,1% — ngưỡng **đỏ được** |
 
-**Tổng: 24 ĐẠT · 6 chưa đạt** *(cập nhật 2026-11-27 sau T744, T745, T750, T751)*, trong đó
-**5** thuộc một món nợ duy nhất (`T742`) và **1** là `AC-45.6`.
+**Tổng: 25 ĐẠT · 5 chưa đạt** *(cập nhật 2026-11-27 sau T744, T745, T750, T751 và lần khai
+lại ngoại lệ của AC-45.6)*. **Cả 5 AC còn lại thuộc MỘT món nợ duy nhất: `T742`.**
 
 📌 Bảng lúc T762 lập, cùng ngày, là **22 / 8**. Hai AC đóng ngay sau đó — `AC-45.3` và
 `AC-45.11` — là hai dòng mà chính bảng này gọi tên chủ nợ, và chúng được trả trong vài giờ.
 Đó là thứ một bảng đóng spec dùng để làm.
 
 ⚠️ **Vì sao `Status` KHÔNG đổi thành `Done`.** Điều kiện ra của `T762` nói rõ: *"`Status` đổi
-thành `Done` **chỉ khi** mọi AC đạt"*. **Sáu** AC chưa đạt, nên spec này **ở lại `Planned`**. Bảng
+thành `Done` **chỉ khi** mọi AC đạt"*. **Năm** AC chưa đạt, nên spec này **ở lại `Planned`**. Bảng
 trên là thứ T762 phải giao, không phải con dấu `Done`.
 
 📌 **Năm AC của nhóm `T742` KHÔNG phải mô hình sai.** Chú thích của `doCoHoc.test.ts` đã đo

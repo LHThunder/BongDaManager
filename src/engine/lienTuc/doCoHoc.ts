@@ -109,15 +109,41 @@ export type Ve = (typeof CAC_VE)[number]
  * Những vế mà tệp hôm nay **không có mẫu** để đo, kèm lý do. Khai ở đây chứ
  * không im: một vế không có mẫu mà báo "đạt" là một lời nói dối có cấu trúc.
  *
- * ⚠️ **AC-38.7 (ma sát lăn sệt): 0 mẫu, và đó là sự thật chứ không phải lỗi
- * của bộ đo.** Mô hình pha bóng của `dienPha.ts` không có trạng thái "bóng lăn
- * tự do": mỗi hành động **giao** bóng tới một vùng, và `vungKetThuc` là chỗ
- * pha kết thúc **theo định nghĩa**. Ma sát chỉ có việc khi có quả bóng **không
- * ai điều khiển** đang lăn — thứ **spec 008** mang vào cùng luật IFAB (ném
- * biên, phát bóng, bóng bật ra). Hôm nay `MA_SAT_LAN_SET` được canh ở mức
- * **hàm thuần** trong `vatLyBong.test.ts`, chứ không ở mức tệp.
+ * ⚠️ **BỐN vế, không phải một — sửa 2026-11-27 khi `AC-45.6` được khai lại.**
+ * Hằng này từng chỉ liệt `AC-38.7`, trong khi `doCoHoc.test.ts` đã có một phép
+ * kiểm liệt **bốn** vế rỗng bằng một mảng viết tay ngay trong thân `it`. Hai
+ * danh sách cho cùng một sự thật là một danh sách sẽ lệch; nay phép kiểm ấy so
+ * với **hằng này**.
+ *
+ * Lý do của từng vế, đo trên 5 mã `MAU_RONG` ngày 2026-11-27:
+ *
+ * - **`AC-38.7`** (ma sát lăn sệt) — mô hình pha bóng của `dienPha.ts` không có
+ *   trạng thái "bóng lăn tự do": mỗi hành động **giao** bóng tới một vùng, và
+ *   `vungKetThuc` là chỗ pha kết thúc **theo định nghĩa**. Ma sát chỉ có việc
+ *   khi có quả bóng **không ai điều khiển** đang lăn — thứ **spec 008** mang
+ *   vào cùng luật IFAB. Canh ở mức hàm thuần trong `vatLyBong.test.ts`.
+ * - **`AC-38.6(dải)` và `AC-38.6(thời gian bay)`** — cùng một gốc, và số đo
+ *   nói thẳng: tệp có **9.058 cặp mốc liên tiếp mà `nguoi_giu = -1`**, và
+ *   trong **cả 9.058 cặp ấy quả bóng dịch 0,000 m**. Nói cách khác, trạng thái
+ *   "không ai giữ" trong tệp **luôn là bóng chết**, không bao giờ là bóng đang
+ *   bay: đường chuyền được **trao tay** giữa hai mốc. Canh ở mức hàm thuần
+ *   trong `vatLyBong.test.ts` (6 `it`) và trên 10 mã ở `tranLienTuc.test.ts`.
+ * - **`AC-38.5(đánh đầu)`** — cần `z` ∈ [1,5; 2,8] **bên trong một khung dày**,
+ *   mà **0 / 3.254** khung dày có `z > 0`. Bóng bổng **có thật** (quả tạt được
+ *   canh ở `vatLyBong.test.ts` và `tranLienTuc.test.ts`), nó chỉ không bao giờ
+ *   rơi vào một cửa sổ tình huống — vì `laTinhHuongQuanTrong` chọn theo **loại
+ *   sự kiện** (bàn thắng, cơ hội rõ, cứu thua, thẻ đỏ), và quả tạt không nằm
+ *   trong bốn toán hạng ấy.
+ *
+ * 📌 Vế này là **tự đúng theo cấu trúc** (xem chú thích tại chỗ đo), nên 0 mẫu
+ * ở đây mất ít hơn ba vế trên — nhưng nó vẫn là 0, và vẫn được gọi tên.
  */
-export const VE_CHUA_CO_MAU: readonly Ve[] = ['AC-38.7']
+export const VE_CHUA_CO_MAU: readonly Ve[] = [
+  'AC-38.5(đánh đầu)',
+  'AC-38.6(dải)',
+  'AC-38.6(thời gian bay)',
+  'AC-38.7',
+]
 
 /**
  * Hai vế của AC-38.10 mà **tệp không chứa dữ liệu để đo**, và vì sao.

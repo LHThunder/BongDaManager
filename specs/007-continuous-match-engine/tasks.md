@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **30 AC**) |
 | **Plan** | `./plan.md` (Status `Approved`, D117–D134, R51–R64) |
-| **Tiến độ** | 49/53 — T813, **T814**, **T815**, **T760** và **T761** xong 2026-11-26. T814 gỡ **95%** món nợ cơ học của `T742` (1.613 → 77 vi phạm); T815 phá cái lưới ô vuông của đội hình; `T760` đạt ở lượt xem thứ hai; `T761` kiểm bằng mắt **4/4 mục đạt**; `T762` đóng spec bằng bảng 22/30 AC, rồi **T744/T745/T750/T751 đóng thêm `AC-45.3` và `AC-45.11` ngay trong ngày** → **24/30** |
+| **Tiến độ** | 49/53 — T813, **T814**, **T815**, **T760** và **T761** xong 2026-11-26. T814 gỡ **95%** món nợ cơ học của `T742` (1.613 → 77 vi phạm); T815 phá cái lưới ô vuông của đội hình; `T760` đạt ở lượt xem thứ hai; `T761` kiểm bằng mắt **4/4 mục đạt**; `T762` đóng spec bằng bảng 22/30 AC, rồi **T744/T745/T750/T751 cộng lần khai lại ngoại lệ của `AC-45.6` đưa lên 25/30 ngay trong ngày** — cả 5 AC còn lại là **một** món nợ `T742` |
 | **Nền đo** | commit `5c652eb`, engine v6, **1.304 test xanh / 63 file test** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -2493,6 +2493,26 @@ giải để người dùng quyết.
       của T762, không có trong task nào trước.
     - 📌 **`Status` KHÔNG đổi thành `Done`**, đúng điều kiện ra: *"chỉ khi mọi AC đạt"*. Tám
       AC chưa đạt. Bảng là thứ T762 phải giao, không phải con dấu `Done`.
+  - 📎 **HẬU KỲ CÙNG NGÀY — bảng này gọi tên ba chủ nợ, và cả ba được xử ngay:**
+    - `AC-45.3` → **T750 + T751** làm xong. `AC-45.11` → **T744 + T745** làm xong.
+    - `AC-45.6` → **người dùng chốt KHAI LẠI NGOẠI LỆ.** AC cũ cho đúng **một** ngoại lệ
+      (`AC-38.8`) trong khi thực tế có **sáu**, và cả sáu đã khai sẵn trong mã ở
+      `VE_CHUA_CO_MAU` và `VE_KHONG_DO_DUOC_TU_TEP` — lệch nằm ở **câu chữ của AC**, không ở
+      công trình.
+      ⚠️ **Đây là lần ĐẦU và DUY NHẤT một AC của spec 001–007 bị sửa câu chữ trong cả đợt
+      này**, và nó chỉ xảy ra vì người dùng chốt. Sửa một AC cho khớp thứ đã xây là đúng việc
+      cả đợt đã từ chối làm; cái giá là AC **giảm sức ràng**.
+      📌 Thứ bù lại nằm ở chữ cuối của AC mới: danh sách ngoại lệ **đóng và canh bằng máy**.
+      `doCoHoc.test.ts` so tập vế `soMau = 0` với **`VE_CHUA_CO_MAU`** bằng một **đẳng thức
+      hai chiều**, nên một vế mới rơi về rỗng sẽ **đỏ** thay vì lặng lẽ nhập đàn. Trước hôm
+      nay bốn tên ấy nằm trong một mảng **viết tay trong thân `it`** còn hằng kia chỉ có một
+      tên — hai danh sách cho cùng một sự thật, và chúng **đã** lệch.
+      📏 Số đo đứng sau lời khai, trên 5 mã `MAU_RONG`: **9.058** cặp mốc liên tiếp có
+      `nguoi_giu = -1`, và **cả 9.058 cặp ấy quả bóng dịch 0,000 m** — "không ai giữ" trong
+      tệp **luôn là bóng chết**, không bao giờ là bóng đang bay (`AC-38.6`, `AC-38.7`);
+      **0 / 3.254** khung dày có `z > 0` (`AC-38.5` vế đánh đầu).
+    - **Spec 007 đi từ 22/30 lên 25/30 AC trong một ngày**, và **cả 5 AC còn lại thuộc MỘT
+      món nợ duy nhất: `T742`**.
     - ⚠️ **Không một chữ nào của 30 AC bị sửa.** Chỉ ô tick đổi, và điều đó được kiểm bằng
       máy: chuẩn hoá `[x]` về `[ ]` rồi `diff` hai bản — **rỗng**.
   - AC: cả 30

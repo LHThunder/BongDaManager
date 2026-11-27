@@ -92,10 +92,14 @@ describe('phép đo CÓ MẪU THẬT — chống rỗng (T742, AC-45.6)', () => 
     Số mẫu là thứ duy nhất phân biệt hai chuyện ấy.
   */
   it('mười ba vế có mẫu, và bốn vế rỗng được KHAI RA chứ không im', () => {
+    /*
+      ⚠️ So với **`VE_CHUA_CO_MAU`**, không với một mảng viết tay ở đây — sửa
+      2026-11-27. Bản trước liệt bốn tên ngay trong thân `it` trong khi hằng kia
+      chỉ có một tên; hai danh sách cho cùng một sự thật là một danh sách sẽ
+      lệch, và `AC-45.6` của spec đã lệch theo đúng cách ấy suốt một tuần.
+    */
     const rong = CAC_VE.filter((v) => (KQ.soMau[v] ?? 0) === 0)
-    expect(rong.slice().sort()).toEqual(
-      ['AC-38.5(đánh đầu)', 'AC-38.6(dải)', 'AC-38.6(thời gian bay)', 'AC-38.7'].sort(),
-    )
+    expect(rong.slice().sort()).toEqual(VE_CHUA_CO_MAU.slice().sort())
     for (const v of CAC_VE) {
       if (rong.includes(v)) continue
       expect(KQ.soMau[v], `${v} phải có mẫu`).toBeGreaterThan(0)
@@ -103,9 +107,14 @@ describe('phép đo CÓ MẪU THẬT — chống rỗng (T742, AC-45.6)', () => 
     expect(CAC_VE).toHaveLength(17)
   })
 
-  it('AC-38.7 được khai là chưa có mẫu, và đúng là 0', () => {
-    expect(VE_CHUA_CO_MAU).toEqual(['AC-38.7'])
-    expect(KQ.soMau['AC-38.7']).toBe(0)
+  it('bốn vế được khai là chưa có mẫu, và cả bốn đúng là 0', () => {
+    expect(VE_CHUA_CO_MAU).toEqual([
+      'AC-38.5(đánh đầu)',
+      'AC-38.6(dải)',
+      'AC-38.6(thời gian bay)',
+      'AC-38.7',
+    ])
+    for (const v of VE_CHUA_CO_MAU) expect(KQ.soMau[v], v).toBe(0)
   })
 
   it('hai vế của AC-38.10 không đo được từ tệp được KHAI RA, hai vế kia có mẫu', () => {
