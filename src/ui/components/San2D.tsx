@@ -14,7 +14,7 @@ import {
 import type { LoMoc } from '../../engine/lienTuc/loMoc'
 import { metSangDonVi, toaDoTuMet, type KhungAnh } from '../quyDoiMet'
 import { useGiamChuyenDong } from '../giamChuyenDong'
-import { anhChupTuLo, mocVeTaiThoiDiem } from '../mocVe'
+import { anhChupNoiSuy, mocVeTaiThoiDiem } from '../mocVe'
 import { nenDamBaoTuongPhan } from '../../domain/colors'
 import { laySoDo, soNguoiCuaSoDo } from '../../domain/formations'
 import type { PositionId } from '../../domain/types'
@@ -1781,14 +1781,25 @@ export function San2D(props: Props) {
           soLoRef.current = soLo
           moMocRef.current = bayGio
         }
-        const { chiSo } = mocVeTaiThoiDiem(
+        /*
+          ⚠️ **LẤY CẢ `phan`, KHÔNG CHỈ `chiSo` (T817).** Bản trước viết
+          `const { chiSo } = …` và vứt phần lẻ đi, nên sân 2D nhảy từ mốc này
+          sang mốc kế. Người dùng xem bản chạy ngày 2026-11-27 và gọi đúng tên:
+          *"giật cục như chuỗi ảnh fps thấp"*. Đo 300 khung: vẽ **59,2 fps**,
+          toạ độ chỉ đổi ở **151/299** nhịp, khoảng cách **1-1-1-3-4** khung.
+
+          `anhChupNoiSuy` trộn **thẳng** hai mốc — xem chú thích của nó ở
+          `mocVe.ts` để biết vì sao **chỉ** được trộn thẳng, và vì sao phép
+          trộn nằm ở đó chứ không ở `viTriVe.ts`.
+        */
+        const moc = mocVeTaiThoiDiem(
           bayGio - moMocRef.current,
           msMoiPhut,
           loMoc.soMocDaGhi,
         )
-        anhChupRef.current = anhChupTuLo(
+        anhChupRef.current = anhChupNoiSuy(
           loMoc,
-          chiSo,
+          moc,
           oCuaNguoi ?? new Map<string, number>(),
         )
       }

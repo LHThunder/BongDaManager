@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **52 AC**, nhóm 46–53) |
 | **Plan** | `./plan.md` (Status `Draft`, D130–D143, R60–R66) |
-| **Tiến độ** | 46/50 — T782 bị gỡ tích rồi **tích lại** ngày 2026-11-26: `T814` và `T815` của spec 007 gỡ chặn nó, và người dùng xem lại rồi phán đạt (`T760`). Bốn task còn lại đều là phép đo nhịp khung, không thực hiện được trong môi trường này |
+| **Tiến độ** | 47/51 — T782 tích lại ngày 2026-11-26; **T817 thêm và xong ngày 2026-11-27** từ một lượt xem của người dùng (*"giật cục như chuỗi ảnh fps thấp"*). Bốn task còn lại đều là phép đo nhịp khung, không thực hiện được trong môi trường này |
 | **Nền đo** | commit `5265d37`, engine v6, **84 file test / 1.733 phép kiểm xanh**, bộ kiểm chạy hết **152 giây** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -1071,3 +1071,89 @@ lần đỏ tiếp theo kèm tên phép kiểm — chạy cả bộ và **giữ 
 - **Nếu T775 báo vỡ ngân sách:** dừng Phase 61, mở lại **D132**, và hỏi người dùng. `three.js`
   là phương án **hợp hiến** — hiến pháp mục 3 cho thêm thư viện thoải mái, miễn đóng gói offline
   được và ghi vào plan — nhưng nó bắt làm lại AC-50.1, AC-50.2, AC-50.5 và AC-49.5 từ đầu.
+
+
+---
+
+## Phase 67 — Nội suy giữa hai mốc (thêm 2026-11-27)
+
+- [x] **T817** — Hai lớp vẽ **vứt `phan`**, nên trận nhảy từ mốc này sang mốc kế
+  - File: `src/ui/mocVe.ts`, `src/ui/mocVe.test.ts`, `src/ui/components/San2D.tsx`,
+    `src/ui/components/San3D.tsx`
+  - **Phát hiện:** người dùng xem bản chạy và nói *"trận đấu đang giật cục như kiểu chuỗi hình
+    ảnh với fps thấp"*. Đo trên **300 khung liên tiếp**, pane đang hiện:
+
+    | | |
+    |---|---|
+    | trình duyệt vẽ | **59,2 fps** — lớp vẽ không hề chậm |
+    | nhịp mà toạ độ cầu thủ **đổi** | **151 / 299** |
+    | chuyển động thật | **29,9 fps** |
+    | khoảng cách giữa hai lần đổi | **1, 1, 1, 3, 4** khung |
+
+    📌 Thứ mắt đọc ra là "giật" chính là cái nhịp **không đều** ấy: một mốc rơi vào ~33 ms còn
+    một khung là 16,7 ms, nên hình giữ 2 khung rồi 1 khung xen kẽ.
+  - 📍 **Nguyên nhân:** `mocVeTaiThoiDiem` trả **hai** số và **cả hai** lớp vẽ chỉ lấy `chiSo`
+    — `San2D.tsx:1784` và `San3D.tsx:174` vứt `phan` y hệt nhau.
+  - ⚠️ **MỘT TIỀN ĐỀ CỦA TÔI SAI, VÀ BA AGENT ĐỌC MÃ BÁC NÓ.** Tôi nói với người dùng rằng
+    *"sân 2D có nội suy nên mượt, sa bàn thì không"*. **Sai:** ở chế độ liên tục **sân 2D cũng
+    không nội suy cầu thủ**. Thứ duy nhất mượt ở sân 2D là **quả bóng**, đi một đường riêng
+    (`viTriBongTrongPha`) lấy tỉ lệ từ đồng hồ treo tường. `noiSuy.ts` chỉ phục vụ chế độ cổ
+    điển. Nên không có "mẫu" nào để sa bàn bắt chước — đây là hành vi **mới** cho cả hai lớp.
+  - **Cách sửa:** hai hàm thuần mới ở `mocVe.ts` — `tronAnhChup(truoc, sau, phan)` và
+    `anhChupNoiSuy(lo, moc, oCuaNguoi)` — rồi **cả hai** lớp vẽ gọi `anhChupNoiSuy`.
+  - ⚠️ **CHỈ LERP THẲNG, và đó không phải sở thích.** `viTriVe.ts:88-96` đã **cố ý** tắt bảy
+    lớp nội suy của chế độ cổ điển cho chế độ liên tục, lý do ghi rõ: để `(x′−x)/dt` **trên
+    hình** bằng đúng vận tốc engine, tức AC-38.1 đo trên hình khớp AC-38.1 đo trong engine.
+    Lerp thẳng giữ nguyên tính chất ấy; Hermite / smoothstep / `tiLeRoiDungYen` đều là **biến
+    dạng thời gian** và sẽ phá nó. Có một phép kiểm mang đúng tên điều này: 60 bước trộn cộng
+    lại cho quãng **13,000000000** — bằng đúng dây cung.
+  - ⚠️ **Trộn ở tầng ẢNH CHỤP, KHÔNG ở `viTriVe.ts`.** `viTriMetLienTuc` là đường đọc duy nhất
+    mà cả hai lớp đứng trên (D145/AC-46.5); đặt phép trộn vào đó làm đỏ **ít nhất bảy** `it` ở
+    `viTriVe.test.ts` và `batBienSaBan.test.ts`, mà chúng thuộc các AC **đã đóng** của spec
+    002–006 — tức vỡ **AC-49.8**. Trộn ở tầng ảnh chụp thì đường đọc không đổi một ký tự:
+    **1.859 phép kiểm xanh, không một phép kiểm cũ nào phải sửa.**
+  - ⚠️ **CẢ HAI lớp, không riêng sa bàn — và đây là chỗ suýt sai.** `AC-46.5` mệnh đề hai nói
+    lớp 3D *"không dịch một cầu thủ nào vì bất kỳ lý do hiển thị nào"*; làm mượt là một lý do
+    hiển thị. Nếu chỉ sa bàn trộn thì hai góc nhìn vẽ cùng một người ở hai chỗ — và **không
+    một phép kiểm nào đỏ**, vì repo không có `.test.tsx` và `vitest` chạy `environment: 'node'`
+    nên tầng component là vùng mù hoàn toàn. Xanh ở đó không có nghĩa là đạt; bài học ấy đã
+    phải trả giá bốn lần trong hai ngày.
+  - **Bốn thứ KHÔNG được trộn**, mỗi thứ một lý do cụ thể và mỗi thứ một phép kiểm: `coMat`
+    (0,5 lọt qua cổng `=== 0`, người vừa bị thay sẽ **trượt về góc sân**), `huong` (350° với
+    10° trộn ra 180°, tức quay ngược hẳn), `vx/vy/vz` (một vận tốc trộn là con số không mốc nào
+    từng phát), `nguoiGiuBong` (AC-37.6: quyết định **rời rạc** của engine).
+  - **Mốc cuối lô** rơi về chính ảnh chụp `chiSo`, **không ngoại suy** bằng `vx/vy`: một vị trí
+    ngoại suy không tái lập được từ lô (AC-37.5).
+  - **Giảm chuyển động:** đường dự phòng ép `phan = 0`, nên toạ độ **trùng khít** một mốc đã
+    phát theo **cấu trúc** chứ không nhờ cẩn thận — đúng chữ của `AC-45.9` và `AC-49.5`.
+  - Xong khi: hai hàm thuần có phép kiểm riêng (**9 `it`**, gồm một phép **chống rỗng** và một
+    phép canh **vận tốc dây cung**); cả hai lớp vẽ gọi cùng một hàm; `npx vitest run` xanh; và
+    **người dùng xem lại rồi phán**.
+  - 🔴 **BA MÓN CHƯA TRẢ, nêu ra chứ không giấu:**
+    1. **Chưa đo lại nhịp khung sau khi sửa.** Browser pane bị ẩn giữa phép đo, và trình duyệt
+       **bóp `requestAnimationFrame` ở trang nền** — mọi con số đọc trong lúc ấy vô nghĩa. Con
+       số "sau" phải đo lại khi pane đang hiện. *(Điều này cũng lật lại con số **1,9 fps** tôi
+       đo ở Phase 66 rồi gạt đi: rất có thể nó cũng đo trên một pane ẩn, và tôi đã đổ cho
+       "môi trường không đo nổi nhịp khung".)*
+    2. **Nội suy chỉ lãi ở 2 trong 5 mức tốc độ.** Khoảng cách hai mốc theo mức: 66,7 / 33,3 /
+       16,7 / 3,3 / **0,33 ms**. Ở `nhanh` và `rat-nhanh` mỗi khung đã nhảy 5 và 50 mốc, nên
+       trộn về `chiSo+1` chỉ vẽ ra một vị trí **trễ một mốc**. `rat-nhanh` còn nằm dưới
+       `NHIP_TOI_THIEU_DE_NOI_SUY = 40` mà **AC-29.4** đã chốt là "tắt hẳn". Chưa có cổng theo
+       mức ở đây — **một câu hỏi spec**, không phải một dòng `if`.
+    3. **Độ cao bóng là PARABOL, lerp làm nó bay thấp hơn.** Dây cung qua một mốc 1 giây hụt
+       `g·t²/8 = 1,22 m` → **2,2 đơn vị**, gần **1,3 lần bán kính quả bóng** — đúng cái độ cao
+       mà `HE_SO_CAO = 3` mua được. Ở mốc dày 0,5 s chỉ hụt 0,56 đơn vị. Lối khác là Hermite
+       **riêng trục z** bằng `vz` đã có sẵn trong ô mốc; đó là một lựa chọn hình dạng, nên nó
+       được **nêu ra** chứ không tự chọn.
+  - ⚠️ **T786 và R64:** task này **chạm `San2D.tsx`**, thứ mà điều kiện ra của `T786` nói là
+    "sửa đúng ba chỗ" và `R64` xếp mức **Cao**. Nó chạm **một chỗ thứ tư**: đổi `anhChupTuLo`
+    thành `anhChupNoiSuy` trong vòng khung hình. Không hằng số nào của `San2D.tsx` bị đổi, và
+    `san2D.test.ts` xanh nguyên — nhưng con số "ba chỗ" của T786 nay là **bốn**, và nó được
+    ghi ở đây thay vì để ai đó phát hiện bằng `git log`.
+  - 📌 **`D142` đã xét rồi LOẠI đúng cách này** (`plan.md` phương án c) vì nó chạm `San2D.tsx`
+    và rơi vào R64. Quyết định hôm nay **đi ngược D142**, và lý do là một thứ D142 không có:
+    **người dùng nhìn thấy lỗi và yêu cầu sửa hai lần**. Cái giá D142 lo — phá AC-49.8 /
+    AC-53.2 — không xảy ra, vì phép trộn nằm **trên** đường đọc chung chứ không **trong** nó:
+    1.859 phép kiểm xanh, không một AC đã đóng nào phải sửa.
+  - AC: AC-51.x (nhịp khung — chưa đo lại được), AC-46.5 (giữ nguyên nhờ trộn ở cả hai lớp)
+  - Phụ thuộc: —

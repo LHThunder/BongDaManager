@@ -9,7 +9,7 @@ import {
   viTriBongLienTuc,
 } from '../chieuSaBan'
 import { useGiamChuyenDong } from '../giamChuyenDong'
-import { anhChupTuLo, mocVeTaiThoiDiem } from '../mocVe'
+import { anhChupNoiSuy, mocVeTaiThoiDiem } from '../mocVe'
 import { viTriMetLienTuc, type AnhChupMet } from '../viTriVe'
 import { nenDamBaoTuongPhan } from '../../domain/colors'
 import type { KhungAnh } from '../quyDoiMet'
@@ -136,6 +136,8 @@ export function San3D({
   const moMocRef = useRef(0)
   /** Mốc cuối vòng khung hình đã đọc — để lúc tạm dừng còn chỗ mà vẽ. */
   const chiSoRef = useRef(0)
+  /** Phần lẻ giữa hai mốc, do vòng khung hình ghi (T817). */
+  const phanRef = useRef(0)
   /** Thứ tự vẽ của khung TRƯỚC, để biết khung này có phải xếp lại không (D137). */
   const thuTuRef = useRef<readonly number[]>([])
 
@@ -171,15 +173,22 @@ export function San3D({
           soLoRef.current = d.soLo
           moMocRef.current = bayGio
         }
-        const { chiSo } = mocVeTaiThoiDiem(
+        /*
+          ⚠️ **LẤY CẢ `phan` (T817)** — xem chú thích sinh đôi ở `San2D.tsx` và
+          lý lẽ đầy đủ ở `mocVe.ts`. Hai lớp vẽ gọi **cùng một** hàm trộn, vì
+          `AC-46.5` đòi chúng vẽ cùng một con số; cho riêng sa bàn trộn là vỡ
+          mệnh đề hai của AC ấy mà **không một phép kiểm nào đỏ**.
+        */
+        const moc = mocVeTaiThoiDiem(
           bayGio - moMocRef.current,
           d.msMoiPhut,
           d.loMoc.soMocDaGhi,
         )
-        chiSoRef.current = chiSo
-        anhChupRef.current = anhChupTuLo(
+        chiSoRef.current = moc.chiSo
+        phanRef.current = moc.phan
+        anhChupRef.current = anhChupNoiSuy(
           d.loMoc,
-          chiSo,
+          moc,
           d.oCuaNguoi ?? new Map<string, number>(),
         )
       }
@@ -200,10 +209,22 @@ export function San3D({
     đã biết. `chiSoRef` giữ mốc ấy, nên lúc tạm dừng giữa trận thì bóng và
     người **đứng yên đúng chỗ của mốc đang hiển thị**, không biến mất — đó là
     điều AC-49.4 đòi, và T778/T779 là nơi canh nó bằng phép kiểm.
+
+    ⚠️ **`phan` của đường dự phòng bị ép về 0 khi GIẢM CHUYỂN ĐỘNG (T817).**
+    Vòng khung hình không chạy ở chế độ ấy, nên `phanRef` có thể còn giữ một
+    phần lẻ của lần chạy trước — và vẽ nó ra là vẽ một toạ độ **nằm giữa hai
+    mốc**, đúng thứ **AC-45.9** cấm. Ép 0 ở đây làm mệnh đề "trùng khít một mốc
+    đã phát" đúng **theo cấu trúc**, không nhờ cẩn thận.
   */
   const anhChup =
     anhChupRef.current ??
-    (loMoc ? anhChupTuLo(loMoc, chiSoRef.current, oCuaNguoi ?? new Map<string, number>()) : null)
+    (loMoc
+      ? anhChupNoiSuy(
+          loMoc,
+          { chiSo: chiSoRef.current, phan: giamChuyenDong ? 0 : phanRef.current },
+          oCuaNguoi ?? new Map<string, number>(),
+        )
+      : null)
   const bong = anhChup ? viTriBongLienTuc(anhChup, KHUNG) : null
 
   /** 22 cầu thủ, đã chiếu. Vị trí đi qua ĐÚNG MỘT đường đọc: `viTriMetLienTuc`. */
