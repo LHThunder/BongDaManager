@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **ID** | `009-player-intent-tactics` |
-| **Status** | Draft |
+| **Status** | Clarified |
 | **Created** | 2026-11-27 |
 | **Branch** | `009-player-intent-tactics` |
 
@@ -34,7 +34,11 @@ dịch một phần về phía bóng. Quy tắc ấy không có **mục đích**
 có **lý do** để hai người cạnh nhau làm hai việc khác nhau.
 
 **Mục tiêu.** Sau spec này, **mỗi cầu thủ có một mục đích gọi tên được ở mỗi khoảnh khắc**, và
-mục đích ấy giải thích được chuyển động của anh ta. Hai hệ quả phải thấy được bằng mắt:
+mục đích ấy giải thích được chuyển động của anh ta. Mục đích được ghi vào **dữ liệu trận**, đọc
+được bằng tên; **nó KHÔNG hiện ra màn hình** ở spec này *(người dùng chốt 2026-11-27)*. Thứ
+người xem thấy là **chuyển động đã khác**, không phải một nhãn chữ.
+
+Hai hệ quả phải thấy được bằng mắt:
 
 - Hai cầu thủ ở gần nhau, cùng một thời điểm, **đi hai hướng khác nhau** vì hai mục đích khác nhau.
 - Người đá cao nhất **lùi về ngang hàng thủ đối phương** thay vì đứng chờ sau lưng họ cả trận.
@@ -46,9 +50,11 @@ mục đích ấy giải thích được chuyển động của anh ta. Hai hệ
   thuộc **spec 008**. *(Spec 009 sửa **hình dạng**; spec 008 áp **luật**.)*
 - **Nhịp trận và thống kê cả trận.** Bóng lăn 55–60 phút, phân bổ cường độ, sự không hoàn hảo,
   xG, kể trận theo đoạn 15 phút — **spec 010**.
-- **Mọi thứ hiển thị.** Nhịp khung hình, cách vẽ, màu, nhãn — **spec 011**. Spec này không yêu
-  cầu hiện mục đích ra màn hình; nó chỉ yêu cầu mục đích **đọc được trong dữ liệu trận xuất
-  ra**. *(Xem câu hỏi mở số 9 nếu muốn hiện ra.)*
+- **Mọi thứ hiển thị.** Nhịp khung hình, cách vẽ, màu, nhãn — **spec 011**. Spec này **không**
+  hiện mục đích ra màn hình, người dùng chốt 2026-11-27; nó chỉ yêu cầu mục đích **đọc được
+  trong dữ liệu trận xuất ra**. Hệ quả: spec này **không sinh một chuỗi hiển thị nào**, nên nó
+  **không** mang nghĩa vụ song ngữ của **P8**, và nó **không** mở lại nhóm AC đã đóng của spec
+  011. Muốn hiện ra thì đó là một spec sau.
 - **Chế độ theo phút.** Mọi thứ ở đây chỉ chạm **chế độ liên tục**. Trận theo phút giữ nguyên
   từng dòng.
 - **Quân số khác 11.** Chế độ liên tục đã khoá ở sân 11 người; spec này không mở khoá.
@@ -63,6 +69,17 @@ mục đích ấy giải thích được chuyển động của anh ta. Hai hệ
   này bắt đầu** (mục 6). Để lại, và nói rõ ở đây thay vì im lặng. *(Câu hỏi mở số 7.)*
 - **Chấn thương làm hỏng dữ liệu cầu thủ người dùng đã nhập.** Chấn thương (AC-40.14) chỉ sống
   **trong một trận**; nó PHẢI KHÔNG ghi gì vào hồ sơ cầu thủ.
+- 🔒 **VỊ TRÍ KHÔNG QUYẾT ĐỊNH KẾT CỤC — người dùng chốt 2026-11-27.** Spec này đổi **hình
+  dạng** của trận, không đổi **ai thắng**. Cùng một mã trận PHẢI cho **đúng từng dòng sự kiện
+  và đúng tỉ số** như trước spec này. Hệ quả, nêu thẳng để không ai tưởng bị quên:
+  - **Cắt đường chuyền, áp lực 2 m giảm 15–30%, và chỉ số cao thành công nhiều hơn** đều **rời
+    khỏi spec này**. Chúng chỉ có nghĩa nếu được phép đổi kết cục; giữ lại mà không cho đổi là
+    giữ ba dòng trang trí.
+  - Cầu thủ vẫn **áp sát** và vẫn **đứng chắn đường chuyền** (AC-41.14, AC-41.15) — người xem
+    vẫn thấy hành vi phòng ngự. Thứ không xảy ra là nó **làm hỏng** một đường chuyền mà hệ
+    thống đã quyết là thành công.
+  - Cái được đổi lấy: **không một trận đã lưu nào đổi tỉ số**, món nợ P3 không bị chạm lần thứ
+    hai, và lưới canh *"hai chế độ cho cùng một kết quả"* của spec 007 **còn nguyên**.
 
 ---
 
@@ -101,7 +118,18 @@ chính danh mục** — chúng là chi tiết của cùng một cơ chế, thêm
 **Không làm lần này** *(ghi ra để không ai tưởng bị quên)*: chồng biên, chồng trong, người thứ
 ba, chạy nghi binh, chạy cắt mặt cột gần / cột xa.
 
+> ✅ **Bốn là đủ — người dùng chốt 2026-11-27.** Bốn mục đích trên đủ dựng **mọi** AC của spec
+> này: hướng đi khác nhau (AC-41.4), hết việt vị thường trực (AC-41.7), khối co giãn và dịch
+> theo bóng (AC-40.1 → 40.3). Năm kiểu còn lại là **chi tiết của cùng một cơ chế**; thêm chúng
+> sau không phải viết lại gì.
+
 **Thủ môn** có danh mục riêng, tối thiểu: `giu-khung`, `bo-tro-hang-thu`.
+
+> ✅ **Không thêm chỉ số mới — người dùng chốt 2026-11-27.** Khả năng *chọn vị trí* của thủ môn
+> và *độ mạo hiểm* của cầu thủ đều **suy ra từ các chỉ số đã có** (ví dụ phản xạ và đọc tình
+> huống cho cái thứ nhất; tầm nhìn và bình tĩnh cho cái thứ hai), theo một công thức ghi trong
+> spec và kiểm được. Lý do: thêm một chỉ số là **bắt người dùng nhập lại cho mọi cầu thủ đã
+> có** — một cái giá không tương xứng với thứ nó mua.
 
 ### 3.2 Danh mục HÀNH ĐỘNG (người chạm bóng)
 
@@ -120,7 +148,15 @@ cục quan sát được:
 **Phòng ngự** thêm: `ap-sat`, `cat-duong-chuyen`.
 
 **Không làm lần này**: mọi phân loại nhỏ hơn trong từng nhóm (sút cuộn / sút căng / vô lê; tạt
-sớm / tạt cột gần / tạt cột xa; đảo chân / ngoặt bóng / che bóng…).
+sớm / tạt cột gần / tạt cột xa; đảo chân / ngoặt bóng / che bóng…), và **tạt bóng** chưa tách
+thành hành động riêng.
+
+> ✅ **Năm là đủ — người dùng chốt 2026-11-27.** Sau khi chốt *"vị trí không quyết định kết
+> cục"*, hành động chỉ còn hai việc: **nói ra** quyết định là gì, và **đặt người đúng chỗ**.
+> Chẻ nhỏ hơn không đổi một vị trí nào, nên nó chỉ làm danh mục dài ra.
+> 📌 `dut-diem` **gộp cả sút lẫn đánh đầu** ở spec này, dù dữ liệu trận của spec 007 đã có một
+> trạng thái đánh đầu riêng với dải độ cao 1,5–2,8 m. Ghi lại để người tách nó sau biết rằng
+> chỗ tách đã sẵn, và việc gộp là một lựa chọn chứ không phải một sơ suất.
 
 ---
 
@@ -132,6 +168,13 @@ sớm / tạt cột gần / tạt cột xa; đảo chân / ngoặt bóng / che b
 > **AC-40.4** cho *"3–5 giây phản pressing hoặc lùi về"*. Cả ba đều được giữ nguyên ở đây:
 > **US-41 = mục đích di chuyển**, **AC-40.4 = phản pressing**.
 > *(Bản nháp đầu của spec này đảo hai số ấy và lấy mất AC-40.4. Ghi lại để không ai sửa ngược.)*
+>
+> ⚠️ **Và đây là một NGOẠI LỆ có lý do, không phải một luật chung — người dùng chốt
+> 2026-11-27.** Spec 011 mục 9 ghi một giả định còn hiệu lực rằng *"nhóm AC được cấp **lúc
+> viết**, KHÔNG được giữ trước"*, và spec 011 đã lấy nhóm 46–53 trên cơ sở ấy. Hai luật ấy
+> mâu thuẫn, và spec này **không** đi giải mâu thuẫn — nó chỉ giữ US-40/41 và AC-40.4 vì **ba
+> tài liệu đang sống đã trỏ vào chúng bằng tên**, và đổi số bây giờ là làm ba chỗ ấy trỏ vào
+> chỗ trống. Spec sau không được viện dòng này làm tiền lệ.
 
 ### US-40: Đội chơi như một khối có hình dạng, và khối ấy mệt dần
 
@@ -175,6 +218,9 @@ chọn có ảnh hưởng tới những gì đang diễn ra**.
       > chậm 35–45%, chạy nhanh 10–15%, nước rút 2–5%), và tổng quãng đường là **hàm của** phân
       > bổ ấy. Khi spec 010 tới, dải này PHẢI được **đo lại**, không được coi là bất biến.
 - [ ] AC-40.11 — KHI cùng trận ấy kết thúc THÌ quãng đường của thủ môn PHẢI nằm trong **5–6 km**.
+- [ ] AC-40.17 — KHI hai thủ môn có chỉ số khác nhau cùng đối mặt một tình huống THÌ chỗ họ
+      đứng PHẢI khác nhau; khả năng **chọn vị trí** PHẢI được **suy ra từ các chỉ số đã có**,
+      theo một công thức ghi trong spec, và PHẢI KHÔNG thêm một ô nhập nào cho người dùng.
 - [ ] AC-40.12 — KHI một cầu thủ được thay ra THÌ người vào sân PHẢI có thể lực **từ 90 trở
       lên** và người rời sân PHẢI có thể lực **từ 70 trở xuống**, ở ít nhất **80%** số lượt thay
       người do máy quyết định.
@@ -186,6 +232,11 @@ chọn có ảnh hưởng tới những gì đang diễn ra**.
       trận PHẢI nằm trong **0–1**; một trận lẻ được phép nhiều hơn.
 - [ ] AC-40.15 — KHI một cầu thủ dính chấn thương THÌ việc đó PHẢI **chỉ sống trong trận ấy**:
       hồ sơ cầu thủ do người dùng nhập PHẢI KHÔNG đổi một trường nào.
+- [ ] AC-40.18 — KHI trận diễn ra dưới thời tiết **nắng nóng** THÌ thể lực PHẢI giảm nhanh hơn
+      **10–20%** so với cùng mã trận ở thời tiết mát, đo bằng thể lực trung bình của 22 người ở
+      cuối trận. *(Người dùng chốt 2026-11-27: phần **thể lực** vào spec 009; phần thời tiết ăn
+      vào **tỉ lệ khống chế hỏng** để spec 010 — chia theo đại lượng bị ảnh hưởng, không theo
+      nguyên nhân.)*
 - [ ] AC-40.16 — KHI 15 phút cuối trận bắt đầu VÀ một đội đang dẫn THÌ tâm dọc khối của đội dẫn
       PHẢI lùi về phía khung thành nhà so với trung bình của chính họ ở 15 phút trước đó, và
       chênh lệch PHẢI **từ 3 m trở lên**.
@@ -206,7 +257,10 @@ quả bóng**.
 - [ ] AC-41.1 — KHI hệ thống tính một mốc THÌ **mỗi** cầu thủ không cầm bóng PHẢI mang đúng
       **một** mục đích thuộc danh mục ở mục 3.1.
 - [ ] AC-41.2 — KHI cùng điều kiện ấy THÌ mục đích của từng người PHẢI có trong **dữ liệu trận
-      xuất ra**, ở mọi mốc, dưới dạng **mã định danh** của danh mục.
+      xuất ra**, ở **mọi mốc**, dưới dạng một **mã ngắn** tra được về danh mục ở mục 3.1 — không
+      phải tên đầy đủ. *(Người dùng chốt 2026-11-27: ghi ở mọi mốc, nhưng bằng mã ngắn.)*
+- [ ] AC-41.21 — KHI một trận 90 phút được xuất ra THÌ dữ liệu trận PHẢI vẫn dưới **11.000.000
+      byte**, và phép đo PHẢI báo số **trước và sau** khi thêm mục đích cùng hành động.
 - [ ] AC-41.3 — KHI đo trên một trận đầy đủ THÌ ở ít nhất **80%** số mốc PHẢI có **từ 3 mục
       đích khác nhau trở lên** đang cùng diễn ra trên sân.
       *(Hôm nay con số này là **1**, ở 100% số mốc.)*
@@ -216,6 +270,11 @@ quả bóng**.
       *(Hôm nay con số này là **0%**: 22 vectơ song song tuyệt đối.)*
 - [ ] AC-41.5 — KHI một cầu thủ đổi mục đích THÌ chuyển động của anh ta PHẢI KHÔNG nhảy bậc:
       tốc độ và hướng ở mốc ngay sau PHẢI vẫn nằm trong mọi trần cơ học của spec 007.
+- [ ] AC-41.19 — KHI hệ thống chọn mục đích THÌ nó PHẢI chọn **nhiều nhất một lần mỗi nửa giây
+      trận**, không phải ở mọi mốc; giữa hai lần chọn, cầu thủ PHẢI đi tiếp theo mục đích đang
+      có. *(Người dùng chốt 2026-11-27, để giữ ngân sách thời gian — xem mục 7.)*
+- [ ] AC-41.20 — KHI mục đích được chọn thưa hơn mốc THÌ việc ấy PHẢI KHÔNG làm trận mất khả
+      năng sinh lại: cùng mã trận và cùng chuỗi can thiệp PHẢI cho đúng từng khung hình.
 - [ ] AC-41.6 — KHI đo số lượt người không tham gia **đứng im hoàn toàn** giữa hai mốc THÌ tỉ
       lệ ấy PHẢI **dưới 10%**. *(Spec 007 đo được **28,2%**.)*
 
@@ -244,6 +303,10 @@ quả bóng**.
       lùi* — và nhánh ấy PHẢI đọc được trong dữ liệu trận xuất ra.
 - [ ] AC-41.13 — KHI đo trên một trận đầy đủ THÌ **cả bốn** nhánh của AC-41.12 PHẢI xuất hiện ít
       nhất một lần; PHẢI KHÔNG có nhánh nào chết.
+- [ ] AC-41.22 — KHI hai cầu thủ ở cùng một tình huống nhưng có **độ mạo hiểm** khác nhau THÌ
+      họ PHẢI chọn nhánh khác nhau ở ít nhất một tình huống đo được; và **độ mạo hiểm** PHẢI
+      được **suy ra từ các chỉ số người dùng đã nhập**, theo một công thức ghi trong spec.
+      PHẢI KHÔNG thêm một ô nhập nào cho người dùng. *(Người dùng chốt 2026-11-27.)*
 
 *Phòng ngự:*
 
@@ -251,17 +314,7 @@ quả bóng**.
       `kem-nguoi` nhắm vào người cầm bóng, ở ít nhất **90%** số mốc đội ấy giữ bóng.
 - [ ] AC-41.15 — KHI một cầu thủ mang mục đích ấy THÌ khoảng cách của anh ta tới người cầm bóng
       PHẢI giảm qua các mốc cho tới khi dưới **2 m**, hoặc cho tới khi bóng đổi chủ.
-- [ ] AC-41.16 — KHI một đường chuyền được thực hiện THÌ nó PHẢI có khả năng **bị cắt**: trên
-      một trận đầy đủ, số đường chuyền hỏng vì có đối phương chắn đường PHẢI **lớn hơn 0**.
 
-*Áp lực và chỉ số:*
-
-- [ ] AC-41.17 — KHI có đối phương trong bán kính **2 m** lúc một cầu thủ chạm bóng THÌ tỉ lệ
-      thành công của hành động ấy PHẢI thấp hơn cùng hành động không bị áp lực **15–30%**, đo
-      trên ít nhất **200 lần chạm** mỗi nhóm.
-- [ ] AC-41.18 — KHI hai cầu thủ có chỉ số liên quan chênh nhau **từ 20 điểm trở lên** cùng thực
-      hiện một hành động ở cùng độ khó THÌ người có chỉ số cao hơn PHẢI thành công nhiều hơn
-      **ít nhất 10 điểm phần trăm**, đo trên ít nhất **20 mã trận**.
 
 ---
 
@@ -302,21 +355,22 @@ quả bóng**.
 - **Tái lập (P1):** mọi quyết định mới — chọn mục đích, chọn hành động, kết quả hành động, chấn
   thương — PHẢI lấy ngẫu nhiên từ **mã trận**, không từ một nguồn toàn cục nào.
 - **Hiệu năng:** một trận liên tục hôm nay tốn **100 ms**; ngân sách mùa giải là **78,95 ms**
-  một trận, tức **đã vượt trước khi spec này bắt đầu**. Spec này thêm việc cho mỗi người ở mỗi
-  mốc, nên nó PHẢI **đo lại và báo số**; vượt thêm là **một câu hỏi cho người dùng**, không
-  phải chỗ tự nới. *(Câu hỏi mở số 7.)*
+  một trận, tức **đã vượt trước khi spec này bắt đầu**. Người dùng chốt 2026-11-27: **tính mục
+  đích thưa hơn mốc** — nhiều nhất một lần mỗi **nửa giây trận** (AC-41.19), thay vì ở cả 5.400
+  mốc. Spec này vẫn PHẢI **đo lại và báo số**; nếu vẫn vượt thì đó là **một câu hỏi cho người
+  dùng**, và việc nới con số 78,95 ms là một lần **sửa hiến pháp**, không phải quyết định của
+  spec 009.
 - **Kích thước dữ liệu trận xuất ra:** trần **11.000.000 byte** cho một trận 90 phút là một AC
   **đã đóng** của spec 007; ca xấu hiện tại là **5.332.957 byte**. Thêm một mục đích cho 22
   người ở mỗi mốc là thêm khoảng **131.000 giá trị**. Spec này PHẢI đo lại và báo số trước/sau.
   *(Câu hỏi mở số 6.)*
 - **Luật tách khỏi giao diện (P2):** mọi thứ ở đây thuộc phần tính trận. Phần hiển thị PHẢI
   KHÔNG cần biết một mục đích nào tồn tại.
-- **AC dạng so sánh phải có test (P5):** mọi AC có một con số PHẢI có phép kiểm tự động đo đúng
-  con số ấy. Những AC đo **xác suất trên nhiều lần chạm** (AC-41.16 → 41.18) hôm nay **không đo
-  được** từ dữ liệu trận xuất ra, vì dữ liệu ấy chứa **vị trí từng mốc** chứ không chứa kết cục
-  từng hành động. Spec này PHẢI chọn một trong hai: thêm thứ cần đo vào dữ liệu xuất ra, hoặc
-  khai chúng vào **danh sách ngoại lệ đóng** mà spec 007 đã lập và giữ danh sách ấy còn được
-  canh bằng máy.
+- **AC dạng so sánh phải có test (P5):** mọi AC có một con số PHẢI có phép kiểm tự động đo
+  đúng con số ấy. Sau khi người dùng chốt *"vị trí không quyết định kết cục"*, **mọi AC còn lại
+  của spec này đều đo được trên vị trí** — thứ dữ liệu trận xuất ra đã chứa. Ba AC từng cần đo
+  **xác suất** đã rời khỏi spec cùng quyết định ấy, nên spec này **không** thêm một ngoại lệ
+  nào vào danh sách ngoại lệ đóng mà spec 007 đang canh bằng máy.
 - **Song ngữ (P8):** spec này **không** đưa chuỗi nào ra màn hình, nên nó không sinh nghĩa vụ
   dịch. Giá trị trong dữ liệu xuất ra là **mã định danh**, không phải nhãn. *(Câu hỏi mở số 9
   nếu muốn hiện ra cho người dùng.)*
@@ -333,8 +387,11 @@ quả bóng**.
 - [ ] **Món nợ cơ học của spec 007 không tệ đi:** số vi phạm trên tổng mẫu của AC-38.1, 38.2,
       38.3, 38.4, 38.6 và 38.11 PHẢI KHÔNG tăng so với mốc đã đo ngày 2026-11-27 — và mốc ấy
       được ghi lại ở đây: **249+104 / 23+3 / 62+312 / 1 / 280+144 / 22** trên 10 mã
+- [ ] **Dòng sự kiện và tỉ số KHÔNG đổi một ký tự** trên mười mã trận cố định — hệ quả trực
+      tiếp của quyết định *"vị trí không quyết định kết cục"*, và là phép kiểm rẻ nhất chứng
+      minh nó
 - [ ] **Hai AC đã đóng của spec 007 được đo lại và báo số:** so sánh hai chế độ trên 200 mã
-      (0,5 bàn và 10 điểm phần trăm), và trần kích thước dữ liệu trận xuất ra
+      (0,5 bàn và 10 điểm phần trăm), và trần kích thước dữ liệu trận xuất ra (AC-41.21)
 - [ ] Ngân sách một trận liên tục được **đo và báo số**, đối chiếu 78,95 ms
 - [ ] **Người dùng tự xem một trận trọn vẹn và phán** rằng bốn câu họ nói ở mục 1 không còn
       đúng nữa — lớp kiểm cuối, đúng tiền lệ của spec 005, 006 và 007
@@ -343,96 +400,19 @@ quả bóng**.
 
 ## 9. Câu hỏi mở
 
-> Dùng đúng cú pháp `[NEEDS CLARIFICATION: câu hỏi]` để `/clarify` quét được.
-> Chỉ khi mục này rỗng mới được chạy `/plan`.
+**Không còn câu hỏi mở.** Mười một câu của bản `Draft` đã được người dùng chốt ngày
+**2026-11-27** qua ba lượt `/clarify`; từng câu và từng quyết định nằm ở **mục 11**.
 
-- [NEEDS CLARIFICATION: **Câu đắt nhất — spec này có được đổi KẾT CỤC của các pha bóng không?**
-  Hôm nay vị trí mét **không** quyết định kết cục: bốn lần sửa vị trí gần đây đều để dòng sự
-  kiện **không đổi một ký tự**. Nhưng *"cắt bóng"* (AC-41.16), *"áp lực giảm 15–30%"*
-  (AC-41.17) và *"chỉ số cao thành công nhiều hơn"* (AC-41.18) chỉ có nghĩa nếu chúng **đổi kết
-  cục**. Ba đường, và **cả ba đều có giá**:
-  **(a) Giữ nguyên** — mọi thứ mới chỉ là *cách diễn*, tỉ số không đổi. Rẻ và an toàn, nhưng ba
-  AC trên thành trang trí và nên rời khỏi spec.
-  **(b) Cho đổi kết cục, áp cho mọi trận** — mọi trận đã lưu phát lại ra tỉ số khác. Vỡ P3.
-  **(c) Chỉ trận mới dùng mô hình mới**, trận cũ giữ cách tính cũ.
-  ⚠️ **Hai cái giá tôi đã nói sai ở bản nháp đầu và sửa lại ở đây:** (1) đường (c) **không**
-  miễn phí — cách repo đang nhận biết phiên bản mô hình trận so sánh **bằng đẳng thức tuyệt
-  đối**, nên nâng số phiên bản sẽ **tước nút đấu lại của mọi trận liên tục đã lưu**, đúng cái
-  giá mà spec 007 đã từ chối trả lần thứ hai; muốn (c) mà không mất gì thì phải giữ được đường
-  chạy cũ cho trận cũ, và đó là một **yêu cầu**, không phải một giả định. (2) cả (b) và (c) đều
-  phá **AC-45.3** của spec 007 — lưới duy nhất canh *"hai chế độ cho cùng một kết quả"* — mà
-  spec 007 nói chỉ spec 010 mới phải phá. Chọn (b)/(c) tức tuyên bố AC-45.3 hết hiệu lực **sớm
-  hơn dự kiến**, và đó là việc của người dùng.]
-
-- [NEEDS CLARIFICATION: **Bốn mục đích ở mục 3.1 có đủ không, hay phải thêm?** Tôi chọn bốn vì
-  chúng đủ dựng AC-41.3, AC-41.4, AC-41.7 và AC-40.1 → 40.3. Năm kiểu còn lại của bản mô tả gốc
-  (chồng biên, chồng trong, người thứ ba, chạy nghi binh, chạy cắt mặt) đã vào Non-goals của
-  danh mục. Nếu người dùng muốn một trong năm thứ ấy có mặt ngay, nói tên nó ra.]
-
-- [NEEDS CLARIFICATION: **Năm hành động ở mục 3.2 có đủ không?** Cùng câu hỏi với danh mục kia.
-  Riêng `dut-diem` hiện gộp cả sút lẫn đánh đầu — tách hay không?]
-
-- [NEEDS CLARIFICATION: **Năm ngưỡng tôi tự đặt, và tôi nói rõ là tôi đặt:** AC-41.3 (3 mục
-  đích / 80% số mốc), AC-41.4 (hai nhóm hướng cách 90° / 70% số cặp mốc), AC-41.6 (đứng im dưới
-  10%), AC-40.3 (tương quan ≥ 0,6), AC-40.12 (thể lực ≥ 90 vào sân / ≤ 70 ra sân / 80% số lượt).
-  Hôm nay giá trị thật lần lượt là **1 / 0% / 28,2% / chưa đo / chưa có cơ chế**, nên không có
-  mốc so nào. Chúng là **hợp đồng** chứ không phải số đo. Chốt bây giờ, hay để `/clarify`
-  chốt sau khi có một bản dựng thử để đo? ⚠️ Dù chọn gì thì **không** được giao việc chốt ngưỡng
-  AC cho `/plan` — bước ấy không có quyền viết AC.]
-
-- [NEEDS CLARIFICATION: **Chỉ số "chọn vị trí" của thủ môn — thêm mới hay suy ra?** *(Treo từ
-  spec 007.)* Bản mô tả gốc đòi 3 chỉ số thủ môn; ứng dụng đã có 3 nhưng thiếu đúng "chọn vị
-  trí". Thêm một chỉ số là **bắt người dùng nhập lại cho mọi thủ môn đã có**. Gợi ý: **suy ra**
-  từ phản xạ và đọc tình huống, và ghi công thức vào spec.]
-
-- [NEEDS CLARIFICATION: **Mục đích trong dữ liệu xuất ra ghi bằng gì — mã định danh đầy đủ hay
-  mã ngắn?** AC-41.2 đòi mục đích của 22 người ở mọi mốc, tức khoảng **131.000 giá trị** cho một
-  trận 90 phút. Trần 11.000.000 byte là một AC **đã đóng**, ca xấu hiện tại **5.332.957 byte**.
-  Nếu mã đầy đủ đẩy tệp qua trần thì phải chọn: mã ngắn, hay chỉ ghi mục đích ở **khối dày** của
-  những tình huống quan trọng thay vì mọi mốc.]
-
-- [NEEDS CLARIFICATION: **Ngân sách thời gian — nếu vượt thì bỏ gì?** Một trận liên tục hôm nay
-  **100 ms**, ngân sách mùa giải **78,95 ms**, tức đã vượt sẵn. Ba đường: **(a)** nới ngân sách
-  mùa giải — ⚠️ con số ấy **dẫn từ hiến pháp** ("một mùa 380 trận phải xong dưới 30 giây"), nên
-  đây **không** phải quyết định của spec 009 mà là một lần **sửa hiến pháp**: phải chạy
-  `/constitution` và bump version **trước khi task đầu tiên chạy**, đúng khuôn mà spec 011 đã
-  làm; **(b)** mùa giải chạy chế độ phút, chỉ trận người dùng xem mới chạy liên tục — ⚠️ đường
-  này **ràng chéo với câu hỏi số 1**: nếu vị trí được phép đổi kết cục thì cùng một hạt giống sẽ
-  cho hai kết quả khác nhau tuỳ người dùng có xem hay không, tức **P1 vỡ ở quy mô mùa**;
-  **(c)** tính mục đích **thưa hơn mốc** (quyết một lần mỗi nửa giây, giữa hai lần thì đi tiếp
-  theo mục đích cũ). Gợi ý: **(c)** trước, vì nó không đổi hợp đồng nào.]
-
-- [NEEDS CLARIFICATION: **"Cầu thủ sáng tạo mạo hiểm hơn" của bản mô tả gốc cần một chỉ số tính
-  cách mà ứng dụng không có.** Bỏ vế ấy, hay suy từ chỉ số đã có (ví dụ tầm nhìn cao + bình tĩnh
-  thấp = mạo hiểm)? Gợi ý: **suy từ chỉ số đã có**, cùng lý do với câu về thủ môn.]
-
-- [NEEDS CLARIFICATION: **Mục đích có được HIỆN RA cho người dùng không?** Mục tiêu ở mục 1 viết
-  từ góc nhìn người xem (*"chỉ vào một người và hỏi anh này đang làm gì"*), nhưng Non-goals nói
-  hiển thị thuộc spec 011 — và nhóm AC của spec 011 **đã đóng ở 49/52**, không có AC nào cho
-  việc này. Ba đường: không hiện gì (spec này chỉ ghi vào dữ liệu); thêm một AC hiển thị vào
-  spec 009 — khi ấy P8 bắt phải có nhãn song ngữ; hoặc để một spec sau. Gợi ý: **không hiện
-  gì** lần này, và sửa câu mục tiêu ở mục 1 cho khớp.]
-
-- [NEEDS CLARIFICATION: **Thời tiết ảnh hưởng tới thể lực — spec 009 hay spec 010?** *(Treo từ
-  spec 007.)* Nắng nóng làm thể lực giảm nhanh hơn 10–20%, và cũng ăn vào tỉ lệ khống chế hỏng.
-  Gợi ý: **phần thể lực vào 009**, phần khống chế hỏng vào 010 — chia theo đại lượng bị ảnh
-  hưởng, không theo nguyên nhân.]
-
-- [NEEDS CLARIFICATION: **Luật đánh số nhóm AC — cấp trước hay cấp lúc viết?** Spec 007 mục 12
-  **cấp trước** US-40/41 cho spec 009; spec 011 mục 9 lại ghi một giả định còn hiệu lực rằng
-  *"nhóm AC được cấp lúc viết, KHÔNG được giữ trước"* và đã lấy nhóm 46–53 trên cơ sở ấy. Hai
-  tài liệu đang sống nói hai luật khác nhau. Spec này theo luật **cấp trước** (giữ US-40/41 và
-  AC-40.4 đúng chủ). Người dùng chốt một luật chung, hay để mỗi spec tự xử?]
+Spec này đã qua cổng chặn của hiến pháp mục 5 và **sẵn sàng cho `/plan`**.
 
 ---
 
 ## 10. Giả định
 
-- **Vị trí mét vẫn không vào bản ghi trận:** trận sinh lại từ mã trận. Nếu câu hỏi số 1 chọn
-  (b) hoặc (c) thì giả định này vẫn đúng — chỉ **cách sinh lại** đổi.
+- **Vị trí mét vẫn không vào bản ghi trận:** trận sinh lại từ mã trận.
 - **Đơn vị quyết định hiện tại của phần tính trận không đổi.** Spec này đổi cách 22 người
   **đứng và đi** giữa các quyết định, không đổi cách hệ thống chọn kết cục một pha.
-  *(Nếu câu hỏi số 1 chọn (b)/(c) thì giả định này phải viết lại — vì thế nó là câu hỏi đầu tiên.)*
+  *(Người dùng chốt điều này ngày 2026-11-27; nó là giả định nền của cả spec.)*
 - **Chế độ liên tục vẫn chỉ chạy ở sân 11 người.**
 - **Mười một AC cơ học của spec 007 (AC-38.1 → AC-38.11) vẫn là trần.** Sáu trong số đó đang
   nợ; Definition of Done đòi *không tệ đi*, không đòi *sạch*.
@@ -441,3 +421,38 @@ quả bóng**.
 - **Món nợ AC-34.2 của spec 006** (người rê bóng đi vòng qua đối thủ) **đã được trả ở spec 007**
   — ghi lại để không ai mở lại nó ở đây.
 - **Ba hạng mục còn mở của spec 007 không chặn spec này:** nút xuất dữ liệu trận và hai phép đo.
+
+---
+
+## 11. Nhật ký làm rõ — 2026-11-27
+
+Mười một câu, ba lượt. Cột cuối ghi **cái giá** của lựa chọn, vì một quyết định không có giá
+là một quyết định chưa được hiểu.
+
+| # | Câu hỏi | Quyết định | Cái giá đã nói trước |
+|---|---|---|---|
+| 1 | Mô hình mới có được đổi **kết cục** các pha bóng không? | **Chỉ đổi hình dạng.** Vị trí KHÔNG quyết định ai thắng; cùng mã trận cho đúng từng dòng sự kiện và đúng tỉ số như trước | **Ba AC rời khỏi spec**: cắt đường chuyền, áp lực 2 m giảm 15–30%, chỉ số cao thành công nhiều hơn. Cầu thủ vẫn áp sát và vẫn đứng chắn, nhưng việc ấy **không làm hỏng** một đường chuyền mà hệ thống đã quyết là thành công |
+| 2 | Ngân sách thời gian đã vượt trước khi spec bắt đầu (100 ms so với 78,95 ms) | **Tính mục đích thưa hơn mốc** — nhiều nhất một lần mỗi nửa giây trận (AC-41.19) | Mục đích đổi chậm hơn thực tế tới nửa giây. Đổi lại: không sửa hiến pháp, không tách hai chế độ, không đổi một hợp đồng nào |
+| 3 | Năm ngưỡng là số tôi tự đặt — chốt bây giờ hay đo trước? | **Chốt bây giờ.** Chúng thành **hợp đồng** | Viết trước khi đo nên không uốn được cho vừa kết quả; nếu dựng xong mà không đạt thì đó là **một câu hỏi cho người dùng**, không phải chỗ tự nới |
+| 4 | Mục đích của 22 người ở mọi mốc là ~131.000 giá trị; trần 11 MB là AC đã đóng | **Mã ngắn, ghi ở mọi mốc** (AC-41.2), và **đo lại kích thước** báo số trước/sau (AC-41.21) | Mở tệp bằng mắt phải tra bảng mới hiểu. Đổi lại: giữ được "đọc được ở mọi mốc" mà gần như không đụng trần |
+| 5 | Mục đích có **hiện ra màn hình** không? | **Không hiện gì** ở spec này | Người xem không đọc được tên mục đích trên sân; họ chỉ thấy **chuyển động đã khác**. Đổi lại: không sinh nghĩa vụ song ngữ **P8**, không mở lại nhóm AC đã đóng của spec 011 |
+| 6 | Bốn mục đích có đủ không? | **Bốn là đủ** | Chồng biên, chồng trong, người thứ ba, chạy nghi binh, chạy cắt mặt **không có lần này** — nhưng chúng là chi tiết của cùng một cơ chế, thêm sau không phải viết lại |
+| 7 | Năm hành động có đủ không? | **Năm là đủ**; `dut-diem` gộp cả sút lẫn đánh đầu | Dữ liệu trận của spec 007 **đã có** một trạng thái đánh đầu riêng, nên chỗ tách đã sẵn. Việc gộp là một lựa chọn, không phải sơ suất |
+| 8 | Chỉ số *chọn vị trí* của thủ môn và *độ mạo hiểm* — thêm mới hay suy ra? | **Suy từ chỉ số đã có**, công thức ghi trong spec (AC-40.17, AC-41.22) | Hai đại lượng ấy không độc lập với các chỉ số khác, nên người dùng không chỉnh riêng được. Đổi lại: **không bắt nhập lại cho mọi cầu thủ đã có** |
+| 9 | Thời tiết ăn vào thể lực — spec 009 hay 010? | **Phần thể lực vào 009** (AC-40.18); phần ăn vào tỉ lệ khống chế hỏng để spec 010 | Chia theo **đại lượng bị ảnh hưởng**, không theo nguyên nhân — nên "thời tiết" sẽ xuất hiện ở hai spec, và người đọc phải biết điều đó |
+| 10 | Hai tài liệu nói hai luật khác nhau về đánh số nhóm AC | **Giữ US-40/41 và AC-40.4 đúng chủ**, ghi rõ đây là **ngoại lệ có lý do** | Mâu thuẫn giữa spec 007 (cấp trước) và spec 011 (cấp lúc viết) **vẫn còn**; spec này không giải nó, và spec sau không được viện dòng này làm tiền lệ |
+| 11 | *(Gộp vào câu 8 khi hỏi — cùng một kiểu đánh đổi)* | — | — |
+
+### Hai điều bản `Draft` nói sai, và chúng được sửa trước khi người dùng quyết
+
+1. **Số user story bị đảo.** Bản nháp đặt US-40 = mục đích, US-41 = thể lực. Hồ sơ nói ngược:
+   spec 006 (dòng 20) chuyển món nợ **AC-36.1** sang *"spec 009, **US-41**"*, và spec 007
+   (dòng 984) viết *"Đây là **US-41**"*. Bản nháp còn **lấy mất AC-40.4**, số spec 007 đã cấp
+   cho *"3–5 giây phản pressing"*, và nội dung ấy biến mất khỏi spec. Cả ba đã trả lại.
+2. **Một cái giá bị nói sai trong đúng câu hỏi đắt nhất.** Bản nháp bảo đường *"chỉ trận mới
+   dùng mô hình mới"* là **"không bắt ai mất gì"**. Sai: cách repo nhận biết phiên bản mô hình
+   trận so sánh **bằng đẳng thức tuyệt đối**, nên nâng số phiên bản sẽ **tước nút đấu lại của
+   mọi trận liên tục đã lưu**. Nếu người dùng quyết trên bản nháp ấy, họ đã quyết trên dữ kiện
+   sai.
+
+*Cả hai do ba người soát độc lập tìm ra trước khi `/clarify` bắt đầu.*
