@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **30 AC**) |
 | **Plan** | `./plan.md` (Status `Approved`, D117–D134, R51–R64) |
-| **Tiến độ** | 50/54 — T813, **T814**, **T815**, **T760** và **T761** xong 2026-11-26. T814 gỡ **95%** món nợ cơ học của `T742` (1.613 → 77 vi phạm); T815 phá cái lưới ô vuông của đội hình; `T760` đạt ở lượt xem thứ hai; `T761` kiểm bằng mắt **4/4 mục đạt**; `T762` đóng spec bằng bảng 22/30 AC, rồi T744/T745/T750/T751 cộng lần khai lại ngoại lệ của `AC-45.6` đưa lên 25/30 — rồi `AC-37.6` bị gỡ tích và **`T816`** sửa xong trong ngày — tick lại, nhưng `AC-38.6` **mở mắt và đỏ**, nên vẫn **24/30** |
+| **Tiến độ** | 51/55 — T813, **T814**, **T815**, **T760** và **T761** xong 2026-11-26. T814 gỡ **95%** món nợ cơ học của `T742` (1.613 → 77 vi phạm); T815 phá cái lưới ô vuông của đội hình; `T760` đạt ở lượt xem thứ hai; `T761` kiểm bằng mắt **4/4 mục đạt**; `T762` đóng spec bằng bảng 22/30 AC, rồi T744/T745/T750/T751 cộng lần khai lại ngoại lệ của `AC-45.6` đưa lên 25/30 — rồi `AC-37.6` bị gỡ tích và **`T816`** sửa xong trong ngày — tick lại, nhưng `AC-38.6` **mở mắt và đỏ**, nên vẫn **24/30** |
 | **Nền đo** | commit `5c652eb`, engine v6, **1.304 test xanh / 63 file test** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -2017,6 +2017,39 @@ trận tiến theo giây**. Vòng cấm và khung thành vẽ đúng mét.
     bóng nằm chờ. Người đón là một **vai có tên** trong `US-40` của spec 009 — xem mục 12 của
     `spec.md` — không phải một dòng thêm ở đây.
   - AC: AC-37.6
+  - Phụ thuộc: —
+
+- [ ] **T818** — **Tiền đạo đứng việt vị 99,6% thời lượng trận.** *(Thêm 2026-11-27 từ một lượt
+  xem của người dùng.)*
+  - File: `src/engine/lienTuc/viTriMet.ts` (`TI_LE_DAI_MET`, `choDungDoiHinhMet`)
+  - **Phát hiện:** người dùng xem bản chạy và nói *"tiền đạo luôn ở trong tư thế việt vị"*.
+    Đo trên 3 mã `MAU_RONG`, 1.838 mốc, 3.676 lượt tiền đạo:
+
+    | | |
+    |---|---|
+    | lượt tiền đạo đứng **trên** hậu vệ cuối cùng của đội bạn | **3.660 / 3.676 = 99,6%** |
+    | vượt bao xa — p10 / trung vị / p90 / lớn nhất | **8,0 / 10,3 / 11,4 / 14,1 m** |
+
+  - 📍 **Nguyên nhân là HÌNH HỌC CỦA LƯỚI, không phải một lỗi rời rạc.**
+    `TI_LE_DAI_MET = [0,1 · 0,35 · 0,65 · 0,9]` cho đội nhà bốn dải ở
+    **10,5 / 36,8 / 68,3 / 94,5 m**, còn đội khách lật lại thành
+    **94,5 / 68,3 / 36,8 / 10,5 m**. Nên dải 3 của nhà (tiền đạo, 94,5) nằm **trên** dải 1 của
+    khách (hậu vệ, 68,3) đúng **26,2 m** — trước khi có bất kỳ chuyển động nào. Phép lùi
+    `LUI_VE_SAN_MINH = 6 m` của `T814` và lực kéo theo bóng rút khoảng ấy xuống ~10 m, nhưng
+    **không đổi dấu** nó.
+  - ⛔ **KHÔNG sửa được bằng cách dời một con số trong `TI_LE_DAI_MET`.** Để tiền đạo nhà
+    không vượt hậu vệ khách thì cần `x₃ ≤ 0,65`, mà `0,65` **chính là dải 2**. Lưới 3×4 không
+    biểu diễn nổi điều này: nó đặt hai đội lên cùng một trục mà **không ai biết ai**.
+  - 📌 **Cần một ĐƯỜNG VIỆT VỊ** — tức mỗi người phải nhìn thấy hàng thủ đối phương. Đó là
+    nhận thức **xuyên đội**, và nó là **US-40 của spec 009**. Khác hẳn `T814`, nơi phép sửa
+    chỉ cần nhìn **chính đội mình**.
+  - ⚠️ Việc này **không** phải luật việt vị của spec 008. Spec 008 **thổi phạt** một vị trí
+    việt vị; chỗ này là **hình dạng đội hình** tự đặt người vào đó 99,6% thời gian. Thổi phạt
+    một lỗi do hình học sinh ra sẽ cho một trận toàn tiếng còi.
+  - Xong khi: đo lại đúng 3 mã trên cho **dưới 20%** số lượt tiền đạo đứng trên hậu vệ cuối,
+    và một phép kiểm **chống rỗng** (trên 3.000 lượt đã so). Cộng: đo lại chín bộ đếm của
+    `doCoHoc.test.ts` và vân tay dòng sự kiện.
+  - AC: — (chưa có AC nào mang đúng tên nó; gần nhất là US-40 của spec 009)
   - Phụ thuộc: —
 
 - [ ] **T743** [P] — `xuatTranService.ts` tách `dungChuoiXuat` khỏi `taoBlobXuat`; `useXuatTran.ts`
