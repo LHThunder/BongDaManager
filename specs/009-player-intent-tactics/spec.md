@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **ID** | `009-player-intent-tactics` |
-| **Status** | Clarified |
+| **Status** | Planned |
 | **Created** | 2026-11-27 |
 | **Branch** | `009-player-intent-tactics` |
 
