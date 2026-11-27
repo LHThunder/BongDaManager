@@ -60,9 +60,19 @@ Hai hệ quả phải thấy được bằng mắt:
 - **Quân số khác 11.** Chế độ liên tục đã khoá ở sân 11 người; spec này không mở khoá.
 - **Chỉ số mới cho cầu thủ.** Mặc định **không thêm**, vì thêm một chỉ số là bắt người dùng
   nhập lại cho mọi cầu thủ đã có. *(Câu hỏi mở số 5 và số 8.)*
-- **Huấn luyện viên máy đổi sơ đồ giữa trận.** *"Đổi sơ đồ phải có lý do"* nằm trong bản mô tả
-  gốc nhưng cần một tác nhân ra quyết định ở cấp **đội**, không phải cấp **người**. Để lại cho
-  một spec sau.
+- **Huấn luyện viên máy: đổi sơ đồ giữa trận, VÀ thay người.** *"Đổi sơ đồ phải có lý do"* nằm
+  trong bản mô tả gốc nhưng cần một tác nhân ra quyết định ở cấp **đội**, không phải cấp
+  **người**. Để lại cho một spec sau.
+  > 📌 **Món nợ có tên, chuyển ra ngày 2026-11-28 trong lúc `/plan`.** Nội dung của **AC-40.12**
+  > — *"người vào sân thể lực từ 90 trở lên, người rời sân từ 70 trở xuống, ở ít nhất 80% số
+  > lượt thay người do máy quyết định"* — chuyển sang **spec đầu tiên sở hữu huấn luyện viên
+  > máy**, cùng chỗ với dòng trên. Lý do: v6 **không có thay người do máy** —
+  > `kiemTraCanThiep` chặn thẳng mọi can thiệp của đội không phải của người dùng — nên AC ấy đo
+  > trên một **tập rỗng**. Và dựng nó trong spec 009 là **sinh một dòng sự kiện mới**, tức vỡ
+  > đúng lời hứa 🔒 *"vị trí không quyết định kết cục"*. Người dùng chốt ngày 2026-11-28; chi
+  > tiết ba phương án ở `plan.md` mục 10.3.
+  > ⚠️ **Số `AC-40.12` coi như ĐÃ CẤP và KHÔNG được dùng lại** cho một nội dung khác, đúng tiền
+  > lệ của AC-40.4: khi spec kia tới, nó nhận lại **đúng số này** cùng **đúng nội dung này**.
 - **Hướng người, tầm nhìn 180°, phản ứng 0,2–0,3 giây, quét trước khi nhận bóng.** Bản mô tả
   gốc giao chúng cho spec 009, nhưng chúng là một **lớp tri giác** riêng, và mỗi thứ đều nhân
   thêm việc cho 22 người ở mỗi mốc — trong khi ngân sách thời gian **đã vượt trước khi spec
@@ -221,9 +231,6 @@ chọn có ảnh hưởng tới những gì đang diễn ra**.
 - [ ] AC-40.17 — KHI hai thủ môn có chỉ số khác nhau cùng đối mặt một tình huống THÌ chỗ họ
       đứng PHẢI khác nhau; khả năng **chọn vị trí** PHẢI được **suy ra từ các chỉ số đã có**,
       theo một công thức ghi trong spec, và PHẢI KHÔNG thêm một ô nhập nào cho người dùng.
-- [ ] AC-40.12 — KHI một cầu thủ được thay ra THÌ người vào sân PHẢI có thể lực **từ 90 trở
-      lên** và người rời sân PHẢI có thể lực **từ 70 trở xuống**, ở ít nhất **80%** số lượt thay
-      người do máy quyết định.
 - [ ] AC-40.13 — KHI thể lực xuống tới mức thấp nhất THÌ tốc độ tối đa của cầu thủ ấy PHẢI
       KHÔNG xuống dưới **4 m/s**, và PHẢI KHÔNG bao giờ âm hay bằng 0.
       > Con số **4** lấy neo từ spec 007: đó đúng là trần tốc độ **chạy lùi** của AC-38.4. Một
@@ -456,3 +463,31 @@ là một quyết định chưa được hiểu.
    sai.
 
 *Cả hai do ba người soát độc lập tìm ra trước khi `/clarify` bắt đầu.*
+
+---
+
+### Lượt bốn — 2026-11-28, trong lúc `/plan`
+
+`/plan` khảo sát code rồi đo, và phép đo tìm ra **sáu dữ kiện của spec này sai**. Năm cái được
+`plan.md` xử bằng một quyết định có số và **không** chạm spec. Cái thứ sáu chạm **thân** một AC,
+nên nó thành một câu hỏi, và người dùng chốt.
+
+| # | Dữ kiện sai | Xử ở đâu | Có chạm spec không |
+|---|---|---|---|
+| 1 | **AC-40.17** nêu ví dụ *"đọc tình huống"*, một chỉ số **thủ môn không điền** — nên công thức theo ví dụ ấy cho **mọi thủ môn một con số giống nhau**, tức AC tự đỏ | `plan.md` **D156** dùng `phan-xa` + `bat-bong` + `quyet-doan` | Không — phần trong ngoặc là **ví dụ**, không phải thân AC |
+| 2 | **AC-41.22** nêu ví dụ *"bình tĩnh"*, một chỉ số **không tồn tại** trong 18 mã của repo | `plan.md` **D157** dùng `nhan-quan` + `quyet-doan` | Không — cùng lý do |
+| 3 | Mục 7 ghi *"một trận liên tục tốn **100 ms**"*; đo lại 10 mã: **110,84 ms** (ca xấu 129,44). Và số mốc là **5.980–6.440**, không phải 5.754 | `plan.md` bảng **Nền đo** | Không — một phép đo, không phải một yêu cầu |
+| 4 | **Không trận nào dài 90 phút** — đo 10 mã: **94–99**, vì bù giờ. Nên điều kiện *KHI* của **AC-40.10** và **AC-40.11** **rỗng theo chữ**, và *"15 phút cuối"* của **AC-40.16** bắt đầu ở phút **79–84** | `plan.md` **D167** đọc *"trận 90 phút"* là *"trận đủ độ dài"* | Không — một **cách đọc**, chốt ra mặt thay vì nằm im trong phép kiểm |
+| 5 | **AC-40.18** đòi *"cùng mã trận ở thời tiết mát"*, nhưng thời tiết là **hàm thuần của mã trận** và danh mục **không có** kiểu *"mát"* | `plan.md` **D166** đọc *"mát"* là `'am'`, và phép kiểm giữ mã trận rồi thay điều kiện bằng tay | Không — nhưng đây là **định nghĩa của plan**, nên nếu người dùng muốn nghĩa khác thì đó là chỗ sửa |
+| 6 | **AC-41.6** đo *"người **không tham gia** đứng im"* và lấy nền **28,2%**, nhưng *"không tham gia"* **chưa ai định nghĩa**: đo trên cả 22 người cho **66,08%** — cách nhau **2,3 lần** | `plan.md` **D168** chốt định nghĩa và **đo lại nền** ở lát 0 | Không — nhưng hệ quả phải nói ra: nếu nền thật là 66,08% thì AC-41.6 **khó hơn hẳn** lúc chốt nó, từ *"giảm 2,8 lần"* thành *"giảm 6,6 lần"* |
+
+**Và một AC rời khỏi spec — người dùng chốt 2026-11-28:**
+
+| Câu hỏi | Quyết định | Cái giá đã nói trước |
+|---|---|---|
+| **AC-40.12** đo *"thay người do máy quyết định"*, nhưng v6 **không có** việc ấy: `kiemTraCanThiep` chặn thẳng đội không phải của người dùng, nên mẫu là **0/0** | **Chuyển nội dung AC sang spec đầu tiên sở hữu huấn luyện viên máy**, giữ nguyên số và nguyên lời. Hai phương án kia bị loại | Spec 009 **mất một AC**, còn **36**. Đổi lại: lời hứa 🔒 *"dòng sự kiện và tỉ số không đổi một ký tự"* **còn nguyên** — vì dựng thay người do máy là **thêm một dòng sự kiện**, và đọc lại AC thành *"thay người do người dùng"* là đo **người dùng chơi có hợp lý không**, không đo ứng dụng |
+
+📌 **Vì sao nó đi đúng chỗ ấy chứ không phải một spec bất kỳ:** Non-goals của chính spec này đã
+đẩy *"huấn luyện viên máy đổi sơ đồ giữa trận"* sang một spec sau với lý do *"cần một tác nhân
+ra quyết định ở cấp **đội**, không phải cấp **người**"*. Thay người do máy là **đúng tác nhân
+ấy**, nên nó về cùng một chỗ thay vì mở một món nợ thứ hai.

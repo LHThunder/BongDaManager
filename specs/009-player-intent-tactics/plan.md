@@ -26,8 +26,9 @@
 > 2. **AC-41.22 nêu ví dụ một chỉ số KHÔNG TỒN TẠI.** Không mã nào trong 18 mã của
 >    `types.ts:58-76` mang nghĩa *"bình tĩnh"*. → **D157**.
 > 3. **AC-40.12 không có một phần tử nào để đo.** v6 **không có thay người do máy** —
->    `kiemTraCanThiep` (`tran.ts:1095`) chặn thẳng đội không phải của người dùng. AC ấy hôm nay
->    là `0/0`. → **mục 10.3**, và đó là **câu hỏi duy nhất `/tasks` phải chờ**.
+>    `kiemTraCanThiep` (`tran.ts:1095`) chặn thẳng đội không phải của người dùng. AC ấy là
+>    `0/0`. ✅ **Người dùng chốt ngày 2026-11-28: chuyển nội dung AC sang spec đầu tiên sở hữu
+>    huấn luyện viên máy**, giữ nguyên số và nguyên lời. Spec 009 còn **36 AC**. → **mục 10.3**.
 >
 > 4. **Hai con số nền đã lạc hậu, và cả hai làm plan báo THIẾU.** `spec.md` mục 7 ghi *"một
 >    trận liên tục hôm nay tốn **100 ms**"*; đo lại ngày 2026-11-28 trên 10 mã: **110,84 ms**
@@ -71,7 +72,7 @@ cho luật bóng đá.
 | **P2** Luật bóng đá tách khỏi giao diện | ✅ | Toàn bộ mã mới ở `src/engine/lienTuc/`. Lớp vẽ **không đổi một dòng** và **không cần biết một mục đích nào tồn tại** — spec 009 không hiện mục đích ra màn hình. Canh bằng `src/engine/boundaries.test.ts` đã có. |
 | **P3** Dữ liệu người dùng bất khả xâm phạm | ✅ **và đây là chỗ đáng lo nhất, nên nói kỹ** | Hai đường có thể vỡ, cả hai đã bị chặn: **(a)** `matchRepo.ts:246` so `phienBanEngine` bằng `!==` tuyệt đối, nên bump số phiên bản là **tước nút đấu lại của mọi trận liên tục đã lưu** — spec 009 **không bump** (D148). **(b)** Chấn thương (AC-40.14) sống trong trạng thái một trận và **không có đường nào tới hồ sơ cầu thủ** (AC-40.15), canh bằng một phép kiểm so hồ sơ trước/sau từng trường. |
 | **P4** Chạy offline, dữ liệu không ra khỏi máy | ✅ | Không phụ thuộc mới, không tài nguyên ngoài, không gọi mạng. |
-| **P5** Mỗi AC dạng so sánh phải có một test chứng minh | ⚠️ **Phải làm, và nó là phần lớn công việc — cộng MỘT AC không đo được** | Phần lớn 37 AC có một con số. Spec mục 7 đã chốt: sau quyết định *"vị trí không quyết định kết cục"*, **mọi AC còn lại đều đo được trên vị trí** — thứ tệp xuất đã chứa. Nên spec 009 **không thêm một ngoại lệ nào** vào danh sách ngoại lệ đóng mà spec 007 đang canh bằng máy. Bộ đo mới: `doMucDich.ts` (**D159**), tách khỏi `doCoHoc.ts` để file 749 dòng ấy giữ đúng vai trò lưới canh không-tệ-đi. ❗**Một ngoại lệ thật:** **AC-40.12** đo *"thay người do máy quyết định"*, và v6 **không có** việc ấy (`tran.ts:1095`) — mẫu `0/0`. Nó **không** được tick bằng mắt và **không** được tick bằng một phép kiểm rỗng; nó là câu hỏi ở **mục 10.3**. |
+| **P5** Mỗi AC dạng so sánh phải có một test chứng minh | ⚠️ **Phải làm, và nó là phần lớn công việc — cộng MỘT AC không đo được** | Phần lớn **36** AC có một con số. Spec mục 7 đã chốt: sau quyết định *"vị trí không quyết định kết cục"*, **mọi AC còn lại đều đo được trên vị trí** — thứ tệp xuất đã chứa. Nên spec 009 **không thêm một ngoại lệ nào** vào danh sách ngoại lệ đóng mà spec 007 đang canh bằng máy. Bộ đo mới: `doMucDich.ts` (**D159**), tách khỏi `doCoHoc.ts` để file 749 dòng ấy giữ đúng vai trò lưới canh không-tệ-đi. ✅ **Và không còn ngoại lệ nào:** AC-40.12 từng là một — nó đo *"thay người do máy quyết định"*, thứ v6 không có — nhưng người dùng đã **chuyển nó ra khỏi spec** ngày 2026-11-28 (**mục 10.3**). Nên **mọi AC còn lại của spec 009 đều đo được**, và P5 không phải xin một miễn trừ nào. |
 | **P6** Mỗi giai đoạn bàn giao phải tự chạy được | ✅ | Thứ tự ở mục 9 chia theo lát cắt dọc: hết lát 1 là **xem được một trận trên trình duyệt** với 22 người đi bốn hướng khác nhau. Không lát nào để lại nút không làm gì — spec này không thêm một nút nào. |
 | **P7** Tệp sao lưu phải mở lại được sau khi ứng dụng lớn lên | ✅ | Spec 009 **không thêm một trường nào** vào bản ghi trận hay tệp sao lưu. Mục đích chỉ sống trong **tệp xuất dữ liệu trận** (`tepXuat.ts`) — một tệp **đọc một chiều**, không phải đường nhập. `backupSchema.ts` không đổi một dòng. |
 | **P8** Song ngữ Việt–Anh, mỗi ngôn ngữ trọn vẹn | ✅ **và spec tự khai, đã kiểm lại** | Spec 009 **không sinh một chuỗi hiển thị nào**: mục đích vào tệp xuất dưới dạng **mã định danh**, và hiến pháp P8 nói rõ *"Tên biến, tên file và mã định danh trong code không chịu ràng buộc này"*. Không nhãn nào vào `domain/`. Nếu sau này muốn hiện mục đích ra sân thì đó là một spec sau, và lúc ấy nghĩa vụ P8 mới sinh. |
@@ -195,7 +196,7 @@ Số D tiếp nối spec 011 (dừng ở **D146**).
 | # | Quyết định | Phương án đã chọn | Phương án loại bỏ | Lý do |
 |---|---|---|---|---|
 | **D147** | Mọi quyết định mới rút ngẫu nhiên từ đâu | **Dòng rút 2** qua `hatGiongMoc(maTran, chiSoMoc)`. Và — quan trọng hơn — **một bất biến kèm theo: không quyết định mới nào được đổi một trường nào của trạng thái v6**, `trenSan` trước hết. | (a) Dòng rút 1 (kết cục). (b) Một **dòng 3** mới. (c) Không rút gì, mọi thứ tất định. | (a) Rút trên dòng 1 **dịch dãy số của v6**, và `tran.ts:1570` rút một lần cho **mỗi** hành động nên một lần lấn là tỉ số đổi ở mọi mã. (b) `LECH_DONG = 2^30` và `4 × 2^30 = 2^32 ≡ 0`, nên **dòng 3 là dòng cuối còn chỗ** và dòng 4 **quấn về dòng 0 của v6**. Không tiêu nó khi chưa cần. Dòng 2 dư rộng: một trận tiêu `11.508 × 64 = 736.512` lần rút trên một cung `2^30 = 1.073.741.824`, tức **0,07%**. (c) Hai AC đòi một lựa chọn thật: AC-40.4 (ép lại **hoặc** lùi về) và AC-40.14 (chấn thương trung bình 0–1). |
-| **D163** | ⚠️ **(Hoàn tất lập luận của D147.) Tách hạt giống KHÔNG phải tách trạng thái — và bản nháp của plan này đã nhầm hai thứ ấy** | **Bất biến phải phát biểu ra mặt:** dòng rút 2 bảo đảm **giá trị** rút không dịch; nó **không** bảo đảm gì về **hậu quả**. Nên lời hứa nền cần **hai** điều, không một: (1) rút trên dòng 2, **và** (2) **không đổi `trenSan`, `theLuc`, `thongKe` hay bất kỳ trường nào của `TrangThaiTran`**. | Tin rằng chỉ cần tách dòng rút là đủ. | 🐞 **Đường vỡ, truy được từng bước:** `apVaoBen` case `'thay-nguoi'` (`tran.ts:1140`) đổi `trenSan` → `doiHinhTrenSan` → `tinhSucManh` (`tran.ts:571`) → `heSoTheLuc` (`sucManh.ts:118`) → `heSoTuongQuan` (`chuoiBong.ts:141`) → **độ dài `kq.cacHanhDong`** → vòng rút ở `tran.ts:1570` tiêu **số lần rút khác** → cả trận lệch. Và `daThay` phát thẳng dòng sự kiện `'thay-nguoi'` (`tran.ts:1773`), nên dòng sự kiện **dài thêm một dòng**, không chỉ đổi nội dung. Hai AC đi đúng vào đường ấy nếu làm theo cách thông thường: **AC-40.12** (thay người) và **AC-40.14/40.15** (chấn thương). Spec 009 xử chúng bằng **D155** (chấn thương **không** rời sân) và **mục 10.3** (AC-40.12 là câu hỏi), nên bất biến còn nguyên — nhưng nó phải được **viết ra**, vì nó là thứ thật sự giữ lời hứa, không phải ba dòng rút. |
+| **D163** | ⚠️ **(Hoàn tất lập luận của D147.) Tách hạt giống KHÔNG phải tách trạng thái — và bản nháp của plan này đã nhầm hai thứ ấy** | **Bất biến phải phát biểu ra mặt:** dòng rút 2 bảo đảm **giá trị** rút không dịch; nó **không** bảo đảm gì về **hậu quả**. Nên lời hứa nền cần **hai** điều, không một: (1) rút trên dòng 2, **và** (2) **không đổi `trenSan`, `theLuc`, `thongKe` hay bất kỳ trường nào của `TrangThaiTran`**. | Tin rằng chỉ cần tách dòng rút là đủ. | 🐞 **Đường vỡ, truy được từng bước:** `apVaoBen` case `'thay-nguoi'` (`tran.ts:1140`) đổi `trenSan` → `doiHinhTrenSan` → `tinhSucManh` (`tran.ts:571`) → `heSoTheLuc` (`sucManh.ts:118`) → `heSoTuongQuan` (`chuoiBong.ts:141`) → **độ dài `kq.cacHanhDong`** → vòng rút ở `tran.ts:1570` tiêu **số lần rút khác** → cả trận lệch. Và `daThay` phát thẳng dòng sự kiện `'thay-nguoi'` (`tran.ts:1773`), nên dòng sự kiện **dài thêm một dòng**, không chỉ đổi nội dung. Hai AC đi đúng vào đường ấy nếu làm theo cách thông thường: **AC-40.12** (thay người) và **AC-40.14/40.15** (chấn thương). Spec 009 xử chúng bằng **D155** (chấn thương **không** rời sân) và **mục 10.3** (AC-40.12 **ra khỏi phạm vi**, người dùng chốt 2026-11-28), nên bất biến còn nguyên — nhưng nó phải được **viết ra**, vì nó là thứ thật sự giữ lời hứa, không phải ba dòng rút. |
 | **D164** | ❗ **(Hoàn tất lập luận của D147.) Dụng cụ canh dải 64 là một HẰNG VIẾT TAY — nó chưa từng canh gì** | **Một task CHẶN, đi trước mọi lát cắt dùng dòng 2:** thay `const daRut = 0` bằng một bộ đếm thật (`Rng` bọc có đếm), **đo** số lần rút lớn nhất một mốc trên 10 mã, **báo số**, rồi mới ghim. | (a) Tin vào phép kiểm hiện có. (b) Nới `RUT_MOI_MOC` trước khi đo. | (a) `tranLienTuc.ts:896` là `const daRut = 0`, nên cổng `if (daRut > RUT_MOI_MOC)` là **mã chết** — `0 > 64` không bao giờ đúng — và phép kiểm ở `tranLienTuc.test.ts:224` được viết để *"cố ý đỏ khi Phase 54 đến"* thực ra đang khẳng định một **hằng số**: nó **không bao giờ đỏ được**. Câu *"ngưỡng 64 có người canh"* trong bản nháp của plan này là **sai**. (b) Nhu cầu ước lượng ở một mốc: 22 người chọn mục đích **không** rút (phân công tất định theo thứ tự ô — xem **D152**), cộng ~1 lần rút mỗi lần bóng đổi chủ (AC-40.4) và ~1 lần thử chấn thương, nên **dự kiến dưới 64 rất xa**. Nhưng *"dự kiến"* không phải *"đo"*, và cổng ấy `throw` **giữa lúc mô phỏng**. Nếu đo ra vượt: nới lên **256** là an toàn (`11.508 × 256 = 2.946.048` ≪ `2^30`), và nó đổi `hatGiongMoc` của mọi mốc `k > 0` — nhưng **chỉ trên dòng 2**, nên nó đổi **vị trí** chứ không đổi **tỉ số**. |
 | **D148** | Có bump `PHIEN_BAN_ENGINE_LIEN_TUC` (101) không | **Không bump.** | Bump lên 102 để "trận cũ phát lại bằng mô hình cũ". | `matchRepo.ts:246` so `tran.phienBanEngine !== phienBanEngineHienTai` bằng **đẳng thức tuyệt đối**, nên bump là **tước nút đấu lại của mọi trận liên tục đã lưu** — chạm **P3** lần thứ hai. Và nó **không mua gì**: vị trí mét **không vào bản ghi trận** (giả định mục 10 của spec), còn dòng sự kiện và tỉ số **không đổi**, nên một trận lưu trước spec 009 phát lại cho **đúng kết quả cũ**, chỉ hình dạng đẹp hơn. 📌 Đây là chỗ bản `Draft` của spec nói sai cái giá (*"không bắt ai mất gì"*), và nhật ký làm rõ mục 11 đã ghi lại. |
 | **D149** | Thể lực: sửa `theLuc.ts` hay thêm một đại lượng | **Thêm `theLucCoHoc`, một đại lượng RIÊNG**, chỉ kẹp tốc độ, **một chiều**, không bao giờ quay về v6. | (a) Sửa `theLuc.ts` cho nó giảm theo quãng đường. (b) Dùng `theLuc` của v6 để kẹp tốc độ, không thêm gì. | (a) **Đường truy đã đo**: `giamTheLuc` (`tran.ts:981`) → `heSoTheLuc` (`sucManh.ts:90`) → `smCong/smThu.trungBinh` → `heSoTuongQuan` (`chuoiBong.ts:97`) → **số bước của `kq.cacHanhDong`** → số lần rút `rng` ở `tran.ts:1569` dịch → tỉ số đổi ở **mọi** mã. Và `PHIEN_BAN_ENGINE` của v6 phải tăng, làm `tuongThichEngine.test.ts` (584 dòng) đỏ. (b) `theLuc` v6 là **hằng trong suốt 3 pha của một phút** và chỉ nhảy bậc ở ranh giới phút — dùng nó kẹp tốc độ là **vỡ AC-40.9** (*"không nhảy bậc, ≤ 1 m/s giữa hai mốc"*) đúng ở mỗi phút. ⚠️ **Cái giá, nói thẳng:** ứng dụng có **hai con số thể lực** không bằng nhau. `theLuc` v6 nuôi **kiệt sức** (`moiKietSuc` → sự kiện `'kiet-suc'`, `tran.ts:1058`) và **kết cục**; `theLucCoHoc` nuôi **tốc độ** và **quãng đường**. Người đọc code phải biết điều đó, nên hai cái tên khác nhau rõ và mỗi file có một khối chú thích trỏ sang file kia. ✅ **Một chỗ cái giá ấy KHÔNG tới, và đã kiểm:** lớp vẽ có `doMetTuTheLuc` đọc `theLuc` của v6 (`src/ui/noiSuy.ts:85`), nhưng `viTriVe.ts:90-91` ghi rằng ở chế độ liên tục **bảy lớp của chế độ cổ điển đều tắt**, *"hệ số theo độ mệt"* trong đó. Nên **không** có hai câu chuyện mệt trên cùng một màn hình: ở chế độ liên tục màn hình chỉ thấy **một** — cái của `theLucCoHoc`, qua trần tốc độ. 🐞 **Và một câu trong bản nháp của plan này SAI, nên nó bị gỡ:** *"`theLuc` v6 vẫn nuôi thay người"* — không. `theLuc` **không xuất hiện trong một điều kiện nào** của `kiemTraCanThiep` (`tran.ts:1095-1113`); bốn điều kiện ở đó là còn người trên ghế, người ra đang trên sân, người vào đang trong dự bị, người vào chưa nhận thẻ đỏ. Thể lực không nuôi một quyết định thay người nào, vì **không có quyết định thay người nào** — xem **mục 10.3**. **Một chiều** vì thế đúng theo cấu trúc: với AC-40.12 ra khỏi phạm vi và chấn thương không rời sân (**D155**), không còn một đường nào từ `theLucCoHoc` về v6. |
@@ -460,9 +461,12 @@ id cho mỗi bước `chuyen`/`re-bong`. Nên AC-41.11 *"đúng một đồng đ
 
 ## 6. Ánh xạ AC → thiết kế
 
-**36 / 37 AC có nơi được hiện thực.** AC còn lại là **AC-40.12**, và nó không phủ được vì thứ nó
-đo **không tồn tại trong ứng dụng** — xem **mục 10.3**. Ghi `36/37` ra mặt thay vì viết *"phủ
-hết"* rồi để một hàng nói ngược: một bảng phủ nói sai về chính nó là bảng vô dụng.
+**36 / 36 AC có nơi được hiện thực — phủ hết.**
+
+📌 Bản đầu của plan này ghi `36/37`: AC-40.12 không phủ được vì thứ nó đo **không tồn tại trong
+ứng dụng**. Người dùng chốt ngày **2026-11-28** chuyển nội dung AC ấy sang **spec đầu tiên sở
+hữu huấn luyện viên máy**, nên spec 009 còn **36 AC** và bảng dưới phủ **hết**. Số `AC-40.12`
+**không được dùng lại** cho nội dung khác — xem Non-goals của `spec.md`.
 
 ### US-40 — khối đội hình và thể lực (AC-40)
 
@@ -487,7 +491,6 @@ hết"* rồi để một hàng nói ngược: một bảng phủ nói sai về 
 | AC-40.10 | `quangDuongCongDon` tích theo mốc; dải 9–12 km là **đích hiệu chỉnh** của `khoiDoiHinh` (**R70**). ⚠️ Đo trên **trận đủ độ dài** (`tongPhutTran`, thực tế **94–99 phút**), không trên *"đúng 90 phút"* — tập ấy **rỗng** (**D167**). 📌 Và dải này **không đạt được** trong mô hình một hệ số: 9 km đòi `p ≥ 0,605`, mà ở `p` ấy bề ngang trần là 26,9 m, dưới sàn 35 m của AC-40.2 — bằng chứng thứ ba của **D165** |
 | AC-40.11 | Cùng phép đo, lọc ô thủ môn; dải 5–6 km, cùng cách đọc *"trận đủ độ dài"* (**D167**). `kepDichThuMon` đã chặn thủ môn khỏi đi xa, nên con số này là **hệ quả của phép kẹp cộng hai mục đích GK** |
 | AC-40.17 | `chonViTriThuMon` — công thức ở **mục 4.5**, ba chỉ số `phan-xa` + `bat-bong` + `quyet-doan`. ⚠️ **KHÔNG** dùng `doc-tinh-huong` như ví dụ của AC nêu: thủ môn **không điền** chỉ số ấy, nên nó làm mọi thủ môn giống nhau → **D156**. Phép kiểm: hai thủ môn chỉ số khác nhau, cùng tình huống → hai điểm khác nhau |
-| AC-40.12 | ❓ **KHÔNG đáp ứng được — và đó là câu hỏi duy nhất `/tasks` phải chờ.** v6 **không có thay người do máy**: `kiemTraCanThiep` (`tran.ts:1095`) chặn thẳng đội không phải của người dùng, nên mẫu là `0/0`. Ba đường và cái giá từng đường ở **mục 10.3**; đề xuất của plan là **chuyển AC sang spec sở hữu huấn luyện viên máy** |
 | AC-40.13 | `SAN_TOC_DO = 4` trong `theLucCoHoc.ts`, lấy neo từ `TOC_DO_LUI_TOI_DA = 4` của spec 007 — **một con số, một chỗ**. `heSoTocDoTheoTheLuc` kẹp dưới sao cho trần không xuống dưới sàn ấy |
 | AC-40.14 | `chanThuongTaiMoc(rng, theLucCoHoc)` rút từ **dòng rút 2**, xác suất đặt sao cho trung bình 0–1 mỗi trận. ⚠️ Chấn thương ở đây là **trạng thái cơ học**: người ấy chạy chậm nhưng **không rời sân** và **không sinh một sự kiện nào** — v6 không có khái niệm chấn thương, và thêm một sự kiện là vỡ lời hứa nền → **D155**. Phép kiểm đo trung bình trên ≥ 20 mã |
 | AC-40.15 | Đạt **theo cấu trúc**: chấn thương sống trong `TrangThaiLienTuc` và **không có đường nào ra tới hồ sơ cầu thủ**. Canh bằng `boundaries.test.ts` đã có cộng một phép kiểm so hồ sơ trước/sau trận **từng trường** |
@@ -623,7 +626,7 @@ spec 009 bắt từ **R68** cho sạch).
 | **R69** | **Rò rỉ kết cục.** Một dòng đọc vị trí mét rồi cho nó ảnh hưởng tới một quyết định của v6 — rất dễ xảy ra **vô tình** khi `tranLienTuc.ts` đã có cả hai thứ trong cùng một hàm | **Cao** | Phá **lời hứa nền** của cả spec, và phá nó **âm thầm** — tỉ số đổi mà không AC nào đỏ | Phép kiểm tệp vàng ở **mục 7.2**: 10 mã, so dòng sự kiện và tỉ số **từng ký tự**, chạy ở **mọi** lát cắt. Tệp vàng sinh ở **lát 0**, trước khi một dòng nào của spec 009 chạy. Cộng `rutMoiMoc` đã có sẵn: nó đếm số lần rút mỗi mốc và ném khi quá 64 |
 | **R70** | **Quãng đường 9–12 km không ra.** Đó là một bài hiệu chỉnh, không phải một bài cấu trúc: trung bình phải đúng **1,85 m/s** trên 90 phút | **Cao** | AC-40.10 và AC-40.11 đỏ | Đo **sớm**, ở lát 0, để biết nền là bao nhiêu (hôm nay gần như chắc chắn thấp hơn nhiều: 28,2% số lượt đứng im hoàn toàn). Nếu dải không ra: **hỏi người dùng**, và nhớ rằng chính AC-40.10 tự ghi *"⏳ hợp đồng có ngày hết hạn"* — spec 010 sở hữu phân bổ cường độ, và tổng quãng đường là **hàm của** nó |
 | **R71** | **Hai con số thể lực trôi khỏi nhau** và người đọc code sau này gộp chúng lại | Trung bình | `theLucCoHoc` rò vào v6 → R69 | **D149** đặt hai tên khác nhau rõ, và mỗi file mang một khối chú thích trỏ sang file kia nói **vì sao** chúng phải tách. `theLuc.ts` **không đổi một dòng**, nên một lần sửa nó là một dòng diff dễ thấy khi review |
-| **R72** | **AC-40.12 không có phần tử nào để đo.** v6 **không có thay người do máy** — `kiemTraCanThiep` (`tran.ts:1095`) chặn thẳng đội không phải của người dùng | **Chắc chắn** — đã đo | AC-40.12 xanh **vô nghĩa** (0/0), hoặc đỏ vì phép kiểm chống rỗng | Đưa vào **mục 10**: một câu hỏi cho người dùng **trước `/tasks`**. Không tự thêm thay người do máy (nó **sinh sự kiện** → R69), và không tự bỏ AC |
+| **R72** | ✅ **ĐÃ XỬ — không còn là rủi ro.** AC-40.12 đo *"thay người do máy"*, thứ v6 không có (`kiemTraCanThiep`, `tran.ts:1095`), nên mẫu là `0/0` | **Chắc chắn** — đã đo | AC-40.12 xanh **vô nghĩa** (0/0), hoặc đỏ vì phép kiểm chống rỗng | Người dùng chốt **2026-11-28**: chuyển nội dung AC sang **spec đầu tiên sở hữu huấn luyện viên máy**. Giữ hàng này trong bảng thay vì xoá, vì nó ghi lại **vì sao** một AC rời khỏi spec — và vì nó nêu tên cái bẫy đã bị từ chối: tự thêm thay người do máy là **sinh một dòng sự kiện** (→ **R69**) |
 | **R73** | **Phép phân công mục đích không tất định** vì nó đi qua một `Map` hoặc một `sort` không bền | Trung bình | **P1** vỡ, AC-41.20 đỏ, và nó chỉ lộ ra ở một mã trận lẻ | `phanMucDich` xếp theo **chỉ số ô đội hình** (0..10), đúng khuôn `choDungDoiHinhMet` đã làm — chú thích của nó ghi *"thứ tự đầu vào là thứ tự `doiHinhTrenSan`, nên hàm **tất định**"*. Phép kiểm chạy hai lần cùng đầu vào và so từng phần tử |
 | **R74** | **Hai AC mới cho 0 mẫu** vì điều kiện lọc không bao giờ thoả (*"bóng ở phần sân của họ"*, *"đội đang dẫn ở 15 phút cuối"*) | Trung bình | Một AC xanh mà không đo gì — lỗi đã bắt được **bốn** lần trong dự án này | Khuôn `VE_CHUA_CO_MAU` của `doCoHoc.ts`: một vế 0 mẫu **phải** được khai kèm lý do, không được im lặng. Cộng một `it` **⚠️ CHỐNG RỖNG** riêng cho **mỗi** phép đo tỉ lệ, đúng quy ước 37 lần trong 15 file |
 | **R75** | **Cột mới của tệp xuất làm `doCoHoc.ts` lệch cột** | Thấp | Sáu món nợ cơ học báo sai, và lưới canh không-tệ-đi thành vô dụng | `doCoHoc.ts:290` `bangCot` tra cột **bằng tên** từ hàng tiêu đề, không bằng chỉ số — nên **D151** an toàn theo cấu trúc. Vẫn chạy `doCoHoc.test.ts` ở lát 4 để khẳng định |
@@ -750,21 +753,23 @@ Lớp kiểm cuối của Definition of Done. Không code.
 
 ## 10. Việc cần người dùng chốt trước khi `/tasks`
 
-**Chưa xong — hai câu hỏi đang chờ.** Bốn việc, theo đúng khuôn mục 10 của plan 011:
+**Một câu hỏi còn chờ, và nó KHÔNG chặn `/tasks`.** Năm việc, theo đúng khuôn mục 10 của plan 011:
 
 - [x] **AC-40.17 nêu ví dụ một chỉ số thủ môn KHÔNG điền** → plan chọn ba chỉ số thủ môn thật sự
   có (**D156**). Là **ví dụ** trong ngoặc, không phải thân AC, nên plan xử được — chỉ báo.
 - [x] **AC-41.22 nêu ví dụ một chỉ số KHÔNG TỒN TẠI** → plan dùng `nhan-quan` + `quyet-doan`
   (**D157**). Cũng là ví dụ — chỉ báo.
 - [x] **"Một công thức ghi trong spec" — ghi ở đâu** → mục 4.5 của plan này (**D158**).
-- [ ] ❓ **AC-40.12 không có một phần tử nào để đo.** Ba đường, cái giá từng đường ở **10.3**.
-  Đề xuất: chuyển AC sang spec sở hữu huấn luyện viên máy. **Cần người dùng chốt.**
+- [x] ❓ **AC-40.12 không có một phần tử nào để đo** → **người dùng chốt 2026-11-28: chuyển nội
+  dung AC sang spec đầu tiên sở hữu huấn luyện viên máy**, giữ nguyên số và nguyên lời. Spec 009
+  còn **36 AC**, và mục 6 phủ **hết**. Đã ghi vào Non-goals và Nhật ký làm rõ của `spec.md`.
 - [ ] ❓ **78,95 ms có phải ngân sách của chế độ liên tục không.** Xem **10.4**.
   **Cần người dùng chốt** — nhưng nó **không** chặn việc đo.
 
 Ba việc đầu là **dữ kiện spec nói sai**, không phải lựa chọn: tôi đã chọn đường duy nhất còn lại
-và ghi thành quyết định; chỗ này chỉ để người dùng biết. Hai việc sau là **câu hỏi thật**, và
-`/tasks` không nên chạy trước khi **10.3** được trả lời.
+và ghi thành quyết định; chỗ này chỉ để người dùng biết. Việc thứ tư là một **câu hỏi thật** và
+nó **đã được trả lời**, nên **`/tasks` chạy được**. Việc thứ năm cũng là một câu hỏi thật, nhưng
+nó **không chặn** gì: lát 5 đo và báo số dù nó được trả lời thế nào.
 
 ### 10.1 ⚠️ Hai chỉ số mà ví dụ trong spec nêu KHÔNG tồn tại *(đã xử, chỉ báo)*
 
@@ -785,7 +790,7 @@ AC-40.17 và AC-41.22 đòi công thức *"ghi trong spec"*, nhưng `spec.md` m�
 mọi chi tiết kỹ thuật. **D158** đọc nó là *"ghi trong tài liệu đặc tả, không phát minh trong
 code"* và đặt công thức ở `plan.md` mục 4.
 
-### 10.3 ❓ AC-40.12 không có phần tử nào để đo — **cần người dùng chốt**
+### 10.3 ✅ AC-40.12 không có phần tử nào để đo — **người dùng chốt 2026-11-28: (b)**
 
 > AC-40.12 — KHI một cầu thủ được thay ra THÌ người vào sân PHẢI có thể lực từ 90 trở lên và
 > người rời sân PHẢI có thể lực từ 70 trở xuống, ở ít nhất **80% số lượt thay người do máy
@@ -797,8 +802,8 @@ phương không bao giờ thay người**. Mọi lần thay người đều do *
 (`TrangTran.tsx:729` → `useMatch.ts:335`) hoặc do phát lại bản ghi. Và `theLuc` **không xuất
 hiện trong một điều kiện nào** của việc thay người.
 
-Nên AC-40.12 hôm nay có **mẫu rỗng**: `0/0`. Nó xanh một cách vô nghĩa, và phép kiểm chống rỗng
-mà mục 7.3 đòi sẽ làm nó **đỏ**.
+Nên AC-40.12 có **mẫu rỗng**: `0/0`. Nó xanh một cách vô nghĩa, và phép kiểm chống rỗng mà mục
+7.3 đòi sẽ làm nó **đỏ**.
 
 **Ba đường, và cái giá của từng đường:**
 
@@ -808,8 +813,26 @@ mà mục 7.3 đòi sẽ làm nó **đỏ**.
 | **(b)** | **Chuyển AC-40.12 sang spec sau** (nơi sở hữu huấn luyện viên máy) | Spec 009 mất một AC. Nhưng spec đã có một Non-goal cùng hướng — *"Huấn luyện viên máy đổi sơ đồ giữa trận… cần một tác nhân ra quyết định ở cấp **đội**, không phải cấp **người**. Để lại cho một spec sau"* — và thay người do máy là **đúng tác nhân ấy** |
 | **(c)** | **Đọc lại AC là về thay người do NGƯỜI DÙNG**, và đo trên một chuỗi can thiệp dựng sẵn | AC đổi nghĩa: *"do máy quyết định"* thành *"do người dùng"*. Nó đo được, nhưng nó đo **người dùng chơi có hợp lý không**, không đo ứng dụng |
 
-**Tôi đề xuất (b)**, vì nó là đường duy nhất không chạm lời hứa nền và không đổi nghĩa một AC
-người dùng đã chốt. Nhưng đây là **AC của người dùng**, nên tôi không tự chuyển nó.
+✅ **Người dùng chọn (b) ngày 2026-11-28.** Nội dung AC-40.12 chuyển sang **spec đầu tiên sở hữu
+huấn luyện viên máy**, giữ **nguyên số** và **nguyên lời**.
+
+**Đã làm, trong cùng một commit:**
+
+- Gỡ AC-40.12 khỏi mục 4 của `spec.md`. Spec 009 còn **36 AC** (17 ở US-40, 19 ở US-41).
+- Ghi nó thành một **món nợ có tên** trong Non-goals của `spec.md`, gắn vào đúng dòng Non-goal
+  đã đẩy *"huấn luyện viên máy đổi sơ đồ giữa trận"* sang một spec sau — **cùng tác nhân cấp
+  đội**, nên nó về cùng một chỗ thay vì mở một món nợ thứ hai.
+- Ghi vào **Nhật ký làm rõ** của `spec.md`, lượt bốn, kèm cái giá: spec mất một AC, đổi lấy lời
+  hứa 🔒 còn nguyên.
+- Mục 6 của plan này nay phủ **36/36**.
+
+⚠️ **Số `AC-40.12` coi như ĐÃ CẤP.** Nó **không được dùng lại** cho một nội dung khác; khi spec
+kia tới, nó nhận lại đúng số này cùng đúng lời này. Đó là tiền lệ của **AC-40.4** — số spec 007
+cấp cho *"3–5 giây phản pressing"* và spec 009 phải trả lại sau khi một bản nháp lấy mất nó.
+
+📌 **Và một việc plan này KHÔNG làm:** nó không tự đặt số cho spec kia. Repo có 001–007, 009,
+011; spec sở hữu huấn luyện viên máy **chưa có số**, và đoán một số là dựng ra một con trỏ tới
+chỗ trống — đúng lỗi mà `spec.md` mục 4 đã phải ghi lại một lần.
 
 ### 10.4 ❓ **78,95 ms có phải ngân sách của chế độ liên tục không** — cần người dùng chốt
 
