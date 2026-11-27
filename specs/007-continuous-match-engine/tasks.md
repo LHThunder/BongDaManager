@@ -2005,6 +2005,13 @@ trận tiến theo giây**. Vòng cấm và khung thành vẽ đúng mét.
     được từ trước, tổng đi **77 → 26**, tức **tốt lên 66%**: AC-38.1(i) 33→8, (ii) 9→1,
     AC-38.3(i) 5→1, (ii) 25→14, AC-38.11 1→**0**.
   - 📍 **P2 nguyên vẹn**, lần thứ tư: 1.847 phép kiểm xanh, kể cả vân tay dòng sự kiện.
+  - 👁️ **NGƯỜI DÙNG XEM LẠI NGÀY 2026-11-27 VÀ PHÁN: "nhìn hơn".** Mã trận `2J84AJFWES`,
+    chế độ liên tục, góc nhìn sa bàn. Tôi đã nêu trước lượt xem đúng cái rủi ro của bản sửa —
+    *"không ai đón đường chuyền, quả bóng bay tới rồi nằm chờ"* — và hỏi thẳng liệu nó có khó
+    chịu hơn bản cũ không. Câu trả lời là **không**: bỏ cảnh một người chạy kèm quả bóng suốt
+    quãng bay **được nhiều hơn mất**, kể cả khi đổi lại là một quãng bóng nằm chờ.
+    📌 Ghi lại vì đây là **cổng người thứ ba** trong hai ngày — sau `T760` và `T761` — và cả
+    ba lần nó đều phán được thứ mà con số không phán hộ được.
   - ⛔ **Thứ T816 KHÔNG làm, và phải nói ra:** không ai **đón** đường chuyền ở điểm rơi. Người
     sở hữu chuỗi nay **ở lại** rồi chạy tới quả bóng **sau** khi nó dừng, nên có một quãng
     bóng nằm chờ. Người đón là một **vai có tên** trong `US-40` của spec 009 — xem mục 12 của
@@ -2503,6 +2510,10 @@ giải để người dùng quyết.
     chỉ ra đều đã trả; thứ chưa có là con mắt đã bác chúng lần đầu.
   - ✅ **XEM LẠI NGÀY 2026-11-26 — VÀ ĐẠT.** Người dùng xem lại chính mã trận `88CWDYCZ75`
     ở góc nhìn sa bàn sau `T814` + `T815` và **phán đạt**. Task đóng.
+  - 👁️ **LƯỢT XEM THỨ BA, 2026-11-27 — cũng đạt.** Sau `T816`, người dùng xem lại mã
+    `2J84AJFWES` và phán *"nhìn hơn"*. Ba lượt xem, ba kết quả khác nhau: bác (26/11), đạt sau
+    `T814`+`T815` (26/11), và đạt lần nữa sau `T816` (27/11). Mỗi lượt đều tìm ra một thứ mà
+    bộ kiểm không tìm ra.
   - 📌 **Đây là một cổng NGƯỜI, và nó đã làm đúng việc của nó.** Hai lỗi người dùng chỉ ra
     lọt qua **1.825** phép kiểm — không phép kiểm nào trong số đó sai, chúng chỉ không ai
     canh hai điều ấy. Bài học ghi lại cho task sau: một bộ phép kiểm xanh **không** thay
