@@ -19,6 +19,9 @@ import {
   chayHetTranLienTuc,
   taoTranLienTuc,
 } from './tranLienTuc'
+import { TAM_CHAM_BONG } from './coHoc'
+import { KHONG_AI_GIU as KHONG_AI_GIU_TRONG_TEP } from './loMoc'
+import { LE_TRON_MET } from './doCoHoc'
 
 /*
   ====================================================================
@@ -36,9 +39,15 @@ import {
   | nhỏ nhất (`Z0017XQ4B`) | 3.489.133 | **3,489** | 3,327 | 9 | 5.940 |
   | trung vị (`Z0018XQ4B`) | 3.970.120 | **3,970** | 3,786 | 13 | 6.020 |
   | **trung bình, 20 mã** | **4.058.571** | **4,059** | **3,871** | — | — |
-  | **ca xấu (`Z0019XQ4B`)** | **5.332.429** | **5,332** | **5,085** | **23** | 6.440 |
+  | **ca xấu (`Z0019XQ4B`)** | **5.332.957** | **5,333** | **5,086** | **23** | 6.440 |
 
   **Ca xấu dư 51,5% so với ngưỡng 11.000.000 byte của AC-45.11.**
+
+  📌 **Ca xấu nhích 5.332.429 → 5.332.957 byte (+528) ngày 2026-11-27 vì `T816`:**
+  `nguoi_giu` nay là `-1` suốt quãng bóng bay, và `-1` dài hơn một chữ số. Ba
+  hàng còn lại của bảng đo **trước** T816 nên chúng nhỏ hơn thực tế cùng một
+  bậc ấy; giữ nguyên vì chênh lệch là **một phần vạn** và không đổi kết luận
+  nào.
 
   ⚠️ **HAI CƠ SỐ, VÀ ĐÓ KHÔNG PHẢI SỰ CẨN THẬN THỪA.** `src/ui/ngonNgu/soLieu.ts`
   `coTep(byte)` chia `1024·1024` rồi in nhãn **"MB"** — tức repo đang in **MiB
@@ -428,5 +437,115 @@ describe('ngưỡng 11 MB của AC-45.11 (T745)', () => {
     expect(vuot).toBeGreaterThan(NGUONG_BYTE)
     // Và nó vượt vì khối DÀY phình, không vì cái gì khác.
     expect(tinhHuong.length).toBeGreaterThan(tepXau.tinh_huong.length)
+  })
+})
+
+/*
+  ====================================================================
+  AI ĐANG GIỮ BÓNG — VÀ AI THÌ KHÔNG (T816, AC-37.6).
+  ====================================================================
+
+  `AC-37.6` đòi hệ thống biết **ai đang giữ bóng** ở mỗi khoảnh khắc, *"hoặc
+  nói rõ **không ai** (bóng đang bay, bóng chết)"*. Khối này canh đúng vế thứ
+  hai — vế đã hỏng suốt từ T706 và không ai thấy, vì nó hỏng theo kiểu **nói
+  thừa** chứ không nói thiếu.
+
+  🐞 **Số đo trước T816**, 3 mã, 18.380 hàng: `-1` chỉ xuất hiện lúc **bóng
+  chết** (31,9%); trong 2.523 bước mà bóng bay trên 5 m, `nguoi_giu` **không
+  đổi người lần nào** và **không lần nào là `-1`**; **37,0%** số hàng có nêu
+  người giữ thì người ấy cách bóng **từ 5 m trở lên**, xa nhất **68,9 m**.
+  Người dùng nhìn thấy nó trước khi tôi đo, và gọi đúng tên: *"chuyền bóng thì
+  người ở lại, bóng di chuyển"* — hôm ấy thì ngược lại.
+
+  **Sau T816:** `-1` chiếm **70,1%**; **không một hàng nào** nêu người giữ cách
+  bóng quá **1,00 m** (`TAM_CHAM_BONG`), và 97,3% trong số đó dưới 0,5 m.
+*/
+describe('AC-37.6 — "không ai giữ" phải nói đúng lúc bóng bay (T816)', () => {
+  const MA_BA = MA_TRAN_CO_DINH.slice(0, 3)
+  const CAC_TEP = MA_BA.map((ma) => dungTepXuat(cauHinhMau(ma)))
+  const COT_GIU = 4
+  const COT_BONG_X = 1
+  const COT_BONG_Y = 2
+
+  function oCua(chiSo: number): number {
+    return 5 + chiSo * 3
+  }
+
+  it('không hàng nào nêu một người "đang giữ" cách bóng quá TAM_CHAM_BONG', () => {
+    let coGiu = 0
+    let xaNhat = 0
+    let tong = 0
+    for (const tep of CAC_TEP) {
+      for (const h of tep.moc.hang) {
+        tong += 1
+        const g = h[COT_GIU]!
+        if (g === KHONG_AI_GIU_TRONG_TEP) continue
+        coGiu += 1
+        const o = oCua(g)
+        const cach = Math.hypot(h[o]! - h[COT_BONG_X]!, h[o + 1]! - h[COT_BONG_Y]!)
+        if (cach > xaNhat) xaNhat = cach
+      }
+    }
+    /*
+      ⚠️ CHỐNG RỖNG. Một tệp mà **mọi** hàng đều nói "không ai giữ" cũng thoả
+      mệnh đề trên mà chẳng chứng minh gì — và nó sẽ là một hồi quy nặng hơn
+      cái T816 vừa sửa. Nên khẳng định có hàng nêu tên người, trước đã.
+    */
+    expect(tong).toBeGreaterThan(15_000)
+    expect(coGiu).toBeGreaterThan(4_000)
+    expect(xaNhat).toBeLessThanOrEqual(TAM_CHAM_BONG + LE_TRON_MET)
+  })
+
+  it('bóng BAY thì không ai giữ — trên hơn 2.000 bước bóng đi quá 5 m', () => {
+    let buocBay = 0
+    let coNguoiGiuKhiBay = 0
+    let xaNhatBongDi = 0
+    for (const tep of CAC_TEP) {
+      const h = tep.moc.hang
+      for (let i = 1; i < h.length; i += 1) {
+        const a = h[i - 1]!
+        const b = h[i]!
+        const quang = Math.hypot(
+          b[COT_BONG_X]! - a[COT_BONG_X]!,
+          b[COT_BONG_Y]! - a[COT_BONG_Y]!,
+        )
+        if (quang <= 5) continue
+        buocBay += 1
+        if (quang > xaNhatBongDi) xaNhatBongDi = quang
+        if (a[COT_GIU]! !== KHONG_AI_GIU_TRONG_TEP && b[COT_GIU]! !== KHONG_AI_GIU_TRONG_TEP) {
+          coNguoiGiuKhiBay += 1
+        }
+      }
+    }
+    // ⚠️ CHỐNG RỖNG: phải CÓ đường chuyền dài thật trong mẫu.
+    expect(buocBay).toBeGreaterThan(2_000)
+    expect(xaNhatBongDi).toBeGreaterThan(20)
+
+    expect(coNguoiGiuKhiBay).toBe(0)
+  })
+
+  it('và nhiều nhất MỘT người chạm bóng ở một mốc — tính chất của TAM_CHAM_BONG', () => {
+    /*
+      `TAM_CHAM_BONG = BAN_KINH_TRANH / 2` được chọn **vì** tính chất này:
+      `tachChen` giữ hai người bất kỳ cách nhau ít nhất `BAN_KINH_TRANH`, nên
+      hai người cùng nằm trong `TAM_CHAM_BONG` của một điểm là điều không dựng
+      nổi. Đây là phép kiểm biến lập luận ấy thành một con số.
+    */
+    let mocCoHaiNguoiCham = 0
+    let tongMoc = 0
+    for (const tep of CAC_TEP) {
+      for (const h of tep.moc.hang) {
+        tongMoc += 1
+        let gan = 0
+        for (let i = 0; i < 22; i += 1) {
+          const o = oCua(i)
+          const cach = Math.hypot(h[o]! - h[COT_BONG_X]!, h[o + 1]! - h[COT_BONG_Y]!)
+          if (cach <= TAM_CHAM_BONG) gan += 1
+        }
+        if (gan > 1) mocCoHaiNguoiCham += 1
+      }
+    }
+    expect(tongMoc).toBeGreaterThan(15_000)
+    expect(mocCoHaiNguoiCham).toBe(0)
   })
 })

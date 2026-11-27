@@ -91,7 +91,7 @@ describe('phép đo CÓ MẪU THẬT — chống rỗng (T742, AC-45.6)', () => 
     Một vế có 0 mẫu trả về "không vi phạm" **y hệt** một vế đã đo xong và đạt.
     Số mẫu là thứ duy nhất phân biệt hai chuyện ấy.
   */
-  it('mười ba vế có mẫu, và bốn vế rỗng được KHAI RA chứ không im', () => {
+  it('mười bốn vế có mẫu, và ba vế rỗng được KHAI RA chứ không im', () => {
     /*
       ⚠️ So với **`VE_CHUA_CO_MAU`**, không với một mảng viết tay ở đây — sửa
       2026-11-27. Bản trước liệt bốn tên ngay trong thân `it` trong khi hằng kia
@@ -107,11 +107,18 @@ describe('phép đo CÓ MẪU THẬT — chống rỗng (T742, AC-45.6)', () => 
     expect(CAC_VE).toHaveLength(17)
   })
 
-  it('bốn vế được khai là chưa có mẫu, và cả bốn đúng là 0', () => {
+  it('ba vế được khai là chưa có mẫu, và cả ba đúng là 0', () => {
+    /*
+      ⚠️ **Bốn → ba, và danh sách đổi theo HAI chiều ngược nhau (T816).**
+      `AC-38.6` cả hai vế **ra khỏi** danh sách — chúng có mẫu lần đầu kể từ
+      T742, vì `nguoi_giu` nay là `-1` suốt quãng bóng bay. `AC-38.5(khống
+      chế)` **vào** danh sách — `dan_bong` chỉ còn gán cho người **đang chạm**
+      bóng, nên khối dày (toàn pha bóng rời chân) không còn khung nào.
+      Chú thích đầy đủ ở `VE_CHUA_CO_MAU`.
+    */
     expect(VE_CHUA_CO_MAU).toEqual([
       'AC-38.5(đánh đầu)',
-      'AC-38.6(dải)',
-      'AC-38.6(thời gian bay)',
+      'AC-38.5(khống chế)',
       'AC-38.7',
     ])
     for (const v of VE_CHUA_CO_MAU) expect(KQ.soMau[v], v).toBe(0)
@@ -238,16 +245,23 @@ describe('phép đo CÓ MẪU THẬT — chống rỗng (T742, AC-45.6)', () => 
       vế ấy có người đo, nhưng không còn chứng minh được bao nhiêu. Ghi thành
       món nợ có tên ở `T814` của `tasks.md` chứ không lặng lẽ đổi số.
     */
-    expect(KQ.soMau['AC-38.4(lùi)']).toBe(22)
-    expect(KQ.soMau['AC-38.4(ngang)']).toBe(2423)
+    expect(KQ.soMau['AC-38.4(lùi)']).toBe(21)
+    expect(KQ.soMau['AC-38.4(ngang)']).toBe(2577)
   })
 })
 
-describe('SÁU VẾ ĐẠT trên chính tệp (T742, AC-45.6)', () => {
+describe('NĂM VẾ ĐẠT trên chính tệp (T742, AC-45.6)', () => {
+  /*
+    ⚠️ **SÁU → NĂM ngày 2026-11-27: `AC-38.5(khống chế)` rời khỏi danh sách
+    này và sang `VE_CHUA_CO_MAU`.** Nó không còn **đạt**, nó không còn **đo**:
+    sau `T816`, `dan_bong` chỉ gán cho người **đang chạm** bóng, và khối dày
+    toàn pha bóng rời chân nên không còn khung nào. 1.072 mẫu → 0.
+    📌 Mất 1.072 mẫu ấy là mất 1.072 lần tệp nói người sở hữu chuỗi "đang dẫn
+    bóng" **trong lúc cú sút của chính anh ta đang bay**. Xem `VE_CHUA_CO_MAU`.
+  */
   it('và mỗi vế đạt đều có mẫu — không vế nào đạt bằng cách không đo', () => {
     for (const ve of [
       'AC-38.4(lùi)',
-      'AC-38.5(khống chế)',
       'AC-38.9',
       'AC-38.10(c)',
       'AC-38.10(d)',
@@ -309,22 +323,28 @@ describe('MÓN NỢ đo được hôm nay — phép đo này KHÔNG xanh (T742)'
     cho người dùng kèm con số, không tự sửa và cũng không tự nới ngưỡng.
   */
 
-  it('5.980 hàng mỏng, 16 tình huống dày, 77 vi phạm', () => {
+  it('5.980 hàng mỏng, 16 tình huống dày, 450 vi phạm', () => {
+    /*
+      ⚠️ **77 → 450, và 424 trong 450 là vế VỪA MỞ MẮT, không phải lỗi mới.**
+      `T816` làm `AC-38.6` có mẫu lần đầu (914 + 207), và nó đỏ ngay: 280 + 144
+      = **424**. Trên những vế **đã** đo được từ trước, tổng đi **77 → 26**,
+      tức **tốt lên 66%**. Đừng đọc con số 450 như một bước lùi.
+    */
     expect(TEP.moc.hang.length).toBe(5980)
     expect(TEP.tinh_huong.length).toBe(16)
-    expect(KQ.viPham.length).toBe(77)
+    expect(KQ.viPham.length).toBe(450)
   })
 
   it('AC-38.1 và AC-38.2: vỡ khi đo trên DỊCH CHUYỂN, dù vận tốc đúng trần', () => {
-    expect(DEM.get('AC-38.1(i)')).toBe(33)
-    expect(DEM.get('AC-38.1(ii)')).toBe(9)
-    expect(DEM.get('AC-38.2(tăng)')).toBe(4)
+    expect(DEM.get('AC-38.1(i)')).toBe(8)
+    expect(DEM.get('AC-38.1(ii)')).toBe(1)
+    expect(DEM.get('AC-38.2(tăng)')).toBe(2)
     expect(DEM.get('AC-38.2(giảm)') ?? 0).toBe(0)
   })
 
   it('AC-38.3: cả hai vế đỏ ở độ phân giải MỐC', () => {
-    expect(DEM.get('AC-38.3(i)')).toBe(5)
-    expect(DEM.get('AC-38.3(ii)')).toBe(25)
+    expect(DEM.get('AC-38.3(i)')).toBe(1)
+    expect(DEM.get('AC-38.3(ii)')).toBe(14)
   })
 
   it('AC-38.4(ngang) sạch hẳn, AC-38.11 còn đúng MỘT mốc', () => {
@@ -337,7 +357,24 @@ describe('MÓN NỢ đo được hôm nay — phép đo này KHÔNG xanh (T742)'
       **6,0 m**. Một mốc trên 27.012 mẫu. Nêu ra chứ không làm tròn xuống.
     */
     expect(DEM.get('AC-38.4(ngang)') ?? 0).toBe(0)
-    expect(DEM.get('AC-38.11') ?? 0).toBe(1)
+    expect(DEM.get('AC-38.11') ?? 0).toBe(0)
+  })
+
+  /*
+    VẾ VỪA MỞ MẮT (T816) — và nó đỏ ngay, nên nó được ghim như một món nợ.
+
+    `AC-38.6` rỗng suốt từ T742 vì tệp chưa bao giờ nói "không ai giữ" lúc bóng
+    bay. T816 sửa chỗ ấy, và hai vế lập tức có mẫu **và** có vi phạm. Món nợ
+    này thuộc **cùng họ** với phần còn lại của khối: đo một đại lượng sống dưới
+    một giây trên một lưới **1 giây**. Một quả chuyền 20 m ở 16 m/s bay 1,25
+    giây, nên quãng đo giữa hai mốc là một phần của đường bay chứ không phải cả
+    nó — và tốc độ đọc ra thấp hơn tốc độ thật.
+  */
+  it('AC-38.6 vừa có mẫu lần đầu, và nó đỏ — 424 trong 450 vi phạm', () => {
+    expect(KQ.soMau['AC-38.6(dải)']).toBe(914)
+    expect(KQ.soMau['AC-38.6(thời gian bay)']).toBe(207)
+    expect(DEM.get('AC-38.6(dải)')).toBe(280)
+    expect(DEM.get('AC-38.6(thời gian bay)')).toBe(144)
   })
 
   it('và tổng số vi phạm đúng bằng tổng từng vế — không vế nào bị đếm hai lần', () => {
@@ -348,15 +385,15 @@ describe('MÓN NỢ đo được hôm nay — phép đo này KHÔNG xanh (T742)'
 
   /*
     Món nợ **không** là chuyện của riêng một mã trận: đo trên 5 mã cho
-    **77 / 101 / 57 / 78 / 90** (trước T814: 1.606 / 1.678 / 1.557 / 1.615 /
-    1.705). Phép kiểm chỉ canh **bậc độ lớn** của dải ấy, vì khẳng định năm con
+    **450 / 464 / 434 / 463 / 433** sau T816 (trước T816: 77 / 101 / 57 / 78 / 90;
+    trước T814: 1.606 / 1.678 / 1.557 / 1.615 / 1.705). Phép kiểm chỉ canh **bậc độ lớn** của dải ấy, vì khẳng định năm con
     số chính xác là buộc phép kiểm chạy 5 trận đầy đủ (≈3 giây) mỗi lần ai đó
     chạy bộ test.
   */
-  it('và nó ổn định quanh 100 trên một mã thứ hai, không phải chuyện của một mã', () => {
+  it('và nó ổn định quanh 450 trên một mã thứ hai, không phải chuyện của một mã', () => {
     const khac = doCoHoc(dungTepXuat(cauHinhMau(MA_TRAN_CO_DINH[1]!)))
-    expect(khac.viPham.length).toBeGreaterThan(40)
-    expect(khac.viPham.length).toBeLessThan(200)
+    expect(khac.viPham.length).toBeGreaterThan(300)
+    expect(khac.viPham.length).toBeLessThan(600)
   })
 })
 

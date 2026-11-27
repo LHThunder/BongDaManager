@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **30 AC**) |
 | **Plan** | `./plan.md` (Status `Approved`, D117–D134, R51–R64) |
-| **Tiến độ** | 49/53 — T813, **T814**, **T815**, **T760** và **T761** xong 2026-11-26. T814 gỡ **95%** món nợ cơ học của `T742` (1.613 → 77 vi phạm); T815 phá cái lưới ô vuông của đội hình; `T760` đạt ở lượt xem thứ hai; `T761` kiểm bằng mắt **4/4 mục đạt**; `T762` đóng spec bằng bảng 22/30 AC, rồi T744/T745/T750/T751 cộng lần khai lại ngoại lệ của `AC-45.6` đưa lên 25/30 — rồi **xuống 24/30** khi một lượt xem của người dùng làm `AC-37.6` bị gỡ tích (**`T816`** mở cùng ngày) |
+| **Tiến độ** | 50/54 — T813, **T814**, **T815**, **T760** và **T761** xong 2026-11-26. T814 gỡ **95%** món nợ cơ học của `T742` (1.613 → 77 vi phạm); T815 phá cái lưới ô vuông của đội hình; `T760` đạt ở lượt xem thứ hai; `T761` kiểm bằng mắt **4/4 mục đạt**; `T762` đóng spec bằng bảng 22/30 AC, rồi T744/T745/T750/T751 cộng lần khai lại ngoại lệ của `AC-45.6` đưa lên 25/30 — rồi `AC-37.6` bị gỡ tích và **`T816`** sửa xong trong ngày — tick lại, nhưng `AC-38.6` **mở mắt và đỏ**, nên vẫn **24/30** |
 | **Nền đo** | commit `5c652eb`, engine v6, **1.304 test xanh / 63 file test** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -1930,7 +1930,7 @@ trận tiến theo giây**. Vòng cấm và khung thành vẽ đúng mét.
     trong `spec.md`, không với con số của mô hình.
   - 📏 Toàn bộ: **84 file / 1.733 phép kiểm xanh** (T740+T741 để lại 1.682 — T742 thêm **51**).
 
-- [ ] **T816** — Người chuyền bóng **chạy theo đường chuyền của chính mình**. *(Thêm 2026-11-27
+- [x] **T816** — Người chuyền bóng **chạy theo đường chuyền của chính mình**. *(Thêm 2026-11-27
   từ một lượt xem của người dùng.)*
   - File: `src/engine/lienTuc/dienPha.ts` (dòng 182), `src/engine/lienTuc/tranLienTuc.ts`
     (dòng 761), phép kiểm cạnh chúng
@@ -1968,6 +1968,47 @@ trận tiến theo giây**. Vòng cấm và khung thành vẽ đúng mét.
   - ⛔ **Đây KHÔNG phải mô hình chiến thuật.** Nó chỉ sửa một trường dữ liệu đang nói sai và
     một dòng chọn đích đi theo trường ấy. *"Chạy chỗ"*, *"kèm người"*, *"cắt bóng"*, *"lùi
     khối"* là **US-40/US-41 của spec 009** — xem mục 12 của `spec.md`.
+  - ✅ **XONG 2026-11-27.** Hai câu hỏi bị gộp làm một, nay tách đôi:
+    - **đích** của người sở hữu chuỗi là `giuThucSu` — anh ta vẫn chạy tới quả bóng khi bóng
+      **không** bay, vì phải có ai đó đi lấy nó;
+    - **`nguoi_giu`** ghi vào lô chỉ nêu tên anh ta khi anh ta **đã tới nơi**, trong
+      `TAM_CHAM_BONG`. Giữa hai thứ ấy là quãng anh ta đang chạy, và câu trả lời đúng cho
+      quãng ấy là **không ai**.
+  - 📏 **`TAM_CHAM_BONG = BAN_KINH_TRANH / 2 = 1,0 m` là DẪN XUẤT, không đặt tay.** Nó là bán
+    kính lớn nhất khiến **không bao giờ có hai người cùng chạm một quả bóng**: `tachChen` giữ
+    hai người cách nhau ít nhất `BAN_KINH_TRANH`, nên hai người cùng nằm trong `r` của một
+    điểm sẽ cách nhau nhiều nhất `2r`. Có một phép kiểm biến lập luận ấy thành số: **0** mốc
+    trên 18.380 có hai người cùng chạm.
+  - **Số đo, đúng 3 mã của lần đo trước:**
+
+    | | trước | sau |
+    |---|---|---|
+    | hàng nói "không ai giữ" | 31,9% | **70,1%** |
+    | bước bóng bay > 5 m có người giữ ở cả hai đầu | **2.523 / 2.523** | **0** |
+    | hàng nêu người giữ cách bóng ≥ 5 m | **37,0%** | **0** |
+    | khoảng cách xa nhất | **68,9 m** | **1,00 m** |
+
+  - 💰 **HỆ QUẢ PHỤ LỚN NHẤT, và nó không nằm trong lời task: `AC-38.6` MỞ MẮT.** Hai vế ấy
+    rỗng suốt từ `T742` vì tệp chưa bao giờ nói "không ai giữ" lúc bóng bay — nên bộ đo không
+    có một quãng bay nào để nhìn. Nay chúng có **914** và **207** mẫu. Và chúng **đỏ**: 280 +
+    144 vi phạm. `AC-38.6` bị **gỡ tích**, `AC-45.6` mất một ngoại lệ.
+    📌 Đó là một AC **rời khỏi bóng tối**, không phải một AC vừa hỏng.
+  - ⚠️ **Hai chỗ đi ngược, nói ra chứ không giấu:**
+    - `AC-38.5(khống chế)` **1.072 mẫu → 0**, và nó vào `VE_CHUA_CO_MAU`. `dan_bong` chỉ gán
+      cho người **đang chạm** bóng, nên khối dày — toàn pha bóng **rời chân** — không còn
+      khung nào. 📌 Mất 1.072 mẫu ấy là mất 1.072 lần tệp nói một người "đang dẫn bóng" trong
+      lúc cú sút của chính anh ta **đang bay**.
+    - Sàn chống rỗng của `AC-38.8` ở `viTriVe.test.ts` hạ **1.000 → 500**: những cú đuổi theo
+      đường chuyền chạy trên 6 m/s và chúng chiếm gần bốn phần mười số mẫu. Đo được
+      **1.000+ → 601**. Sàn mới vẫn bắt được khối ấy nếu pha chạy nhanh biến mất.
+  - 📍 **Tổng vi phạm 77 → 450, và 424 trong 450 là vế vừa mở mắt.** Trên những vế **đã** đo
+    được từ trước, tổng đi **77 → 26**, tức **tốt lên 66%**: AC-38.1(i) 33→8, (ii) 9→1,
+    AC-38.3(i) 5→1, (ii) 25→14, AC-38.11 1→**0**.
+  - 📍 **P2 nguyên vẹn**, lần thứ tư: 1.847 phép kiểm xanh, kể cả vân tay dòng sự kiện.
+  - ⛔ **Thứ T816 KHÔNG làm, và phải nói ra:** không ai **đón** đường chuyền ở điểm rơi. Người
+    sở hữu chuỗi nay **ở lại** rồi chạy tới quả bóng **sau** khi nó dừng, nên có một quãng
+    bóng nằm chờ. Người đón là một **vai có tên** trong `US-40` của spec 009 — xem mục 12 của
+    `spec.md` — không phải một dòng thêm ở đây.
   - AC: AC-37.6
   - Phụ thuộc: —
 

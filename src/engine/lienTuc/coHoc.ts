@@ -554,6 +554,23 @@ export function huongNguoiMocSau(
  */
 export const BAN_KINH_TRANH = 2.0
 
+/**
+ * Trong bao xa thì một người được gọi là **đang chạm bóng**, mét (T816).
+ *
+ * ⚠️ **Dẫn xuất, không đặt tay: `BAN_KINH_TRANH / 2`.** Con số này phải thoả
+ * đúng một tính chất, và tính chất ấy quyết định nó: **không bao giờ có hai
+ * người cùng chạm một quả bóng**. `tachChen` bảo đảm hai người bất kỳ cách
+ * nhau ít nhất `BAN_KINH_TRANH`; nếu bán kính chạm là `r` thì hai người cùng
+ * nằm trong `r` của một điểm sẽ cách nhau nhiều nhất `2r`. Nên `2r ≤
+ * BAN_KINH_TRANH`, tức `r ≤ 1,0 m`, và lấy đúng dấu bằng cho rộng nhất.
+ *
+ * Số đo đứng sau nó: trên 3 mã, trong những mốc mà người sở hữu chuỗi thật sự
+ * cầm bóng, **63,9%** cách bóng dưới 0,5 m và **65,7%** dưới 1,0 m — phần còn
+ * lại là anh ta **đang chạy tới** quả bóng, và gọi đó là "đang giữ" chính là
+ * lời nói dối mà `AC-37.6` cấm.
+ */
+export const TAM_CHAM_BONG = 1.0
+
 /** Số vòng đẩy tối đa của `tachChen`. */
 const SO_VONG_TACH = 24
 

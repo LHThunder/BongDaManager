@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **ID** | `007-continuous-match-engine` |
-| **Status** | **Planned** — **24/30 AC đạt** (bảng đóng spec ở **mục 7c**, T762). Năm AC thuộc món nợ `T742` (đo trên **dịch chuyển**; trên **vận tốc thật** mô hình sạch hoàn toàn). AC thứ sáu là **`AC-37.6`**, **gỡ tích ngày 2026-11-27** sau khi người dùng xem và nói chuyển động *"dính liền, không tự nhiên"*: 37,0% số hàng nêu một người "đang giữ" cách bóng từ 5 m trở lên, và người ấy đuổi theo đường chuyền của chính mình — chủ `T816`. **Không `Done`**, và sẽ chỉ `Done` khi cả 30 AC đạt. |
+| **Status** | **Planned** — **24/30 AC đạt** (bảng đóng spec ở **mục 7c**, T762). Năm AC thuộc món nợ `T742` (đo trên **dịch chuyển**; trên **vận tốc thật** mô hình sạch hoàn toàn). AC thứ sáu là **`AC-38.6`**: `T816` làm nó **đo được trên tệp lần đầu** ngày 2026-11-27 và nó đỏ ngay (280/914 và 144/207) — cùng họ với `T742`, vì nó đo một đại lượng sống **dưới một giây** trên lưới **1 giây**. `AC-37.6` thì đã **tick lại** sau khi `T816` xong. **Không `Done`**, và sẽ chỉ `Done` khi cả 30 AC đạt. |
 | **Created** | 2026-11-19 |
 | **Clarified** | 2026-11-19, bổ sung 2026-11-22 và **2026-11-23** khi lập plan (mục 14 và 15) |
 | **Branch** | `007-continuous-match-engine` — **đã cắt** từ `main` tại `7e1b065` |
@@ -145,7 +145,7 @@ diện đoán giữa hai mốc cách nhau một phút**.
       bóng chết**, không khuyết mốc nào.
 - [x] AC-37.5 — KHI chạy lại cùng một mã trận với cùng hai đội, cùng chiến thuật xuất phát
       và cùng chuỗi can thiệp THÌ **từng khung hình PHẢI giống hệt tới từng chữ số** (P1).
-- [ ] AC-37.6 — KHI trận đang mô phỏng THÌ hệ thống PHẢI biết **ai đang giữ bóng** ở mỗi
+- [x] AC-37.6 — KHI trận đang mô phỏng THÌ hệ thống PHẢI biết **ai đang giữ bóng** ở mỗi
       khoảnh khắc, hoặc nói rõ **không ai** (bóng đang bay, bóng chết) — PHẢI không bắt giao
       diện suy ra điều đó từ danh sách người tham gia.
       > 🔴 **GỠ TÍCH NGÀY 2026-11-27 — TÔI ĐÃ TÍCH SAI Ở `T762` MỘT NGÀY TRƯỚC.** Tôi tick nó
@@ -165,6 +165,14 @@ diện đoán giữa hai mốc cách nhau một phút**.
       > người ấy **đuổi theo bóng 4,23 m mỗi bước** (370 bước trên 8 m) và kết thúc cách bóng
       > **15,58 m**. Người chuyền bóng **chạy theo đường chuyền của chính mình**.
       > Chủ: **`T816`** của spec 007.
+      > ✅ **`T816` XONG CÙNG NGÀY, và AC này được tick LẠI.** `nguoi_giu` nay là `-1` suốt
+      > quãng bóng bay, và chỉ nêu tên một người khi người ấy **đang chạm** bóng — trong
+      > `TAM_CHAM_BONG = BAN_KINH_TRANH / 2 = 1,0 m`, một con số **dẫn xuất** chứ không đặt
+      > tay: nó là bán kính lớn nhất khiến **không bao giờ có hai người cùng chạm một quả
+      > bóng**, vì `tachChen` giữ hai người cách nhau ít nhất `BAN_KINH_TRANH`.
+      > Đo lại trên đúng 3 mã ấy: `-1` đi từ **31,9% lên 70,1%**; **0** bước bóng bay có người
+      > giữ ở cả hai đầu (trước: 2.523/2.523); **không một hàng nào** nêu người giữ cách bóng
+      > quá **1,00 m** (trước: 37,0% cách từ 5 m, xa nhất 68,9 m), và 97,3% dưới 0,5 m.
 - [x] AC-37.7 — KHI engine tính trạng thái cho phần **thường** của trận THÌ mốc PHẢI cách
       nhau **1 giây**; ở **tình huống quan trọng** PHẢI dày lên thành **0,5 giây** (AC-37.4).
       Một trận vì thế có khoảng **5.400 mốc** thay vì 10.800.
@@ -190,9 +198,19 @@ hơn mức một cầu thủ thật làm được**, để **không còn cảm g
 - [x] AC-38.5 — KHI bóng ở trên không THÌ nó PHẢI có độ cao `z` theo mét; cầu thủ PHẢI chỉ
       đánh đầu được khi `z` trong **1,5–2,8 m**, và PHẢI chỉ khống chế bằng chân, đùi hoặc
       ngực khi `z` dưới **1,5 m**.
-- [x] AC-38.6 — KHI bóng được chuyền hoặc sút THÌ tốc độ PHẢI trong **12–20 m/s** (chuyền
+- [ ] AC-38.6 — KHI bóng được chuyền hoặc sút THÌ tốc độ PHẢI trong **12–20 m/s** (chuyền
       ngắn) hoặc **20–30 m/s** (chuyền dài và sút), và **thời gian bay PHẢI khớp** khoảng
       cách chia tốc độ.
+      > 🔴 **GỠ TÍCH NGÀY 2026-11-27 — vì `T816` làm nó ĐO ĐƯỢC lần đầu, và nó đỏ.** Hai vế
+      > của AC này rỗng suốt từ `T742`: tệp chưa bao giờ nói "không ai giữ" lúc bóng bay, nên
+      > bộ đo không có một quãng bay nào để nhìn. T816 bịt cái lỗ ấy, và hai vế lập tức có
+      > **914** và **207** mẫu — cùng **280** và **144** vi phạm.
+      > 📌 **Đây không phải một lỗi mới; nó là một lỗi vừa lộ ra.** Và nó thuộc **cùng họ**
+      > với món nợ `T742`: đo một đại lượng sống **dưới một giây** trên một lưới **1 giây**.
+      > Một quả chuyền 20 m ở 16 m/s bay 1,25 giây, nên quãng đo giữa hai mốc là **một phần**
+      > của đường bay chứ không phải cả nó, và tốc độ đọc ra thấp hơn tốc độ thật.
+      > 📌 Ở mức **hàm thuần** AC này vẫn xanh: `vatLyBong.test.ts` (6 `it`) và
+      > `tranLienTuc.test.ts` trên 10 mã. Chủ nợ là lưới mốc, không phải vật lý bóng.
 - [x] AC-38.7 — KHI bóng lăn sệt trên **sân khô** THÌ nó PHẢI chậm dần **1–2 m/s²**; trên
       **sân ướt** PHẢI chậm dần **ít hơn** mức đó, tức bóng đi xa hơn. *(Bản mô tả gốc ghép
       "sân ướt hoặc cỏ dài" vào cùng một chiều; hai thứ đó ngược nhau về ma sát — xem mục 9.)*
@@ -367,6 +385,14 @@ thay vì phải tin**.
       ĐÓNG, có tên, mỗi món một lý do và một chủ** — `AC-38.8`; `AC-38.5` vế *đánh đầu*;
       `AC-38.6` cả hai vế; `AC-38.7`; `AC-38.10` vế *(a)* và *(b)*. Danh sách ấy PHẢI được
       canh bằng máy: một vế mới rơi về **0 mẫu** mà không được khai PHẢI làm bộ kiểm đỏ.
+      > 📝 **Danh sách ấy đổi theo HAI chiều ngày 2026-11-27, vì `T816`** — và việc nó đổi
+      > được **mà không ai sửa lời AC** là bằng chứng rằng chữ "đóng và canh bằng máy" ở trên
+      > làm đúng việc. **Ra:** `AC-38.6` cả hai vế, vì chúng **có mẫu lần đầu** (914 + 207) —
+      > một ngoại lệ biến mất không phải do nới lời, mà do bịt lỗ. **Vào:**
+      > `AC-38.5` vế *khống chế*, vì `dan_bong` nay chỉ gán cho người **đang chạm** bóng, nên
+      > khối dày — toàn pha bóng **rời chân** — không còn khung nào (1.072 mẫu → 0). Mất 1.072
+      > mẫu ấy là mất 1.072 lần tệp nói một người "đang dẫn bóng" **trong lúc cú sút của chính
+      > anh ta đang bay**.
 
   > **Vì sao AC-38.8 là ngoại lệ, chốt 2026-11-22.** Tệp xuất chứa vị trí **tại từng mốc**;
   > độ cong là chuyện **giữa hai mốc**, và nó do lớp nội suy ở tầng giao diện sinh ra
@@ -579,7 +605,7 @@ mình khi lập bảng này, lấy thẳng từ điều kiện ra của `T762`:
 | AC-37.3 đổi sân hiệp 2 | ✅ ĐẠT | `moc.test.ts` |
 | AC-37.4 dày 0,5 s ở tình huống | ✅ ĐẠT | `dienPha.test.ts`, `loMoc.test.ts`, `mocChuoi.test.ts` |
 | AC-37.5 tái lập từng chữ số | ✅ ĐẠT | 5 file, gồm `tranLienTuc.test.ts` *"chạy hai lần ra một kết quả"* |
-| **AC-37.6** ai đang giữ bóng | 🔴 **GỠ TÍCH 2026-11-27** | Tôi tick nó ở T762 vì *có* phép kiểm mang tên nó, không vì hành vi. Đo lại: **37,0%** số hàng nêu tên một người "đang giữ" **cách bóng từ 5 m trở lên** (p99 **40,8 m**, max **68,9 m**); `-1` chỉ xuất hiện lúc **bóng chết**, không bao giờ lúc bóng **đang bay** — đúng thứ ngoặc đơn của AC đòi. Và người ấy **đuổi theo đường chuyền của chính mình** 4,23 m mỗi bước. Chủ: **`T816`** |
+| AC-37.6 ai đang giữ bóng | ✅ ĐẠT *(gỡ tích rồi tick lại cùng ngày 2026-11-27)* | Gỡ vì **37,0%** số hàng nêu một người "đang giữ" cách bóng từ 5 m trở lên (max **68,9 m**) và người ấy **đuổi theo đường chuyền của chính mình**. `T816` sửa: `-1` suốt quãng bóng bay, và chỉ nêu tên khi **đang chạm** (≤ **1,00 m**, dẫn xuất từ `BAN_KINH_TRANH / 2`). Sau đó: **0** bước bóng bay có người giữ, **không hàng nào** quá 1,00 m |
 | AC-37.7 mốc 1 s / 0,5 s | ✅ ĐẠT | `moc.test.ts`, `mocChuoi.test.ts`; tệp thật **5.980 hàng mỏng** |
 | AC-37.8 định nghĩa bằng loại sự kiện, không xG | ✅ ĐẠT | `tinhHuong.test.ts` (bốn toán hạng, **0** chỗ nhắc xG) |
 | **AC-38.1** ≤ 9 m/s | 🔴 **NỢ CÓ TÊN** | **249 + 104 vi phạm / 1.508.250 mẫu** — `T742` của spec 007 |
@@ -587,7 +613,7 @@ mình khi lập bảng này, lấy thẳng từ điều kiện ra của `T762`:
 | **AC-38.3** đổi hướng > 90° | 🔴 **NỢ CÓ TÊN** | **62 + 312 / 187.197** — `T742` |
 | **AC-38.4** lùi ≤ 4, ngang ≤ 5 m/s | 🔴 **NỢ CÓ TÊN** | **1 vi phạm / 21.334** — nhỏ nhất nhóm, nhưng không phải 0. `T742` |
 | AC-38.5 z, đánh đầu 1,5–2,8 m | ✅ ĐẠT | `vatLyBong.test.ts` + `tranLienTuc.test.ts` *"quả tạt rơi trong dải đánh đầu"*. ⚠️ vế **(đánh đầu)** có **0 mẫu trên tệp** → nợ thuộc **AC-45.6** |
-| AC-38.6 12–20 / 20–30 m/s, thời gian bay | ✅ ĐẠT | `vatLyBong.test.ts` (6 `it`), `tranLienTuc.test.ts` 10 mã. ⚠️ **cả hai vế 0 mẫu trên tệp** → nợ thuộc **AC-45.6** |
+| **AC-38.6** 12–20 / 20–30 m/s, thời gian bay | 🔴 **GỠ TÍCH 2026-11-27** | `T816` làm nó **đo được lần đầu** — và nó đỏ: **280/914** và **144/207** vi phạm. Không phải lỗi mới, là lỗi **vừa lộ**; cùng họ với `T742` (đo đại lượng dưới một giây trên lưới 1 giây). Ở mức hàm thuần vẫn xanh |
 | AC-38.7 ma sát khô 1–2, ướt ít hơn | ✅ ĐẠT | `dieuKien.test.ts` — dải, chiều, và ngưỡng. ⚠️ **0 mẫu trên tệp**, đã khai sẵn ở `VE_CHUA_CO_MAU` → **spec 008** (bóng lăn tự do) |
 | AC-38.8 pha > 6 m/s vẽ thành đường cong | ✅ ĐẠT | **Ngoại lệ đã chốt** của AC-45.6; canh ở lớp vẽ: `viTriVe.test.ts`, `quyDoiMet.test.ts`, `coHoc.test.ts` |
 | AC-38.9 thời tiết tất định, chỉ ăn vào bóng | ✅ ĐẠT | `dieuKien.test.ts` *"gió ăn vào bóng bổng dài, và CHỈ nó"*; 10/10 mẫu sạch trên tệp. Nhãn thời tiết nay **chỉ hiện ở chế độ liên tục** (`T761`) |
@@ -605,14 +631,21 @@ mình khi lập bảng này, lấy thẳng từ điều kiện ra của `T762`:
 | AC-45.10 chỉ tua TỚI | ✅ ĐẠT | `tuaToi.test.ts` — 3 `describe`, gồm hai phép **chứng minh phép kiểm đỏ được** |
 | AC-45.11 tệp ≤ 11.000.000 byte | ✅ ĐẠT *(2026-11-27)* | `tepXuat.test.ts` — **ca xấu trong 20 mã: 5.332.429 byte**, dư **51,5%**; đo bằng `TextEncoder().byteLength` trên chính chuỗi sẽ ghi, **không ước từ số mốc**. Cộng một **ca ngược**: nhân bản khối dày 3 lần → 13.212.940 byte, vượt 20,1% — ngưỡng **đỏ được** |
 
-**Tổng: 24 ĐẠT · 6 chưa đạt** *(2026-11-27: lên 25 sau T744/T745/T750/T751 và lần khai lại
-ngoại lệ của AC-45.6, rồi **xuống 24** khi `AC-37.6` bị gỡ tích cùng ngày)*. Năm AC thuộc món
-nợ `T742`; AC thứ sáu là **`AC-37.6`**, chủ `T816`.
+**Tổng: 24 ĐẠT · 6 chưa đạt** *(2026-11-27, sau một ngày đi 22 → 25 → 24 → 25 → 24)*. Năm AC
+thuộc món nợ `T742`; AC thứ sáu là **`AC-38.6`**, vừa **lộ ra** nhờ `T816` chứ không vừa hỏng.
 
-🔴 **Và đây là lần thứ TƯ trong hai ngày một AC bị gỡ tích vì tôi tick nó bằng sự tồn tại của
-một phép kiểm chứ không bằng hành vi** — sau `AC-49.6`, `AC-49.7` và `T782` của spec 011. Cả
-bốn lần, thứ bắt được là **mắt người dùng**, không phải bộ kiểm. Bài học đã ghi ở `T760` cần
-được đọc lại mỗi lần ai đó định tick một AC mô tả **hành vi**.
+📌 **Con số đứng yên ở 24 che mất thứ đã đổi, nên nói rõ:** `AC-37.6` **vào** (T816 sửa xong),
+`AC-38.6` **ra** (T816 làm nó đo được, và nó đỏ). Một AC rời khỏi bóng tối không phải một bước
+lùi — trước hôm nay nó xanh **vì không ai đo nổi**.
+
+🔴 **`AC-37.6` là lần thứ TƯ trong hai ngày một AC bị gỡ tích vì tôi tick nó bằng sự tồn tại
+của một phép kiểm chứ không bằng hành vi** — sau `AC-49.6`, `AC-49.7` và `T782` của spec 011.
+Cả bốn lần, thứ bắt được là **mắt người dùng**, không phải bộ kiểm. Bài học đã ghi ở `T760`
+cần được đọc lại mỗi lần ai đó định tick một AC mô tả **hành vi**.
+
+📌 `AC-38.6` thì **khác loại**: nó không bị tick sai, nó bị **che**. Một vế có `soMau = 0` là
+một vế chưa ai đo, và bảng này đã gọi tên bốn vế như thế từ hôm qua. Hôm nay một trong số đó
+mở mắt và đỏ ngay — đúng điều mà việc gọi tên chúng sinh ra để chuẩn bị.
 
 📌 Bảng lúc T762 lập, cùng ngày, là **22 / 8**. Hai AC đóng ngay sau đó — `AC-45.3` và
 `AC-45.11` — là hai dòng mà chính bảng này gọi tên chủ nợ, và chúng được trả trong vài giờ.

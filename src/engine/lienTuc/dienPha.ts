@@ -150,11 +150,26 @@ function thucTheRong(coMat: number): ThucTheTaiMoc {
  * không nhồi cơ học vào đây: file này sở hữu **bố cục thời gian** của một pha,
  * còn cơ học là của `coHoc.ts` — gộp hai thứ là buộc chúng sửa cùng nhau mãi.
  */
+export interface MocDaDien {
+  /** 26 ô, đã bước cơ học. */
+  readonly cacThucThe: readonly ThucTheTaiMoc[]
+  /**
+   * Ai **thật sự đang chạm bóng** ở mốc này, hoặc `KHONG_AI_GIU` (T816).
+   *
+   * ⚠️ **File này không biết — và không được biết — điều đó.** Nó cần hai thứ
+   * sống ở `tranLienTuc.ts`: đường bay (`doanBong`) và **vị trí sau khi bước**
+   * của người sở hữu chuỗi. `dienPha.ts` chỉ sở hữu **bố cục thời gian** của
+   * một pha. Nên nó **hỏi** nơi gọi thay vì tự suy; nhồi hai thứ kia vào đây
+   * là gộp lại đúng hai việc mà chú thích trên vừa tách ra.
+   */
+  readonly nguoiGiuTaiMoc: number
+}
+
 export type ThucTheCuaMoc = (
   chiSoMoc: number,
   phaCon: TenPhaCon,
   nguoiGiu: number,
-) => readonly ThucTheTaiMoc[]
+) => MocDaDien
 
 export function dienChuoiRaMoc(
   pha: KetCucPhaV6,
@@ -179,13 +194,31 @@ export function dienChuoiRaMoc(
     if (!laMocDuocPhat(chiSoMoc, day)) continue
 
     const phaCon = phaConCuaBuoc(boCuc, b)
-    const nguoiGiu = phaCon === 'bongChet' ? KHONG_AI_GIU : chiSoNguoiGiu
-    ghiMoc(
-      lo,
-      chiSoMoc,
-      nguoiGiu,
-      thucTheCuaMoc ? thucTheCuaMoc(chiSoMoc, phaCon, nguoiGiu) : cacThucThe,
-    )
+    /*
+      ====================================================================
+      HAI CÂU HỎI KHÁC NHAU: "AI SỞ HỮU PHA NÀY" VÀ "AI ĐANG GIỮ BÓNG" (T816).
+      ====================================================================
+
+      `chiSoNguoiGiu` là **người sở hữu chuỗi** — một chỉ số, cố định suốt cả
+      pha. `nguoi_giu` ghi vào lô phải trả lời câu khác: **ai đang chạm bóng ở
+      mốc này**. Hai câu ấy khác nhau đúng ở quãng quả bóng **đang bay**, và
+      `AC-37.6` nói thẳng trong ngoặc: bóng đang bay thì phải nói **không ai**.
+
+      🐞 **Trước T816 chúng bị gộp làm một**, và số đo bắt được: trong 2.523
+      bước mà bóng bay trên 5 m, `nguoi_giu` **không đổi người lần nào** và
+      **không lần nào là `-1`**; **37,0%** số hàng có nêu người giữ thì người
+      ấy cách bóng **từ 5 m trở lên**, xa nhất **68,9 m**. Nặng hơn: ở
+      `tranLienTuc.ts`, người được nêu là "đang giữ" lấy **đích là quả bóng**,
+      nên anh ta **đuổi theo đường chuyền của chính mình** — 4,23 m mỗi bước.
+      Người dùng xem bản chạy và gọi tên nó trước khi tôi đo: *"chuyền bóng
+      thì người ở lại, bóng di chuyển"*.
+    */
+    const soHuuChuoi = phaCon === 'bongChet' ? KHONG_AI_GIU : chiSoNguoiGiu
+    const daDien = thucTheCuaMoc
+      ? thucTheCuaMoc(chiSoMoc, phaCon, soHuuChuoi)
+      : null
+    const nguoiGiu = daDien ? daDien.nguoiGiuTaiMoc : soHuuChuoi
+    ghiMoc(lo, chiSoMoc, nguoiGiu, daDien ? daDien.cacThucThe : cacThucThe)
   }
 
   return boCuc

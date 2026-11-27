@@ -140,10 +140,37 @@ export type Ve = (typeof CAC_VE)[number]
  */
 export const VE_CHUA_CO_MAU: readonly Ve[] = [
   'AC-38.5(đánh đầu)',
-  'AC-38.6(dải)',
-  'AC-38.6(thời gian bay)',
+  'AC-38.5(khống chế)',
   'AC-38.7',
 ]
+
+/*
+  ⚠️⚠️ **DANH SÁCH NÀY ĐỔI NGÀY 2026-11-27 VÌ `T816`, VÀ NÓ ĐỔI THEO HAI CHIỀU
+  NGƯỢC NHAU — ĐỌC CẢ HAI.**
+
+  **RA KHỎI danh sách — `AC-38.6(dải)` và `AC-38.6(thời gian bay)`.** Hai vế ấy
+  rỗng suốt từ T742, và lý do đã ghi ở trên: trạng thái "không ai giữ" trong tệp
+  **luôn là bóng chết**. `T816` sửa đúng chỗ đó — nay `nguoi_giu` là `-1` suốt
+  quãng bóng **đang bay** — và hai vế lập tức có mẫu: **914** và **207** trên
+  một mã. Một ngoại lệ của `AC-45.6` biến mất **không phải** vì ai nới lời AC,
+  mà vì cái lỗ nó che đã được bịt.
+
+  📌 Và chúng **đỏ ngay**: 280/914 và 144/207. Món nợ ấy có tên trong khối
+  "MÓN NỢ" của `doCoHoc.test.ts`; nó thuộc **cùng họ** với T742 (đo trên lưới
+  1 giây một đại lượng sống ở dưới một giây), không phải một lỗi mới của mô
+  hình.
+
+  **VÀO danh sách — `AC-38.5(khống chế)`.** Vế ấy đếm người `dan_bong`, và
+  `trangThaiCuaNguoi` chỉ gán `dan_bong` cho **người đang giữ bóng**. Sau T816,
+  "đang giữ" nghĩa là **đang chạm** (trong `TAM_CHAM_BONG = 1,0 m`), nên trong
+  **khối dày** — vốn phủ đúng những pha bóng **rời chân**: sút, tạt, rồi bóng
+  chết — không còn khung nào có người dẫn bóng. 1.072 mẫu → **0**.
+
+  📌 **Và đó là một lời SỬA, không phải một mất mát.** Trước T816, người sở hữu
+  chuỗi hiện là `dan_bong` **trong lúc cú sút của chính anh ta đang bay** — tệp
+  nói anh ta đang dẫn bóng trong khi quả bóng cách anh ta 30 m. Mất 1.072 mẫu
+  ấy là mất 1.072 lần nói sai.
+*/
 
 /**
  * Hai vế của AC-38.10 mà **tệp không chứa dữ liệu để đo**, và vì sao.

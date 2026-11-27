@@ -390,8 +390,17 @@ describe('AC-38.8 ở lớp vẽ: đường chạy nhanh là đường cong (T73
       **1,5°**.
     */
     expect(trungVi, 'góc đổi hướng, trung vị').toBeLessThan(5)
-    // ⚠️ CHỐNG RỖNG: phải CÓ pha chạy trên 6 m/s, không thì cả khối vô nghĩa.
-    expect(soMau, 'số mẫu có cả hai đoạn trên 6 m/s').toBeGreaterThan(1_000)
+    /*
+      ⚠️ CHỐNG RỖNG: phải CÓ pha chạy trên 6 m/s, không thì cả khối vô nghĩa.
+
+      📉 **Sàn hạ 1.000 → 500 ngày 2026-11-27, và lý do là một thay đổi HÀNH VI
+      có chủ ý, không phải một phép nới cho xanh.** `T816` thôi cho người vừa
+      chuyền bóng **đuổi theo đường chuyền của chính mình**; những cú đuổi ấy
+      chạy trên 6 m/s và chúng chiếm gần bốn phần mười số mẫu ở đây. Đo được:
+      **1.000+ → 601**. Sàn mới vẫn giữ đúng việc nó sinh ra để làm — bắt khối
+      này đỏ nếu pha chạy nhanh biến mất — với biên **601 / 500**.
+    */
+    expect(soMau, 'số mẫu có cả hai đoạn trên 6 m/s').toBeGreaterThan(500)
     expect(gocLonNhat, 'phải CÓ cú đổi hướng thật').toBeGreaterThan(10)
   })
 

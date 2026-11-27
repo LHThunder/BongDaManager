@@ -19,6 +19,7 @@ import {
   buocCoHoc,
   kepDichThuMon,
   tachChen,
+  TAM_CHAM_BONG,
   TRAN_TOC_DO_TUYET_DOI,
   viTriTrongTai,
   type Diem,
@@ -47,6 +48,7 @@ import {
   BUOC_MOI_CHUOI,
   BUOC_MOI_HANH_DONG,
   dienChuoiRaMoc,
+  type MocDaDien,
 } from './dienPha'
 import { hatGiongDong, RUT_MOI_MOC } from './hatGiong'
 import { cacPhaDay } from './mocChuoi'
@@ -671,7 +673,7 @@ export function buocPhutLienTuc(ttVao: TrangThaiLienTuc): MotPhutLienTuc {
     nguoiGiu: number,
     chiSoPha: number,
     chiSoMoc: number,
-  ): readonly ThucTheTaiMoc[] {
+  ): MocDaDien {
     /*
       Một bước cơ học dài đúng bằng khoảng cách tới mốc đã ghi **gần nhất**:
       1 giây ở phần thường, 0,5 giây trong cửa sổ dày của T731. Mốc đầu tiên của
@@ -715,6 +717,13 @@ export function buocPhutLienTuc(ttVao: TrangThaiLienTuc): MotPhutLienTuc {
       moTa !== null &&
       doanBong.quang > 0 &&
       (b - doanBong.buocBatDau) * DT_MOC < doanBong.giayBay
+    /*
+      Người sở hữu chuỗi **đang thật sự giữ bóng** chỉ khi bóng không bay (T816).
+      `KHONG_AI_GIU` ở đây là **đích**, và nó cũng là thứ `dienPha` ghi vào
+      `nguoi_giu` của mốc — một sự thật, hai nơi đọc, không hai định nghĩa.
+    */
+    const giuThucSu = dangBay ? KHONG_AI_GIU : nguoiGiu
+
     const duongChuyen =
       dangBay && doanBong !== null
         ? { tu: { x: doanBong.phat.x, y: doanBong.phat.y }, den: doanBong.den }
@@ -757,8 +766,20 @@ export function buocPhutLienTuc(ttVao: TrangThaiLienTuc): MotPhutLienTuc {
         return buocCoHoc(tt, dichTrongTai, TRAN_TOC_DO_TUYET_DOI, dt)
       }
       if (o >= SO_NGUOI_TREN_SAN) return tt
+      /*
+        ⚠️ **`giuThucSu`, KHÔNG phải `nguoiGiu` (T816).** Người sở hữu chuỗi chỉ
+        được lấy quả bóng làm đích khi bóng **đang ở chân anh ta**. Lúc bóng
+        bay, anh ta vừa rời chân nó — cho anh ta đuổi theo là dựng ra cảnh một
+        cầu thủ chạy theo đường chuyền của chính mình, và đó đúng là thứ người
+        dùng nhìn thấy rồi gọi là *"dính liền, không tự nhiên"*.
+
+        Lúc ấy anh ta rơi về `dichNguoiKhongBong` như mọi người khác — tức
+        **ở lại và trở về chỗ đứng của mình**. Thứ T816 **không** làm: cho một
+        người **đón** đường chuyền ở điểm rơi. Người đón là một vai có tên
+        trong **US-40 của spec 009**, không phải một dòng ở đây.
+      */
       const dichThoi =
-        o === nguoiGiu
+        o === giuThucSu
           ? dBong
           : dichNguoiKhongBong(
               choDung[o] ?? { x: TAM_X, y: TAM_Y },
@@ -798,17 +819,41 @@ export function buocPhutLienTuc(ttVao: TrangThaiLienTuc): MotPhutLienTuc {
       sau[o] = { ...sau[o]!, x: d.x, y: d.y }
     }
 
+    /*
+      AI THẬT SỰ ĐANG CHẠM BÓNG — đo SAU khi bước, không đoán trước (T816).
+
+      Hai câu hỏi khác nhau, và chúng tách đôi ở đây:
+      - **đích** của người sở hữu chuỗi là `giuThucSu` — anh ta chạy tới quả
+        bóng khi bóng không bay, vì phải có ai đó đi lấy nó;
+      - **`nguoi_giu`** ghi vào lô là hàm dưới đây — chỉ khi anh ta **đã tới
+        nơi**. Giữa hai thứ ấy là quãng anh ta đang chạy, và trong quãng ấy
+        câu trả lời đúng là **không ai**.
+
+      🐞 Gộp hai câu ấy là lỗi mà `T816` sửa. Trước đó: **37,0%** số hàng nêu
+      một người "đang giữ" cách bóng từ 5 m trở lên, xa nhất **68,9 m**.
+    */
+    function nguoiChamBong(cacO: readonly TrangThaiCoHoc[]): number {
+      if (giuThucSu === KHONG_AI_GIU) return KHONG_AI_GIU
+      const nguoi = cacO[giuThucSu]
+      if (!nguoi) return KHONG_AI_GIU
+      const cach = Math.hypot(nguoi.x - bong.x, nguoi.y - bong.y)
+      return cach <= TAM_CHAM_BONG ? giuThucSu : KHONG_AI_GIU
+    }
+
     coHoc = sau
-    return sau.map((t, o) => ({
-      x: t.x,
-      y: t.y,
-      z: o === CHI_SO_BONG ? bong.z : 0,
-      vx: t.vx,
-      vy: t.vy,
-      vz: o === CHI_SO_BONG ? bong.vz : 0,
-      huong: t.huong,
-      coMat: coMat[o] ?? 1,
-    }))
+    return {
+      cacThucThe: sau.map((t, o) => ({
+        x: t.x,
+        y: t.y,
+        z: o === CHI_SO_BONG ? bong.z : 0,
+        vx: t.vx,
+        vy: t.vy,
+        vz: o === CHI_SO_BONG ? bong.vz : 0,
+        huong: t.huong,
+        coMat: coMat[o] ?? 1,
+      })),
+      nguoiGiuTaiMoc: nguoiChamBong(sau),
+    }
   }
 
   /*
