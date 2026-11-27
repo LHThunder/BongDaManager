@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **ID** | `007-continuous-match-engine` |
-| **Status** | **Planned** — **25/30 AC đạt** (bảng đóng spec ở **mục 7c**, T762, 2026-11-27). **Năm AC còn lại là MỘT món nợ duy nhất — `T742`**: AC-38.1, 38.2, 38.3, 38.4 và 38.11 đo trên **dịch chuyển** của tệp; trên **vận tốc thật** mô hình sạch hoàn toàn, và nguồn còn lại là **lưới mốc 1 giây với tích phân 0,5 giây**. **Không `Done`**, và sẽ chỉ `Done` khi cả 30 AC đạt. |
+| **Status** | **Planned** — **24/30 AC đạt** (bảng đóng spec ở **mục 7c**, T762). Năm AC thuộc món nợ `T742` (đo trên **dịch chuyển**; trên **vận tốc thật** mô hình sạch hoàn toàn). AC thứ sáu là **`AC-37.6`**, **gỡ tích ngày 2026-11-27** sau khi người dùng xem và nói chuyển động *"dính liền, không tự nhiên"*: 37,0% số hàng nêu một người "đang giữ" cách bóng từ 5 m trở lên, và người ấy đuổi theo đường chuyền của chính mình — chủ `T816`. **Không `Done`**, và sẽ chỉ `Done` khi cả 30 AC đạt. |
 | **Created** | 2026-11-19 |
 | **Clarified** | 2026-11-19, bổ sung 2026-11-22 và **2026-11-23** khi lập plan (mục 14 và 15) |
 | **Branch** | `007-continuous-match-engine` — **đã cắt** từ `main` tại `7e1b065` |
@@ -145,9 +145,26 @@ diện đoán giữa hai mốc cách nhau một phút**.
       bóng chết**, không khuyết mốc nào.
 - [x] AC-37.5 — KHI chạy lại cùng một mã trận với cùng hai đội, cùng chiến thuật xuất phát
       và cùng chuỗi can thiệp THÌ **từng khung hình PHẢI giống hệt tới từng chữ số** (P1).
-- [x] AC-37.6 — KHI trận đang mô phỏng THÌ hệ thống PHẢI biết **ai đang giữ bóng** ở mỗi
+- [ ] AC-37.6 — KHI trận đang mô phỏng THÌ hệ thống PHẢI biết **ai đang giữ bóng** ở mỗi
       khoảnh khắc, hoặc nói rõ **không ai** (bóng đang bay, bóng chết) — PHẢI không bắt giao
       diện suy ra điều đó từ danh sách người tham gia.
+      > 🔴 **GỠ TÍCH NGÀY 2026-11-27 — TÔI ĐÃ TÍCH SAI Ở `T762` MỘT NGÀY TRƯỚC.** Tôi tick nó
+      > vì `tranLienTuc.test.ts` và `viTriVe.test.ts` **có** phép kiểm mang tên nó, chứ không
+      > vì **hành vi** đúng. Người dùng xem bản chạy và nói chuyển động *"dính liền, không tự
+      > nhiên"*; đo lại thì AC này hỏng, và nó là **một phần nguyên nhân**.
+      > Đo trên 3 mã `MAU_RONG`, 18.380 hàng mỏng: **31,9%** số hàng nói "không ai giữ" (bóng
+      > chết). Trong **12.521** hàng **có nêu tên người giữ**, khoảng cách từ người ấy tới
+      > quả bóng: trung vị **1,75 m** — nhưng **p90 = 19,90 m**, **p99 = 40,81 m**, lớn nhất
+      > **68,9 m**, và **37,0% số hàng có người "đang giữ" cách bóng từ 5 m trở lên**.
+      > 📍 Nguyên nhân khoanh được, một dòng: `dienPha.ts:182` đặt
+      > `nguoiGiu = phaCon === 'bongChet' ? KHONG_AI_GIU : chiSoNguoiGiu`, nên `-1` **chỉ**
+      > xuất hiện lúc bóng chết — **không bao giờ lúc bóng đang bay**. Chính AC này viết rõ
+      > trong ngoặc rằng bóng đang bay phải nói **"không ai"**.
+      > ⚠️ **Và nó không chỉ là một trường dữ liệu sai.** `tranLienTuc.ts:761` cho người được
+      > nêu là "đang giữ" lấy **đích là quả bóng**, nên trong 2.523 bước mà bóng bay trên 5 m,
+      > người ấy **đuổi theo bóng 4,23 m mỗi bước** (370 bước trên 8 m) và kết thúc cách bóng
+      > **15,58 m**. Người chuyền bóng **chạy theo đường chuyền của chính mình**.
+      > Chủ: **`T816`** của spec 007.
 - [x] AC-37.7 — KHI engine tính trạng thái cho phần **thường** của trận THÌ mốc PHẢI cách
       nhau **1 giây**; ở **tình huống quan trọng** PHẢI dày lên thành **0,5 giây** (AC-37.4).
       Một trận vì thế có khoảng **5.400 mốc** thay vì 10.800.
@@ -562,7 +579,7 @@ mình khi lập bảng này, lấy thẳng từ điều kiện ra của `T762`:
 | AC-37.3 đổi sân hiệp 2 | ✅ ĐẠT | `moc.test.ts` |
 | AC-37.4 dày 0,5 s ở tình huống | ✅ ĐẠT | `dienPha.test.ts`, `loMoc.test.ts`, `mocChuoi.test.ts` |
 | AC-37.5 tái lập từng chữ số | ✅ ĐẠT | 5 file, gồm `tranLienTuc.test.ts` *"chạy hai lần ra một kết quả"* |
-| AC-37.6 ai đang giữ bóng | ✅ ĐẠT | `tranLienTuc.test.ts`, `viTriVe.test.ts` |
+| **AC-37.6** ai đang giữ bóng | 🔴 **GỠ TÍCH 2026-11-27** | Tôi tick nó ở T762 vì *có* phép kiểm mang tên nó, không vì hành vi. Đo lại: **37,0%** số hàng nêu tên một người "đang giữ" **cách bóng từ 5 m trở lên** (p99 **40,8 m**, max **68,9 m**); `-1` chỉ xuất hiện lúc **bóng chết**, không bao giờ lúc bóng **đang bay** — đúng thứ ngoặc đơn của AC đòi. Và người ấy **đuổi theo đường chuyền của chính mình** 4,23 m mỗi bước. Chủ: **`T816`** |
 | AC-37.7 mốc 1 s / 0,5 s | ✅ ĐẠT | `moc.test.ts`, `mocChuoi.test.ts`; tệp thật **5.980 hàng mỏng** |
 | AC-37.8 định nghĩa bằng loại sự kiện, không xG | ✅ ĐẠT | `tinhHuong.test.ts` (bốn toán hạng, **0** chỗ nhắc xG) |
 | **AC-38.1** ≤ 9 m/s | 🔴 **NỢ CÓ TÊN** | **249 + 104 vi phạm / 1.508.250 mẫu** — `T742` của spec 007 |
@@ -588,15 +605,21 @@ mình khi lập bảng này, lấy thẳng từ điều kiện ra của `T762`:
 | AC-45.10 chỉ tua TỚI | ✅ ĐẠT | `tuaToi.test.ts` — 3 `describe`, gồm hai phép **chứng minh phép kiểm đỏ được** |
 | AC-45.11 tệp ≤ 11.000.000 byte | ✅ ĐẠT *(2026-11-27)* | `tepXuat.test.ts` — **ca xấu trong 20 mã: 5.332.429 byte**, dư **51,5%**; đo bằng `TextEncoder().byteLength` trên chính chuỗi sẽ ghi, **không ước từ số mốc**. Cộng một **ca ngược**: nhân bản khối dày 3 lần → 13.212.940 byte, vượt 20,1% — ngưỡng **đỏ được** |
 
-**Tổng: 25 ĐẠT · 5 chưa đạt** *(cập nhật 2026-11-27 sau T744, T745, T750, T751 và lần khai
-lại ngoại lệ của AC-45.6)*. **Cả 5 AC còn lại thuộc MỘT món nợ duy nhất: `T742`.**
+**Tổng: 24 ĐẠT · 6 chưa đạt** *(2026-11-27: lên 25 sau T744/T745/T750/T751 và lần khai lại
+ngoại lệ của AC-45.6, rồi **xuống 24** khi `AC-37.6` bị gỡ tích cùng ngày)*. Năm AC thuộc món
+nợ `T742`; AC thứ sáu là **`AC-37.6`**, chủ `T816`.
+
+🔴 **Và đây là lần thứ TƯ trong hai ngày một AC bị gỡ tích vì tôi tick nó bằng sự tồn tại của
+một phép kiểm chứ không bằng hành vi** — sau `AC-49.6`, `AC-49.7` và `T782` của spec 011. Cả
+bốn lần, thứ bắt được là **mắt người dùng**, không phải bộ kiểm. Bài học đã ghi ở `T760` cần
+được đọc lại mỗi lần ai đó định tick một AC mô tả **hành vi**.
 
 📌 Bảng lúc T762 lập, cùng ngày, là **22 / 8**. Hai AC đóng ngay sau đó — `AC-45.3` và
 `AC-45.11` — là hai dòng mà chính bảng này gọi tên chủ nợ, và chúng được trả trong vài giờ.
 Đó là thứ một bảng đóng spec dùng để làm.
 
 ⚠️ **Vì sao `Status` KHÔNG đổi thành `Done`.** Điều kiện ra của `T762` nói rõ: *"`Status` đổi
-thành `Done` **chỉ khi** mọi AC đạt"*. **Năm** AC chưa đạt, nên spec này **ở lại `Planned`**. Bảng
+thành `Done` **chỉ khi** mọi AC đạt"*. **Sáu** AC chưa đạt, nên spec này **ở lại `Planned`**. Bảng
 trên là thứ T762 phải giao, không phải con dấu `Done`.
 
 📌 **Năm AC của nhóm `T742` KHÔNG phải mô hình sai.** Chú thích của `doCoHoc.test.ts` đã đo

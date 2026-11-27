@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **30 AC**) |
 | **Plan** | `./plan.md` (Status `Approved`, D117–D134, R51–R64) |
-| **Tiến độ** | 49/53 — T813, **T814**, **T815**, **T760** và **T761** xong 2026-11-26. T814 gỡ **95%** món nợ cơ học của `T742` (1.613 → 77 vi phạm); T815 phá cái lưới ô vuông của đội hình; `T760` đạt ở lượt xem thứ hai; `T761` kiểm bằng mắt **4/4 mục đạt**; `T762` đóng spec bằng bảng 22/30 AC, rồi **T744/T745/T750/T751 cộng lần khai lại ngoại lệ của `AC-45.6` đưa lên 25/30 ngay trong ngày** — cả 5 AC còn lại là **một** món nợ `T742` |
+| **Tiến độ** | 49/53 — T813, **T814**, **T815**, **T760** và **T761** xong 2026-11-26. T814 gỡ **95%** món nợ cơ học của `T742` (1.613 → 77 vi phạm); T815 phá cái lưới ô vuông của đội hình; `T760` đạt ở lượt xem thứ hai; `T761` kiểm bằng mắt **4/4 mục đạt**; `T762` đóng spec bằng bảng 22/30 AC, rồi T744/T745/T750/T751 cộng lần khai lại ngoại lệ của `AC-45.6` đưa lên 25/30 — rồi **xuống 24/30** khi một lượt xem của người dùng làm `AC-37.6` bị gỡ tích (**`T816`** mở cùng ngày) |
 | **Nền đo** | commit `5c652eb`, engine v6, **1.304 test xanh / 63 file test** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -1929,6 +1929,47 @@ trận tiến theo giây**. Vòng cấm và khung thành vẽ đúng mét.
     3 đỏ. Phép cuối là phép canh đúng điều ghi chú task đòi: đo trên tệp phải so với con số
     trong `spec.md`, không với con số của mô hình.
   - 📏 Toàn bộ: **84 file / 1.733 phép kiểm xanh** (T740+T741 để lại 1.682 — T742 thêm **51**).
+
+- [ ] **T816** — Người chuyền bóng **chạy theo đường chuyền của chính mình**. *(Thêm 2026-11-27
+  từ một lượt xem của người dùng.)*
+  - File: `src/engine/lienTuc/dienPha.ts` (dòng 182), `src/engine/lienTuc/tranLienTuc.ts`
+    (dòng 761), phép kiểm cạnh chúng
+  - **Phát hiện:** người dùng xem bản chạy và nói chuyển động *"dính liền, không tự nhiên"*,
+    rồi nêu rõ điều họ muốn: *"chuyền bóng thì người ở lại, bóng di chuyển"*. Hôm nay **ngược
+    lại**.
+  - **Số đo**, 3 mã `MAU_RONG`, 18.380 hàng mỏng:
+
+    | | |
+    |---|---|
+    | hàng nói "không ai giữ" (`-1`) | 5.859 — **31,9%**, và **toàn bộ** là bóng chết |
+    | hàng **có nêu** người giữ | 12.521 |
+    | khoảng cách người ấy tới bóng | trung vị **1,75 m** · p90 **19,90** · p99 **40,81** · max **68,9 m** |
+    | hàng mà người "đang giữ" cách bóng **≥ 5 m** | **37,0%** |
+    | bước có bóng bay > 5 m | 2.523 (xa nhất **30,0 m**) — `nguoi_giu` **không đổi người lần nào**, **không lần nào là `-1`** |
+    | người "giữ" dịch trong chính bước ấy | **4,23 m** trung bình, **370** bước trên 8 m |
+
+  - 📍 **Nguyên nhân, hai dòng mã:**
+    - `dienPha.ts:182` — `nguoiGiu = phaCon === 'bongChet' ? KHONG_AI_GIU : chiSoNguoiGiu`.
+      `-1` **chỉ** xuất hiện lúc bóng chết, **không bao giờ** lúc bóng đang bay.
+    - `tranLienTuc.ts:761` — `o === nguoiGiu ? dBong : …`, tức người được nêu là "đang giữ"
+      lấy **đích là quả bóng**. Cộng hai dòng ấy lại: người vừa chuyền **đuổi theo đường
+      chuyền của chính mình** suốt quãng bay.
+  - 🔴 **`AC-37.6` bị GỠ TÍCH vì chỗ này.** AC viết rõ trong ngoặc: *"hoặc nói rõ **không ai**
+    (bóng đang bay, bóng chết)"*. Tôi tick nó ở `T762` một ngày trước vì **có** phép kiểm mang
+    tên nó — lần thứ tư trong hai ngày tôi tick một AC **hành vi** bằng sự tồn tại của một
+    phép kiểm.
+  - Xong khi: `nguoi_giu` là `-1` suốt quãng bóng bay; **không hàng nào** nêu một người "đang
+    giữ" cách bóng quá **3 m**; người vừa chuyền **không** lấy bóng làm đích trong quãng ấy;
+    và một phép kiểm **chống rỗng** khẳng định bộ mẫu có trên 2.000 bước bóng bay. Cộng: đo
+    lại chín bộ đếm của `doCoHoc.test.ts` và vân tay dòng sự kiện.
+  - ⚠️ Sửa chỗ này **đổi vị trí người**, nên có thể đổi con số cơ học — nhưng **không** đổi
+    dòng sự kiện, cùng lý do `T813`/`T814`/`T815` đều không: vùng là đơn vị quyết định, lớp
+    liên tục chỉ diễn.
+  - ⛔ **Đây KHÔNG phải mô hình chiến thuật.** Nó chỉ sửa một trường dữ liệu đang nói sai và
+    một dòng chọn đích đi theo trường ấy. *"Chạy chỗ"*, *"kèm người"*, *"cắt bóng"*, *"lùi
+    khối"* là **US-40/US-41 của spec 009** — xem mục 12 của `spec.md`.
+  - AC: AC-37.6
+  - Phụ thuộc: —
 
 - [ ] **T743** [P] — `xuatTranService.ts` tách `dungChuoiXuat` khỏi `taoBlobXuat`; `useXuatTran.ts`
   - File: tạo `src/services/xuatTranService.ts`, **`src/services/xuatTranService.test.ts`**,
