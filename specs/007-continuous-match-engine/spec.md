@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **ID** | `007-continuous-match-engine` |
-| **Status** | Planned |
+| **Status** | **Planned** — **22/30 AC đạt** (bảng đóng spec ở **mục 7c**, T762, 2026-11-27). Tám AC còn lại: **năm** thuộc món nợ `T742` (đo trên **dịch chuyển**; trên **vận tốc thật** mô hình sạch hoàn toàn), và ba có chủ task còn mở — `AC-45.3` → T750/T751, `AC-45.6` → khai lại ngoại lệ, `AC-45.11` → T744/T745. **Không `Done`**, và sẽ chỉ `Done` khi cả 30 AC đạt. |
 | **Created** | 2026-11-19 |
 | **Clarified** | 2026-11-19, bổ sung 2026-11-22 và **2026-11-23** khi lập plan (mục 14 và 15) |
 | **Branch** | `007-continuous-match-engine` — **đã cắt** từ `main` tại `7e1b065` |
@@ -133,25 +133,25 @@ mét ở từng khoảnh khắc**, để **chuyển động tôi thấy là chuy
 diện đoán giữa hai mốc cách nhau một phút**.
 
 **Acceptance criteria**
-- [ ] AC-37.1 — KHI engine mô phỏng một trận THÌ mọi vị trí của cầu thủ và của bóng PHẢI
+- [x] AC-37.1 — KHI engine mô phỏng một trận THÌ mọi vị trí của cầu thủ và của bóng PHẢI
       được cho bằng **mét** trong khung **105 × 68**, gốc `(0,0)` ở góc dưới trái.
-- [ ] AC-37.2 — KHI đọc hình học sân THÌ các mốc PHẢI đúng: chấm phạt đền cách vạch vôi
+- [x] AC-37.2 — KHI đọc hình học sân THÌ các mốc PHẢI đúng: chấm phạt đền cách vạch vôi
       **11 m**; vòng cấm sâu **16,5 m**, rộng **40,3 m**; khung thành rộng **7,32 m**,
       tức `y` từ **30,34** tới **37,66**.
-- [ ] AC-37.3 — KHI hiệp 2 bắt đầu THÌ hai đội PHẢI đổi phần sân: hướng tấn công của mỗi
+- [x] AC-37.3 — KHI hiệp 2 bắt đầu THÌ hai đội PHẢI đổi phần sân: hướng tấn công của mỗi
       đội ở hiệp 2 PHẢI ngược với hiệp 1.
-- [ ] AC-37.4 — KHI một tình huống quan trọng được xuất ra THÌ hệ thống PHẢI cho trạng thái
+- [x] AC-37.4 — KHI một tình huống quan trọng được xuất ra THÌ hệ thống PHẢI cho trạng thái
       đầy đủ ở **từng mốc 0,5 giây**, liên tục từ **6–10 giây trước** tình huống tới **khi
       bóng chết**, không khuyết mốc nào.
-- [ ] AC-37.5 — KHI chạy lại cùng một mã trận với cùng hai đội, cùng chiến thuật xuất phát
+- [x] AC-37.5 — KHI chạy lại cùng một mã trận với cùng hai đội, cùng chiến thuật xuất phát
       và cùng chuỗi can thiệp THÌ **từng khung hình PHẢI giống hệt tới từng chữ số** (P1).
-- [ ] AC-37.6 — KHI trận đang mô phỏng THÌ hệ thống PHẢI biết **ai đang giữ bóng** ở mỗi
+- [x] AC-37.6 — KHI trận đang mô phỏng THÌ hệ thống PHẢI biết **ai đang giữ bóng** ở mỗi
       khoảnh khắc, hoặc nói rõ **không ai** (bóng đang bay, bóng chết) — PHẢI không bắt giao
       diện suy ra điều đó từ danh sách người tham gia.
-- [ ] AC-37.7 — KHI engine tính trạng thái cho phần **thường** của trận THÌ mốc PHẢI cách
+- [x] AC-37.7 — KHI engine tính trạng thái cho phần **thường** của trận THÌ mốc PHẢI cách
       nhau **1 giây**; ở **tình huống quan trọng** PHẢI dày lên thành **0,5 giây** (AC-37.4).
       Một trận vì thế có khoảng **5.400 mốc** thay vì 10.800.
-- [ ] AC-37.8 — "Tình huống quan trọng" trong spec này PHẢI được định nghĩa bằng **loại sự
+- [x] AC-37.8 — "Tình huống quan trọng" trong spec này PHẢI được định nghĩa bằng **loại sự
       kiện** — bàn thắng, cơ hội rõ ràng, cứu thua, thẻ đỏ — và PHẢI không dùng **xG**, vì xG
       thuộc spec 010. Khi spec 010 có xG, định nghĩa này được mở rộng, không viết lại.
 
@@ -170,22 +170,22 @@ hơn mức một cầu thủ thật làm được**, để **không còn cảm g
       tốc độ trước.
 - [ ] AC-38.4 — KHI một cầu thủ chạy lùi THÌ tốc độ PHẢI không vượt **4 m/s**; chạy ngang
       PHẢI không vượt **5 m/s**.
-- [ ] AC-38.5 — KHI bóng ở trên không THÌ nó PHẢI có độ cao `z` theo mét; cầu thủ PHẢI chỉ
+- [x] AC-38.5 — KHI bóng ở trên không THÌ nó PHẢI có độ cao `z` theo mét; cầu thủ PHẢI chỉ
       đánh đầu được khi `z` trong **1,5–2,8 m**, và PHẢI chỉ khống chế bằng chân, đùi hoặc
       ngực khi `z` dưới **1,5 m**.
-- [ ] AC-38.6 — KHI bóng được chuyền hoặc sút THÌ tốc độ PHẢI trong **12–20 m/s** (chuyền
+- [x] AC-38.6 — KHI bóng được chuyền hoặc sút THÌ tốc độ PHẢI trong **12–20 m/s** (chuyền
       ngắn) hoặc **20–30 m/s** (chuyền dài và sút), và **thời gian bay PHẢI khớp** khoảng
       cách chia tốc độ.
-- [ ] AC-38.7 — KHI bóng lăn sệt trên **sân khô** THÌ nó PHẢI chậm dần **1–2 m/s²**; trên
+- [x] AC-38.7 — KHI bóng lăn sệt trên **sân khô** THÌ nó PHẢI chậm dần **1–2 m/s²**; trên
       **sân ướt** PHẢI chậm dần **ít hơn** mức đó, tức bóng đi xa hơn. *(Bản mô tả gốc ghép
       "sân ướt hoặc cỏ dài" vào cùng một chiều; hai thứ đó ngược nhau về ma sát — xem mục 9.)*
-- [ ] AC-38.8 — KHI vẽ một pha chạy trên **6 m/s** THÌ đường chạy PHẢI là **đường cong**:
+- [x] AC-38.8 — KHI vẽ một pha chạy trên **6 m/s** THÌ đường chạy PHẢI là **đường cong**:
       góc đổi hướng giữa hai mốc liền nhau PHẢI không vượt một ngưỡng nêu được bằng số.
-- [ ] AC-38.9 — KHI một trận bắt đầu THÌ **thời tiết và gió** PHẢI dẫn xuất **tất định từ
+- [x] AC-38.9 — KHI một trận bắt đầu THÌ **thời tiết và gió** PHẢI dẫn xuất **tất định từ
       mã trận** (P1), và trong spec này PHẢI chỉ ảnh hưởng tới **vật lý bóng**: ma sát khi
       bóng lăn sệt (AC-38.7) và quỹ đạo bóng bổng dài. Ảnh hưởng tới thể lực và tới tỉ lệ
       khống chế hỏng thuộc spec 009 và 010.
-- [ ] AC-38.10 — KHI xuất một khung hình THÌ trọng tài chính và hai trợ lý PHẢI **có trong
+- [x] AC-38.10 — KHI xuất một khung hình THÌ trọng tài chính và hai trợ lý PHẢI **có trong
       dữ liệu** với mã `REF`, `AR1`, `AR2`, và bốn mệnh đề sau PHẢI đúng ở **mọi** mốc:
       **(a)** chỗ trọng tài chính **NHẮM TỚI** cách bóng **15–35 m**; **(b)** chỗ ấy **không
       nằm trên đường chuyền** — cách đoạn thẳng người giữ bóng → người nhận hơn một lề nêu
@@ -285,10 +285,10 @@ thay vì phải tin**.
 > và đánh số lại sẽ làm sai lệch hồ sơ của `/clarify` hôm nay.
 
 **Acceptance criteria**
-- [ ] AC-45.1 — KHI người dùng bắt đầu một trận THÌ họ PHẢI chọn được giữa **chế độ hiện
+- [x] AC-45.1 — KHI người dùng bắt đầu một trận THÌ họ PHẢI chọn được giữa **chế độ hiện
       tại** và **chế độ liên tục**, và lựa chọn ấy PHẢI được ghi vào bản ghi trận để phát
       lại đúng (P1).
-- [ ] AC-45.2 — KHI mở một trận đã lưu bằng engine hiện tại THÌ nó PHẢI mở được, xem lại
+- [x] AC-45.2 — KHI mở một trận đã lưu bằng engine hiện tại THÌ nó PHẢI mở được, xem lại
       được và đấu lại được **đúng từng dòng như trước spec này**; engine hiện tại PHẢI
       không đổi một kết quả nào (P1, P3).
 - [ ] AC-45.3 — KHI mô phỏng **200 mã trận** với cùng hai đội và cùng chiến thuật ở **cả hai
@@ -320,7 +320,7 @@ thay vì phải tin**.
   > chỗ**, kèm chú thích trỏ về đoạn này — để khi spec 010 tới, người sửa thấy ngay vì sao
   > con số ấy tồn tại. Lệnh dựng lại được: một bộ đo tạm trên `benMau('A'/'B')` +
   > `chayHetTran`, đúng khuôn `src/engine/sosanh.sanNha.test.ts` đã dùng.
-- [ ] AC-45.4 — KHI một trận ở chế độ liên tục được lưu THÌ bản ghi PHẢI chỉ lưu mã trận,
+- [x] AC-45.4 — KHI một trận ở chế độ liên tục được lưu THÌ bản ghi PHẢI chỉ lưu mã trận,
       hai đội, **quân số, thời lượng, sân trung lập, đội của người dùng**, chuỗi can thiệp,
       chế độ và kết quả — PHẢI **không lưu vị trí** của bất kỳ mốc nào; và mở lại trận ấy
       PHẢI **sinh lại** đúng từng khung hình đã từng thấy.
@@ -336,7 +336,7 @@ thay vì phải tin**.
   > bản ghi **đổi hình dạng** và sinh lại sẽ lệch khi người dùng bấm giữa phút. Giữ nguyên
   > độ phân giải phút thì sinh lại **đúng theo cấu trúc**, và cái giá — thay người có hiệu
   > lực ở đầu phút sau — **đúng bằng hành vi hôm nay**, nên không ai mất gì.
-- [ ] AC-45.5 — KHI người dùng xuất một trận ở chế độ liên tục THÌ họ PHẢI nhận được một tệp
+- [x] AC-45.5 — KHI người dùng xuất một trận ở chế độ liên tục THÌ họ PHẢI nhận được một tệp
       **JSON** chứa nhật ký sự kiện và khung hình chi tiết đúng định dạng **mục 7b** và
       **mục 15** của [`ban-mo-ta-goc.md`](./ban-mo-ta-goc.md).
 
@@ -359,9 +359,9 @@ thay vì phải tin**.
   > Người dùng chọn đường thứ ba: **tám AC cơ học khác của US-38 kiểm được từ tệp, riêng
   > AC-38.8 canh bằng phép kiểm thuần ở lớp vẽ** — đúng cách spec 006 đã làm ba lần với
   > những thứ `environment: 'node'` không nhìn tới.
-- [ ] AC-45.7 — KHI chế độ liên tục đang chạy THÌ mọi tính ngẫu nhiên PHẢI đến từ mã trận;
+- [x] AC-45.7 — KHI chế độ liên tục đang chạy THÌ mọi tính ngẫu nhiên PHẢI đến từ mã trận;
       PHẢI không có nguồn ngẫu nhiên hay nguồn thời gian toàn cục nào trong engine (P1).
-- [ ] AC-45.8 — KHI người dùng chọn **quân số khác 11** THÌ chế độ liên tục PHẢI bị **khoá**,
+- [x] AC-45.8 — KHI người dùng chọn **quân số khác 11** THÌ chế độ liên tục PHẢI bị **khoá**,
       và giao diện PHẢI nói rõ vì sao bằng ngôn ngữ đang chọn (P8). Trận quân số 5–10 PHẢI
       chạy bằng chế độ hiện tại như cũ.
 
@@ -377,12 +377,12 @@ thay vì phải tin**.
   > có điều kiện riêng. Cái giá đã nói trước khi chốt: **người chơi sân 7 không bao giờ
   > thấy chuyển động mới**, và giao diện phải giải thích vì sao nút bị khoá.
 
-- [ ] AC-45.9 — KHI người dùng bật **giảm chuyển động** VÀ trận đang ở **chế độ liên tục**
+- [x] AC-45.9 — KHI người dùng bật **giảm chuyển động** VÀ trận đang ở **chế độ liên tục**
       THÌ đồng hồ **mốc** PHẢI vẫn chạy đủ mọi mốc (1 giây ở phần thường, 0,5 giây ở tình
       huống quan trọng — AC-37.7), còn lớp **nội suy** và lớp **dao động** PHẢI tắt
       (AC-31.1): ở mọi khung vẽ, toạ độ của mọi điểm PHẢI **trùng khít** toạ độ của một mốc
       đã phát, PHẢI không bao giờ là một giá trị nằm giữa hai mốc.
-- [ ] AC-45.10 — KHI spec 007 nói "**tua**" THÌ nó PHẢI chỉ nghĩa là tua **TỚI**: đổi mức
+- [x] AC-45.10 — KHI spec 007 nói "**tua**" THÌ nó PHẢI chỉ nghĩa là tua **TỚI**: đổi mức
       tốc độ, và *Chạy hết trận*. Chế độ liên tục trong spec 007 PHẢI **không** có tua ngược
       và PHẢI **không** có thanh thời gian nhảy về giây thứ N. Người dùng muốn xem lại một
       pha đã trôi qua PHẢI chạy lại trận bằng **cùng mã trận** — AC-37.5 bảo đảm họ thấy
@@ -497,9 +497,77 @@ thay vì phải tin**.
       cách xem mắt (P5, và chuẩn chất lượng mục 4)
 - [ ] Ngân sách mùa giải đã được **đo và báo số**, dù spec này không bị nó ràng (mục 6)
 - [ ] Mọi AC ở mục 10 (những gì phải giữ lại) được chạy lại và còn xanh
-- [ ] Người dùng tự xem một trận trọn vẹn ở chế độ liên tục và phán rằng ba câu họ nói ở mục 1
+- [x] Người dùng tự xem một trận trọn vẹn ở chế độ liên tục và phán rằng ba câu họ nói ở mục 1
       không còn đúng nữa — lớp kiểm cuối, như T518 của spec 005 và T617 của spec 006
-- [ ] Ứng dụng chạy trọn luồng mục 4 từ đầu tới cuối, ở **cả hai chế độ** (P6)
+      — **`T760`, hai lượt xem: bác ngày 2026-11-26, ĐẠT sau `T814` + `T815` cùng ngày**
+- [x] Ứng dụng chạy trọn luồng mục 4 từ đầu tới cuối, ở **cả hai chế độ** (P6)
+      — **`T761`, kiểm bằng mắt trên bản chạy thật, 4/4 mục**
+
+### 7c. Bảng đóng spec — **cả 30 AC**, mỗi AC một nhãn (T762)
+
+Ba nhãn, không có nhãn thứ tư: **ĐẠT** · **CHƯA ĐẠT** · **NỢ CÓ TÊN**. Quy tắc tôi tự buộc
+mình khi lập bảng này, lấy thẳng từ điều kiện ra của `T762`:
+
+1. **Không AC nào mà spec đòi test lại được tick bằng mắt.** Mọi dòng `ĐẠT` dưới đây trỏ vào
+   một file test có thật.
+2. **Một vế không có mẫu thì KHÔNG được đếm là đạt.** Bốn vế có `soMau = 0` trên tệp xuất
+   (đo trên **cả 10** mã fixture, không phải một mã) được gọi đúng tên, chứ không được để
+   xanh im.
+3. **Mọi món nợ có MỘT tên và MỘT spec sở hữu nó.**
+
+**Nguồn số:** `doCoHoc(dungTepXuat(…))` chạy trên **10 mã** của `MA_TRAN_CO_DINH`, ngày
+2026-11-27. Con số vi phạm dưới đây là **tổng trên 10 mã**, không phải con số ghim trong
+`doCoHoc.test.ts` (chỉ một mã).
+
+| AC | nhãn | bằng chứng / chủ nợ |
+|---|---|---|
+| AC-37.1 mét trong 105×68 | ✅ ĐẠT | `hinhHocSan.test.ts`, `moc.test.ts`, `quyDoiMet.test.ts` |
+| AC-37.2 mốc hình học sân | ✅ ĐẠT | `hinhHocSan.test.ts`, `san2D.test.ts` |
+| AC-37.3 đổi sân hiệp 2 | ✅ ĐẠT | `moc.test.ts` |
+| AC-37.4 dày 0,5 s ở tình huống | ✅ ĐẠT | `dienPha.test.ts`, `loMoc.test.ts`, `mocChuoi.test.ts` |
+| AC-37.5 tái lập từng chữ số | ✅ ĐẠT | 5 file, gồm `tranLienTuc.test.ts` *"chạy hai lần ra một kết quả"* |
+| AC-37.6 ai đang giữ bóng | ✅ ĐẠT | `tranLienTuc.test.ts`, `viTriVe.test.ts` |
+| AC-37.7 mốc 1 s / 0,5 s | ✅ ĐẠT | `moc.test.ts`, `mocChuoi.test.ts`; tệp thật **5.980 hàng mỏng** |
+| AC-37.8 định nghĩa bằng loại sự kiện, không xG | ✅ ĐẠT | `tinhHuong.test.ts` (bốn toán hạng, **0** chỗ nhắc xG) |
+| **AC-38.1** ≤ 9 m/s | 🔴 **NỢ CÓ TÊN** | **249 + 104 vi phạm / 1.508.250 mẫu** — `T742` của spec 007 |
+| **AC-38.2** gia tốc ≤ 6, giảm tốc ≤ 8 | 🔴 **NỢ CÓ TÊN** | **23 + 3 / 1.508.000** — `T742` |
+| **AC-38.3** đổi hướng > 90° | 🔴 **NỢ CÓ TÊN** | **62 + 312 / 187.197** — `T742` |
+| **AC-38.4** lùi ≤ 4, ngang ≤ 5 m/s | 🔴 **NỢ CÓ TÊN** | **1 vi phạm / 21.334** — nhỏ nhất nhóm, nhưng không phải 0. `T742` |
+| AC-38.5 z, đánh đầu 1,5–2,8 m | ✅ ĐẠT | `vatLyBong.test.ts` + `tranLienTuc.test.ts` *"quả tạt rơi trong dải đánh đầu"*. ⚠️ vế **(đánh đầu)** có **0 mẫu trên tệp** → nợ thuộc **AC-45.6** |
+| AC-38.6 12–20 / 20–30 m/s, thời gian bay | ✅ ĐẠT | `vatLyBong.test.ts` (6 `it`), `tranLienTuc.test.ts` 10 mã. ⚠️ **cả hai vế 0 mẫu trên tệp** → nợ thuộc **AC-45.6** |
+| AC-38.7 ma sát khô 1–2, ướt ít hơn | ✅ ĐẠT | `dieuKien.test.ts` — dải, chiều, và ngưỡng. ⚠️ **0 mẫu trên tệp**, đã khai sẵn ở `VE_CHUA_CO_MAU` → **spec 008** (bóng lăn tự do) |
+| AC-38.8 pha > 6 m/s vẽ thành đường cong | ✅ ĐẠT | **Ngoại lệ đã chốt** của AC-45.6; canh ở lớp vẽ: `viTriVe.test.ts`, `quyDoiMet.test.ts`, `coHoc.test.ts` |
+| AC-38.9 thời tiết tất định, chỉ ăn vào bóng | ✅ ĐẠT | `dieuKien.test.ts` *"gió ăn vào bóng bổng dài, và CHỈ nó"*; 10/10 mẫu sạch trên tệp. Nhãn thời tiết nay **chỉ hiện ở chế độ liên tục** (`T761`) |
+| AC-38.10 ba điểm trọng tài, bốn mệnh đề | ✅ ĐẠT | (c) **120.660** và (d) **60.330** mẫu, **0** vi phạm. (a) và (b) đo ở **mức hàm thuần** (`coHoc.test.ts`) — một **lệch có tên** đã khai ở `VE_KHONG_DO_DUOC_TU_TEP`, vì tệp không chứa **đích** lẫn **đường chuyền** |
+| **AC-38.11** hướng người khớp hướng đi | 🔴 **NỢ CÓ TÊN** | **22 vi phạm / 272.360** — `T742` |
+| AC-45.1 chọn chế độ, ghi vào bản ghi | ✅ ĐẠT | `tran.test.ts`, `matchRepo.test.ts`, `phatLai.cheDo.test.ts`; phần giao diện kiểm bằng mắt ở `T761` |
+| AC-45.2 trận cũ mở lại đúng từng dòng | ✅ ĐẠT | `phatLai.cheDo.test.ts` + **toàn bộ** bộ kiểm spec 001–006 còn xanh |
+| **AC-45.3** 200 mã, hai chế độ | 🔴 **CHƯA ĐẠT** | **Chưa chạy.** Phép kiểm hôm nay so trên **10** mã và chỉ canh mệnh đề *"một trận cụ thể không bắt buộc giống"*. Chủ: **`T750` + `T751`** của spec 007 |
+| AC-45.4 không lưu vị trí, sinh lại được | ✅ ĐẠT | `tran.test.ts`, `matchRepo.test.ts`, `doCoHoc.test.ts` |
+| AC-45.5 tệp JSON đúng mục 7b + 15 | ✅ ĐẠT | `tepXuat.test.ts`, `nhatKy.test.ts`; hai khoá `hanh_dong`/`muc_dich` mang `null` — **nợ có tên** của spec **009** |
+| **AC-45.6** mọi phép kiểm US-38 chạy trên tệp | 🔴 **CHƯA ĐẠT** | AC cho **đúng một** ngoại lệ (AC-38.8), nhưng đo được **bốn vế nữa** không chạy trên tệp: `38.5(đánh đầu)`, `38.6(dải)`, `38.6(thời gian bay)`, `38.7` — **0 mẫu trên cả 10 mã**. Hai vế `38.10(a)(b)` cũng vậy. Chủ: **spec 007** (khai lại ngoại lệ) hoặc **spec 008** (bóng lăn tự do) |
+| AC-45.7 ngẫu nhiên chỉ từ mã trận | ✅ ĐẠT | `hatGiong.test.ts`, `dieuKien.test.ts`, `boundaries.test.ts` chặn `Math.random`/`Date.now` |
+| AC-45.8 khoá chế độ khi quân số ≠ 11 | ✅ ĐẠT | `batDau.test.ts`; và `T761` thấy tận mắt ô radio `disabled` kèm một `role="status"` nói rõ vì sao |
+| AC-45.9 giảm chuyển động: toạ độ trùng mốc | ✅ ĐẠT | `viTriVe.test.ts` |
+| AC-45.10 chỉ tua TỚI | ✅ ĐẠT | `tuaToi.test.ts` — 3 `describe`, gồm hai phép **chứng minh phép kiểm đỏ được** |
+| **AC-45.11** tệp ≤ 11.000.000 byte | 🔴 **CHƯA ĐẠT** | **Không một phép kiểm nào.** Đã có **một** phép đo (4.512.038 byte, một mã) nhưng không có ngưỡng và không có ca xấu. Chủ: **`T744` + `T745`** của spec 007 |
+
+**Tổng: 22 ĐẠT · 8 chưa đạt**, trong đó **5** thuộc một món nợ duy nhất (`T742`) và **3** có
+chủ task cụ thể còn mở.
+
+⚠️ **Vì sao `Status` KHÔNG đổi thành `Done`.** Điều kiện ra của `T762` nói rõ: *"`Status` đổi
+thành `Done` **chỉ khi** mọi AC đạt"*. Tám AC chưa đạt, nên spec này **ở lại `Planned`**. Bảng
+trên là thứ T762 phải giao, không phải con dấu `Done`.
+
+📌 **Năm AC của nhóm `T742` KHÔNG phải mô hình sai.** Chú thích của `doCoHoc.test.ts` đã đo
+tách ra: trên **vận tốc thật** (`float64` trong trạng thái, không qua phép làm tròn của tệp)
+mô hình **sạch hoàn toàn** — tốc độ lớn nhất chạm đúng trần 9,0000 m/s, `|Δv|` lớn nhất 7,2
+dưới trần 8. Chênh lệch là giữa **vận tốc** và **dịch chuyển**, và nó có hai nguồn có tên.
+`T814` của spec 007 đã gỡ **95%** món nợ ấy ngày 2026-11-26 (1.613 → 77 vi phạm trên một mã)
+bằng cách sửa nguồn thứ nhất. Phần còn lại là nguồn thứ hai: **mốc cách nhau 1 giây còn tích
+phân chạy 0,5 giây**, tức hai bước một mốc — một chuyện của **lưới mốc**, không của cơ học.
+
+---
 
 ### 7b. Danh sách kiểm BẰNG MẮT — chỗ `environment: node` không với tới (T761)
 

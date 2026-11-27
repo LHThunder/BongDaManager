@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **30 AC**) |
 | **Plan** | `./plan.md` (Status `Approved`, D117–D134, R51–R64) |
-| **Tiến độ** | 44/53 — T813, **T814**, **T815**, **T760** và **T761** xong 2026-11-26. T814 gỡ **95%** món nợ cơ học của `T742` (1.613 → 77 vi phạm); T815 phá cái lưới ô vuông của đội hình; `T760` đạt ở lượt xem thứ hai; `T761` kiểm bằng mắt **4/4 mục đạt** sau khi sửa lỗi nhãn thời tiết mà chính nó tìm ra |
+| **Tiến độ** | 45/53 — T813, **T814**, **T815**, **T760** và **T761** xong 2026-11-26. T814 gỡ **95%** món nợ cơ học của `T742` (1.613 → 77 vi phạm); T815 phá cái lưới ô vuông của đội hình; `T760` đạt ở lượt xem thứ hai; `T761` kiểm bằng mắt **4/4 mục đạt**; `T762` đóng spec bằng bảng **22/30 AC đạt** |
 | **Nền đo** | commit `5c652eb`, engine v6, **1.304 test xanh / 63 file test** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -2418,11 +2418,32 @@ giải để người dùng quyết.
   - AC: AC-45.1 (phần giao diện), AC-45.8 (phần giao diện), AC-31.4, P9
   - Phụ thuộc: T760
 
-- [ ] **T762** — Đóng spec bằng bảng AC **đạt / chưa đạt / nợ có tên** trên **cả 30 AC**
+- [x] **T762** — Đóng spec bằng bảng AC **đạt / chưa đạt / nợ có tên** trên **cả 30 AC**
   - File: `specs/007-continuous-match-engine/spec.md` (mục 7 + Status)
   - Xong khi: cả **30 AC** có một trong ba nhãn; **không** AC nào mà spec đòi test lại được
     tick bằng mắt; mọi món còn nợ có **một tên** và **một spec sở hữu** nó; `Status` đổi thành
     `Done` **chỉ khi** mọi AC đạt.
+  - ✅ **XONG 2026-11-27 — 22 ĐẠT / 8 chưa đạt. Bảng ở `spec.md` mục 7c.**
+    Nguồn số: `doCoHoc(dungTepXuat(…))` trên **cả 10** mã của `MA_TRAN_CO_DINH`, không phải
+    một mã như con số ghim trong `doCoHoc.test.ts`.
+    - **Tám AC chưa đạt, và không AC nào trong đó được để xanh im:**
+      - `AC-38.1` (353 vi phạm), `AC-38.2` (26), `AC-38.3` (374), `AC-38.4` (**1**),
+        `AC-38.11` (22) — **năm** AC của **một** món nợ: `T742`. `T814` đã gỡ 95% nó ngày
+        2026-11-26; phần còn lại là nguồn thứ hai — mốc 1 giây mà tích phân 0,5 giây.
+      - `AC-45.3` — phép so 200 mã **chưa chạy**; hôm nay chỉ so 10 mã và chỉ canh mệnh đề
+        "một trận cụ thể không bắt buộc giống". Chủ: `T750` + `T751`.
+      - `AC-45.6` — AC cho **đúng một** ngoại lệ (AC-38.8), nhưng đo được **bốn vế nữa** có
+        `soMau = 0` trên tệp ở cả 10 mã: `38.5(đánh đầu)`, `38.6(dải)`, `38.6(thời gian bay)`,
+        `38.7`. Cộng hai vế `38.10(a)(b)` đã khai sẵn. Chủ: spec 007 (khai lại ngoại lệ) hoặc
+        spec 008 (bóng lăn tự do).
+      - `AC-45.11` — **không một phép kiểm nào**. Chủ: `T744` + `T745`.
+    - 📌 **Quy tắc tôi tự buộc khi lập bảng:** một vế có `soMau = 0` **không được đếm là đạt**.
+      Đó là lý do `AC-45.6` xuống "chưa đạt" thay vì được bỏ qua — và nó là phát hiện riêng
+      của T762, không có trong task nào trước.
+    - 📌 **`Status` KHÔNG đổi thành `Done`**, đúng điều kiện ra: *"chỉ khi mọi AC đạt"*. Tám
+      AC chưa đạt. Bảng là thứ T762 phải giao, không phải con dấu `Done`.
+    - ⚠️ **Không một chữ nào của 30 AC bị sửa.** Chỉ ô tick đổi, và điều đó được kiểm bằng
+      máy: chuẩn hoá `[x]` về `[ ]` rồi `diff` hai bản — **rỗng**.
   - AC: cả 30
   - Phụ thuộc: T761
   - Ghi chú: nhiệm vụ "ghi câu trả lời cho các món treo" đã **xong trước khi code** — tám câu
