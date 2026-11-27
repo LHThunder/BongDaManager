@@ -429,3 +429,41 @@ function bangNguoi(
   }
   return ra
 }
+
+/*
+  ====================================================================
+  CHUỖI CỦA TỆP, VÀ SỐ BYTE THẬT CỦA NÓ (T744, T745, AC-45.11).
+  ====================================================================
+
+  Hai hàm thuần, đặt ở **engine** chứ không ở `services`, vì
+  `boundaries.test.ts` chặn `tepXuat.test.ts` import `../../services` — và
+  AC-45.11 đòi phép kiểm **đo kích thước thật**, nên phép đo phải với tới được
+  từ chính file test của tệp. Khi `T743` dựng `xuatTranService.ts`, nó
+  **import lại** hai hàm này chứ không viết bản thứ hai.
+
+  ⚠️ **ĐƠN VỊ: `byteLength`, KHÔNG phải `length`.** Chuỗi JSON ở đây mang tên
+  người Việt có dấu, và mỗi ký tự có dấu chiếm **2–3 byte** UTF-8. Đo bằng
+  `chuoi.length` là đếm **mã đơn vị UTF-16** và sẽ báo thiếu — đúng loại sai số
+  đủ để một tệp vượt ngưỡng mà phép kiểm vẫn xanh.
+*/
+
+/**
+ * Chuỗi JSON của tệp xuất — **một** bản duy nhất của phép tuần tự hoá.
+ *
+ * Không `JSON.stringify(tep, null, 2)`: xuống dòng và thụt lề cho một tệp
+ * 4,5 MB là thêm hàng trăm nghìn byte mà `jq` và `node -e` không cần. AC-45.5
+ * đòi "đọc được bằng công cụ thường", không đòi đọc được bằng mắt trần.
+ */
+export function chuoiTep(tep: TepXuat): string {
+  return JSON.stringify(tep)
+}
+
+/**
+ * Số **byte** của một chuỗi khi ghi ra tệp UTF-8.
+ *
+ * `TextEncoder` có kiểu sẵn nhờ `lib: ["ES2022","DOM","DOM.Iterable"]` trong
+ * `tsconfig.json`; không cần `@types/node`.
+ */
+export function soByteCuaChuoi(chuoi: string): number {
+  return new TextEncoder().encode(chuoi).byteLength
+}

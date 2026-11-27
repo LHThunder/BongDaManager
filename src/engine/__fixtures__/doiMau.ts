@@ -219,3 +219,50 @@ export const MA_TRAN_CO_DINH: readonly string[] = [
   'Y3J8T4MZ7W',
   'B5X1H9KQ2T',
 ]
+
+/*
+  ====================================================================
+  MẪU RỘNG 200 MÃ (T750).
+  ====================================================================
+
+  ⚠️ **Hàm này từng tồn tại HAI bản, chép tay, ở hai file.**
+  `sosanh.doiManhHon.test.ts` khai `maRong(i)`; `sosanh.sanNha.test.ts` viết
+  thẳng cùng một biểu thức template vào trong `Array.from`. Hai bản ấy **trùng
+  nhau từng ký tự** hôm nay — và đó đúng là lớp lỗi mà một ngày ai đó sửa một
+  bản sẽ làm hai bảng thống kê không còn so được với nhau.
+
+  Nâng lên đây vì **AC-45.3 đòi 200 mã ở CẢ HAI chế độ**: `sosanh.haiCheDo`
+  (T751) phải chạy trên **đúng** bộ mã mà hai file cũ đã chạy, nếu không thì
+  "hai chế độ cho kết quả gần nhau" là một câu so hai mẫu khác nhau.
+
+  📌 **Hai con số phải giữ nguyên sau phép nâng này**, và chúng là điều kiện ra
+  của T750: `sosanh.doiManhHon` in **174-17-9** và **76-47-77**.
+*/
+
+/**
+ * Mã trận thứ `i` của mẫu rộng — **tất định**, không một nguồn ngẫu nhiên nào.
+ *
+ * Dạng `Z0000XQ4B`: bốn chữ số đệm 0 nên thứ tự từ vựng trùng thứ tự số, và
+ * đuôi `XQ4B` giữ đúng hình dạng 10 ký tự của một mã trận thật.
+ */
+export function maRong(i: number): string {
+  return `Z${String(i).padStart(4, '0')}XQ4B`
+}
+
+/**
+ * Số mã của mẫu rộng.
+ *
+ * **200, không phải 60** — hai chú thích ở hai file `sosanh.*` đã trả giá cho
+ * con số này: ở 60 mã, hiệu số sân nhà dao động tới **+1,02 bàn** (vượt trần
+ * "nhỏ hơn 1 bàn" của chính phép kiểm) và tỉ lệ thắng của hai đội bằng nhau
+ * tụt xuống **28%** (dưới ngưỡng 33%). Nới mẫu, **không** nới ngưỡng.
+ *
+ * Nó cũng đúng bằng con số **AC-45.3** đòi, nên T751 dùng lại chính mẫu này.
+ */
+export const SO_MA_RONG = 200
+
+/** Mẫu rộng 200 mã, dựng một lần và dùng chung. */
+export const MAU_RONG: readonly string[] = Array.from(
+  { length: SO_MA_RONG },
+  (_, i) => maRong(i),
+)

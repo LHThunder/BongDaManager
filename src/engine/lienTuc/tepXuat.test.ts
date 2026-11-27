@@ -1,14 +1,16 @@
 import { describe, expect, it } from 'vitest'
-import { cauHinhMau, MA_TRAN_CO_DINH } from '../__fixtures__/doiMau'
+import { cauHinhMau, MA_TRAN_CO_DINH, MAU_RONG } from '../__fixtures__/doiMau'
 import { dongSuKien } from '../tran'
 import {
   CAC_TRANG_THAI,
+  chuoiTep,
   dungTepXuat,
   KHOA_BONG,
   KHOA_NGUOI,
   MA_TRONG_TAI,
   maNganCuaNguoi,
   PHIEN_BAN_TEP,
+  soByteCuaChuoi,
   trangThaiCuaNguoi,
   type TepXuat,
 } from './tepXuat'
@@ -19,10 +21,53 @@ import {
 } from './tranLienTuc'
 
 /*
+  ====================================================================
+  KÍCH THƯỚC THẬT CỦA TỆP XUẤT — ĐO, KHÔNG ƯỚC (T744, AC-45.11).
+  ====================================================================
+
+  **Mẫu:** 20 mã đầu của `MAU_RONG` (`Z0000XQ4B` … `Z0019XQ4B`), trận 11 người
+  90 phút, đội mẫu A/B, sân không trung lập. **Ngày đo:** 2026-11-27.
+  **Phép đo:** `soByteCuaChuoi(chuoiTep(dungTepXuat(cauHinhMau(ma))))`, tức
+  `new TextEncoder().encode(…).byteLength` trên **chính chuỗi sẽ được ghi ra
+  tệp** — không ước lượng từ số mốc.
+
+  | | byte | MB (thập phân) | MiB | tình huống | hàng mỏng |
+  |---|---|---|---|---|---|
+  | nhỏ nhất (`Z0017XQ4B`) | 3.489.133 | **3,489** | 3,327 | 9 | 5.940 |
+  | trung vị (`Z0018XQ4B`) | 3.970.120 | **3,970** | 3,786 | 13 | 6.020 |
+  | **trung bình, 20 mã** | **4.058.571** | **4,059** | **3,871** | — | — |
+  | **ca xấu (`Z0019XQ4B`)** | **5.332.429** | **5,332** | **5,085** | **23** | 6.440 |
+
+  **Ca xấu dư 51,5% so với ngưỡng 11.000.000 byte của AC-45.11.**
+
+  ⚠️ **HAI CƠ SỐ, VÀ ĐÓ KHÔNG PHẢI SỰ CẨN THẬN THỪA.** `src/ui/ngonNgu/soLieu.ts`
+  `coTep(byte)` chia `1024·1024` rồi in nhãn **"MB"** — tức repo đang in **MiB
+  dưới nhãn MB**. AC-45.11 chốt **thập phân**. Ở ngưỡng 11 MB hai cơ số lệch
+  **534.336 byte = 4,9%**, đủ để một tệp 11,3 MB xanh ở phép kiểm MiB mà **vi
+  phạm** AC. Nên bảng trên báo cả hai, và `T745` canh **byte**, không canh MB.
+
+  📌 **Con số này hoà giải hai con số mà D125 ghi là CHƯA hoà giải:** ~11,3 MB
+  của hội đồng thiết kế và 7,2 / 8,0 / 9,0 MB của plan mục 10. Thực tế **thấp
+  hơn cả hai** — ca xấu nhất trong 20 mã mới 5,33 MB. D125 nói nếu số đo ra
+  11,3 thì đó là **một câu phải hỏi người dùng**; không phải hỏi nữa.
+
+  📌 **Thứ quyết định kích thước là SỐ TÌNH HUỐNG, không phải số hàng mỏng.**
+  Hàng mỏng chỉ đi từ 5.940 lên 6.440 (**+8%**) trong khi tệp đi từ 3,49 lên
+  5,33 MB (**+53%**); tình huống đi từ 9 lên 23 (**×2,6**). Khối **dày** mới là
+  chỗ co giãn.
+
+  **Lệnh dựng lại được:**
+
+      npx vitest run src/engine/lienTuc/tepXuat.test.ts
+
+  (khối "ngưỡng 11 MB" in lại con số của ca xấu ở mỗi lượt chạy)
+
+  ---
+
   Tệp xuất JSON (T740, AC-45.5 + AC-45.6, quyết định D125).
 
-  Dựng một tệp đầy đủ tốn ~375 ms, nên khối này dựng **một** tệp rồi hỏi nó
-  nhiều câu, thay vì dựng lại ở mỗi `it`.
+  Dựng một tệp đầy đủ tốn ~230 ms *(đo lại T744; ghi chú cũ nói 375 ms)*, nên
+  khối này dựng **một** tệp rồi hỏi nó nhiều câu, thay vì dựng lại ở mỗi `it`.
 */
 const MA = MA_TRAN_CO_DINH[0]!
 const TEP: TepXuat = dungTepXuat(cauHinhMau(MA))
@@ -317,5 +362,71 @@ describe('nhật ký trong tệp không đi qua phép chọn mật độ (T741)'
       .replace(/(^|[^:])\/\/[^\n]*/g, '$1 ')
     expect(code.includes('chonSuKien')).toBe(false)
     expect(code.includes('dongSuKien')).toBe(false)
+  })
+})
+
+/*
+  ====================================================================
+  NGƯỠNG 11 MB — VÀ MỘT CA NGƯỢC CHỨNG MINH NÓ ĐỎ ĐƯỢC (T745, AC-45.11).
+  ====================================================================
+
+  Khối này canh **ngưỡng**; khối số đo ở đầu file **báo con số**. Hai việc khác
+  nhau, và `T744`/`T745` tách đôi đúng ở chỗ ấy.
+
+  ⚠️ **Ca xấu được GHIM theo tên, không dò lại mỗi lượt chạy.** `Z0019XQ4B` là
+  mã nặng nhất trong 20 mã đã đo (23 tình huống). Dò lại cả 20 mã ở mỗi lượt
+  tốn **~5 giây** mỗi lần ai đó chạy bộ test, để mua đúng một thứ: phòng khi
+  một mã khác vượt lên nặng hơn. Cái giá ấy không đáng, và nếu mô hình đổi tới
+  mức thứ tự nặng-nhẹ đảo thì **khối số đo ở đầu file phải được đo lại** — đó
+  mới là chỗ chịu trách nhiệm.
+*/
+const MA_CA_XAU = MAU_RONG[19]!
+const NGUONG_BYTE = 11_000_000
+
+describe('ngưỡng 11 MB của AC-45.11 (T745)', () => {
+  const tepXau = dungTepXuat(cauHinhMau(MA_CA_XAU))
+  const soByte = soByteCuaChuoi(chuoiTep(tepXau))
+
+  it('ca xấu trong 20 mã nằm DƯỚI 11.000.000 byte, và in ra con số', () => {
+    console.log(
+      `AC-45.11 — ${MA_CA_XAU}: ${soByte} byte = ` +
+        `${(soByte / 1_000_000).toFixed(3)} MB = ` +
+        `${(soByte / (1024 * 1024)).toFixed(3)} MiB, ` +
+        `dư ${(((NGUONG_BYTE - soByte) / NGUONG_BYTE) * 100).toFixed(1)}% ` +
+        `(${tepXau.tinh_huong.length} tình huống, ${tepXau.moc.hang.length} hàng mỏng)`,
+    )
+    /*
+      ⚠️ CHỐNG RỖNG. Một tệp rỗng cũng "dưới 11 MB". Khẳng định nó là một tệp
+      **thật** trước đã: trên 3 MB, có khối dày, có đủ hàng mỏng của 90 phút.
+    */
+    expect(soByte).toBeGreaterThan(3_000_000)
+    expect(tepXau.tinh_huong.length).toBeGreaterThan(5)
+    expect(tepXau.moc.hang.length).toBeGreaterThan(5_000)
+
+    expect(soByte).toBeLessThanOrEqual(NGUONG_BYTE)
+  })
+
+  it('và ngưỡng ấy ĐỎ ĐƯỢC: bơm thêm tình huống cho tới khi vượt', () => {
+    /*
+      Nhân bản **khối dày** — đúng thứ đã đo được là chỗ co giãn của tệp (số
+      tình huống đi ×2,6 thì tệp đi +53%, còn hàng mỏng chỉ +8%). Nếu phép
+      khẳng định ở trên là một câu nói suông thì vòng này sẽ chạy hết 20 lượt
+      mà không bao giờ vượt, và phép kiểm đỏ.
+    */
+    let tinhHuong = [...tepXau.tinh_huong]
+    let vuot = 0
+    let lan = 0
+    for (; lan < 20; lan += 1) {
+      tinhHuong = [...tinhHuong, ...tepXau.tinh_huong]
+      vuot = soByteCuaChuoi(chuoiTep({ ...tepXau, tinh_huong: tinhHuong }))
+      if (vuot > NGUONG_BYTE) break
+    }
+    console.log(
+      `ca ngược: ${lan + 1} lần nhân bản khối dày → ${vuot} byte, ` +
+        `vượt ngưỡng ${(((vuot - NGUONG_BYTE) / NGUONG_BYTE) * 100).toFixed(1)}%`,
+    )
+    expect(vuot).toBeGreaterThan(NGUONG_BYTE)
+    // Và nó vượt vì khối DÀY phình, không vì cái gì khác.
+    expect(tinhHuong.length).toBeGreaterThan(tepXau.tinh_huong.length)
   })
 })

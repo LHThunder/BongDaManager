@@ -120,6 +120,9 @@ trong `src/engine`. Tệp xuất là JSON thô qua `JSON.stringify`, không nén
 | `src/ui/san2D.test.ts` chạy riêng | **8,16 s** / 55 test | `npx vitest run src/ui/san2D.test.ts`, tiến trình mới |
 | Số mốc một trận | **5.520–6.000, trung bình 5.754** | `tongPhutTran = thoiLuong + buGio.hiep1 + buGio.hiep2`, bù giờ 1–5 phút mỗi hiệp |
 | v6, A15 vs B10, 200 mã, sân trung lập | **174–17–9 = 87,0% thắng, hiệu số +2,255 bàn** | `npx vitest run src/engine/sosanh.doiManhHon.test.ts` in đúng 174-17-9 |
+| **Liên tục**, A15 vs B10, 200 mã, sân trung lập *(T751, 2026-11-27)* | **180–15–5 = 90,0% thắng, hiệu số +2,520 bàn** — lệch **0,265 bàn** và **3,0 điểm phần trăm** so với hàng trên, cả hai dưới trần của AC-45.3 (0,5 và 10) | `npx vitest run src/engine/sosanh.haiCheDo.test.ts`, **60 s** |
+| **Tệp xuất JSON, 90 phút** *(T744, 2026-11-27, 20 mã `MAU_RONG`)* | trung bình **4.058.571 byte = 4,059 MB = 3,871 MiB**; **ca xấu `Z0019XQ4B` 5.332.429 byte = 5,332 MB = 5,085 MiB**, dư **51,5%** so với ngưỡng 11.000.000 của AC-45.11 | `soByteCuaChuoi(chuoiTep(dungTepXuat(…)))`, tức `TextEncoder().encode(…).byteLength` trên chính chuỗi sẽ ghi ra tệp. Bảng đầy đủ ở đầu `tepXuat.test.ts` |
+| Một trận, hai chế độ *(đo khi viết T751)* | v6 **9,0 ms**, liên tục **100,0 ms** — **×11,1** | 10 mã mỗi chế độ, cùng tiến trình, v6 chạy trước |
 
 **Ba ngân sách, và plan nói rõ nó viết cho cái nào.** AC-31.3 "một trận < 3 giây" → dư **89
 lần**. `hieuNang.test.ts` 200 ms → dư **6,2 lần** ở số đo mới (32,3 ms). Mùa giải 380 trận

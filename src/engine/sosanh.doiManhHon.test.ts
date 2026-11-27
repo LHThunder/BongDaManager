@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { benMau, MA_TRAN_CO_DINH } from './__fixtures__/doiMau'
+import { benMau, MA_TRAN_CO_DINH, MAU_RONG } from './__fixtures__/doiMau'
 import { chayHetTran, taoTran } from './tran'
 
 /*
@@ -18,10 +18,6 @@ import { chayHetTran, taoTran } from './tran'
   đó engine tụt từ 88% xuống 60% thì vẫn bị bắt, kể cả khi mẫu 10 trận tình
   cờ vẫn qua.
 */
-
-function maRong(i: number): string {
-  return `Z${String(i).padStart(4, '0')}XQ4B`
-}
 
 function ketQua(chiSoA: number, chiSoB: number, cacMa: readonly string[]) {
   let thang = 0
@@ -51,7 +47,7 @@ function ketQua(chiSoA: number, chiSoB: number, cacMa: readonly string[]) {
   giữa hai phía. Nhưng ở 60 mã thì có bộ cho 17-19-24, tức 28% thắng, thấp
   hơn ngưỡng 33% của test thuần do nhiễu. Nới mẫu, giữ ngưỡng.
 */
-const MAU_RONG = Array.from({ length: 200 }, (_, i) => maRong(i))
+// `MAU_RONG` nâng lên `__fixtures__/doiMau.ts` ở T750 — xem chú thích ở đó.
 
 describe('đội mạnh hơn phải thắng (AC-8.8)', () => {
   it('hơn 5 điểm mọi chỉ số thì thắng ít nhất 7 trong 10 trận', () => {

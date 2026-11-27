@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **30 AC**) |
 | **Plan** | `./plan.md` (Status `Approved`, D117–D134, R51–R64) |
-| **Tiến độ** | 45/53 — T813, **T814**, **T815**, **T760** và **T761** xong 2026-11-26. T814 gỡ **95%** món nợ cơ học của `T742` (1.613 → 77 vi phạm); T815 phá cái lưới ô vuông của đội hình; `T760` đạt ở lượt xem thứ hai; `T761` kiểm bằng mắt **4/4 mục đạt**; `T762` đóng spec bằng bảng **22/30 AC đạt** |
+| **Tiến độ** | 49/53 — T813, **T814**, **T815**, **T760** và **T761** xong 2026-11-26. T814 gỡ **95%** món nợ cơ học của `T742` (1.613 → 77 vi phạm); T815 phá cái lưới ô vuông của đội hình; `T760` đạt ở lượt xem thứ hai; `T761` kiểm bằng mắt **4/4 mục đạt**; `T762` đóng spec bằng bảng 22/30 AC, rồi **T744/T745/T750/T751 đóng thêm `AC-45.3` và `AC-45.11` ngay trong ngày** → **24/30** |
 | **Nền đo** | commit `5c652eb`, engine v6, **1.304 test xanh / 63 file test** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -1968,12 +1968,29 @@ trận tiến theo giây**. Vòng cấm và khung thành vẽ đúng mét.
       `ngonNgu.test.ts:65` sinh thêm **ba** phép kiểm cho khối ấy. Cân nhắc nhồi vào khối có
       sẵn như T724 đã làm.
 
-- [ ] **T744** — **Đo và báo** kích thước thật, đối chiếu với 11 MB của AC-45.11
+- [x] **T744** — **Đo và báo** kích thước thật, đối chiếu với 11 MB của AC-45.11
   - File: `src/engine/lienTuc/tepXuat.test.ts` (dòng kết quả ở **đầu** file),
     `specs/007-continuous-match-engine/plan.md`
   - Xong khi: đầu file có con số đo được cho **ca trung bình** và **ca xấu**, bằng
     `new TextEncoder().encode(chuoi).byteLength`, kèm **lệnh dựng lại được** và điều kiện đo;
     và plan mục 2.3 có cùng con số. **Không** đặt lại ngưỡng — ngưỡng là của AC-45.11.
+  - ✅ **XONG 2026-11-27.** Bảng ở **đầu** `tepXuat.test.ts`, 20 mã đầu của `MAU_RONG`:
+    trung bình **4.058.571 byte = 4,059 MB = 3,871 MiB**; ca xấu `Z0019XQ4B` **5.332.429 byte
+    = 5,332 MB = 5,085 MiB**, **dư 51,5%** so với 11.000.000. Đo bằng
+    `TextEncoder().encode(chuoiTep(tep)).byteLength` trên **chính chuỗi sẽ ghi ra tệp**.
+    Ngưỡng **không** bị đặt lại — nó là của AC-45.11.
+  - 📌 **Hoà giải hai con số mà D125 ghi là CHƯA hoà giải:** ~11,3 MB của hội đồng thiết kế và
+    7,2 / 8,0 / 9,0 MB của plan mục 10. Thực tế **thấp hơn cả hai**. D125 nói nếu ra 11,3 thì
+    đó là một câu phải hỏi người dùng — không phải hỏi nữa.
+  - 📌 **Thứ quyết định kích thước là SỐ TÌNH HUỐNG, không phải số hàng mỏng:** hàng mỏng
+    5.940 → 6.440 (**+8%**) trong khi tệp 3,49 → 5,33 MB (**+53%**), tình huống 9 → 23
+    (**×2,6**). Khối **dày** mới là chỗ co giãn — và đó là lý do ca ngược của T745 nhân bản
+    đúng khối ấy.
+  - 📌 **Hai hàm thuần mới ở `tepXuat.ts`, KHÔNG ở `services`:** `chuoiTep` và
+    `soByteCuaChuoi`. `boundaries.test.ts` chặn `tepXuat.test.ts` import `../../services`, mà
+    AC-45.11 đòi phép kiểm đo **kích thước thật** — nên phép đo phải với tới được từ chính file
+    test của tệp. `T743` khi dựng `xuatTranService.ts` **import lại** hai hàm này.
+  - 📏 Ghi chú cũ nói dựng một tệp tốn ~375 ms; đo lại được **~230 ms**.
   - AC: AC-45.11 (đo), AC-45.5
   - Phụ thuộc: T740, T741
   - Ghi chú đơn vị — **phải báo CẢ HAI cơ số**, vì repo đang in một cơ số dưới nhãn của cơ
@@ -1986,11 +2003,21 @@ trận tiến theo giây**. Vòng cấm và khung thành vẽ đúng mét.
     `TextDecoder`). `tsconfig.json` có `lib: ["ES2022","DOM","DOM.Iterable"]` nên nó **có kiểu
     sẵn**, không phải thêm `@types/node`. Khuôn báo cáo giống **T753**.
 
-- [ ] **T745** — Phép kiểm ngưỡng `soByte <= 11_000_000` + một **ca ngược**
+- [x] **T745** — Phép kiểm ngưỡng `soByte <= 11_000_000` + một **ca ngược**
   - File: `src/engine/lienTuc/tepXuat.test.ts` (+2 ca)
   - Xong khi: trận **90 phút ca xấu** (nhiều tình huống quan trọng nhất trong 20 mã) cho
     `soByte <= 11_000_000`; **và** ca ngược chứng minh ngưỡng **đỏ được** (bơm thêm
     tình huống tới khi vượt).
+  - ✅ **XONG 2026-11-27**, hai `it` ở cuối `tepXuat.test.ts`.
+    - **Ngưỡng:** ca xấu `Z0019XQ4B` cho **5.332.429 ≤ 11.000.000**, dư 51,5%. Kèm **ba phép
+      chống rỗng** trước khi so — một tệp rỗng cũng "dưới 11 MB", nên phải khẳng định nó là
+      một tệp **thật**: trên 3 MB, có khối dày, đủ hàng mỏng của 90 phút.
+    - **Ca ngược:** nhân bản khối dày tới khi vượt — **3 lần** → **13.212.940 byte**, vượt
+      **20,1%**. Ngưỡng **đỏ được**.
+  - 📌 **Ca xấu được GHIM theo tên, không dò lại mỗi lượt chạy.** Dò cả 20 mã tốn ~5 giây mỗi
+    lần ai đó chạy bộ test, để mua đúng một thứ: phòng khi một mã khác vượt lên nặng hơn. Nếu
+    mô hình đổi tới mức thứ tự nặng-nhẹ đảo thì **khối số đo của T744 phải được đo lại** — đó
+    mới là chỗ chịu trách nhiệm, không phải một vòng dò trong bộ test.
   - AC: AC-45.11
   - Phụ thuộc: T744
   - Ghi chú: `tepXuat.ts` phải tự trả `soByte` (hoặc export một hàm thuần `soByteCuaChuoi`) —
@@ -2005,11 +2032,16 @@ học đo **trên chính tệp ấy**.
 
 ## Phase 58 — Hai chế độ so được bằng số, và trả các món nợ có tên
 
-- [ ] **T750** — Nâng `maRong` + mẫu 200 mã lên `__fixtures__/doiMau.ts`
+- [x] **T750** — Nâng `maRong` + mẫu 200 mã lên `__fixtures__/doiMau.ts`
   - File: `src/engine/__fixtures__/doiMau.ts`, `src/engine/sosanh.doiManhHon.test.ts`,
     `src/engine/sosanh.sanNha.test.ts`
   - Xong khi: hai file `sosanh.*` cũ **còn in đúng** `174-17-9` và `76-47-77`; và
     `grep -n "Math.random\|Date.now" src/engine/__fixtures__/doiMau.ts` → rỗng.
+  - ✅ **XONG 2026-11-27.** `maRong`, `SO_MA_RONG = 200` và `MAU_RONG` ở `doiMau.ts`.
+    Hàm ấy từng tồn tại **hai bản chép tay**: `sosanh.doiManhHon.test.ts` khai `maRong(i)`,
+    còn `sosanh.sanNha.test.ts` viết thẳng cùng biểu thức vào trong `Array.from`.
+  - ✅ Hai con số của điều kiện ra **còn nguyên**: `174-17-9` và `76-47-77`. Và `sosanh.sanNha`
+    vẫn in `0.60 / 0.07`. `grep "Math.random\|Date.now" doiMau.ts` → **rỗng**.
   - AC: AC-45.3 (nền)
   - Phụ thuộc: —
   - Ghi chú: `maRong` và `MAU_RONG` hiện là hàm/hằng **cục bộ, không export**, nên "dùng lại"
@@ -2017,12 +2049,31 @@ học đo **trên chính tệp ấy**.
     trùng hợp. `doiMau.ts` **không phải** file `.test.ts` nên `laFileTest()` **không** bỏ qua
     nó: dãy mã mới chỉ được dùng `padStart`, **không** một nguồn ngẫu nhiên nào.
 
-- [ ] **T751** — `sosanh.haiCheDo.test.ts`: hai `it`, hai hằng số ở đúng một chỗ
+- [x] **T751** — `sosanh.haiCheDo.test.ts`: hai `it`, hai hằng số ở đúng một chỗ
   - File: tạo `src/engine/sosanh.haiCheDo.test.ts`
   - Xong khi: `benMau('A',{chiSo:15})` vs `benMau('B',{chiSo:10})`, `sanTrungLap: true`, **200
     mã**; `LECH_HIEU_SO_TOI_DA = 0.5` và `LECH_TI_LE_THANG_TOI_DA = 0.10` khai ở **đầu đúng file
     ấy**; một lượt đo **có ghi nhớ** (không đo hai lần cho hai `it`); và file **nằm trong
     `npm test` mặc định**.
+  - ✅ **XONG 2026-11-27 — AC-45.3 ĐÓNG.** 200 mã, cả hai chế độ, `A15 vs B10`, sân trung lập:
+
+    | | thắng-hoà-thua | tỉ lệ thắng | hiệu số TB | tổng bàn |
+    |---|---|---|---|---|
+    | cổ điển | **174-17-9** | 87,0% | +2,255 | 633 |
+    | liên tục | **180-15-5** | 90,0% | +2,520 | 698 |
+
+    **Lệch: 0,265 bàn** (trần 0,5) và **3,0 điểm phần trăm** (trần 10). Hai hằng số khai ở
+    **đầu đúng file ấy**; một lượt đo ở phạm vi module cho cả ba `it`.
+  - ✅ Hàng "cổ điển" trùng **đúng** `174-17-9` mà `sosanh.doiManhHon` ghim — một phép đối
+    chiếu chéo rằng cả hai file đang chạy trên **cùng** bộ 200 mã, đúng điều T750 sinh ra để
+    bảo đảm.
+  - ⚠️ **Ba `it` chứ không hai, và `it` thứ ba là phép CHỐNG RỖNG.** So hai trung bình là một
+    phép so rỗng nếu một bảng không có trận nào hoặc mọi trận 0–0; nên nó khẳng định 200 trận
+    thật ở **cả hai** chế độ và cả hai có trên 100 bàn, **trước** khi so.
+  - 📏 **Cái giá, đo chứ không ước: file này chạy 60 giây.** Ghi chú cũ của task suy từ
+    `doiManhHon` (610 trận v6, 4,2 s) ra "+46–54%" — nhưng một trận **liên tục** tốn **100 ms**
+    so với **9 ms** của v6, tức **×11,1**. 400 trận trong đó 200 là liên tục thì không cùng
+    bậc với 610 trận v6. Con số thật là 60 s, và nó được nói ra thay vì giấu.
   - AC: AC-45.3
   - Phụ thuộc: T750, T704, T742
   - Ghi chú: `vitest` `include: ['src/**/*.test.ts']` **không có `exclude`**, nên file mới vào

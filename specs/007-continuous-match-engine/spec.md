@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **ID** | `007-continuous-match-engine` |
-| **Status** | **Planned** — **22/30 AC đạt** (bảng đóng spec ở **mục 7c**, T762, 2026-11-27). Tám AC còn lại: **năm** thuộc món nợ `T742` (đo trên **dịch chuyển**; trên **vận tốc thật** mô hình sạch hoàn toàn), và ba có chủ task còn mở — `AC-45.3` → T750/T751, `AC-45.6` → khai lại ngoại lệ, `AC-45.11` → T744/T745. **Không `Done`**, và sẽ chỉ `Done` khi cả 30 AC đạt. |
+| **Status** | **Planned** — **24/30 AC đạt** (bảng đóng spec ở **mục 7c**, T762, 2026-11-27; `AC-45.3` và `AC-45.11` đóng ngay sau đó bằng T744/T745/T750/T751). Sáu AC còn lại: **năm** thuộc món nợ `T742` (đo trên **dịch chuyển**; trên **vận tốc thật** mô hình sạch hoàn toàn), và **`AC-45.6`** — bốn vế có `soMau = 0` trên tệp, cần khai lại ngoại lệ hoặc chờ spec 008. **Không `Done`**, và sẽ chỉ `Done` khi cả 30 AC đạt. |
 | **Created** | 2026-11-19 |
 | **Clarified** | 2026-11-19, bổ sung 2026-11-22 và **2026-11-23** khi lập plan (mục 14 và 15) |
 | **Branch** | `007-continuous-match-engine` — **đã cắt** từ `main` tại `7e1b065` |
@@ -291,7 +291,7 @@ thay vì phải tin**.
 - [x] AC-45.2 — KHI mở một trận đã lưu bằng engine hiện tại THÌ nó PHẢI mở được, xem lại
       được và đấu lại được **đúng từng dòng như trước spec này**; engine hiện tại PHẢI
       không đổi một kết quả nào (P1, P3).
-- [ ] AC-45.3 — KHI mô phỏng **200 mã trận** với cùng hai đội và cùng chiến thuật ở **cả hai
+- [x] AC-45.3 — KHI mô phỏng **200 mã trận** với cùng hai đội và cùng chiến thuật ở **cả hai
       chế độ** THÌ hiệu số bàn thắng trung bình giữa hai chế độ PHẢI không lệch quá **0,5
       bàn**, và tỉ lệ thắng của đội mạnh hơn PHẢI không lệch quá **10 điểm phần trăm**. Một
       trận **cụ thể** PHẢI không bắt buộc ra cùng tỉ số — hai chế độ rút ngẫu nhiên ở hai
@@ -387,7 +387,7 @@ thay vì phải tin**.
       và PHẢI **không** có thanh thời gian nhảy về giây thứ N. Người dùng muốn xem lại một
       pha đã trôi qua PHẢI chạy lại trận bằng **cùng mã trận** — AC-37.5 bảo đảm họ thấy
       đúng chuyển động ấy.
-- [ ] AC-45.11 — KHI xuất tệp JSON của một trận **90 phút** ở chế độ liên tục (AC-45.5) THÌ
+- [x] AC-45.11 — KHI xuất tệp JSON của một trận **90 phút** ở chế độ liên tục (AC-45.5) THÌ
       tệp PHẢI **không vượt 11 MB = 11.000.000 byte** (cơ số **thập phân** — cùng cơ số với
       phép tính "dư 37%" ở ghi chú dưới), và phép kiểm PHẢI **đo kích thước thật** của tệp sinh
       ra, không ước lượng từ số mốc.
@@ -542,7 +542,7 @@ mình khi lập bảng này, lấy thẳng từ điều kiện ra của `T762`:
 | **AC-38.11** hướng người khớp hướng đi | 🔴 **NỢ CÓ TÊN** | **22 vi phạm / 272.360** — `T742` |
 | AC-45.1 chọn chế độ, ghi vào bản ghi | ✅ ĐẠT | `tran.test.ts`, `matchRepo.test.ts`, `phatLai.cheDo.test.ts`; phần giao diện kiểm bằng mắt ở `T761` |
 | AC-45.2 trận cũ mở lại đúng từng dòng | ✅ ĐẠT | `phatLai.cheDo.test.ts` + **toàn bộ** bộ kiểm spec 001–006 còn xanh |
-| **AC-45.3** 200 mã, hai chế độ | 🔴 **CHƯA ĐẠT** | **Chưa chạy.** Phép kiểm hôm nay so trên **10** mã và chỉ canh mệnh đề *"một trận cụ thể không bắt buộc giống"*. Chủ: **`T750` + `T751`** của spec 007 |
+| AC-45.3 200 mã, hai chế độ | ✅ ĐẠT *(2026-11-27)* | `sosanh.haiCheDo.test.ts` — **200 mã, cả hai chế độ**. Cổ điển **174-17-9** (87,0%, +2,255), liên tục **180-15-5** (90,0%, +2,520): lệch **0,265 bàn** / **3,0 điểm phần trăm**, trần 0,5 / 10. Cộng một phép chống rỗng (200 trận thật, 633 và 698 bàn) |
 | AC-45.4 không lưu vị trí, sinh lại được | ✅ ĐẠT | `tran.test.ts`, `matchRepo.test.ts`, `doCoHoc.test.ts` |
 | AC-45.5 tệp JSON đúng mục 7b + 15 | ✅ ĐẠT | `tepXuat.test.ts`, `nhatKy.test.ts`; hai khoá `hanh_dong`/`muc_dich` mang `null` — **nợ có tên** của spec **009** |
 | **AC-45.6** mọi phép kiểm US-38 chạy trên tệp | 🔴 **CHƯA ĐẠT** | AC cho **đúng một** ngoại lệ (AC-38.8), nhưng đo được **bốn vế nữa** không chạy trên tệp: `38.5(đánh đầu)`, `38.6(dải)`, `38.6(thời gian bay)`, `38.7` — **0 mẫu trên cả 10 mã**. Hai vế `38.10(a)(b)` cũng vậy. Chủ: **spec 007** (khai lại ngoại lệ) hoặc **spec 008** (bóng lăn tự do) |
@@ -550,13 +550,17 @@ mình khi lập bảng này, lấy thẳng từ điều kiện ra của `T762`:
 | AC-45.8 khoá chế độ khi quân số ≠ 11 | ✅ ĐẠT | `batDau.test.ts`; và `T761` thấy tận mắt ô radio `disabled` kèm một `role="status"` nói rõ vì sao |
 | AC-45.9 giảm chuyển động: toạ độ trùng mốc | ✅ ĐẠT | `viTriVe.test.ts` |
 | AC-45.10 chỉ tua TỚI | ✅ ĐẠT | `tuaToi.test.ts` — 3 `describe`, gồm hai phép **chứng minh phép kiểm đỏ được** |
-| **AC-45.11** tệp ≤ 11.000.000 byte | 🔴 **CHƯA ĐẠT** | **Không một phép kiểm nào.** Đã có **một** phép đo (4.512.038 byte, một mã) nhưng không có ngưỡng và không có ca xấu. Chủ: **`T744` + `T745`** của spec 007 |
+| AC-45.11 tệp ≤ 11.000.000 byte | ✅ ĐẠT *(2026-11-27)* | `tepXuat.test.ts` — **ca xấu trong 20 mã: 5.332.429 byte**, dư **51,5%**; đo bằng `TextEncoder().byteLength` trên chính chuỗi sẽ ghi, **không ước từ số mốc**. Cộng một **ca ngược**: nhân bản khối dày 3 lần → 13.212.940 byte, vượt 20,1% — ngưỡng **đỏ được** |
 
-**Tổng: 22 ĐẠT · 8 chưa đạt**, trong đó **5** thuộc một món nợ duy nhất (`T742`) và **3** có
-chủ task cụ thể còn mở.
+**Tổng: 24 ĐẠT · 6 chưa đạt** *(cập nhật 2026-11-27 sau T744, T745, T750, T751)*, trong đó
+**5** thuộc một món nợ duy nhất (`T742`) và **1** là `AC-45.6`.
+
+📌 Bảng lúc T762 lập, cùng ngày, là **22 / 8**. Hai AC đóng ngay sau đó — `AC-45.3` và
+`AC-45.11` — là hai dòng mà chính bảng này gọi tên chủ nợ, và chúng được trả trong vài giờ.
+Đó là thứ một bảng đóng spec dùng để làm.
 
 ⚠️ **Vì sao `Status` KHÔNG đổi thành `Done`.** Điều kiện ra của `T762` nói rõ: *"`Status` đổi
-thành `Done` **chỉ khi** mọi AC đạt"*. Tám AC chưa đạt, nên spec này **ở lại `Planned`**. Bảng
+thành `Done` **chỉ khi** mọi AC đạt"*. **Sáu** AC chưa đạt, nên spec này **ở lại `Planned`**. Bảng
 trên là thứ T762 phải giao, không phải con dấu `Done`.
 
 📌 **Năm AC của nhóm `T742` KHÔNG phải mô hình sai.** Chú thích của `doCoHoc.test.ts` đã đo

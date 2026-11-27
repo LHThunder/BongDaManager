@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { benMau } from './__fixtures__/doiMau'
+import { benMau, MAU_RONG } from './__fixtures__/doiMau'
 import { LOI_THE_SAN_NHA } from './sucManh'
 import { chayHetTran, taoTran } from './tran'
 
@@ -24,10 +24,8 @@ import { chayHetTran, taoTran } from './tran'
   +1,02 — vượt cái trần "nhỏ hơn 1 bàn" mà chính test này đặt ra. Nới mẫu chứ
   không nới trần: trần đến từ chữ "lợi thế NHỎ" của AC-8.14.
 */
-const MAU = Array.from(
-  { length: 200 },
-  (_, i) => `Z${String(i).padStart(4, '0')}XQ4B`,
-)
+// `MAU_RONG` nâng lên `__fixtures__/doiMau.ts` ở T750 — cùng 200 mã với `sosanh.doiManhHon`.
+const MAU = MAU_RONG
 
 function doTrenMau(sanTrungLap: boolean) {
   let hieu = 0
