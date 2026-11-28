@@ -391,9 +391,22 @@ quả bóng**.
 - [ ] Không vi phạm nguyên tắc nào trong constitution
 - [ ] Mọi AC dạng **khoảng số** có **test tự động** đo đúng khoảng đó trên nhiều mã trận; không
       AC nào trong nhóm ấy được tick bằng cách xem mắt (P5)
-- [ ] **Món nợ cơ học của spec 007 không tệ đi:** số vi phạm trên tổng mẫu của AC-38.1, 38.2,
-      38.3, 38.4, 38.6 và 38.11 PHẢI KHÔNG tăng so với mốc đã đo ngày 2026-11-27 — và mốc ấy
-      được ghi lại ở đây: **249+104 / 23+3 / 62+312 / 1 / 280+144 / 22** trên 10 mã
+- [ ] **Món nợ cơ học của spec 007 không tệ đi:** với mỗi vế của AC-38.1, 38.2, 38.3, 38.4,
+      38.6 và 38.11, **tỉ lệ `số vi phạm / tổng mẫu`** PHẢI KHÔNG tăng so với một nền đo trên
+      **mười mã trận cố định**. Nền ấy được **đo và ghi ở lát 0** (`plan.md` mục 9, task
+      `T820`), kèm **cả tử số và mẫu số** của từng vế.
+      > ⚠️ **Sáu con số mà bản trước của dòng này ghi — `249+104 / 23+3 / 62+312 / 1 /
+      > 280+144 / 22` — KHÔNG phải một nền trên mười mã, và không được dùng làm nền.** `/analyze`
+      > ngày 2026-11-28 truy ra: năm con số đầu là bảng nợ **T742** của spec 007
+      > (`specs/007/spec.md:611`), còn `280+144` của AC-38.6 là số đo trên **MỘT** mã, từ `T816`.
+      > Hai hệ quả, ngược chiều nhau, và cả hai làm dòng này vô dụng:
+      > **(a)** AC-38.1 đo được hôm nay là **8+1 một mã**, nên ngưỡng 249 cho món nợ **tăng gấp
+      > ba** mà vẫn xanh — một cổng chết.
+      > **(b)** AC-38.6 trên mười mã sẽ ra khoảng **2.800+1.440**, nên đòi *"khớp 280+144"* là
+      > một cổng **đỏ vì cỡ mẫu**, không vì hồi quy — và nó chặn mọi task.
+      > Thêm nữa, mẫu số của chính các vế ấy **đã dịch**: `AC-38.4(lùi)` có `soMau` đi từ
+      > **180 xuống 21** một mã. So **số đếm** trên hai cỡ mẫu khác nhau là một phép so vô nghĩa;
+      > vì thế dòng này nay nói **tỉ lệ**, và đòi **mẫu số phải được ghi ra**.
 - [ ] **Dòng sự kiện và tỉ số KHÔNG đổi một ký tự** trên mười mã trận cố định — hệ quả trực
       tiếp của quyết định *"vị trí không quyết định kết cục"*, và là phép kiểm rẻ nhất chứng
       minh nó
@@ -491,3 +504,33 @@ nên nó thành một câu hỏi, và người dùng chốt.
 đẩy *"huấn luyện viên máy đổi sơ đồ giữa trận"* sang một spec sau với lý do *"cần một tác nhân
 ra quyết định ở cấp **đội**, không phải cấp **người**"*. Thay người do máy là **đúng tác nhân
 ấy**, nên nó về cùng một chỗ thay vì mở một món nợ thứ hai.
+
+---
+
+### Lượt năm — 2026-11-28, trong lúc `/analyze`
+
+`/analyze` chạy 53 agent trên sáu nhóm, tìm 47 phát hiện, và một lượt thẩm đối kháng **bác 27**
+— gồm bốn cái từng được báo CRITICAL. Hai mươi cái còn lại cộng ba cái tìm thêm đều nằm ở
+`plan.md` và `tasks.md`, nên `spec.md` **chỉ đổi đúng một dòng**: mục 8, món nợ cơ học.
+
+**Vì sao dòng ấy phải đổi, dù nó là một dòng người dùng đã chốt.** Nó nói đúng về **đại lượng**
+— nguyên văn *"số vi phạm **trên tổng mẫu**"*, tức một **tỉ lệ**. Nhưng sáu con số nó liệt ngay
+sau đó là **số đếm trần**, không mẫu số, và chúng đến từ **hai phép đo khác cỡ mẫu**: năm con số
+từ `T742` của spec 007 (đo trên ~10 mã, mẫu 1,5 triệu), một con số từ `T816` (đo trên **một**
+mã). Dòng ấy gọi cả sáu là *"trên 10 mã"*.
+
+| Bằng chứng | Số |
+|---|---|
+| `soMau['AC-38.10(c)']` một mã, hôm nay | **11.958** |
+| cùng vế ấy ở `T742` (`specs/007/spec.md:611`) | **120.660** → hệ số **10,09** ⇒ T742 đo ~10 mã |
+| `AC-38.6` ở `T816`, một mã | **280 + 144 = 424** trong tổng **450** vi phạm của mã ấy |
+| `AC-38.1` một mã, hôm nay | **8 + 1**, so với **249 + 104** của T742 |
+| `soMau['AC-38.4(lùi)']` một mã | đi từ **180** xuống **21** — mẫu số tự nó đã dịch |
+
+**Cái giá của việc sửa:** spec này **mất một nền đã ghi sẵn**, và phải đợi `T820` đo mới có nền.
+Đổi lại: cái gate chạy ở **mọi task** thôi vừa chết vừa đỏ sai. Một nền sai là tệ hơn chưa có
+nền, vì nó **trông như** đã được canh.
+
+📌 **Và ghi lại để không ai sửa ngược:** `spec.md` vốn nói **đúng** (*"trên tổng mẫu"*). Chỗ
+nói sai là `plan.md` R78 và `tasks.md` T820 — chúng chép sáu con số rồi đòi *"khớp"*, tức bỏ mất
+đúng ba chữ *"trên tổng mẫu"* mà spec đã viết. Lỗi nằm ở hai tài liệu dưới, không ở spec.

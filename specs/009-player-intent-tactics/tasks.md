@@ -4,7 +4,7 @@
 |---|---|
 | **Spec** | `./spec.md` (Status `Planned`, **36 AC**: 17 ở US-40, 19 ở US-41) |
 | **Plan** | `./plan.md` (Status `Draft`, D147–D168, R68–R80) |
-| **Tiến độ** | 0/38 |
+| **Tiến độ** | 0/40 |
 | **Nền đo** | commit `9c89a7d` · **87 file test / 1.859 phép kiểm xanh** · bộ kiểm chạy **178 giây** · một trận liên tục **110,84 ms** (ca xấu 129,44) · ca xấu tệp xuất **5.332.957 byte / 6.440 hàng mỏng** |
 
 > Quy ước: `[P]` = có thể làm song song (khác file, không phụ thuộc nhau).
@@ -13,23 +13,30 @@
 > **Số task và số phase đi tiếp theo dãy của repo, không theo số spec.** Spec 001→T136,
 > 002→T224, 003→T344, 004→T441, 005→T526, 006→T628, 007→T762, 011→T818 (T763–T811 của plan,
 > cộng T812–T818 do `/implement` và các lượt xem của người dùng thêm). Nên spec 009 lấy
-> **T819–T856** và **Phase 67–73** (spec 011 dừng ở Phase 66).
+> **T819–T858** và **Phase 67–73** (spec 011 dừng ở Phase 66).
 >
 > ⚠️ **Spec 009 đi SAU spec 011 về số nhưng TRƯỚC về số spec, và đó không phải lỗi.** Spec 008
 > và 010 đã được dành **số spec** nhưng chưa dành số task; chúng lấy số còn trống lúc được
 > viết. Đừng đọc thứ tự số task như thứ tự số spec.
 
-> **38 task, 7 phase, ánh xạ 1-1 với bảy lát cắt của `plan.md` mục 9.**
+> **40 task, 7 phase, ánh xạ 1-1 với bảy lát cắt của `plan.md` mục 9.**
+>
+> ⚠️ **`T857` và `T858` KHÔNG nằm ở phase cuối, và đó là cố ý.** `T857` ở **Phase 67** (ngay sau
+> T820) và `T858` ở **Phase 68** (ngay sau T829) — cả hai là task `/analyze` ngày **2026-11-28**
+> phải thêm (**D171**, **D170**), và chúng phải đi **trước** phần việc chúng gác. Đánh số tiếp
+> nối rẻ hơn đánh số lại 38 task, và spec 007 cùng spec 011 (`T812`) đã có đúng tiền lệ này.
+> **Đi theo tiêu đề phase, đừng đi theo số.**
 >
 > **Chuỗi phụ thuộc dài nhất: 27 task** —
-> `T825 → T826 → T827 → T828 → T829 → T830 → T831 → T832 → T833 → T835 → T836 → T837 → T838 →
+> `T825 → T826 → T827 → T828 → T829 → T858 → T831 → T832 → T833 → T835 → T836 → T837 → T838 →
 > T839 → T843 → T844 → T845 → T847 → T848 → T849 → T850 → T851 → T852 → T853 → T854 → T855 →
 > T856`. Nó dài vì **mỗi lát cắt phải xem được trước khi lát sau bắt đầu** (P6), và vì năm điều
 > kiện RA chạy ở cuối mỗi lát. Đó là một lựa chọn, không phải một tai nạn: rút ngắn chuỗi là bỏ
 > các chốt kiểm giữa đường.
 >
 > **Chỉ 5 task chạy song song được:** `T820`, `T822` (Phase 67), `T825` (Phase 68), `T840`,
-> `T841` (Phase 70). Ít, vì spec này tập trung vào **ba file mới mà mọi thứ đi qua** —
+> `T841` (Phase 70). `T857` và `T858` **không** song song được: mỗi cái dùng chung file với task
+> nó phụ thuộc (`doCoHoc.test.ts` với T820; `tranLienTuc.ts` với T829). Ít, vì spec này tập trung vào **ba file mới mà mọi thứ đi qua** —
 > `mucDich.ts`, `khoiDoiHinh.ts`, `theLucCoHoc.ts`. Hai cặp từng được đánh `[P]` rồi **bị gỡ**
 > khi kiểm bằng máy: T841–T842 cùng chạm `theLucCoHoc.ts`, T845–T846 cùng chạm `hanhDong.ts`.
 >
@@ -55,8 +62,10 @@
 > 2. **Bảng vân tay 10 mã khớp TỪNG KÝ TỰ** (T819). Đây là lưới duy nhất giữ lời hứa 🔒
 >    *"vị trí không quyết định kết cục"*, và nó là thứ phải chạy ở **mọi** phase, không chỉ
 >    phase cuối — vì cái nó bắt là một **rò rỉ**, và rò rỉ vào sớm thì sửa rẻ (**R69**).
-> 3. **Sáu con số nợ cơ học của spec 007 KHÔNG tăng** (T820). `spec.md` mục 8 ghim chúng là
->    **249+104 / 23+3 / 62+312 / 1 / 280+144 / 22** trên 10 mã (**R78**).
+> 3. **Tỉ lệ `vi phạm / mẫu` của sáu vế nợ cơ học KHÔNG tăng** so với nền mà **T820** đo và
+>    ghi trên 10 mã (**R78**, **D169**). ⚠️ **Sáu con số `249+104 / 23+3 / 62+312 / 1 /
+>    280+144 / 22` KHÔNG phải nền** — chúng trộn hai cỡ mẫu, nên dùng chúng là dựng một cổng
+>    **vừa chết vừa đỏ sai**. `spec.md` mục 8 đã được sửa ngày 2026-11-28.
 > 4. **Ba dây bẫy của spec 011 AC-49.6/49.7 còn xanh** — `src/ui/batBienSaBan.test.ts`. Hai AC
 >    ấy người dùng đã **xem bằng mắt rồi phán đạt** ngày 2026-11-26, và lề chỉ hơn hai lần
 >    (**R80**).
@@ -81,13 +90,22 @@
   - AC: — (hạ tầng cho điều kiện RA số 2 và cho 🔒 ở `spec.md` mục 1)
   - Phụ thuộc: —
 
-- [ ] **T820** [P] — Sáu con số nợ cơ học của spec 007 trên **đủ 10 mã**, ghim làm bảng cơ sở.
+- [ ] **T820** [P] — **Đo và ghi nền nợ cơ học bằng TỈ LỆ** — `vi phạm / mẫu` của từng vế, trên **đủ 10 mã**.
   - File: `src/engine/lienTuc/doCoHoc.test.ts`
-  - Cách làm: mở rộng phép kiểm hiện có từ 2 mã lên 10 mã cho sáu vế AC-38.1, 38.2, 38.3, 38.4, 38.6, 38.11; ghi con số đo được vào chú thích và đòi **không tăng**.
-  - Xong khi: sáu con số in ra khớp **249+104 / 23+3 / 62+312 / 1 / 280+144 / 22**; `it` khai `timeout` riêng (mặc định vitest là 5.000 ms, repo **không** đặt `testTimeout`); thời gian thêm ghi vào chú thích.
-  - 📌 Repo đã **từ chối** giá này một lần (`doCoHoc.test.ts:393`, 5 mã vì 3 giây). Lần này trả, vì `spec.md` mục 8 ghim sáu con số ấy thành **điều kiện ra** (**R78**).
+  - Cách làm: mở rộng phép kiểm hiện có từ 2 mã lên 10 mã cho sáu vế AC-38.1, 38.2, 38.3, 38.4, 38.6, 38.11. `doCoHoc` **đã** trả `soMau` theo từng vế, nên tỉ lệ tính được **không cần hạ tầng mới**.
+  - Xong khi: với **từng** vế, chú thích ghi **cả tử số và mẫu số** cộng tỉ lệ; phép kiểm đòi tỉ lệ **không tăng**; `it` khai `timeout` riêng (mặc định vitest là 5.000 ms, repo **không** đặt `testTimeout`); thời gian thêm ghi vào chú thích.
+  - ⚠️ **KHÔNG dùng sáu con số `249+104 / 23+3 / 62+312 / 1 / 280+144 / 22` làm nền** (**D169**). Chúng trộn hai cỡ mẫu: năm con số từ bảng nợ **T742** của spec 007 (`specs/007/spec.md:611`), và `280+144` của AC-38.6 đo trên **MỘT** mã, từ `T816`. Bằng chứng: `soMau['AC-38.10(c)']` là **11.958** một mã so với **120.660** ở T742 ⇒ T742 đo ~10 mã; còn `280+144 = 424` đúng là **424 trong 450** vi phạm của một mã. Dùng chúng thì AC-38.1 thành **cổng chết** (đo được 8+1 một mã, ngưỡng 249 cho nợ tăng gấp ba vẫn xanh) và AC-38.6 thành **cổng đỏ sai** (10 mã ra ~2.800+1.440).
+  - 📌 Repo đã **từ chối** giá 3 giây này một lần (`doCoHoc.test.ts:393`, 5 mã). Lần này trả, vì `spec.md` mục 8 ghim nó thành **điều kiện ra** (**R78**).
   - AC: — (hạ tầng cho điều kiện RA số 3)
   - Phụ thuộc: —
+
+- [ ] **T857** — ❗ Ghim lại **mọi con số tuyệt đối** của `doCoHoc.test.ts`, và phân loại chúng.
+  - File: `src/engine/lienTuc/doCoHoc.test.ts`
+  - Cách làm: liệt **toàn bộ** `toBe` ghim số đo trên một trận thật (`:129`, `:130`, `:248`, `:335`, `:374`-`:377`…), rồi chia hai loại: vế là **ngưỡng nợ** → `toBeLessThanOrEqual` trên **tỉ lệ** của T820; vế là **số mẫu** → ghim lại con số mới **kèm lý do vì sao nó đổi**.
+  - Xong khi: không `toBe` nào còn ghim một **số đếm vi phạm** tuyệt đối; mỗi con số mẫu được ghim lại có một dòng lý do; `npx vitest run src/engine/lienTuc/doCoHoc.test.ts` xanh.
+  - ⚠️ **Vì sao nó là một task riêng và đi TRƯỚC mọi lát sửa hành vi (D171):** **D165** đổi hai bảng tỉ lệ, **D152** đổi đích của 22 người, `T838` hạ trần tốc độ — cả ba dời vị trí **từng mốc**, nên các `toBe` ấy đỏ. Rải việc ghim lại ra bảy lát thì **không lát nào** biết con số cuối là gì, và người đọc sau không phân biệt được *"ghim lại vì mô hình đổi"* với *"ghim lại vì nợ xấu đi"*.
+  - AC: — (hạ tầng cho điều kiện RA số 3)
+  - Phụ thuộc: T820
 
 - [ ] **T821** — ❗ **TASK CHẶN** — thay `const daRut = 0` bằng một bộ đếm lần rút **thật**, rồi đo và báo số.
   - File: `src/engine/lienTuc/tranLienTuc.ts`, `src/engine/lienTuc/tranLienTuc.test.ts`
@@ -163,8 +181,18 @@
   - Cách làm: thay `dichNguoiKhongBong(choDung[o], dBong, phanDichCuaO(o))`; gỡ `PHAN_DICH_THEO_BONG`, `phanDichCuaO`, `BIEN_DO_PHAN_DICH`, `dichNguoiKhongBong` cùng phép kiểm của chúng. **Giữ** `tamVungMet` — `nhatKy.ts` đọc nó.
   - Xong khi: `grep -c 'phanDichCuaO' src/engine/lienTuc/` = **0**; `grep -c 'tamVungMet' src/engine/lienTuc/nhatKy.ts` ≥ **1**; `npx tsc --noEmit` xanh; bảng vân tay T819 **khớp từng ký tự**.
   - 📌 `viTriMet.ts` đã **ghi trước** điều này: *"khi ấy hàm này bị **thay**, không phải cộng thêm"*.
+  - 📌 **Vì sao phụ thuộc T857:** đây là task **đầu tiên dời vị trí**, nên các con số tuyệt đối của `doCoHoc.test.ts` phải được ghim lại **trước** (**D171**).
   - AC: AC-41.5
-  - Phụ thuộc: T828
+  - Phụ thuộc: T828, T857
+
+- [ ] **T858** — ❗ **Dựng AC-41.9: trong một đoạn dẫn, quả bóng ĐI THEO NGƯỜI.**
+  - File: `src/engine/lienTuc/tranLienTuc.ts`, `src/engine/lienTuc/tranLienTuc.test.ts`
+  - Cách làm: với đoạn `loai === 're-bong'`, vị trí bóng **dẫn xuất từ vị trí người dẫn** (lệch nhiều nhất `TAM_CHAM_BONG`) thay vì nội suy theo đoạn; **đích của người dẫn** là điểm đến của đoạn. Người dẫn vì thế **không** còn rơi về `dichNguoiKhongBong`.
+  - Xong khi: khoảng cách người dẫn ↔ bóng **< 2 m ở MỌI mốc** của mọi pha dẫn trên 10 mã; một ca ngược (buộc bóng rời người) làm phép kiểm đỏ; `nguoi_giu` của mốc **nêu tên người dẫn** trong pha dẫn, không phải `-1`.
+  - 🐞 **Bản trước của bảng phủ AC ghi *"đã đúng từ T816"* — SAI theo cấu trúc.** `cacDiemCuaPha` (`tranLienTuc.ts:288`) quy **mọi** hành động thành một điểm vùng, kể cả `'re-bong'`, nên một đoạn dẫn có `quang > 0` ⇒ `dangBay = true` ⇒ `giuThucSu = KHONG_AI_GIU` ⇒ người dẫn **đi về chỗ đứng sơ đồ trong khi quả bóng đi**. Xem **D170**.
+  - ⚠️ **Hai cái giá phải ĐO, không đoán:** (1) tốc độ bóng trong pha dẫn nay bị kẹp bởi trần tốc độ **của người** (6,4–8,6 m/s), nên nó **có thể** chạm vế dải tốc độ của **AC-38.6** — kiểm vế ấy có lọc theo loại hành động không, và **báo số**; (2) `dangBay` còn nuôi neo trọng tài và `duongChuyen` của AC-38.10(b), nên cả hai đổi nghĩa cho pha dẫn — theo chiều **đúng hơn**, nhưng phải chạy lại `doCoHoc` và báo số.
+  - AC: AC-41.9
+  - Phụ thuộc: T829
 
 - [ ] **T830** — Vế đo cho năm AC nặng nhất của lát này.
   - File: `src/engine/lienTuc/doMucDich.ts`, `src/engine/lienTuc/doMucDich.test.ts`
@@ -179,7 +207,7 @@
   - Xong khi: bộ kiểm xanh · vân tay 10 mã khớp từng ký tự · sáu con số nợ 007 **không tăng** · ba dây bẫy `batBienSaBan.test.ts` xanh · `git diff --stat` của ba file đường kết cục **rỗng**; và người dùng xem một trận rồi nói nó **khác** hay **chưa khác**.
   - 📌 Cho xem **ngay cuối lát 1**, không đợi Phase 73: **R77** là rủi ro không giảm được bằng máy, và tiền lệ đã có hai lần — *"11 cặp khiêu vũ"* (T814) và *"giật cục"* (T817) đều **xanh hết phép kiểm**.
   - AC: AC-41.5, AC-41.20
-  - Phụ thuộc: T830
+  - Phụ thuộc: T830, T858
 
 ---
 
@@ -430,7 +458,7 @@ chưa xong dù hành vi đã có.
 | AC-41.6 | T826 | T823 *(nền)*, T830 |
 | AC-41.7 | T825, T826 | T830 |
 | AC-41.8 | T844, T849 | T851 |
-| AC-41.9 | *(đã đúng từ T816)* | T851 |
+| AC-41.9 | **T858** | T851 |
 | AC-41.10 | *(đã đúng từ T816)* | T851 |
 | AC-41.11 | T846 | T851 |
 | AC-41.12 | T845 | T851 |
@@ -452,7 +480,8 @@ chưa xong dù hành vi đã có.
 ## Ghi chú thực thi
 
 - **Không tạo file nào ngoài danh sách trên.** Phát sinh thêm → **dừng, cập nhật plan/tasks
-  trước**. Sáu file mới của spec này là: `mucDich.ts`, `khoiDoiHinh.ts`, `theLucCoHoc.ts`,
+  trước**. Ngày **2026-11-28** `/analyze` đã làm đúng việc ấy một lần: nó tìm ra ba chỗ chặn, và
+  `spec.md` mục 8 cùng `plan.md` cùng file này được sửa **trước** khi một dòng code nào chạy. Sáu file mới của spec này là: `mucDich.ts`, `khoiDoiHinh.ts`, `theLucCoHoc.ts`,
   `hanhDong.ts`, `doMucDich.ts`, `vanTayLienTuc.test.ts` — cộng file test của từng cái.
 - **Năm điều kiện RA chung chạy ở MỌI phase**, không chỉ phase cuối. Cái chúng bắt là một **rò
   rỉ**, và rò rỉ vào sớm thì sửa rẻ.
